@@ -469,13 +469,6 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
         setImportPreview(preview);
         setImportErrors(warnings);
         setShowImport(true);
-
-      } catch(err) {
-        console.error("Excel import error:", err);
-        alert("خطأ في قراءة الملف:\n" + err.message);
-      }
-    };
-    reader.readAsArrayBuffer(file);
   }
 
   // ── Confirm import: update existing employees or add new ones ──
