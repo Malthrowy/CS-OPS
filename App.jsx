@@ -1,4 +1,4 @@
-/ v4
+import { useState, useMemo, useRef, useCallback } from “react”;
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const DAYS = [“Sunday”,“Monday”,“Tuesday”,“Wednesday”,“Thursday”,“Friday”,“Saturday”];
@@ -4627,7 +4627,7 @@ fontFamily:”‘IBM Plex Sans’,‘Segoe UI’,sans-serif” }}>
             <span style={{ fontSize:18 }}>{PAGE_ICONS[p]}</span>
             <span style={{ fontSize:8, color: page===p ? "#60A5FA" : "rgba(255,255,255,0.5)",
               fontWeight: page===p ? 700 : 400, whiteSpace:"nowrap" }}>
-              {p.length > 7 ? p.slice(0,6)+"…" : p}
+              {p.length > 7 ? p.slice(0,6)+"..." : p}
             </span>
           </button>
         ))}
