@@ -1,4 +1,3 @@
-// v2
 import { useState, useMemo, useRef, useCallback } from "react";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
@@ -6,8 +5,7 @@ const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Satur
 const TASK_LIST = ["TGA","Social Group","KSA OT","GCC T2 Cases","KWT T2 Cases","KSA SOME Cases","KWT SOME Cases","GCC SOME Cases","180","OSLO","Keemart Online","Survey","Failed Refund Sheet"];
 const TASK_COLORS = ["#6366F1","#0EA5E9","#F59E0B","#10B981","#EF4444","#8B5CF6","#EC4899","#14B8A6","#F97316","#06B6D4","#84CC16","#A855F7","#E11D48"];
 const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Day Off"];
-const KG_TOPICS = ["Product Knowledge","Policy Understanding","System Navigation","Communication Skills","Escalation Handling","Refund Process","Technical Troubleshooting","SOP Compliance"];
-const PAGES = ["Schedule","Attendance","Performance","Heat Map","KG Analysis","Queue","Roster","Shifts","Reports"];
+const PAGES = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor","Heat Map","Audit Log","Notes","Shifts","Performance","Reports"];
 
 // ─── STYLE HELPERS ────────────────────────────────────────────────────────────
 const I = (extra={}) => ({ background:"#fff", border:"1px solid #CBD5E1", borderRadius:6, padding:"6px 10px", fontSize:13, color:"#1E293B", outline:"none", width:"100%", boxSizing:"border-box", ...extra });
@@ -18,13 +16,14 @@ const LBL = { fontSize:12, fontWeight:600, color:"#64748B", marginBottom:4, disp
 
 // ─── DEFAULT DATA ─────────────────────────────────────────────────────────────
 const DEFAULT_SHIFTS = [
-  { id:"s1", label:"Morning", start:"08:00", end:"16:00", color:"#0EA5E9" },
-  { id:"s2", label:"Afternoon", start:"12:00", end:"20:00", color:"#10B981" },
-  { id:"s3", label:"Evening", start:"16:00", end:"00:00", color:"#F59E0B" },
-  { id:"s4", label:"Night", start:"00:00", end:"08:00", color:"#8B5CF6" },
-  { id:"s5", label:"Split A", start:"09:00", end:"17:00", color:"#EF4444" },
-  { id:"s6", label:"Split B", start:"13:00", end:"21:00", color:"#EC4899" },
-  { id:"s7", label:"Late Night", start:"20:00", end:"04:00", color:"#06B6D4" },
+  { id:"s1", label:"Shift 1", start:"08:00", end:"17:00", color:"#0EA5E9" },
+  { id:"s2", label:"Shift 2", start:"10:00", end:"19:00", color:"#10B981" },
+  { id:"s3", label:"Shift 3", start:"11:00", end:"20:00", color:"#F59E0B" },
+  { id:"s4", label:"Shift 4", start:"13:00", end:"22:00", color:"#6366F1" },
+  { id:"s5", label:"Shift 5", start:"14:00", end:"23:00", color:"#EF4444" },
+  { id:"s6", label:"Shift 6", start:"17:00", end:"02:00", color:"#EC4899" },
+  { id:"s7", label:"Shift 7", start:"19:00", end:"04:00", color:"#06B6D4" },
+  { id:"s8", label:"Shift 8", start:"23:00", end:"08:00", color:"#8B5CF6" },
 ];
 
 const DEFAULT_EMPLOYEES = [
@@ -139,7 +138,7 @@ function monthDates(y,m) {
   const d = new Date(y,m,1);
   while(d.getMonth()===m){ days.push(new Date(d).toISOString().slice(0,10)); d.setDate(d.getDate()+1); }
   return days;
-}
+  }
 function taskColor(t) { const i=TASK_LIST.indexOf(t); return TASK_COLORS[i%TASK_COLORS.length]; }
 
 // ─── TASK PICKER ──────────────────────────────────────────────────────────────
@@ -178,14 +177,16 @@ function Modal({ title, onClose, children, width=480 }) {
 
 // ─── SCHEDULE PAGE ────────────────────────────────────────────────────────────
 function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts }) {
-  const [showAdd, setShowAdd] = useState(false);
-  const [editEmp, setEditEmp] = useState(null);
-  const [newEmp, setNewEmp] = useState({ name:"", tasks:[], role:"Agent" });
+  const [showAdd, setShowAdd]       = useState(false);
+  const [editEmp, setEditEmp]       = useState(null);
+  const [newEmp, setNewEmp]         = useState({ name:"", tasks:[], role:"Agent" });
   const [showImport, setShowImport] = useState(false);
-  const [importPreview, setImportPreview] = useState([]);
+  const [importPreview, setImportPreview] = useState([]); // [{name, role, tasks, days:{Sun:shiftId,...}}]
+  const [importErrors, setImportErrors]   = useState([]);
   const fileRef = useRef();
   const today = new Date().getDay();
 
+  // ── Helpers ──
   function addEmployee() {
     if (!newEmp.name.trim()) return;
     const id = "e"+Date.now();
@@ -194,43 +195,271 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts }
     setNewEmp({ name:"", tasks:[], role:"Agent" });
     setShowAdd(false);
   }
-
   function updateEmployee() {
     setEmployees(prev => prev.map(e => e.id===editEmp.id ? editEmp : e));
     setEditEmp(null);
   }
-
   function setShift(empId, day, val) {
     setSchedule(prev => ({ ...prev, [empId]: { ...prev[empId], [day]: val } }));
   }
 
+  // ── Resolve cell → shift id ──────────────────────────────────────────────────
+  // Accepts: time ranges, shift labels, WO, Leave, PH, OFF, blank, numbers
+  function resolveShiftId(raw) {
+    if (raw === null || raw === undefined || raw === "") return "OFF";
+    const v = String(raw).trim();
+    if (!v) return "OFF";
+
+    // ── All "off" variants → Day Off ──
+    if (/^(off|wo|w\.o\.?|ph|public.?holiday|holiday|day.?off|leave|annual|إجازة|اجازة|يوم.?إجازة|عطلة|-)$/i.test(v))
+      return "OFF";
+
+    // ── Exact shift label e.g. "Shift 1" ──
+    const byLabel = shifts.find(s => s.label.toLowerCase() === v.toLowerCase());
+    if (byLabel) return byLabel.id;
+
+    // ── Number only → "Shift N" ──
+    if (/^\d+$/.test(v)) {
+      const byNum = shifts.find(s => s.label.toLowerCase() === `shift ${v}`);
+      if (byNum) return byNum.id;
+    }
+
+    // ── Time range "HH:MM-HH:MM" or "HH:MM–HH:MM" ──
+    const rangeMatch = v.match(/^(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})$/);
+    if (rangeMatch) {
+      const pad = t => t.replace(/^(\d):/, "0$1:");
+      const start = pad(rangeMatch[1]);
+      const end   = pad(rangeMatch[2]);
+      // 1. Exact match
+      const exact = shifts.find(s => s.start === start && s.end === end);
+      if (exact) return exact.id;
+      // 2. Start-time match
+      const byStart = shifts.find(s => s.start === start);
+      if (byStart) return byStart.id;
+      // 3. Closest shift by start time
+      const startMin = toMin(start);
+      let closest = shifts[0], minDiff = Infinity;
+      shifts.forEach(s => {
+        const diff = Math.abs(toMin(s.start) - startMin);
+        if (diff < minDiff) { minDiff = diff; closest = s; }
+      });
+      return closest.id;
+    }
+
+    // ── Single time "HH:MM" → match start ──
+    const timeMatch = v.match(/^(\d{1,2}:\d{2})$/);
+    if (timeMatch) {
+      const pad = t => t.replace(/^(\d):/, "0$1:");
+      const s = shifts.find(sh => sh.start === pad(timeMatch[1]));
+      if (s) return s.id;
+    }
+
+    // ── Anything else (dates, unknown text) → OFF ──
+    return "OFF";
+  }
+
+  // ── Parse Excel file — handles ANY structure ──────────────────────────────────
   function handleFile(e) {
-    const file = e.target.files[0]; if (!file) return;
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = ev => {
       try {
         const XLSX = window.XLSX;
-        const wb = XLSX.read(ev.target.result, { type:"array" });
+        if (!XLSX) { alert("SheetJS not loaded yet, please wait and try again."); return; }
+
+        const wb = XLSX.read(ev.target.result, { type:"array", cellDates:true });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(ws, { header:1 }).filter(r=>r[0]);
-        setImportPreview(rows.map(r => ({ name:r[0]||"", tasks:(r[1]||"").split("|").map(s=>s.trim()).filter(Boolean), role:r[2]||"Agent" })));
+        // raw:true keeps original values; defval:"" fills blanks
+        const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:"", raw:false });
+
+        if (rows.length < 2) { alert("File is empty."); return; }
+
+        const DAY_ALIASES = {
+          Sunday:    ["sunday","sun","الأحد","احد"],
+          Monday:    ["monday","mon","الاثنين","اثنين"],
+          Tuesday:   ["tuesday","tue","الثلاثاء","ثلاثاء"],
+          Wednesday: ["wednesday","wed","الأربعاء","اربعاء"],
+          Thursday:  ["thursday","thu","الخميس","خميس"],
+          Friday:    ["friday","fri","الجمعة","جمعة"],
+          Saturday:  ["saturday","sat","السبت","سبت"],
+        };
+
+        function isDayCell(c) {
+          const cl = String(c).trim().toLowerCase();
+          return Object.values(DAY_ALIASES).flat().some(a => cl.includes(a));
+        }
+        function isNameCell(c) { return /name|employee|موظف|اسم/i.test(String(c).trim()); }
+        function isDateCell(c) {
+          // Detects date strings like "3/15/2026", "2026-03-15", "15-Mar-26" etc.
+          return /\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}/.test(String(c).trim());
+        }
+
+        // ── Step 1: find daysRow (has day names) and nameRow (has "Name" + dates) ──
+        let daysRowIdx = -1, nameRowIdx = -1;
+
+        for (let i = 0; i < Math.min(8, rows.length); i++) {
+          const cells = rows[i].map(c => String(c).trim());
+          if (daysRowIdx === -1 && cells.some(isDayCell)) daysRowIdx = i;
+          if (nameRowIdx === -1 && cells.some(isNameCell)) nameRowIdx = i;
+        }
+
+        // Fallbacks
+        if (daysRowIdx === -1 && nameRowIdx === -1) { daysRowIdx = 0; nameRowIdx = 1; }
+        else if (daysRowIdx === -1) daysRowIdx = nameRowIdx - 1;
+        else if (nameRowIdx === -1) nameRowIdx = daysRowIdx + 1;
+
+        const daysRow  = rows[daysRowIdx] || [];
+        const nameRow  = rows[nameRowIdx] || [];
+        const dataStart = Math.max(daysRowIdx, nameRowIdx) + 1;
+
+        // ── Step 2: build colMap {colIdx → "Sunday"|...} and find nameCol ──
+        const colMap = {};   // colIdx → day name
+        let nameCol  = 0;    // default col A (index 0)
+
+        // From daysRow: map columns with day names
+        daysRow.forEach((cell, ci) => {
+          const cl = String(cell).trim().toLowerCase();
+          for (const [day, aliases] of Object.entries(DAY_ALIASES)) {
+            if (aliases.some(a => cl.includes(a))) colMap[ci] = day;
+          }
+        });
+
+        // From nameRow: find nameCol; also catch days repeated here
+        nameRow.forEach((cell, ci) => {
+          const cs = String(cell).trim();
+          if (isNameCell(cs)) { nameCol = ci; return; }
+          // If nameRow has date strings (e.g. "3/15/2026"), map them to the day
+          // using the daysRow day for that column (already in colMap)
+          // Also catch day names repeated in nameRow
+          const cl = cs.toLowerCase();
+          if (!colMap[ci]) {
+            for (const [day, aliases] of Object.entries(DAY_ALIASES)) {
+              if (aliases.some(a => cl.includes(a))) colMap[ci] = day;
+            }
+          }
+        });
+
+        // ── Step 3: if no day columns found from day names, try date columns ──
+        // Map date columns to day-of-week automatically
+        if (Object.keys(colMap).length === 0) {
+          nameRow.forEach((cell, ci) => {
+            const cs = String(cell).trim();
+            if (isDateCell(cs)) {
+              try {
+                const d = new Date(cs);
+                if (!isNaN(d)) {
+                  const day = DAYS[d.getDay()];
+                  if (!colMap[ci]) colMap[ci] = day;
+                }
+              } catch {}
+            }
+          });
+          daysRow.forEach((cell, ci) => {
+            const cs = String(cell).trim();
+            if (isDateCell(cs)) {
+              try {
+                const d = new Date(cs);
+                if (!isNaN(d)) {
+                  const day = DAYS[d.getDay()];
+                  if (!colMap[ci]) colMap[ci] = day;
+                }
+              } catch {}
+            }
+          });
+        }
+
+        // ── Step 4: parse data rows ──
+        const preview = [];
+        const warnings = [];
+        const seen = {}; // track duplicate day assignments per week — last wins
+
+        for (let ri = dataStart; ri < rows.length; ri++) {
+          const row = rows[ri];
+          const name = String(row[nameCol] || "").trim();
+          // Skip empty names, pure-number rows, header repeats
+          if (!name || /^\d+$/.test(name) || isNameCell(name)) continue;
+
+          const days = {
+            Sunday:"OFF", Monday:"OFF", Tuesday:"OFF",
+            Wednesday:"OFF", Thursday:"OFF", Friday:"OFF", Saturday:"OFF"
+          };
+
+          Object.entries(colMap).forEach(([ci, dayName]) => {
+            const cell = String(row[Number(ci)] || "").trim();
+            const sid  = resolveShiftId(cell);
+            // If same day appears multiple times (multiple weeks), last column wins
+            days[dayName] = sid;
+            // Warn only on non-blank, non-standard values that became OFF
+            if (cell && sid === "OFF" && !/^(off|wo|w\.o\.?|ph|public|holiday|day.?off|leave|annual|إجازة|اجازة|يوم|عطلة|-|)$/i.test(cell)) {
+              warnings.push(`"${name}" · ${dayName}: "${cell}" → OFF`);
+            }
+          });
+
+          preview.push({ name, role:"Agent", tasks:[], days });
+        }
+
+        if (preview.length === 0) {
+          alert("No employee data found.\n\nMake sure:\n• Row 1 has day names (Sunday, Monday...)\n• Row 2 has 'Name' label\n• Data starts from Row 3");
+          return;
+        }
+
+        setImportPreview(preview);
+        setImportErrors(warnings);
         setShowImport(true);
-      } catch(err) { alert("Error reading file"); }
+      } catch(err) {
+        console.error(err);
+        alert("Error reading file:\n" + err.message);
+      }
     };
     reader.readAsArrayBuffer(file);
   }
 
+  // ── Confirm import: update existing employees or add new ones ──
   function confirmImport() {
-    importPreview.forEach(emp => {
-      const id = "e"+Date.now()+Math.random();
-      setEmployees(prev => [...prev, { id, ...emp }]);
-      setSchedule(prev => ({ ...prev, [id]: { Sunday:"OFF", Monday:"OFF", Tuesday:"OFF", Wednesday:"OFF", Thursday:"OFF", Friday:"OFF", Saturday:"OFF" } }));
+    importPreview.forEach(row => {
+      // Try to match existing employee by name (case-insensitive)
+      const existing = employees.find(e => e.name.toLowerCase()===row.name.toLowerCase());
+      if (existing) {
+        // Update schedule only (preserve tasks/role unless provided)
+        if (row.role && row.role!=="Agent") setEmployees(prev=>prev.map(e=>e.id===existing.id?{...e,role:row.role,tasks:row.tasks.length?row.tasks:e.tasks}:e));
+        setSchedule(prev => ({ ...prev, [existing.id]: row.days }));
+      } else {
+        // New employee
+        const id = "e"+Date.now()+Math.random();
+        setEmployees(prev => [...prev, { id, name:row.name, role:row.role||"Agent", tasks:row.tasks }]);
+        setSchedule(prev => ({ ...prev, [id]: row.days }));
+      }
     });
     setShowImport(false);
     setImportPreview([]);
+    setImportErrors([]);
   }
 
-  // Week preview: for each day, group employees by shift
+  // ── Download template with two-row header ──
+  function downloadTemplate() {
+    const XLSX = window.XLSX;
+    if (!XLSX) { alert("SheetJS not loaded yet."); return; }
+    // Row 1: days
+    const row1 = ["", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    // Row 2: Name + date placeholders
+    const row2 = ["Name", "Date", "Date", "Date", "Date", "Date", "Date", "Date"];
+    // Example data rows
+    const examples = [
+      ["Ahmed Mohammed Ali",  "Shift 1",      "Shift 1",      "Shift 1",      "Shift 1",      "Shift 1",      "OFF", "OFF"],
+      ["Mohammed Almutairi",  "08:00-17:00",  "08:00-17:00",  "OFF",          "OFF",          "08:00-17:00",  "OFF", "OFF"],
+      ["Ghazi Alruways",      "OFF",          "Shift 3",      "Shift 3",      "Shift 3",      "Shift 3",      "OFF", "OFF"],
+    ];
+    const ws = XLSX.utils.aoa_to_sheet([row1, row2, ...examples]);
+    ws["!cols"] = [{ wch:28 }, ...Array(7).fill({ wch:14 })];
+    // Style header rows bold (basic)
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Schedule");
+    XLSX.writeFile(wb, "schedule-template.xlsx");
+  }
+
+  // Week preview
   const weekCards = DAYS.map((day, di) => {
     const groups = {};
     employees.forEach(emp => {
@@ -248,7 +477,20 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts }
         <span style={{ fontWeight:700, fontSize:15, color:"#0F2744", flex:1 }}>📅 Weekly Schedule Template</span>
         <button style={PBT("#2563EB")} onClick={()=>setShowAdd(true)}>+ Add Employee</button>
         <button style={PBT("#475569")} onClick={()=>fileRef.current.click()}>📥 Import Excel</button>
+        <button style={PBT("#10B981")} onClick={downloadTemplate}>⬇️ Download Template</button>
         <input ref={fileRef} type="file" accept=".xlsx,.xls" style={{display:"none"}} onChange={handleFile}/>
+      </div>
+
+      {/* Shift legend */}
+      <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:12 }}>
+        {shifts.map(s=>(
+          <span key={s.id} style={{ fontSize:11, fontWeight:600, background:s.color+"18", border:`1px solid ${s.color}50`,
+            color:s.color, borderRadius:10, padding:"2px 10px" }}>{s.label}: {s.start}–{s.end}</span>
+        ))}
+        <span style={{ fontSize:11, fontWeight:600, background:"#FEF3C7", border:"1px solid #F59E0B50",
+          color:"#92400E", borderRadius:10, padding:"2px 10px" }}>🏖️ Leave</span>
+        <span style={{ fontSize:11, fontWeight:600, background:"#F3E8FF", border:"1px solid #8B5CF650",
+          color:"#6D28D9", borderRadius:10, padding:"2px 10px" }}>🎌 PH - Public Holiday</span>
       </div>
 
       {/* Schedule Table */}
@@ -256,11 +498,14 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts }
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
             <tr style={{ background:"#F8FAFC" }}>
+              <tr style={{ background:"#F8FAFC" }}>
               <th style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0", minWidth:180 }}>Employee</th>
               {DAYS.map((day,di) => (
-                <th key={day} style={{ padding:"10px 8px", textAlign:"center", fontWeight:700, color: di===today ? "#2563EB" : "#0F2744",
-                  borderBottom:"2px solid #E2E8F0", background: di===today ? "#EFF6FF" : "transparent", minWidth:100 }}>
-                  {day.slice(0,3)}{di===today && <span style={{ display:"block", fontSize:10, color:"#2563EB" }}>TODAY</span>}
+                <th key={day} style={{ padding:"10px 8px", textAlign:"center", fontWeight:700,
+                  color: di===today ? "#2563EB" : "#0F2744",
+                  borderBottom:"2px solid #E2E8F0", background: di===today ? "#EFF6FF" : "transparent", minWidth:110 }}>
+                  {day.slice(0,3)}
+                  {di===today && <span style={{ display:"block", fontSize:10, color:"#2563EB" }}>TODAY</span>}
                 </th>
               ))}
               <th style={{ padding:"10px 8px", borderBottom:"2px solid #E2E8F0" }}></th>
@@ -279,9 +524,14 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts }
                   return (
                     <td key={day} style={{ padding:"6px", textAlign:"center", background: di===today ? "#EFF6FF" : "transparent" }}>
                       <select value={val} onChange={e=>setShift(emp.id,day,e.target.value)}
-                        style={{ ...I(), padding:"4px 6px", fontSize:12, border:`2px solid ${sh?sh.color:"#CBD5E1"}`,
-                          background: sh ? sh.color+"18" : "#fff", color: sh ? sh.color : "#64748B", fontWeight:600, cursor:"pointer" }}>
-                        <option value="OFF">Day Off</option>
+                        style={{ ...I(), padding:"4px 6px", fontSize:11,
+                          border:`2px solid ${val==="LEAVE"?"#F59E0B":val==="PH"?"#8B5CF6":sh?sh.color:"#CBD5E1"}`,
+                          background: val==="LEAVE"?"#FEF3C7":val==="PH"?"#F3E8FF":sh?sh.color+"18":"#fff",
+                          color: val==="LEAVE"?"#92400E":val==="PH"?"#6D28D9":sh?sh.color:"#64748B",
+                          fontWeight:600, cursor:"pointer" }}>
+                        <option value="OFF">🔘 Day Off</option>
+                        <option value="LEAVE">🏖️ Leave</option>
+                        <option value="PH">🎌 PH - Public Holiday</option>
                         {shifts.map(s => <option key={s.id} value={s.id}>{s.label} ({s.start})</option>)}
                       </select>
                     </td>
@@ -302,16 +552,29 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts }
         {weekCards.map(({day,di,groups}) => (
           <div key={day} style={{ ...CRD({ padding:12 }), border: di===today ? "2px solid #2563EB" : "1px solid #E2E8F0" }}>
             <div style={{ fontWeight:700, fontSize:12, color: di===today?"#2563EB":"#475569", marginBottom:8 }}>{day.slice(0,3)}</div>
-            {Object.keys(groups).length===0 ? <div style={{ fontSize:11, color:"#94A3B8" }}>All Off</div> :
-              Object.entries(groups).map(([sid,names]) => {
-                const sh = shifts.find(s=>s.id===sid);
-                return (
-                  <div key={sid} style={{ marginBottom:6 }}>
-                    <div style={{ fontSize:10, fontWeight:700, color:sh?.color||"#888", marginBottom:2 }}>{sh?.label} {sh?.start}</div>
-                    {names.map(n => <div key={n} style={{ fontSize:11, color:"#334155", padding:"1px 0" }}>• {n.split(" ")[0]}</div>)}
-                  </div>
-                );
-              })
+            {Object.keys(groups).length===0
+              ? <div style={{ fontSize:11, color:"#94A3B8" }}>All Off</div>
+              : Object.entries(groups).map(([sid,names]) => {
+                  if (sid==="LEAVE") return (
+                    <div key="LEAVE" style={{ marginBottom:6 }}>
+                      <div style={{ fontSize:10, fontWeight:700, color:"#92400E", marginBottom:2 }}>🏖️ Leave</div>
+                      {names.map(n=><div key={n} style={{ fontSize:11, color:"#92400E", padding:"1px 0" }}>• {n.split(" ")[0]}</div>)}
+                    </div>
+                  );
+                  if (sid==="PH") return (
+                    <div key="PH" style={{ marginBottom:6 }}>
+                      <div style={{ fontSize:10, fontWeight:700, color:"#6D28D9", marginBottom:2 }}>🎌 Public Holiday</div>
+                      {names.map(n=><div key={n} style={{ fontSize:11, color:"#6D28D9", padding:"1px 0" }}>• {n.split(" ")[0]}</div>)}
+                    </div>
+                  );
+                  const sh = shifts.find(s=>s.id===sid);
+                  return (
+                    <div key={sid} style={{ marginBottom:6 }}>
+                      <div style={{ fontSize:10, fontWeight:700, color:sh?.color||"#888", marginBottom:2 }}>{sh?.label} {sh?.start}</div>
+                      {names.map(n => <div key={n} style={{ fontSize:11, color:"#334155", padding:"1px 0" }}>• {n.split(" ")[0]}</div>)}
+                    </div>
+                  );
+                })
             }
           </div>
         ))}
@@ -324,7 +587,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts }
           <input style={{ ...I(), marginBottom:12 }} value={newEmp.name} onChange={e=>setNewEmp(p=>({...p,name:e.target.value}))} placeholder="Full name"/>
           <label style={LBL}>Role</label>
           <select style={{ ...I(), marginBottom:12 }} value={newEmp.role} onChange={e=>setNewEmp(p=>({...p,role:e.target.value}))}>
-            {["Agent","Shift Leader","Team Lead","SME"].map(r=><option key={r}>{r}</option>)}
+            {["Agent","Shift Leader","Team Lead","SME","Other"].map(r=><option key={r}>{r}</option>)}
           </select>
           <label style={LBL}>Tasks</label>
           <div style={{ marginBottom:16 }}><TaskPicker selected={newEmp.tasks} onChange={tasks=>setNewEmp(p=>({...p,tasks}))}/></div>
@@ -339,7 +602,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts }
           <input style={{ ...I(), marginBottom:12 }} value={editEmp.name} onChange={e=>setEditEmp(p=>({...p,name:e.target.value}))}/>
           <label style={LBL}>Role</label>
           <select style={{ ...I(), marginBottom:12 }} value={editEmp.role} onChange={e=>setEditEmp(p=>({...p,role:e.target.value}))}>
-            {["Agent","Shift Leader","Team Lead","SME"].map(r=><option key={r}>{r}</option>)}
+            {["Agent","Shift Leader","Team Lead","SME","Other"].map(r=><option key={r}>{r}</option>)}
           </select>
           <label style={LBL}>Tasks</label>
           <div style={{ marginBottom:16 }}><TaskPicker selected={editEmp.tasks} onChange={tasks=>setEditEmp(p=>({...p,tasks}))}/></div>
@@ -349,48 +612,47 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts }
 
       {/* Import Preview Modal */}
       {showImport && (
-        <Modal title="Import Preview" onClose={()=>setShowImport(false)} width={600}>
-          <div style={{ marginBottom:12, fontSize:13, color:"#475569" }}>{importPreview.length} employees found. Confirm import?</div>
-          <div style={{ maxHeight:300, overflow:"auto", marginBottom:16 }}>
-            {importPreview.map((emp,i) => (
-              <div key={i} style={{ padding:"8px 12px", background:"#F8FAFC", borderRadius:6, marginBottom:6 }}>
-                <div style={{ fontWeight:600 }}>{emp.name} <span style={{ fontSize:12, color:"#94A3B8" }}>({emp.role})</span></div>
-                <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginTop:4 }}>
-                  {emp.tasks.map(t=><span key={t} style={{ background:taskColor(t), color:"#fff", borderRadius:10, padding:"2px 8px", fontSize:11 }}>{t}</span>)}
-                </div>
-              </div>
-            ))}
+        <Modal title={`📥 Import Preview — ${importPreview.length} employees`} onClose={()=>setShowImport(false)} width={820}>
+          {/* Format guide */}
+          <div style={{ background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:8, padding:"10px 14px", marginBottom:14, fontSize:12, color:"#1D4ED8" }}>
+            <strong>Accepted values per cell:</strong> &nbsp;
+            {shifts.map(s=><span key={s.id} style={{ marginRight:8 }}><strong>{s.label}</strong> · <code>{s.start}-{s.end}</code> · <code>{s.start}</code> · <code>{s.id.replace("s","")}</code></span>)}
+            &nbsp;· <code>OFF</code> · (empty)
           </div>
-          <div style={{ display:"flex", gap:8 }}>
-            <button style={PBT("#10B981",{flex:1})} onClick={confirmImport}>✅ Confirm Import</button>
-            <button style={PBT("#EF4444",{flex:1})} onClick={()=>setShowImport(false)}>Cancel</button>
-          </div>
-        </Modal>
-      )}
-    </div>
-  );
-}
 
-// ─── ATTENDANCE PAGE ──────────────────────────────────────────────────────────
-function AttendancePage({ employees, schedule, shifts, attendance, setAttendance }) {
-  const [date, setDate] = useState(todayStr());
-  const [activeShift, setActiveShift] = useState(shifts[0]?.id||"");
-  const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
+          {/* Warnings */}
+          {importErrors.length>0 && (
+            <div style={{ background:"#FEF9C3", border:"1px solid #F59E0B", borderRadius:8, padding:"8px 14px", marginBottom:12, fontSize:12, color:"#92400E" }}>
+              ⚠️ {importErrors.length} warning(s): {importErrors.slice(0,3).join(" · ")}{importErrors.length>3?` ... +${importErrors.length-3} more`:""}
+            </div>
+          )}
 
-  const shiftEmployees = useMemo(() => {
-    return employees.filter(emp => (schedule[emp.id]||{})[dayName] === activeShift);
-  }, [employees, schedule, activeShift, dayName]);
-
-  function getAtt(empId) {
-    return ((attendance[date]||{})[empId]) || { status:"Present", checkIn:"", checkOut:"", lateMin:0, earlyMin:0, note:"" };
+          {/* Preview table */}
+          <div style={{ overflowX:"auto", maxHeight:380, overflowY:"auto", marginBottom:14 }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+              <thead>
+                <tr style={{ background:"#F8FAFC", position:"sticky", top:0 }}>
+                  <th style={{ padding:"8px 10px", textAlign:"left", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0", minWidth:160 }}>Name</th>
+                  <th style={{ padding:"8px 6px", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0" }}>Role</th>
+                  {DAYS.map(d=>(
+                    <th key={d} style={{ padding:"8px 6px", textAlign:"center", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0", minWidth:80 }}>{d.slice(0,3)}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {importPreview.map((row,i)=>{
+                  const existing = employees.find(e=>e.name.toLowerCase()===row.name.toLowerCase());
+                  return (
+< truncated lines 645-755 >
+    return `${h}h ${pad(m)}m`;
   }
 
   function setAtt(empId, field, val) {
     setAttendance(prev => {
       const dayData = { ...(prev[date]||{}) };
       const empData = { ...getAtt(empId), [field]: val };
-      
-      // Auto-calc late
+
+      // Auto-calc late from checkIn
       if (field==="checkIn" && val) {
         const sh = shifts.find(s=>s.id===activeShift);
         if (sh) {
@@ -400,6 +662,18 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
           else if (empData.status==="Late") empData.status = "Present";
         }
       }
+
+      // Auto-calc work duration whenever checkIn or checkOut changes
+      const ci = field==="checkIn"  ? val : empData.checkIn;
+      const co = field==="checkOut" ? val : empData.checkOut;
+      const dur = calcWorkDuration(ci, co);
+      empData.workDuration = dur !== null ? dur : "";
+
+      // Auto-calc Early Leave: if status=Early Leave and both times set
+      if ((empData.status==="Early Leave" || field==="status") && ci && co) {
+        empData.earlyMin = dur !== null ? dur : empData.earlyMin;
+      }
+
       dayData[empId] = empData;
       return { ...prev, [date]: dayData };
     });
@@ -413,30 +687,32 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
     });
   }
 
-  // KPIs
-  const allDayEmps = employees.filter(emp => (schedule[emp.id]||{})[dayName] !== "OFF");
+  // KPIs across all shifts for the day
+  const allDayEmps = employees.filter(emp => { const v=(schedule[emp.id]||{})[dayName]; return v && v!=="OFF" && v!=="LEAVE" && v!=="PH"; });
   const allAtt = allDayEmps.map(e => getAtt(e.id));
   const kpis = {
-    working: allDayEmps.length,
-    present: allAtt.filter(a=>a.status==="Present").length,
-    absent: allAtt.filter(a=>a.status==="Absent").length,
-    late: allAtt.filter(a=>a.status==="Late").length,
-    early: allAtt.filter(a=>a.status==="Early Leave").length,
+    working:   allDayEmps.length,
+    present:   allAtt.filter(a=>a.status==="Present").length,
+    absent:    allAtt.filter(a=>a.status==="Absent").length,
+    late:      allAtt.filter(a=>a.status==="Late").length,
+    early:     allAtt.filter(a=>a.status==="Early Leave").length,
     totalLate: allAtt.reduce((s,a)=>s+(a.lateMin||0),0)
   };
 
   return (
     <div>
+      {/* Toolbar */}
       <div style={SBR()}>
         <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>📋 Attendance Log</span>
-        <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
-        <span style={{ fontSize:12, color:"#94A3B8" }}>Auto-calc late from check-in · 🔴 = ≥7 min late</span>
+        <input type="date" value={date} onChange={e=>handleDateChange(e.target.value)} style={{ ...I(), width:150 }}/>
+        <span style={{ fontSize:12, color:"#94A3B8" }}>Auto-calc late · 🔴 = ≥7 min late</span>
       </div>
 
       {/* KPI Cards */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:10, marginBottom:16 }}>
-        {[["Working",kpis.working,"#2563EB"],["Present",kpis.present,"#10B981"],["Absent",kpis.absent,"#EF4444"],
-          ["Late",kpis.late,"#F59E0B"],["Early Leave",kpis.early,"#8B5CF6"],["Late Time",kpis.totalLate+"m","#EC4899"]].map(([l,v,c])=>(
+        {[["Working",kpis.working,"#2563EB"],["Present",kpis.present,"#10B981"],
+          ["Absent",kpis.absent,"#EF4444"],["Late",kpis.late,"#F59E0B"],
+          ["Early Leave",kpis.early,"#8B5CF6"],["Late Time",kpis.totalLate+"m","#EC4899"]].map(([l,v,c])=>(
           <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
             <div style={{ fontSize:11, color:"#64748B", fontWeight:600 }}>{l}</div>
             <div style={{ fontSize:24, fontWeight:800, color:c }}>{v}</div>
@@ -444,31 +720,61 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
         ))}
       </div>
 
-      {/* Shift Tabs */}
-      <div style={{ display:"flex", gap:6, marginBottom:12, flexWrap:"wrap" }}>
-        {shifts.map(sh => (
-          <button key={sh.id} onClick={()=>setActiveShift(sh.id)}
-            style={{ border:`2px solid ${sh.color}`, borderRadius:20, padding:"5px 14px", fontSize:12, cursor:"pointer", fontWeight:600,
-              background: activeShift===sh.id ? sh.color : "transparent", color: activeShift===sh.id ? "#fff" : sh.color }}>
-            {sh.label} {sh.start}
-          </button>
-        ))}
+      {/* Shift Tabs — active one highlighted automatically */}
+      <div style={{ display:"flex", gap:6, marginBottom:8, flexWrap:"wrap", alignItems:"center" }}>
+        {shifts.map(sh => {
+          const isActive = activeShift===sh.id;
+          const empCount = employees.filter(emp=>(schedule[emp.id]||{})[dayName]===sh.id).length;
+          return (
+            <button key={sh.id} onClick={()=>handleShiftClick(sh.id)}
+              style={{ border:`2px solid ${sh.color}`, borderRadius:20, padding:"5px 14px",
+                fontSize:12, cursor:"pointer", fontWeight:600, position:"relative",
+                background: isActive ? sh.color : "transparent",
+                color: isActive ? "#fff" : sh.color, transition:"all 0.15s" }}>
+              {sh.label} {sh.start}
+              {empCount>0 && (
+                <span style={{ marginLeft:6, background: isActive?"rgba(255,255,255,0.3)":sh.color+"25",
+                  borderRadius:10, padding:"1px 6px", fontSize:10, fontWeight:700 }}>
+                  {empCount}
+                </span>
+              )}
+            </button>
+          );
+        })}
+        {/* Auto-detect indicator */}
+        {autoShift && date===todayStr() && (
+          <span style={{ fontSize:11, color:"#10B981", fontWeight:600, display:"flex", alignItems:"center", gap:4 }}>
+            🟢 Auto-detected: <strong>{activeShiftObj?.label} ({activeShiftObj?.start}–{activeShiftObj?.end})</strong>
+          </span>
+        )}
       </div>
 
-      {/* Bulk Buttons */}
-      <div style={{ display:"flex", gap:8, marginBottom:12 }}>
-        <button style={PBT("#10B981")} onClick={()=>bulkSet("Present")}>✅ All Present</button>
-        <button style={PBT("#EF4444")} onClick={()=>bulkSet("Absent")}>🔴 All Absent</button>
-        <span style={{ fontSize:12, color:"#94A3B8", alignSelf:"center" }}>{shiftEmployees.length} employees on this shift for {dayName}</span>
-      </div>
+      {/* Active shift info bar */}
+      {activeShiftObj && (
+        <div style={{ background: activeShiftObj.color+"15", border:`1.5px solid ${activeShiftObj.color}40`,
+          borderRadius:8, padding:"8px 16px", marginBottom:12,
+          display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
+          <span style={{ fontWeight:700, color:activeShiftObj.color, fontSize:13 }}>
+            ⏰ {activeShiftObj.label} · {activeShiftObj.start} – {activeShiftObj.end}
+          </span>
+          <span style={{ fontSize:12, color:"#475569" }}>
+            {shiftEmployees.length} employees scheduled on <strong>{dayName}</strong>
+          </span>
+          <div style={{ display:"flex", gap:8, marginLeft:"auto" }}>
+            <button style={PBT("#10B981",{padding:"5px 12px",fontSize:12})} onClick={()=>bulkSet("Present")}>✅ All Present</button>
+            <button style={PBT("#EF4444",{padding:"5px 12px",fontSize:12})} onClick={()=>bulkSet("Absent")}>🔴 All Absent</button>
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       <div style={{ ...CRD(), overflowX:"auto" }}>
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
             <tr style={{ background:"#F8FAFC" }}>
-              {["#","Employee","Status","Check-in","Check-out","Late","Early Leave (min)","Notes"].map(h=>(
-                <th key={h} style={{ padding:"10px 8px", textAlign:"left", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0", whiteSpace:"nowrap" }}>{h}</th>
+              {["#","Employee","Status","Check-in","Check-out","Late","Work Duration","Early Leave","Notes"].map(h=>(
+                <th key={h} style={{ padding:"10px 8px", textAlign:"left", fontWeight:700,
+                  color:"#0F2744", borderBottom:"2px solid #E2E8F0", whiteSpace:"nowrap" }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -477,42 +783,67 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
               const att = getAtt(emp.id);
               const isLate = att.lateMin >= 7;
               const isSlightLate = att.lateMin > 0 && att.lateMin < 7;
+              const dur = att.workDuration !== "" && att.workDuration !== undefined ? att.workDuration : calcWorkDuration(att.checkIn, att.checkOut);
+              const isEarlyLeave = att.status === "Early Leave";
               return (
                 <tr key={emp.id} style={{ background: ri%2===0?"#fff":"#F8FAFC" }}>
                   <td style={{ padding:"8px", color:"#94A3B8", fontWeight:600 }}>{ri+1}</td>
-                  <td style={{ padding:"8px", fontWeight:600, color:"#1E293B" }}>{emp.name}</td>
+                  <td style={{ padding:"8px", fontWeight:600, color:"#1E293B" }}>
+                    <td style={{ padding:"8px", fontWeight:600, color:"#1E293B" }}>
+                    {emp.name}
+                    <div style={{ fontSize:11, color:"#94A3B8" }}>{emp.role}</div>
+                  </td>
                   <td style={{ padding:"8px" }}>
                     <select value={att.status} onChange={e=>setAtt(emp.id,"status",e.target.value)}
-                      style={{ ...I(), width:120, border:`1.5px solid ${att.status==="Present"?"#10B981":att.status==="Absent"?"#EF4444":att.status==="Late"?"#F59E0B":"#8B5CF6"}` }}>
+                      style={{ ...I({ width:120, border:`1.5px solid ${
+                        att.status==="Present"?"#10B981":att.status==="Absent"?"#EF4444":
+                        att.status==="Late"?"#F59E0B":"#8B5CF6"}` }) }}>
                       {STATUS_OPTIONS.map(s=><option key={s}>{s}</option>)}
                     </select>
                   </td>
                   <td style={{ padding:"8px" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:4 }}>
                       <input type="time" value={att.checkIn||""} onChange={e=>setAtt(emp.id,"checkIn",e.target.value)}
-                        style={{ ...I({ width:110, border: isLate?"2px solid #EF4444": isSlightLate?"2px solid #F59E0B":"1px solid #CBD5E1" })}}/>
-                      {isLate && <span title={`Late ${att.lateMin}m`}>🔴</span>}
-                      {isSlightLate && <span title={`${att.lateMin}m`}>🟡</span>}
+                        style={{ ...I({ width:110, border: isLate?"2px solid #EF4444":
+                          isSlightLate?"2px solid #F59E0B":"1px solid #CBD5E1" })}}/>
+                      {isLate && <span>🔴</span>}
+                      {isSlightLate && <span>🟡</span>}
                     </div>
-                    {(isLate||isSlightLate) && att.lateMin>0 && <div style={{ fontSize:11, color: isLate?"#EF4444":"#F59E0B", fontWeight:700 }}>{isLate?"🔴":""} {att.lateMin}m</div>}
+                    {(isLate||isSlightLate) && att.lateMin>0 &&
+                      <div style={{ fontSize:11, color:isLate?"#EF4444":"#F59E0B", fontWeight:700 }}>
+                        {isLate?"🔴 ":""}{att.lateMin}m
+                      </div>}
                   </td>
                   <td style={{ padding:"8px" }}>
-                    <input type="time" value={att.checkOut||""} onChange={e=>setAtt(emp.id,"checkOut",e.target.value)} style={{ ...I({ width:110 })}}/>
+                    <input type="time" value={att.checkOut||""} onChange={e=>setAtt(emp.id,"checkOut",e.target.value)}
+                      style={{ ...I({ width:110, border: isEarlyLeave&&att.checkOut?"2px solid #8B5CF6":"1px solid #CBD5E1" })}}/>
                   </td>
-                  <td style={{ padding:"8px", color: att.lateMin>=7?"#EF4444":"#94A3B8", fontWeight:600 }}>
+                  <td style={{ padding:"8px", color:att.lateMin>=7?"#EF4444":"#94A3B8", fontWeight:600 }}>
                     {att.lateMin>0 ? att.lateMin+"m" : "—"}
                   </td>
                   <td style={{ padding:"8px" }}>
-                    <input type="number" value={att.earlyMin||""} onChange={e=>setAtt(emp.id,"earlyMin",Number(e.target.value))} style={{ ...I({ width:70 })}} placeholder="0"/>
+                    <div style={{ fontWeight:700, color: dur!==null&&dur<(activeShiftObj?toMin(activeShiftObj.end)-toMin(activeShiftObj.start):480)?"#F59E0B":"#10B981", fontSize:13 }}>
+                      {dur !== null ? fmtDuration(dur) : "—"}
+                    </div>
+                    {dur !== null && <div style={{ fontSize:10, color:"#94A3B8" }}>{dur} min</div>}
                   </td>
                   <td style={{ padding:"8px" }}>
-                    <input value={att.note||""} onChange={e=>setAtt(emp.id,"note",e.target.value)} style={{ ...I({ width:140 })}} placeholder="Note..."/>
+                    {isEarlyLeave && dur !== null
+                      ? <div style={{ fontWeight:700, color:"#8B5CF6", fontSize:13 }}>{fmtDuration(dur)}<div style={{fontSize:10,color:"#94A3B8"}}>from check-in</div></div>
+                      : <span style={{ color:"#94A3B8" }}>—</span>
+                    }
+                  </td>
+                  <td style={{ padding:"8px" }}>
+                    <input value={att.note||""} onChange={e=>setAtt(emp.id,"note",e.target.value)}
+                      style={{ ...I({ width:140 })}} placeholder="Note..."/>
                   </td>
                 </tr>
               );
             })}
             {shiftEmployees.length===0 && (
-              <tr><td colSpan={8} style={{ padding:24, textAlign:"center", color:"#94A3B8" }}>No employees scheduled for this shift on {dayName}</td></tr>
+              <tr><td colSpan={9} style={{ padding:32, textAlign:"center", color:"#94A3B8" }}>
+                No employees scheduled for <strong>{activeShiftObj?.label}</strong> on <strong>{dayName}</strong>
+              </td></tr>
             )}
           </tbody>
         </table>
@@ -527,7 +858,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
   const [showQuality, setShowQuality] = useState(false);
   const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
 
-  const dayEmps = employees.filter(emp => (schedule[emp.id]||{})[dayName] !== "OFF");
+  const dayEmps = employees.filter(emp => { const v=(schedule[emp.id]||{})[dayName]; return v && v!=="OFF" && v!=="LEAVE" && v!=="PH"; });
 
   function getPerf(empId) {
     return ((performance[date]||{})[empId]) || { closed:0, reopened:0, escalations:0, quality:"" };
@@ -542,9 +873,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
 
   const sorted = [...dayEmps].sort((a,b) => (getPerf(b.id).closed||0) - (getPerf(a.id).closed||0));
   const totalClosed = dayEmps.reduce((s,e)=>s+(getPerf(e.id).closed||0),0);
-  const totalReopened = dayEmps.reduce((s,e)=>s+(getPerf(e.id).reopened||0),0);
   const totalEsc = dayEmps.reduce((s,e)=>s+(getPerf(e.id).escalations||0),0);
-  const fcr = totalClosed>0 ? Math.round((1 - totalReopened/totalClosed)*100) : 0;
   const medals = ["🥇","🥈","🥉"];
 
   function getShiftLabel(empId) {
@@ -564,8 +893,8 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
       </div>
 
       {/* KPI Cards */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:16 }}>
-        {[["Total Closed",totalClosed,"#10B981"],["Re-opened",totalReopened,"#EF4444"],["FCR Rate",fcr+"%","#2563EB"],["Escalations",totalEsc,"#F59E0B"]].map(([l,v,c])=>(
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:10, marginBottom:16 }}>
+        {[["Total Closed",totalClosed,"#10B981"],["Escalations",totalEsc,"#F59E0B"]].map(([l,v,c])=>(
           <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
             <div style={{ fontSize:11, color:"#64748B", fontWeight:600 }}>{l}</div>
             <div style={{ fontSize:28, fontWeight:800, color:c }}>{v}</div>
@@ -578,7 +907,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
             <tr style={{ background:"#F8FAFC" }}>
-              {["Rank","Employee","Tasks","Shift","Closed","Re-opened","Escalations",...(showQuality?["Quality %"]:[])]
+              {["Rank","Employee","Tasks","Shift","Closed","Escalations",...(showQuality?["Quality %"]:[])]
                 .map(h=><th key={h} style={{ padding:"10px 8px", textAlign:"left", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0", whiteSpace:"nowrap" }}>{h}</th>)}
             </tr>
           </thead>
@@ -600,10 +929,6 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
                       style={{ ...I({ width:70, border: p.closed>0?"2px solid #10B981":"1px solid #CBD5E1" })}} placeholder="0"/>
                   </td>
                   <td style={{ padding:"8px" }}>
-                    <input type="number" min="0" value={p.reopened||""} onChange={e=>setPerf(emp.id,"reopened",Number(e.target.value))}
-                      style={{ ...I({ width:70, border: p.reopened>0?"2px solid #EF4444":"1px solid #CBD5E1" })}} placeholder="0"/>
-                  </td>
-                  <td style={{ padding:"8px" }}>
                     <input type="number" min="0" value={p.escalations||""} onChange={e=>setPerf(emp.id,"escalations",Number(e.target.value))}
                       style={{ ...I({ width:70, border: p.escalations>0?"2px solid #F59E0B":"1px solid #CBD5E1" })}} placeholder="0"/>
                   </td>
@@ -617,91 +942,19 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
               );
             })}
           </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-// ─── HEAT MAP PAGE ────────────────────────────────────────────────────────────
-function HeatMapPage({ heatmap, setHeatmap }) {
-  const [date, setDate] = useState(todayStr());
-  const hours = Array.from({length:24},(_,i)=>pad(i)+":00");
-
-  function getCount(h) { return ((heatmap[date]||{})[h])||0; }
-  function setCount(h,v) {
-    setHeatmap(prev => ({...prev, [date]: {...(prev[date]||{}), [h]: Number(v)||0}}));
-  }
-
-  const counts = hours.map(h=>getCount(h));
-  const maxCount = Math.max(...counts,1);
-  const total = counts.reduce((a,b)=>a+b,0);
-  const peakHour = hours[counts.indexOf(Math.max(...counts))];
-  const sortedByCount = [...hours].sort((a,b)=>getCount(a)-getCount(b));
-  const breakWindows = sortedByCount.slice(0,3);
-
-  function cellBg(count) {
-    if (count===0) return "#F1F5F9";
-    const pct = count/maxCount;
-    if (pct>0.8) return "#FEE2E2";
-    if (pct>0.5) return "#FEF9C3";
-    if (pct>0.2) return "#DCFCE7";
-    return "#F0FDF4";
-  }
-  function cellBorder(count) {
-    if (count===0) return "#E2E8F0";
-    const pct = count/maxCount;
-    if (pct>0.8) return "#EF4444";
-    if (pct>0.5) return "#F59E0B";
-    if (pct>0.2) return "#10B981";
-    return "#86EFAC";
-  }
-
-  return (
-    <div>
-      <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>🌡️ Hourly Heat Map</span>
-        <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
-      </div>
-
-      {/* Summary */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:16 }}>
-        <div style={{ ...CRD(), borderTop:"3px solid #EF4444" }}>
-          <div style={LBL}>Peak Hour</div>
-          <div style={{ fontSize:22, fontWeight:800, color:"#EF4444" }}>{peakHour}</div>
-          <div style={{ fontSize:12, color:"#94A3B8" }}>{getCount(peakHour)} cases</div>
-        </div>
-        <div style={{ ...CRD(), borderTop:"3px solid #2563EB" }}>
-          <div style={LBL}>Total Inflow</div>
-          <div style={{ fontSize:22, fontWeight:800, color:"#2563EB" }}>{total}</div>
-          <div style={{ fontSize:12, color:"#94A3B8" }}>across 24 hours</div>
-        </div>
-        <div style={{ ...CRD(), borderTop:"3px solid #10B981" }}>
-          <div style={LBL}>Recommended Breaks</div>
-          <div style={{ fontSize:16, fontWeight:700, color:"#10B981" }}>{breakWindows.join(", ")}</div>
-          <div style={{ fontSize:12, color:"#94A3B8" }}>lowest activity windows</div>
-        </div>
-      </div>
-
-      {/* Grid */}
-      <div style={{ ...CRD(), padding:16 }}>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:8 }}>
-          {hours.map(h => {
-            const count = getCount(h);
+< truncated lines 1053-1148 >
+            const count = hourlyData[h]||0;
             return (
               <div key={h} style={{ background:cellBg(count), border:`1.5px solid ${cellBorder(count)}`, borderRadius:8, padding:"10px 8px", textAlign:"center" }}>
                 <div style={{ fontSize:11, fontWeight:700, color:"#64748B", marginBottom:4 }}>{h}</div>
-                <input type="number" min="0" value={count||""} onChange={e=>setCount(h,e.target.value)}
-                  style={{ ...I({ textAlign:"center", fontWeight:700, fontSize:16, border:"none", background:"transparent", padding:"0", width:"100%" })}} placeholder="0"/>
+                <div style={{ fontWeight:800, fontSize:18, color: count>0 ? cellBorder(count) : "#CBD5E1" }}>{count||0}</div>
                 {count>0 && <div style={{ fontSize:10, color:"#94A3B8" }}>{Math.round(count/maxCount*100)}%</div>}
               </div>
             );
           })}
         </div>
-
-        {/* Legend */}
         <div style={{ display:"flex", gap:16, marginTop:16, flexWrap:"wrap" }}>
-          {[["#FEE2E2","#EF4444",">80% max"],["#FEF9C3","#F59E0B",">50% max"],["#DCFCE7","#10B981",">20% max"],["#F1F5F9","#94A3B8","No data"]].map(([bg,border,label])=>(
+          {[["#FEE2E2","#EF4444",">80% peak"],["#FEF9C3","#F59E0B",">50% peak"],["#DCFCE7","#10B981",">20% peak"],["#F1F5F9","#94A3B8","No data"]].map(([bg,border,label])=>(
             <div key={label} style={{ display:"flex", alignItems:"center", gap:6 }}>
               <div style={{ width:16, height:16, background:bg, border:`1.5px solid ${border}`, borderRadius:3 }}/>
               <span style={{ fontSize:12, color:"#64748B" }}>{label}</span>
@@ -713,169 +966,334 @@ function HeatMapPage({ heatmap, setHeatmap }) {
   );
 }
 
-// ─── KG ANALYSIS PAGE ────────────────────────────────────────────────────────
-function KGPage({ kg, setKg }) {
-  const [date, setDate] = useState(todayStr());
-  const [form, setForm] = useState({ topic: KG_TOPICS[0], count:1, note:"" });
-
-  const entries = kg[date]||[];
-  const total = entries.reduce((s,e)=>s+(e.count||0),0);
-  const sorted = [...entries].sort((a,b)=>(b.count||0)-(a.count||0));
-  const topPct = total>0 && sorted[0] ? Math.round((sorted[0].count/total)*100) : 0;
-
-  function addEntry() {
-    if (!form.topic || !form.count) return;
-    const id = "kg"+Date.now();
-    setKg(prev => ({...prev, [date]: [...(prev[date]||[]), { id, ...form }]}));
-    setForm(p=>({...p, count:1, note:""}));
-  }
-  function removeEntry(id) {
-    setKg(prev => ({...prev, [date]: (prev[date]||[]).filter(e=>e.id!==id)}));
-  }
-
-  return (
-    <div>
-      <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>🧠 Knowledge Gap Analysis</span>
-        <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
-      </div>
-
-      {/* Add Form */}
-      <div style={{ ...CRD(), marginBottom:16 }}>
-        <div style={{ fontWeight:700, marginBottom:12, color:"#0F2744" }}>Add Knowledge Gap</div>
-        <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr 2fr auto", gap:10, alignItems:"end" }}>
-          <div>
-            <label style={LBL}>Topic</label>
-            <select value={form.topic} onChange={e=>setForm(p=>({...p,topic:e.target.value}))} style={I()}>
-              {KG_TOPICS.map(t=><option key={t}>{t}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={LBL}>Count</label>
-            <input type="number" min="1" value={form.count} onChange={e=>setForm(p=>({...p,count:Number(e.target.value)}))} style={I()}/>
-          </div>
-          <div>
-            <label style={LBL}>Observation / Root Cause</label>
-            <input value={form.note} onChange={e=>setForm(p=>({...p,note:e.target.value}))} style={I()} placeholder="Root cause..."/>
-          </div>
-          <button style={PBT("#8B5CF6",{ alignSelf:"stretch" })} onClick={addEntry}>+ Add</button>
-        </div>
-      </div>
-
-      {/* Auto Recommendation */}
-      {topPct>30 && sorted[0] && (
-        <div style={{ background:"#FEF3C7", border:"1.5px solid #F59E0B", borderRadius:8, padding:"12px 16px", marginBottom:16, display:"flex", gap:10, alignItems:"center" }}>
-          <span style={{ fontSize:18 }}>⚠️</span>
-          <div>
-            <div style={{ fontWeight:700, color:"#92400E" }}>SME Recommendation</div>
-            <div style={{ fontSize:13, color:"#78350F" }}>
-              <strong>{sorted[0].topic}</strong> represents {topPct}% of gaps. SOP update or Refresher Training recommended.
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bar Chart */}
-      <div style={CRD()}>
-        <div style={{ fontWeight:700, marginBottom:12, color:"#0F2744" }}>Gap Distribution</div>
-        {sorted.length===0 && <div style={{ color:"#94A3B8", textAlign:"center", padding:24 }}>No gaps recorded for this date.</div>}
-        {sorted.map(entry => {
-          const pct = total>0 ? Math.round(entry.count/total*100) : 0;
-          return (
-            <div key={entry.id} style={{ marginBottom:14 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                <div style={{ fontWeight:600, fontSize:13, color:"#1E293B" }}>{entry.topic}</div>
-                <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-                  <span style={{ fontSize:12, color:"#64748B" }}>{entry.note}</span>
-                  <span style={{ fontWeight:700, fontSize:13, color:"#8B5CF6" }}>{entry.count} ({pct}%)</span>
-                  <button onClick={()=>removeEntry(entry.id)} style={{ background:"none", border:"1px solid #EF4444", color:"#EF4444", borderRadius:4, padding:"1px 6px", cursor:"pointer", fontSize:11 }}>✕</button>
-                </div>
-              </div>
-              <div style={{ background:"#F1F5F9", borderRadius:20, height:10, overflow:"hidden" }}>
-                <div style={{ width:pct+"%", height:"100%", background:"linear-gradient(90deg,#7C3AED,#8B5CF6)", borderRadius:20, transition:"width 0.4s" }}/>
-              </div>
-            </div>
-          );
-        })}
-        {total>0 && <div style={{ marginTop:12, fontSize:13, color:"#94A3B8", textAlign:"right" }}>Total reported: <strong style={{color:"#1E293B"}}>{total}</strong></div>}
-      </div>
-    </div>
-  );
-}
-
 // ─── QUEUE PAGE ───────────────────────────────────────────────────────────────
-function QueuePage({ shifts, queueLog, setQueueLog }) {
+function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
   const [date, setDate] = useState(todayStr());
   const [shiftId, setShiftId] = useState(shifts[0]?.id||"");
+  const [calcDone, setCalcDone] = useState(false);
 
   const key = `${date}_${shiftId}`;
   const data = queueLog[key] || {};
-  function setQ(field,val) { setQueueLog(prev=>({...prev,[key]:{...data,[field]:val}})); }
+  function setQ(field, val) {
+    setQueueLog(prev => ({ ...prev, [key]: { ...(prev[key]||{}), [field]: val } }));
+    setCalcDone(false);
+  }
 
-  // Calc resolved
-  const ksaResolved = (Number(data.ksaBase||0)+Number(data.ksaInflow||0)) - Number(data.ksaCurr||0);
-  const gccResolved = (Number(data.gccBase||0)+Number(data.gccInflow||0)) - Number(data.gccCurr||0);
-  const ksaTotal = Number(data.ksaCurr||0);
-  const status = ksaTotal>400 || Number(data.osloBase||0)>10 ? "🚨 CRITICAL" : ksaTotal>200 ? "⚠️ WARNING" : "✅ NORMAL";
+  // Queue categories — grouped
+  const KSA_FIELDS = [
+    { key:"tga",    label:"TGA",   color:"#6366F1", flag:"🇸🇦" },
+    { key:"ob",     label:"OB",    color:"#0EA5E9", flag:"🇸🇦" },
+    { key:"oslo",   label:"OSLO",  color:"#8B5CF6", flag:"🇸🇦" },
+    { key:"some",   label:"SOME",  color:"#EC4899", flag:"🇸🇦" },
+  ];
+  const GCC_FIELDS = [
+    { key:"kwtT2",   label:"KWT T2 Cases",   color:"#10B981", flag:"🇰🇼" },
+    { key:"qatT2",   label:"QAT T2 Cases",   color:"#F59E0B", flag:"🇶🇦" },
+    { key:"bahT2",   label:"BAH T2 Cases",   color:"#EF4444", flag:"🇧🇭" },
+    { key:"uaeT2",   label:"UAE T2 Cases",   color:"#06B6D4", flag:"🇦🇪" },
+    { key:"someKwt", label:"SOME KWT Cases", color:"#14B8A6", flag:"🇰🇼" },
+    { key:"someQat", label:"SOME QAT Cases", color:"#F97316", flag:"🇶🇦" },
+    { key:"someBah", label:"SOME BAH Cases", color:"#A855F7", flag:"🇧🇭" },
+    { key:"someUae", label:"SOME UAE Cases", color:"#84CC16", flag:"🇦🇪" },
+  ];
+  const QUEUE_FIELDS = [...KSA_FIELDS, ...GCC_FIELDS];
+
+  // Per-field calcs: baseline + inflow - current = resolved
+  const calcs = QUEUE_FIELDS.map(f => {
+    const base    = Number(data[f.key+"Base"]||0);
+    const inflow  = Number(data[f.key+"Inflow"]||0);
+    const curr    = Number(data[f.key+"Curr"]||0);
+    const resolved = base + inflow - curr;
+    const change   = curr - base; // positive = grew, negative = reduced
+    return { ...f, base, inflow, curr, resolved, change };
+  });
+
+  const totalBase     = calcs.reduce((s,c)=>s+c.base,0);
+  const totalCurr     = calcs.reduce((s,c)=>s+c.curr,0);
+  const totalResolved = calcs.reduce((s,c)=>s+c.resolved,0);
+  const totalInflow   = calcs.reduce((s,c)=>s+c.inflow,0);
+
+  // Status
+  const status = totalCurr>400 ? "🚨 CRITICAL" : totalCurr>200 ? "⚠️ WARNING" : "✅ NORMAL";
   const statusColor = status.includes("CRITICAL")?"#EF4444":status.includes("WARNING")?"#F59E0B":"#10B981";
+
+  // Duration between baseline and update time
+  function timeDiff() {
+    if (!data.baseTime || !data.updTime) return null;
+    const diff = toMin(data.updTime) - toMin(data.baseTime);
+    const d = diff < 0 ? diff + 1440 : diff;
+    return `${Math.floor(d/60)}h ${d%60}m`;
+  }
+
+  // ── احسب — calculate & push snapshot to heatmap ──
+  function calculate() {
+    if (!data.updTime) { alert("Please enter an Update Time first."); return; }
+    // Save snapshot total to heatmap
+    const hr = data.updTime.slice(0,2)+":00";
+    setHeatmap(prev => ({
+      ...prev,
+      [date]: { ...(prev[date]||{}), [hr]: totalCurr }
+    }));
+    // Save snapshot in queue entry for reference
+    setQueueLog(prev => ({
+      ...prev,
+      [key]: { ...(prev[key]||{}), calcSnapshot: totalCurr, calcTime: data.updTime }
+    }));
+    setCalcDone(true);
+  }
 
   return (
     <div>
+      {/* Toolbar */}
       <div style={SBR()}>
         <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>📊 Queue Data</span>
         <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
         <select value={shiftId} onChange={e=>setShiftId(e.target.value)} style={{ ...I(), width:160 }}>
           {shifts.map(s=><option key={s.id} value={s.id}>{s.label} ({s.start})</option>)}
         </select>
-        <div style={{ marginLeft:"auto", fontWeight:700, fontSize:14, color:statusColor, background:statusColor+"18", borderRadius:6, padding:"6px 14px" }}>{status}</div>
+        <div style={{ fontWeight:700, fontSize:13, color:statusColor, background:statusColor+"18",
+          borderRadius:6, padding:"6px 14px", border:`1px solid ${statusColor}40` }}>{status}</div>
       </div>
 
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
-        {/* KSA */}
-        <div style={CRD()}>
-          <div style={{ fontWeight:700, color:"#2563EB", marginBottom:12, fontSize:14 }}>🇸🇦 KSA Queue</div>
-          {[["Outbound Baseline","ksaBase"],["SOME Cases Baseline","somBase"],["OSLO Baseline","osloBase"],["New Incoming","ksaInflow"],["Current Live","ksaCurr"]].map(([l,k])=>(
-            <div key={k} style={{ display:"flex", alignItems:"center", marginBottom:8, gap:10 }}>
-              <label style={{ ...LBL, width:180, marginBottom:0, flex:"none" }}>{l}</label>
-              <input type="number" min="0" value={data[k]||""} onChange={e=>setQ(k,e.target.value)} style={{ ...I({ width:100 })}} placeholder="0"/>
-            </div>
-          ))}
-          <div style={{ marginTop:8, padding:"8px 12px", background:"#EFF6FF", borderRadius:6, fontSize:13, color:"#2563EB", fontWeight:600 }}>
-            KSA Resolved: <strong>{ksaResolved}</strong>
-          </div>
+      {/* Time bar */}
+      <div style={{ ...CRD({ padding:"12px 16px" }), marginBottom:16, display:"flex", gap:16, alignItems:"center", flexWrap:"wrap" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <label style={{ ...LBL, marginBottom:0, whiteSpace:"nowrap" }}>⏱ Baseline Time</label>
+          <input type="time" value={data.baseTime||""} onChange={e=>setQ("baseTime",e.target.value)} style={{ ...I({ width:120 })}}/>
         </div>
-
-        {/* GCC */}
-        <div style={CRD()}>
-          <div style={{ fontWeight:700, color:"#10B981", marginBottom:12, fontSize:14 }}>🌍 GCC Queue</div>
-          {[["Tier 2 Baseline","gccBase"],["SOME Cases Baseline","gccSomBase"],["New Incoming","gccInflow"],["Current Live","gccCurr"]].map(([l,k])=>(
-            <div key={k} style={{ display:"flex", alignItems:"center", marginBottom:8, gap:10 }}>
-              <label style={{ ...LBL, width:180, marginBottom:0, flex:"none" }}>{l}</label>
-              <input type="number" min="0" value={data[k]||""} onChange={e=>setQ(k,e.target.value)} style={{ ...I({ width:100 })}} placeholder="0"/>
-            </div>
-          ))}
-          <div style={{ marginTop:8, padding:"8px 12px", background:"#F0FDF4", borderRadius:6, fontSize:13, color:"#10B981", fontWeight:600 }}>
-            GCC Resolved: <strong>{gccResolved}</strong>
-          </div>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <label style={{ ...LBL, marginBottom:0, whiteSpace:"nowrap" }}>🔄 Update Time</label>
+          <input type="time" value={data.updTime||""} onChange={e=>setQ("updTime",e.target.value)} style={{ ...I({ width:120 })}}/>
         </div>
+        {timeDiff() && (
+          <div style={{ fontSize:13, color:"#475569", fontWeight:600 }}>⏳ Duration: <strong>{timeDiff()}</strong></div>
+        )}
+        {/* احسب button */}
+        <button onClick={calculate}
+          style={{ ...PBT(calcDone?"#10B981":"#2563EB", { padding:"8px 24px", fontSize:14, marginLeft:"auto",
+            boxShadow: calcDone?"none":"0 0 0 3px #2563EB30", transition:"all 0.2s" }) }}>
+          {calcDone ? "✅ محسوب — Heat Map Updated" : "🧮 احسب"}
+        </button>
       </div>
 
-      {/* Times */}
-      <div style={{ ...CRD(), marginTop:16 }}>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:12 }}>
-          <div>
-            <label style={LBL}>Baseline Time</label>
-            <input type="time" value={data.baseTime||""} onChange={e=>setQ("baseTime",e.target.value)} style={I()}/>
+      {/* Summary KPIs */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:16 }}>
+        {[["Total Baseline",totalBase,"#475569"],["New Inflow",totalInflow,"#2563EB"],
+          ["Current Live",totalCurr,"#EF4444"],["Resolved",totalResolved,"#10B981"]].map(([l,v,c])=>(
+          <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
+            <div style={{ fontSize:11, color:"#64748B", fontWeight:600 }}>{l}</div>
+            <div style={{ fontSize:28, fontWeight:800, color:c }}>{v}</div>
           </div>
-          <div>
-            <label style={LBL}>Update Time</label>
-            <input type="time" value={data.updTime||""} onChange={e=>setQ("updTime",e.target.value)} style={I()}/>
+        ))}
+      </div>
+
+      {/* Queue tables — KSA then GCC */}
+      {[
+        { title:"🇸🇦 KSA Queue", fields: KSA_FIELDS, accent:"#2563EB" },
+        { title:"🌍 GCC Queue",  fields: GCC_FIELDS,  accent:"#10B981" },
+      ].map(({ title, fields, accent }) => {
+        const groupCalcs = calcs.filter(c => fields.some(f=>f.key===c.key));
+        const gTotal = groupCalcs.reduce((s,c)=>s+c.curr,0);
+        const gResolved = groupCalcs.reduce((s,c)=>s+c.resolved,0);
+        const gResolved = groupCalcs.reduce((s,c)=>s+c.resolved,0);
+        return (
+          <div key={title} style={{ ...CRD(), overflowX:"auto", marginBottom:16 }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+              <div style={{ fontWeight:800, color:accent, fontSize:15 }}>{title}</div>
+              <div style={{ display:"flex", gap:16, fontSize:12, color:"#64748B" }}>
+                <span>Current: <strong style={{color:"#EF4444"}}>{gTotal}</strong></span>
+                <span>Resolved: <strong style={{color:"#10B981"}}>{gResolved>0?"+":""}{gResolved}</strong></span>
+              </div>
+            </div>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+              <thead>
+                <tr style={{ background:"#F8FAFC" }}>
+                  {["Queue","","Baseline","New Inflow","Current","Resolved","Trend"].map(h=>(
+                    <th key={h} style={{ padding:"8px 10px", textAlign:"left", fontWeight:700, color:"#0F2744",
+                      borderBottom:`2px solid ${accent}40`, whiteSpace:"nowrap" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {groupCalcs.map((c,ri) => (
+                  <tr key={c.key} style={{ background: ri%2===0?"#fff":"#F8FAFC" }}>
+                    <td style={{ padding:"8px 10px", fontWeight:700, color:c.color }}>{c.label}</td>
+                    <td style={{ padding:"8px 6px", fontSize:16 }}>{c.flag}</td>
+                    <td style={{ padding:"8px 10px" }}>
+                      <input type="number" min="0" value={data[c.key+"Base"]||""}
+                        onChange={e=>setQ(c.key+"Base",e.target.value)}
+                        style={{ ...I({ width:75 })}} placeholder="0"/>
+                    </td>
+                    <td style={{ padding:"8px 10px" }}>
+                      <input type="number" min="0" value={data[c.key+"Inflow"]||""}
+                        onChange={e=>setQ(c.key+"Inflow",e.target.value)}
+                        style={{ ...I({ width:75, border: Number(data[c.key+"Inflow"]||0)>0?"2px solid #2563EB":"1px solid #CBD5E1" })}} placeholder="0"/>
+                    </td>
+                    <td style={{ padding:"8px 10px" }}>
+                      <input type="number" min="0" value={data[c.key+"Curr"]||""}
+                        onChange={e=>setQ(c.key+"Curr",e.target.value)}
+                        style={{ ...I({ width:75, border: Number(data[c.key+"Curr"]||0)>200?"2px solid #EF4444":Number(data[c.key+"Curr"]||0)>100?"2px solid #F59E0B":"1px solid #CBD5E1" })}} placeholder="0"/>
+                    </td>
+                    <td style={{ padding:"8px 10px", fontWeight:700,
+                      color: c.resolved>0?"#10B981":c.resolved<0?"#EF4444":"#94A3B8" }}>
+                      {c.resolved>0?"+":""}{c.resolved}
+                    </td>
+                    <td style={{ padding:"8px 10px", fontSize:16 }}>
+                      {c.change>0?"📈":c.change<0?"📉":"➡️"}
+                      <span style={{ fontSize:11, color:"#94A3B8", marginLeft:4 }}>{c.change>0?"+":""}{c.change||0}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+
+      {/* Comparison: Baseline vs Update */}
+      {data.baseTime && data.updTime && (
+        <div style={{ ...CRD(), marginBottom:16 }}>
+          <div style={{ fontWeight:700, color:"#0F2744", marginBottom:12, fontSize:14 }}>
+            📊 Comparison: {data.baseTime} → {data.updTime} ({timeDiff()})
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8 }}>
+            {calcs.filter(c=>c.base>0||c.curr>0).map(c=>(
+              <div key={c.key} style={{ background:c.color+"10", border:`1.5px solid ${c.color}30`,
+                borderRadius:8, padding:"10px 12px", textAlign:"center" }}>
+                <div style={{ fontSize:11, fontWeight:700, color:c.color, marginBottom:4 }}>{c.flag} {c.label}</div>
+                <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:8, fontSize:13 }}>
+                  <span style={{ color:"#64748B" }}>{c.base}</span>
+                  <span style={{ color:"#94A3B8" }}>→</span>
+                  <span style={{ fontWeight:800, color:c.curr>c.base?"#EF4444":c.curr<c.base?"#10B981":"#475569", fontSize:16 }}>{c.curr}</span>
+                </div>
+                <div style={{ fontSize:11, marginTop:4, fontWeight:600,
+                  color:c.resolved>0?"#10B981":c.resolved<0?"#EF4444":"#94A3B8" }}>
+                  Resolved: {c.resolved>0?"+":""}{c.resolved}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-        <label style={LBL}>SME Insights (Problem → Action → Result)</label>
-        <textarea value={data.insight||""} onChange={e=>setQ("insight",e.target.value)} rows={4}
+      )}
+
+      {/* SME Insights */}
+      <div style={CRD()}>
+        <label style={LBL}>💡 SME Insights (Problem → Action → Result)</label>
+        <textarea value={data.insight||""} onChange={e=>setQ("insight",e.target.value)} rows={3}
           style={{ ...I(), resize:"vertical" }} placeholder="Problem → Action → Result"/>
       </div>
+    </div>
+  );
+}
+
+
+// ─── NOTES PAGE ───────────────────────────────────────────────────────────────
+function NotesPage({ notes, setNotes }) {
+  const [date, setDate] = useState(todayStr());
+  const [time, setTime] = useState(() => { const n=new Date(); return pad(n.getHours())+":"+pad(n.getMinutes()); });
+  const [text, setText] = useState("");
+  const [tag, setTag]   = useState("General");
+  const TAGS = ["General","Staffing Issue","Queue Alert","System Issue","Performance Note","Exceptional Event","Other"];
+  const TAG_COLORS = {"General":"#64748B","Staffing Issue":"#EF4444","Queue Alert":"#F59E0B","System Issue":"#8B5CF6","Performance Note":"#2563EB","Exceptional Event":"#EC4899","Other":"#10B981"};
+
+  const allNotes = Array.isArray(notes) ? [...notes].sort((a,b)=>b.ts.localeCompare(a.ts)) : [];
+
+  function addNote() {
+    if (!text.trim()) return;
+    const entry = { id:"n"+Date.now(), ts:`${date}T${time}:00`, date, time, tag, text };
+    setNotes(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0,500));
+    setText(""); setTime(pad(new Date().getHours())+":"+pad(new Date().getMinutes()));
+  }
+  function deleteNote(id) { setNotes(prev=>(prev||[]).filter(n=>n.id!==id)); }
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>📝 Notes & Exceptional Events</span>
+        <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
+      </div>
+      <div style={{ ...CRD(), marginBottom:16 }}>
+        <div style={{ fontWeight:700, color:"#0F2744", marginBottom:12 }}>Add Note</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr auto", gap:10, marginBottom:10 }}>
+          <div><label style={LBL}>Date</label><input type="date" value={date} onChange={e=>setDate(e.target.value)} style={I()}/></div>
+          <div><label style={LBL}>Time</label><input type="time" value={time} onChange={e=>setTime(e.target.value)} style={I()}/></div>
+          <div><label style={LBL}>Tag</label>
+            <select value={tag} onChange={e=>setTag(e.target.value)} style={{ ...I(), border:`2px solid ${TAG_COLORS[tag]}` }}>
+              {TAGS.map(t=><option key={t}>{t}</option>)}
+            </select>
+          </div>
+        </div>
+        <textarea value={text} onChange={e=>setText(e.target.value)} rows={3}
+          style={{ ...I(), resize:"vertical", marginBottom:10 }}
+          placeholder="Describe the exceptional circumstance, issue, or note that affected operations today..."/>
+        <button style={PBT("#2563EB",{padding:"8px 20px"})} onClick={addNote}>+ Save Note</button>
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+        {allNotes.length===0 && <div style={{ ...CRD(), textAlign:"center", padding:32, color:"#94A3B8" }}>📭 No notes yet</div>}
+        {allNotes.map(n=>(
+          <div key={n.id} style={{ ...CRD(), borderLeft:`4px solid ${TAG_COLORS[n.tag]||"#64748B"}` }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+              <span style={{ background:TAG_COLORS[n.tag]+"20", color:TAG_COLORS[n.tag], border:`1px solid ${TAG_COLORS[n.tag]}40`,
+                borderRadius:6, padding:"2px 10px", fontSize:11, fontWeight:700 }}>{n.tag}</span>
+              <span style={{ fontSize:12, color:"#64748B" }}>📅 {n.date} · 🕐 {n.time}</span>
+              <button onClick={()=>deleteNote(n.id)} style={{ marginLeft:"auto", background:"none", border:"1px solid #FCA5A5",
+                color:"#EF4444", borderRadius:4, padding:"2px 8px", cursor:"pointer", fontSize:11 }}>✕</button>
+            </div>
+< truncated lines 1444-1607 >
+                    <span key={i} style={{ marginLeft:6, color:"#94A3B8" }}>[{eb.start} +{eb.durationMin}m]</span>
+                  ))}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                {es.status==="Online" ? (
+                  <button onClick={()=>setBreakStart(emp.id)}
+                    style={PBT("#F59E0B",{padding:"5px 12px",fontSize:11})}>☕ Start Break</button>
+                ) : (
+                  <button onClick={()=>endBreak(emp.id)}
+                    style={PBT("#10B981",{padding:"5px 12px",fontSize:11})}>✅ End Break</button>
+                )}
+                <button onClick={()=>{setShowBreakModal(emp.id);setExtraStart(pad(now.getHours())+":"+pad(now.getMinutes()));setExtraDur(15);}}
+                  style={PBT("#8B5CF6",{padding:"5px 12px",fontSize:11})}>+ Extra Break</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Extra Break Modal */}
+      {showBreakModal && (
+        <Modal title={`Add Extra Break — ${employees.find(e=>e.id===showBreakModal)?.name}`}
+          onClose={()=>setShowBreakModal(null)} width={380}>
+          <label style={LBL}>Break Start Time</label>
+          <input type="time" value={extraStart} onChange={e=>setExtraStart(e.target.value)} style={{ ...I(), marginBottom:12 }}/>
+          <label style={LBL}>Duration (minutes)</label>
+          <input type="number" min="1" max="120" value={extraDur} onChange={e=>setExtraDur(Number(e.target.value))} style={{ ...I(), marginBottom:16 }}/>
+          <button style={PBT("#8B5CF6",{width:"100%",padding:"10px"})} onClick={()=>addExtraBreak(showBreakModal)}>+ Add Extra Break</button>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ─── DAILY TASKS PAGE (merged Roster + Tasks) ─────────────────────────────────
+function DailyTasksPage({ employees, setEmployees, schedule, setSchedule, shifts, auditLog, setAuditLog, session }) {
+  const [tab, setTab] = useState("tasks"); // "tasks" | "roster"
+  // Forward to existing components
+  return (
+    <div>
+      <div style={{ display:"flex", gap:6, marginBottom:16 }}>
+        {[["tasks","📋 Task Assignments"],["roster","👥 Employee Roster"]].map(([k,l])=>(
+          <button key={k} onClick={()=>setTab(k)}
+            style={{ border:`2px solid #2563EB`, borderRadius:20, padding:"6px 16px", fontSize:13, cursor:"pointer", fontWeight:600,
+              background:tab===k?"#2563EB":"transparent", color:tab===k?"#fff":"#2563EB" }}>{l}</button>
+        ))}
+      </div>
+      {tab==="tasks"
+        ? <TaskAssignmentsPage employees={employees} setEmployees={setEmployees} auditLog={auditLog} setAuditLog={setAuditLog} session={session}/>
+        : <RosterPage employees={employees} setEmployees={setEmployees} schedule={schedule} setSchedule={setSchedule} shifts={shifts}/>
+      }
     </div>
   );
 }
@@ -903,17 +1321,18 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
   function addEmployee() {
     if (!newEmp.name.trim()) return;
     const id = "e"+Date.now();
-    // Add employee and immediately assign them to this shift on this day
+    const finalRole = newEmp.role==="Other" ? (newEmp.customRole||"Other") : newEmp.role;
     const defaultSched = { Sunday:"OFF", Monday:"OFF", Tuesday:"OFF", Wednesday:"OFF", Thursday:"OFF", Friday:"OFF", Saturday:"OFF" };
     defaultSched[dayName] = activeShift;
-    setEmployees(prev => [...prev, { id, ...newEmp }]);
+    setEmployees(prev => [...prev, { id, name:newEmp.name, role:finalRole, tasks:newEmp.tasks }]);
     setSchedule(prev => ({ ...prev, [id]: defaultSched }));
-    setNewEmp({ name:"", tasks:[], role:"Agent" });
+    setNewEmp({ name:"", tasks:[], role:"Agent", customRole:"" });
     setShowAdd(false);
   }
 
   function saveEdit() {
-    setEmployees(prev => prev.map(e => e.id===editEmp.id ? editEmp : e));
+    const finalRole = editEmp.role==="Other" ? (editEmp.customRole||"Other") : editEmp.role;
+    setEmployees(prev => prev.map(e => e.id===editEmp.id ? {...editEmp, role:finalRole} : e));
     setEditEmp(null);
   }
 
@@ -964,605 +1383,136 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
             </span>
           ))}
         </div>
-      )}
+  background:"none", border:"none", cursor:"pointer", fontSize:15, color:"#94A3B8" }}>
+                  {showPw?"🙈":"👁️"}
+                </button>
+              </div>
+              <label style={LBL}>Confirm Password</label>
+              <input type={showPw?"text":"password"} value={newPw2}
+                onChange={e=>{setNewPw2(e.target.value);setError("");}}
+                onKeyDown={e=>e.key==="Enter"&&setupPassword()}
+                style={{ ...I({ marginBottom:10, border: error?"2px solid #EF4444":"1px solid #CBD5E1" })}}
+                placeholder="Repeat password..."/>
+              {error && <div style={{ color:"#EF4444", fontSize:12, marginBottom:8, fontWeight:600 }}>⚠️ {error}</div>}
+              <button onClick={setupPassword}
+                style={PBT("#2563EB",{ width:"100%", padding:"10px", fontSize:13, borderRadius:8 })}>
+                🔐 Set Password & Sign In
+              </button>
+            </div>
+          )}
 
-      {/* Table */}
-      <div style={{ ...CRD(), overflowX:"auto" }}>
-        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-          <thead>
-            <tr style={{ background:"#F8FAFC" }}>
-              {["#","Name","Role","Tasks","Actions"].map(h=>(
-                <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {shiftEmployees.map((emp, ri) => (
-              <tr key={emp.id} style={{ background: ri%2===0?"#fff":"#F8FAFC" }}>
-                <td style={{ padding:"10px 12px", color:"#94A3B8", fontWeight:600 }}>{ri+1}</td>
-                <td style={{ padding:"10px 12px", fontWeight:700, color:"#1E293B" }}>{emp.name}</td>
-                <td style={{ padding:"10px 12px" }}>
-                  <span style={{ background:"#F1F5F9", borderRadius:6, padding:"3px 9px", fontSize:12, color:"#475569", fontWeight:600 }}>{emp.role}</span>
-                </td>
-                <td style={{ padding:"10px 12px" }}>
-                  <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
-                    {emp.tasks.map(t=>(
-                      <span key={t} style={{ background:taskColor(t), color:"#fff", borderRadius:10, padding:"2px 8px", fontSize:11, fontWeight:600 }}>{t}</span>
-                    ))}
-                  </div>
-                </td>
-                <td style={{ padding:"10px 12px" }}>
-                  <div style={{ display:"flex", gap:6 }}>
-                    <button onClick={()=>setEditEmp({...emp})}
-                      style={{ background:"none", border:"1px solid #CBD5E1", borderRadius:6, padding:"4px 8px", cursor:"pointer", fontSize:13 }} title="Edit">✏️</button>
-                    <button onClick={()=>removeFromShift(emp.id)}
-                      style={{ background:"none", border:"1px solid #FCD34D", borderRadius:6, padding:"4px 8px", cursor:"pointer", fontSize:13, color:"#92400E" }} title="Remove from shift">📅✕</button>
-                    <button onClick={()=>deleteEmp(emp.id)}
-                      style={{ background:"none", border:"1px solid #FCA5A5", borderRadius:6, padding:"4px 8px", cursor:"pointer", fontSize:13, color:"#EF4444" }} title="Delete employee">🗑️</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {shiftEmployees.length===0 && (
-              <tr>
-                <td colSpan={5} style={{ padding:32, textAlign:"center", color:"#94A3B8" }}>
-                  No employees scheduled for <strong>{sh?.label}</strong> on <strong>{dayName}</strong>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          {/* Password — existing user login */}
+          {!isAgent && selectedName && step==="login" && (
+            <div style={{ marginBottom:16 }}>
+              <label style={LBL}>Password</label>
+              <div style={{ position:"relative" }}>
+                <input type={showPw?"text":"password"} value={password}
+                  onChange={e=>{setPassword(e.target.value);setError("");}}
+                  onKeyDown={e=>e.key==="Enter"&&tryLogin()}
+                  style={{ ...I({ paddingRight:42, border: error?"2px solid #EF4444":"1px solid #CBD5E1" })}}
+                  placeholder="Your personal password..." autoFocus/>
+                <button onClick={()=>setShowPw(p=>!p)}
+                  style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)",
+                    background:"none", border:"none", cursor:"pointer", fontSize:15, color:"#94A3B8" }}>
+                  {showPw?"🙈":"👁️"}
+                </button>
+              </div>
+              {error && <div style={{ color:"#EF4444", fontSize:12, marginTop:6, fontWeight:600 }}>⚠️ {error}</div>}
+            </div>
+          )}
 
-      {/* Legend */}
-      <div style={{ marginTop:10, display:"flex", gap:16, fontSize:11, color:"#94A3B8" }}>
-        <span>✏️ Edit info</span>
-        <span>📅✕ Remove from this shift only</span>
-        <span>🗑️ Delete permanently</span>
-      </div>
+          {/* Agent hint */}
+          {isAgent && (
+            <div style={{ background:"#F8FAFC", border:"1px solid #E2E8F0", borderRadius:8,
+              padding:"12px 14px", marginBottom:16, fontSize:12, color:"#475569", textAlign:"center" }}>
+              👤 Agent access requires no password — tap Sign In to continue.
+            </div>
+          )}
 
-      {/* Add Modal — assigns to current shift+day automatically */}
-      {showAdd && (
-        <Modal title={`Add Employee to ${sh?.label||""} · ${dayName}`} onClose={()=>setShowAdd(false)}>
-          <div style={{ background:"#EFF6FF", borderRadius:6, padding:"8px 12px", marginBottom:14, fontSize:12, color:"#1D4ED8" }}>
-            سيتم تعيين الموظف تلقائياً على شفت <strong>{sh?.label} ({sh?.start}–{sh?.end})</strong> يوم <strong>{dayName}</strong>
+          {/* Sign In button */}
+          {(isAgent || (selectedName && step==="login")) && (
+            <button onClick={tryLogin}
+              style={{ ...PBT(roleColor, { width:"100%", padding:"12px", fontSize:14, borderRadius:10 }) }}>
+              {ROLE_ICONS[selectedRole]} Sign In{selectedName ? ` as ${selectedName.split(" ")[0]}` : " as Agent"}
+            </button>
+          )}
+
+          <div style={{ marginTop:12, textAlign:"center", fontSize:11, color:"#94A3B8" }}>
+            Data is saved locally on this device · Never leaves your browser
           </div>
-          <label style={LBL}>Name</label>
-          <input style={{ ...I(), marginBottom:12 }} value={newEmp.name} onChange={e=>setNewEmp(p=>({...p,name:e.target.value}))} placeholder="Full name" autoFocus/>
-          <label style={LBL}>Role</label>
-          <select style={{ ...I(), marginBottom:12 }} value={newEmp.role} onChange={e=>setNewEmp(p=>({...p,role:e.target.value}))}>
-            {["Agent","Shift Leader","Team Lead","SME"].map(r=><option key={r}>{r}</option>)}
-          </select>
-          <label style={LBL}>Tasks</label>
-          <div style={{ marginBottom:16 }}><TaskPicker selected={newEmp.tasks} onChange={tasks=>setNewEmp(p=>({...p,tasks}))}/></div>
-          <button style={PBT("#2563EB",{width:"100%"})} onClick={addEmployee}>+ Add & Assign to Shift</button>
-        </Modal>
-      )}
-
-      {/* Edit Modal */}
-      {editEmp && (
-        <Modal title="Edit Employee" onClose={()=>setEditEmp(null)}>
-          <label style={LBL}>Name</label>
-          <input style={{ ...I(), marginBottom:12 }} value={editEmp.name} onChange={e=>setEditEmp(p=>({...p,name:e.target.value}))}/>
-          <label style={LBL}>Role</label>
-          <select style={{ ...I(), marginBottom:12 }} value={editEmp.role} onChange={e=>setEditEmp(p=>({...p,role:e.target.value}))}>
-            {["Agent","Shift Leader","Team Lead","SME"].map(r=><option key={r}>{r}</option>)}
-          </select>
-          <label style={LBL}>Tasks</label>
-          <div style={{ marginBottom:16 }}><TaskPicker selected={editEmp.tasks} onChange={tasks=>setEditEmp(p=>({...p,tasks}))}/></div>
-          <button style={PBT("#2563EB",{width:"100%"})} onClick={saveEdit}>Save Changes</button>
-        </Modal>
-      )}
+        </div>
+      </div>
     </div>
   );
 }
 
-// ─── SHIFTS CONFIG PAGE ───────────────────────────────────────────────────────
-function ShiftsPage({ shifts, setShifts }) {
-  const [editId, setEditId] = useState(null);
-  const [editData, setEditData] = useState({});
-  const [showAdd, setShowAdd] = useState(false);
-  const [newShift, setNewShift] = useState({ label:"New Shift", start:"09:00", end:"17:00", color:"#6366F1" });
+// ─── PASSWORD RESET MODAL (inside app, for admins) ───────────────────────────
+function PasswordResetModal({ employees, session, onClose }) {
+  const [search, setSearch]       = useState("");
+  const [newPw, setNewPw]         = useState("");
+  const [targetName, setTargetName] = useState("");
+  const [done, setDone]           = useState("");
 
-  function saveEdit() {
-    setShifts(prev=>prev.map(s=>s.id===editId?{...s,...editData}:s));
-    setEditId(null);
-  }
-  function addShift() {
-    setShifts(prev=>[...prev,{id:"s"+Date.now(),...newShift}]);
-    setShowAdd(false);
-  }
-  function deleteShift(id) {
-    if (!window.confirm("Delete this shift?")) return;
-    setShifts(prev=>prev.filter(s=>s.id!==id));
+  const nonAgents = employees.filter(e => e.role !== "Agent" &&
+    e.name.toLowerCase().includes(search.toLowerCase()));
+
+  function doReset(name) {
+    if (!newPw || newPw.length < 4) { alert("Enter at least 4 characters."); return; }
+    setUserPw(name, newPw);
+    setDone(`✅ Password reset for ${name}`);
+    setNewPw(""); setTargetName("");
   }
 
   return (
-    <div>
-      <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>⏰ Shift Configuration</span>
-        <button style={PBT("#2563EB")} onClick={()=>setShowAdd(true)}>+ Add Shift</button>
+    <Modal title="🔑 Reset User Password" onClose={onClose} width={520}>
+      <div style={{ fontSize:12, color:"#64748B", marginBottom:14 }}>
+        You can reset passwords for Team Lead, Shift Leader, and SME accounts.
       </div>
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))", gap:12 }}>
-        {shifts.map(sh=>(
-          <div key={sh.id} style={{ ...CRD({ padding:0 }), overflow:"hidden" }}>
-            <div style={{ background:sh.color, padding:"14px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-              <div>
-                <div style={{ color:"#fff", fontWeight:800, fontSize:16 }}>{sh.label}</div>
-                <div style={{ color:"rgba(255,255,255,0.85)", fontSize:13 }}>{sh.start} – {sh.end}</div>
+      <input value={search} onChange={e=>setSearch(e.target.value)}
+        style={{ ...I(), marginBottom:12 }} placeholder="🔍 Search name..."/>
+      {done && <div style={{ background:"#F0FDF4", border:"1px solid #86EFAC", borderRadius:6, padding:"8px 12px", marginBottom:12, fontSize:13, color:"#166534", fontWeight:600 }}>{done}</div>}
+      <div style={{ maxHeight:280, overflowY:"auto" }}>
+        {nonAgents.map(emp => (
+          <div key={emp.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0",
+            borderBottom:"1px solid #F1F5F9" }}>
+            <div style={{ flex:1 }}>
+              <div style={{ fontWeight:600, fontSize:13 }}>{emp.name}</div>
+              <div style={{ fontSize:11, color: ROLE_COLORS[emp.role]||"#64748B" }}>
+                {ROLE_ICONS[emp.role]||"👤"} {emp.role}
               </div>
-              <div style={{ display:"flex", gap:6 }}>
-                <button onClick={()=>{setEditId(sh.id);setEditData({...sh});}}
-                  style={{ background:"rgba(255,255,255,0.2)", border:"none", color:"#fff", borderRadius:6, padding:"4px 10px", cursor:"pointer" }}>✏️</button>
-                <button onClick={()=>deleteShift(sh.id)}
-                  style={{ background:"rgba(255,255,255,0.2)", border:"none", color:"#fff", borderRadius:6, padding:"4px 10px", cursor:"pointer" }}>✕</button>
+              <div style={{ fontSize:11, color:"#94A3B8", marginTop:1 }}>
+                {getUserPw(emp.name) ? "Has password set" : "⚠️ No password yet"}
               </div>
             </div>
-            {editId===sh.id && (
-              <div style={{ padding:16 }}>
-                <label style={LBL}>Label</label>
-                <input style={{ ...I(), marginBottom:8 }} value={editData.label||""} onChange={e=>setEditData(p=>({...p,label:e.target.value}))}/>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:8 }}>
-                  <div><label style={LBL}>Start</label><input type="time" style={I()} value={editData.start||""} onChange={e=>setEditData(p=>({...p,start:e.target.value}))}/></div>
-                  <div><label style={LBL}>End</label><input type="time" style={I()} value={editData.end||""} onChange={e=>setEditData(p=>({...p,end:e.target.value}))}/></div>
-                </div>
-                <label style={LBL}>Color</label>
-                <input type="color" style={{ ...I(), height:36, padding:2, marginBottom:10 }} value={editData.color||"#2563EB"} onChange={e=>setEditData(p=>({...p,color:e.target.value}))}/>
-                <div style={{ display:"flex", gap:8 }}>
-                  <button style={PBT("#10B981",{flex:1})} onClick={saveEdit}>Save</button>
-                  <button style={PBT("#94A3B8",{flex:1})} onClick={()=>setEditId(null)}>Cancel</button>
-                </div>
+            {targetName === emp.name ? (
+              <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                <input value={newPw} onChange={e=>setNewPw(e.target.value)}
+                  style={{ ...I({ width:130 })}} placeholder="New password..."
+                  onKeyDown={e=>e.key==="Enter"&&doReset(emp.name)} autoFocus/>
+                <button onClick={()=>doReset(emp.name)}
+                  style={PBT("#10B981",{ padding:"6px 10px", fontSize:12 })}>Set</button>
+                <button onClick={()=>{setTargetName("");setNewPw("");}}
+                  style={PBT("#94A3B8",{ padding:"6px 10px", fontSize:12 })}>✕</button>
               </div>
+            ) : (
+              <button onClick={()=>{setTargetName(emp.name); setNewPw(""); setDone("");}}
+                style={PBT("#F59E0B",{ padding:"6px 12px", fontSize:12 })}>Reset</button>
             )}
           </div>
         ))}
+        {nonAgents.length === 0 && <div style={{ color:"#94A3B8", textAlign:"center", padding:16 }}>No results</div>}
       </div>
-
-      {showAdd && (
-        <Modal title="Add New Shift" onClose={()=>setShowAdd(false)}>
-          <label style={LBL}>Label</label>
-          <input style={{ ...I(), marginBottom:12 }} value={newShift.label} onChange={e=>setNewShift(p=>({...p,label:e.target.value}))}/>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:12 }}>
-            <div><label style={LBL}>Start</label><input type="time" style={I()} value={newShift.start} onChange={e=>setNewShift(p=>({...p,start:e.target.value}))}/></div>
-            <div><label style={LBL}>End</label><input type="time" style={I()} value={newShift.end} onChange={e=>setNewShift(p=>({...p,end:e.target.value}))}/></div>
-          </div>
-          <label style={LBL}>Color</label>
-          <input type="color" style={{ ...I(), height:40, marginBottom:16, padding:4 }} value={newShift.color} onChange={e=>setNewShift(p=>({...p,color:e.target.value}))}/>
-          <button style={PBT("#2563EB",{width:"100%"})} onClick={addShift}>Add Shift</button>
-        </Modal>
-      )}
-    </div>
+    </Modal>
   );
 }
 
-// ─── REPORTS PAGE ─────────────────────────────────────────────────────────────
-function ReportsPage({ employees, schedule, shifts, attendance, performance, heatmap, kg, queueLog }) {
-  const [reportType, setReportType] = useState("daily");
-  const [date, setDate] = useState(todayStr());
-  const [month, setMonth] = useState(new Date().toISOString().slice(0,7));
-  const [copied, setCopied] = useState(false);
-
-  function getMonthStats(y,m) {
-    const dates = monthDates(y,m);
-    const stats = {};
-    employees.forEach(emp => {
-      stats[emp.id] = { abs:0,lateCount:0,lateMin:0,earlyCount:0,earlyMin:0,closed:0,reopened:0,escalations:0,qualitySum:0,qualityCount:0,workDays:0 };
-    });
-    dates.forEach(d => {
-      const dayName = DAYS[new Date(d+"T12:00:00").getDay()];
-      employees.forEach(emp => {
-        const scheduled = (schedule[emp.id]||{})[dayName];
-        if (!scheduled||scheduled==="OFF") return;
-        const att = ((attendance[d]||{})[emp.id])||{status:"Present"};
-        const perf = ((performance[d]||{})[emp.id])||{};
-        const s=stats[emp.id];
-        s.workDays++;
-        if (att.status==="Absent") s.abs++;
-        if (att.status==="Late"||att.lateMin>=7) { s.lateCount++; s.lateMin+=att.lateMin||0; }
-        if (att.status==="Early Leave") { s.earlyCount++; s.earlyMin+=att.earlyMin||0; }
-        s.closed += perf.closed||0;
-        s.reopened += perf.reopened||0;
-        s.escalations += perf.escalations||0;
-        if (perf.quality) { s.qualitySum+=Number(perf.quality); s.qualityCount++; }
-      });
-    });
-    return stats;
-  }
-
-  function getScorecard(stats) {
-    return employees.map(emp => {
-      const s = stats[emp.id];
-      if (!s) return null;
-      const attRate = s.workDays>0 ? Math.round(((s.workDays-s.abs)/s.workDays)*100) : 100;
-      const fcrRate = s.closed>0 ? Math.round((1-s.reopened/s.closed)*100) : 80;
-      const avgQ = s.qualityCount>0 ? Math.round(s.qualitySum/s.qualityCount) : 80;
-      const productivity = s.closed>0 ? Math.min(100, Math.round(s.closed/Math.max(s.workDays,1)*10)) : 0;
-      const score = Math.round(productivity*0.35 + attRate*0.30 + fcrRate*0.20 + avgQ*0.15);
-      return { emp, s, attRate, fcrRate, avgQ, productivity, score };
-    }).filter(Boolean);
-  }
-
-  function buildDailyReport() {
-    const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
-    const dayEmps = employees.filter(e=>(schedule[e.id]||{})[dayName]!=="OFF");
-    const attMap = attendance[date]||{};
-    const perfMap = performance[date]||{};
-    const hm = heatmap[date]||{};
-    const kgArr = kg[date]||[];
-
-    const present = dayEmps.filter(e=>(attMap[e.id]?.status||"Present")==="Present").length;
-    const absent = dayEmps.filter(e=>attMap[e.id]?.status==="Absent");
-    const late = dayEmps.filter(e=>attMap[e.id]?.status==="Late");
-    const totalClosed = dayEmps.reduce((s,e)=>s+(perfMap[e.id]?.closed||0),0);
-    const totalReopened = dayEmps.reduce((s,e)=>s+(perfMap[e.id]?.reopened||0),0);
-    const fcr = totalClosed>0?Math.round((1-totalReopened/totalClosed)*100):0;
-    const hCounts = Object.entries(hm).map(([h,c])=>({h,c})).sort((a,b)=>b.c-a.c);
-    const peakH = hCounts[0];
-    const perfSorted = [...dayEmps].sort((a,b)=>(perfMap[b.id]?.closed||0)-(perfMap[a.id]?.closed||0));
-    const kgTotal = kgArr.reduce((s,e)=>s+(e.count||0),0);
-
-    return `📊 DAILY OPERATIONS REPORT — ${date}
-${"=".repeat(50)}
-
-👥 STAFFING & ATTENDANCE
-─────────────────────────
-Scheduled: ${dayEmps.length} | Present: ${present} | Absent: ${absent.length} | Late: ${late.length}
-
-Absent: ${absent.map(e=>e.name).join(", ")||"None"}
-Late arrivals: ${late.map(e=>`${e.name} (${attMap[e.id]?.lateMin||0}m)`).join(", ")||"None"}
-
-⚡ INDIVIDUAL PERFORMANCE
-──────────────────────────
-${perfSorted.map((e,i)=>{
-  const p=perfMap[e.id]||{};
-  const f=p.closed>0?Math.round((1-(p.reopened||0)/p.closed)*100):"N/A";
-  return `${["🥇","🥈","🥉"][i]||`${i+1}.`} ${e.name}: ${p.closed||0} closed | ${p.reopened||0} reopened | FCR: ${f}% | Esc: ${p.escalations||0}`;
-}).join("\n")}
-
-Total Closed: ${totalClosed} | Reopened: ${totalReopened} | FCR: ${fcr}%
-
-📊 QUEUE STATUS
-────────────────
-(See Queue Data page for full breakdown)
-
-🌡️ HOURLY HEAT MAP
-───────────────────
-Peak Hour: ${peakH?`${peakH.h} (${peakH.c} cases)`:"N/A"}
-${hCounts.slice(0,5).map(({h,c})=>`  ${h}: ${c} cases`).join("\n")||"No data"}
-
-🧠 KNOWLEDGE GAPS
-──────────────────
-${kgArr.length>0 ? kgArr.sort((a,b)=>b.count-a.count).map(e=>`• ${e.topic}: ${e.count} (${kgTotal>0?Math.round(e.count/kgTotal*100):0}%)`).join("\n") : "No gaps recorded"}
-
-📝 SME NOTES
-─────────────
-Problem → Action → Result
-
-Generated: ${new Date().toLocaleString()}`;
-  }
-
-  function buildMonthlyReport() {
-    const [y,m] = month.split("-").map(Number);
-    const stats = getMonthStats(y,m-1);
-    const scorecard = getScorecard(stats).sort((a,b)=>b.score-a.score);
-    const monthStr = new Date(y,m-1,1).toLocaleString("default",{month:"long",year:"numeric"});
-    const totalClosed = Object.values(stats).reduce((s,v)=>s+v.closed,0);
-    const totalReopened = Object.values(stats).reduce((s,v)=>s+v.reopened,0);
-    const totalAbsences = Object.values(stats).reduce((s,v)=>s+v.abs,0);
-    const totalLateMin = Object.values(stats).reduce((s,v)=>s+v.lateMin,0);
-    const fcr = totalClosed>0?Math.round((1-totalReopened/totalClosed)*100):0;
-    const top3 = scorecard.slice(0,3);
-    const bottom = scorecard.filter(s=>s.score<60);
-
-    return `📅 MONTHLY OPERATIONS REPORT — ${monthStr}
-${"=".repeat(60)}
-
-📊 EXECUTIVE SUMMARY
-─────────────────────
-Total Closed: ${totalClosed}
-Total Reopened: ${totalReopened}
-Overall FCR: ${fcr}%
-Total Absences: ${totalAbsences}
-Total Late Time: ${totalLateMin} minutes
-
-🏆 TOP PERFORMERS
-──────────────────
-${top3.map((s,i)=>`${["🥇","🥈","🥉"][i]} ${s.emp.name} — Score: ${s.score} | Closed: ${s.s.closed} | Att: ${s.attRate}% | FCR: ${s.fcrRate}%`).join("\n")}
-
-⚠️ NEEDS ATTENTION
-────────────────────
-${bottom.length>0 ? bottom.map(s=>`• ${s.emp.name} — Score: ${s.score} | Abs: ${s.s.abs} | Late: ${s.s.lateCount}x`).join("\n") : "All employees performing well"}
-
-📋 FULL ATTENDANCE AUDIT
-─────────────────────────
-${employees.map(e=>{const s=stats[e.id]; return `${e.name}: WorkDays=${s.workDays} | Abs=${s.abs} | Late=${s.lateCount}x (${s.lateMin}m) | Early=${s.earlyCount}x`;}).join("\n")}
-
-⚡ PRODUCTIVITY TABLE
-──────────────────────
-${employees.map(e=>{const s=stats[e.id]; return `${e.name}: ${s.closed} closed | ${s.reopened} reopened | ${s.escalations} esc`;}).join("\n")}
-
-🎯 BALANCED SCORECARD
-──────────────────────
-${scorecard.map(s=>`${s.emp.name}: Productivity=${s.productivity} | Att=${s.attRate}% | FCR=${s.fcrRate}% | Quality=${s.avgQ}% | SCORE=${s.score}/100 ${s.score>=80?"🟢":s.score>=60?"🟡":"🔴"}`).join("\n")}
-
-Generated: ${new Date().toLocaleString()}`;
-  }
-
-  function getReportText() {
-    if (reportType==="daily") return buildDailyReport();
-    if (reportType==="monthly") return buildMonthlyReport();
-    return "";
-  }
-
-  function copyReport() {
-    navigator.clipboard.writeText(getReportText()).then(()=>{
-      setCopied(true); setTimeout(()=>setCopied(false),2000);
-    });
-  }
-
-  // Scorecard data for visual table
-  const [y,m] = month.split("-").map(Number);
-  const mStats = getMonthStats(y,m-1);
-  const scoreData = getScorecard(mStats).sort((a,b)=>b.score-a.score);
-
-  return (
-    <div>
-      <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>📑 Reports</span>
-        <div style={{ display:"flex", gap:6 }}>
-          {[["daily","Daily"],["monthly","Monthly"],["scorecard","Scorecard"]].map(([k,l])=>(
-            <button key={k} onClick={()=>setReportType(k)} style={{ border:`2px solid #2563EB`, borderRadius:20, padding:"5px 14px", fontSize:12, cursor:"pointer", fontWeight:600,
-              background:reportType===k?"#2563EB":"transparent", color:reportType===k?"#fff":"#2563EB" }}>{l}</button>
-          ))}
-        </div>
-        {reportType==="daily" && <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>}
-        {(reportType==="monthly"||reportType==="scorecard") && <input type="month" value={month} onChange={e=>setMonth(e.target.value)} style={{ ...I(), width:150 }}/>}
-        {reportType!=="scorecard" && (
-          <button style={PBT(copied?"#10B981":"#2563EB")} onClick={copyReport}>{copied?"✅ Copied!":"📋 Copy Report"}</button>
-        )}
-      </div>
-
-      {/* Scorecard Visual Table */}
-      {reportType==="scorecard" && (
-        <div>
-          <div style={{ ...CRD(), overflowX:"auto", marginBottom:16 }}>
-            <div style={{ fontWeight:700, color:"#0F2744", marginBottom:12 }}>🎯 Balanced Scorecard — Weights: Productivity 35% · Attendance 30% · FCR 20% · Quality 15%</div>
-            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-              <thead>
-                <tr style={{ background:"#F8FAFC" }}>
-                  {["Rank","Employee","Closed","Attendance %","FCR %","Quality %","Score"].map(h=>(
-                    <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {scoreData.map((s,ri) => {
-                  const scoreColor = s.score>=80?"#10B981":s.score>=60?"#F59E0B":"#EF4444";
-                  return (
-                    <tr key={s.emp.id} style={{ background: ri%2===0?"#fff":"#F8FAFC" }}>
-                      <td style={{ padding:"10px 12px", fontSize:16, textAlign:"center" }}>{["🥇","🥈","🥉"][ri]||ri+1}</td>
-                      <td style={{ padding:"10px 12px", fontWeight:700 }}>{s.emp.name}</td>
-                      <td style={{ padding:"10px 12px" }}>{s.s.closed}</td>
-                      <td style={{ padding:"10px 12px" }}>
-                        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                          <div style={{ background:"#E2E8F0", borderRadius:10, height:8, width:80, overflow:"hidden" }}>
-                            <div style={{ width:s.attRate+"%", height:"100%", background: s.attRate>=80?"#10B981":"#F59E0B", borderRadius:10 }}/>
-                          </div>
-                          {s.attRate}%
-                        </div>
-                      </td>
-                      <td style={{ padding:"10px 12px" }}>{s.fcrRate}%</td>
-                      <td style={{ padding:"10px 12px" }}>{s.avgQ}%</td>
-                      <td style={{ padding:"10px 12px" }}>
-                        <span style={{ background:scoreColor+"20", color:scoreColor, border:`1.5px solid ${scoreColor}`, borderRadius:20, padding:"4px 14px", fontWeight:700, fontSize:14 }}>{s.score}</span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Strategy Guide */}
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:16 }}>
-            {[
-              { icon:"📅", title:"Daily Report", desc:"Staffing, attendance, performance, queue status, heat map, knowledge gaps, SME notes." },
-              { icon:"📆", title:"Weekly Report", desc:"Trend analysis, attendance summary, top performers, recurring issues, action items." },
-              { icon:"📊", title:"Monthly Report", desc:"Executive summary, full audit, balanced scorecard, top performers, needs attention." },
-              { icon:"🎯", title:"Quarterly Report", desc:"Strategic review, team development, process improvements, targets vs actuals." }
-            ].map(c=>(
-              <div key={c.title} style={{ ...CRD(), borderTop:"3px solid #2563EB" }}>
-                <div style={{ fontSize:24, marginBottom:6 }}>{c.icon}</div>
-                <div style={{ fontWeight:700, color:"#0F2744", marginBottom:6 }}>{c.title}</div>
-                <div style={{ fontSize:12, color:"#64748B" }}>{c.desc}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ background:"linear-gradient(135deg,#FEF3C7,#FDE68A)", border:"2px solid #F59E0B", borderRadius:10, padding:"14px 20px", display:"flex", gap:12, alignItems:"center" }}>
-            <span style={{ fontSize:24 }}>✨</span>
-            <div>
-              <div style={{ fontWeight:800, color:"#92400E", fontSize:14 }}>The Golden Formula</div>
-              <div style={{ fontWeight:700, color:"#78350F", fontSize:16 }}>Problem → Action → Result</div>
-              <div style={{ fontSize:12, color:"#92400E", marginTop:2 }}>Always structure your SME insights and reports using this framework for maximum clarity.</div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Report Text */}
-      {reportType!=="scorecard" && (
-        <div style={{ ...CRD(), fontFamily:"monospace", fontSize:12, whiteSpace:"pre-wrap", lineHeight:1.7, color:"#1E293B", maxHeight:600, overflow:"auto", background:"#0F172A", borderRadius:10, padding:20, color:"#E2E8F0" }}>
-          {getReportText()}
-        </div>
-      )}
-    </div>
-  );
-}
-
-
-// ─── DATA VERSION — increment this whenever defaults change ───────────────────
-const DATA_VERSION = "v3"; // bump this to force-reset all clients
-
-// ─── LOCALSTORAGE HOOK ────────────────────────────────────────────────────────
-// On first load, if stored version doesn't match DATA_VERSION, wipe everything.
-(function migrateStorage() {
-  try {
-    const stored = localStorage.getItem("csops_version");
-    if (stored !== DATA_VERSION) {
-      const keys = ["employees","shifts","schedule","attendance","performance",
-                    "heatmap","kg","queueLog","currentRole"];
-      keys.forEach(k => localStorage.removeItem("csops_" + k));
-      localStorage.setItem("csops_version", DATA_VERSION);
-    }
-  } catch {}
-})();
-
-function usePersist(key, defaultVal) {
-  const [state, setState] = useState(() => {
-    try {
-      const raw = localStorage.getItem("csops_" + key);
-      return raw ? JSON.parse(raw) : (typeof defaultVal === "function" ? defaultVal() : defaultVal);
-    } catch { return typeof defaultVal === "function" ? defaultVal() : defaultVal; }
-  });
-  const set = useCallback((val) => {
-    setState(prev => {
-      const next = typeof val === "function" ? val(prev) : val;
-      try { localStorage.setItem("csops_" + key, JSON.stringify(next)); } catch {}
-      return next;
-    });
-  }, [key]);
-  return [state, set];
-}
-
-// ─── ROLE CONFIG ──────────────────────────────────────────────────────────────
-// All roles see ALL 9 pages. Only Agent is read-only.
-const ROLE_PASSWORDS = {
-  "Team Lead":    "CC@123456",
-  "Shift Leader": "CC@123456",
-  "SME":          "CC@123456",
-  "Agent":        "CC@123456",
-};
-const ROLE_CAN_EDIT = {
-  "Team Lead":    true,
-  "Shift Leader": true,
-  "SME":          true,
-  "Agent":        false,
-};
-const ROLE_COLORS = {
-  "Team Lead":    "#2563EB",
-  "Shift Leader": "#8B5CF6",
-  "SME":          "#10B981",
-  "Agent":        "#64748B",
-};
-const ROLE_ICONS = { "Team Lead":"👑", "Shift Leader":"🛡️", "SME":"🧠", "Agent":"👤" };
-const ROLE_DESC  = {
-  "Team Lead":    "Full access · Can edit everything",
-  "Shift Leader": "Full access · Can edit everything",
-  "SME":          "Full access · Can edit everything",
-  "Agent":        "View only · Cannot make changes",
-};
-
-// ─── LOGIN SCREEN ─────────────────────────────────────────────────────────────
-function LoginScreen({ onLogin }) {
-  const [selectedRole, setSelectedRole] = useState("Team Lead");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [showPw, setShowPw] = useState(false);
-
-  function tryLogin() {
-    if (password === ROLE_PASSWORDS[selectedRole]) {
-      setError(""); onLogin(selectedRole);
-    } else {
-      setError("Incorrect password. Please try again.");
-      setPassword("");
-    }
-  }
-
-  const roleColor = ROLE_COLORS[selectedRole];
-
-  return (
-    <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0F2744 0%,#1E3A5F 50%,#0F2744 100%)",
-      display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", padding:16 }}>
-      <div style={{ width:440, background:"#fff", borderRadius:16, overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.4)" }}>
-
-        {/* Header */}
-        <div style={{ background:"#0F2744", padding:"32px 32px 28px", textAlign:"center" }}>
-          <div style={{ fontSize:36, marginBottom:8 }}>🎯</div>
-          <div style={{ color:"#fff", fontWeight:800, fontSize:22, letterSpacing:"-0.5px" }}>CS Operations</div>
-          <div style={{ color:"rgba(255,255,255,0.5)", fontSize:13, marginTop:4 }}>Management System</div>
-          <div style={{ marginTop:10, display:"inline-flex", alignItems:"center",
-            background:"#10B981", borderRadius:20, padding:"3px 12px" }}>
-            <span style={{ fontSize:10, color:"#fff", fontWeight:700 }}>💾 Auto-saved · Secure Login</span>
-          </div>
-        </div>
-
-        <div style={{ padding:"28px 32px 32px" }}>
-          {/* Role picker — 2×2 grid */}
-          <label style={LBL}>Select Your Role</label>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:16 }}>
-            {Object.keys(ROLE_PASSWORDS).map(role => (
-              <button key={role} onClick={()=>{ setSelectedRole(role); setError(""); setPassword(""); }}
-                style={{ border:`2px solid ${selectedRole===role ? ROLE_COLORS[role] : "#E2E8F0"}`,
-                  borderRadius:10, padding:"12px 10px", cursor:"pointer", textAlign:"left", transition:"all 0.15s",
-                  background: selectedRole===role ? ROLE_COLORS[role]+"12" : "#fff", display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ fontSize:22 }}>{ROLE_ICONS[role]}</span>
-                <div>
-                  <div style={{ fontSize:12, fontWeight:700, color: selectedRole===role ? ROLE_COLORS[role] : "#1E293B" }}>{role}</div>
-                  <div style={{ fontSize:10, color:"#94A3B8", marginTop:1 }}>
-                    {role==="Agent" ? "View only" : "Full access"}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Permission hint */}
-          <div style={{ background: roleColor+"10", border:`1px solid ${roleColor}30`, borderRadius:8,
-            padding:"10px 14px", marginBottom:18, fontSize:12 }}>
-            <span style={{ fontWeight:700, color:roleColor }}>{ROLE_ICONS[selectedRole]} {selectedRole} — </span>
-            <span style={{ color:"#475569" }}>{ROLE_DESC[selectedRole]}</span>
-          </div>
-
-          {/* Password */}
-          <div style={{ marginBottom:16 }}>
-            <label style={LBL}>Password</label>
-            <div style={{ position:"relative" }}>
-              <input type={showPw?"text":"password"} value={password}
-                onChange={e=>{ setPassword(e.target.value); setError(""); }}
-                onKeyDown={e=>e.key==="Enter"&&tryLogin()}
-                style={{ ...I({ paddingRight:42, border: error?"2px solid #EF4444":"1px solid #CBD5E1" }) }}
-                placeholder="CC@123456" autoFocus/>
-              <button onClick={()=>setShowPw(p=>!p)}
-                style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)",
-                  background:"none", border:"none", cursor:"pointer", fontSize:15, color:"#94A3B8" }}>
-                {showPw?"🙈":"👁️"}
-              </button>
-            </div>
-            {error && <div style={{ color:"#EF4444", fontSize:12, marginTop:6, fontWeight:600 }}>⚠️ {error}</div>}
-          </div>
-
-          <button onClick={tryLogin}
-            style={{ ...PBT(roleColor, { width:"100%", padding:"12px", fontSize:14, borderRadius:10 }) }}>
-            {ROLE_ICONS[selectedRole]} Sign In as {selectedRole}
-          </button>
-
-          <div style={{ marginTop:14, textAlign:"center", fontSize:11, color:"#94A3B8" }}>
-            Each device stores data independently · Data never leaves your browser
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── LOCKED PAGE (unused now, kept for safety) ────────────────────────────────
-function ReadOnlyBanner() {
+function ReadOnlyBanner({ userName }) {
   return (
     <div style={{ background:"#FEF9C3", border:"1.5px solid #F59E0B", borderRadius:8,
       padding:"10px 16px", marginBottom:16, display:"flex", alignItems:"center", gap:10 }}>
       <span style={{ fontSize:18 }}>👁️</span>
       <div style={{ fontSize:13, color:"#78350F" }}>
-        <strong>View Only Mode</strong> — You are logged in as <strong>Agent</strong>. You can browse all data but cannot make any changes.
+        <strong>View Only Mode</strong> — Logged in as <strong>{userName||"Agent"}</strong>. You can browse all data but cannot make changes.
       </div>
     </div>
   );
@@ -1570,17 +1520,250 @@ function ReadOnlyBanner() {
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const [page, setPage] = useState("Schedule");
-  const [currentRole, setCurrentRole] = usePersist("currentRole", null);
+  const [page, setPage] = useState(() => {
+    try { return localStorage.getItem("csops_lastPage") || "Schedule"; } catch { return "Schedule"; }
+  });
+  const [showResetPw, setShowResetPw] = useState(false);
+  const [loading, setLoading]         = useState(true);
 
-  const [employees, setEmployees] = usePersist("employees", DEFAULT_EMPLOYEES);
-  const [shifts, setShifts] = usePersist("shifts", DEFAULT_SHIFTS);
-  const [schedule, setSchedule] = usePersist("schedule", () => buildDefaultSchedule(DEFAULT_EMPLOYEES));
-  const [attendance, setAttendance] = usePersist("attendance", {});
-  const [performance, setPerformance] = usePersist("performance", {});
-  const [heatmap, setHeatmap] = usePersist("heatmap", {});
-  const [kg, setKg] = usePersist("kg", {});
-  const [queueLog, setQueueLog] = usePersist("queueLog", {});
+  // ── Session (localStorage only — per device) ──────────────────────────────
+  const [session, _setSession] = useState(() => {
+    try { const r = localStorage.getItem("csops_session"); return r ? JSON.parse(r) : null; }
+    catch { return null; }
+  });
+  function setSession(val) {
+    _setSession(val);
+    try { localStorage.setItem("csops_session", val ? JSON.stringify(val) : "null"); } catch {}
+  }
+
+  // ── Supabase-backed state ─────────────────────────────────────────────────
+  const [employees,   setEmployeesRaw]   = useState([]);
+  const [shifts,      setShiftsRaw]      = useState([]);
+  const [scheduleMap, setScheduleRaw]    = useState({});
+  const [attendance,  setAttendanceRaw]  = useState({});
+  const [performance, setPerformanceRaw] = useState({});
+  const [heatmap,     setHeatmapRaw]     = useState({});
+  const [queueLog,    setQueueLogRaw]    = useState({});
+  const [auditLog,    setAuditLogRaw]    = useState([]);
+  const [notes,       setNotesRaw]       = useState([]);
+
+  // ── Load ALL data from Supabase on mount ──────────────────────────────────
+  useState(() => {
+    (async () => {
+      try {
+        // Load employees
+        const empT = await sb.from("employees");
+        const empRows = await empT.select();
+        if (empRows?.length) {
+          const emps = empRows.map(r => ({ id:r.id, name:r.name, role:r.role, tasks:r.tasks||[] }));
+          setEmployeesRaw(emps);
+          localStorage.setItem("csops_employees", JSON.stringify(emps));
+        } else {
+          // First time — seed with defaults
+          const empT2 = await sb.from("employees");
+          await empT2.upsert(DEFAULT_EMPLOYEES.map(e=>({id:e.id,name:e.name,role:e.role,tasks:e.tasks})));
+          setEmployeesRaw(DEFAULT_EMPLOYEES);
+        }
+
+        // Load shifts
+        const shT = await sb.from("shifts");
+        const shRows = await shT.select();
+        if (shRows?.length) {
+          const shs = shRows.map(r=>({id:r.id,label:r.label,start:r.start_time,end:r.end_time,color:r.color}));
+          setShiftsRaw(shs);
+        } else {
+          const shT2 = await sb.from("shifts");
+          await shT2.upsert(DEFAULT_SHIFTS.map(s=>({id:s.id,label:s.label,start_time:s.start,end_time:s.end,color:s.color})));
+          setShiftsRaw(DEFAULT_SHIFTS);
+        }
+
+        // Load schedule
+        const scT = await sb.from("schedule");
+        const scRows = await scT.select();
+        if (scRows?.length) {
+          const sc = {};
+          scRows.forEach(r=>{ sc[r.emp_id]=r.days||{}; });
+          setScheduleRaw(sc);
+        } else {
+          const def = buildDefaultSchedule(DEFAULT_EMPLOYEES);
+          const scT2 = await sb.from("schedule");
+          await scT2.upsert(Object.entries(def).map(([emp_id,days])=>({emp_id,days})));
+          setScheduleRaw(def);
+        }
+
+        // Load attendance (last 90 days)
+        const attT = await sb.from("attendance");
+        const attRows = await attT.select("*", `date=gte.${new Date(Date.now()-90*864e5).toISOString().slice(0,10)}`);
+        if (attRows?.length) {
+          const att = {};
+          attRows.forEach(r => {
+            if (!att[r.date]) att[r.date]={};
+            att[r.date][r.emp_id]={status:r.status,checkIn:r.check_in||"",checkOut:r.check_out||"",lateMin:r.late_min||0,earlyMin:r.early_min||0,workDuration:r.work_duration||"",note:r.note||""};
+          });
+          setAttendanceRaw(att);
+        }
+
+        // Load performance (last 90 days)
+        const pfT = await sb.from("performance");
+        const pfRows = await pfT.select("*", `date=gte.${new Date(Date.now()-90*864e5).toISOString().slice(0,10)}`);
+        if (pfRows?.length) {
+          const pf = {};
+          pfRows.forEach(r => {
+            if (!pf[r.date]) pf[r.date]={};
+            pf[r.date][r.emp_id]={closed:r.closed||0,escalations:r.escalations||0,quality:r.quality||""};
+          });
+          setPerformanceRaw(pf);
+        }
+
+        // Load heatmap (last 90 days)
+        const hmT = await sb.from("heatmap");
+        const hmRows = await hmT.select();
+        if (hmRows?.length) {
+          const hm = {};
+          hmRows.forEach(r=>{ hm[r.date]=r.hours||{}; });
+          setHeatmapRaw(hm);
+        }
+
+        // Load queue_log (last 90 days)
+        const qlT = await sb.from("queue_log");
+        const qlRows = await qlT.select();
+        if (qlRows?.length) {
+          const ql = {};
+          qlRows.forEach(r=>{ ql[r.id]=r.data||{}; });
+          setQueueLogRaw(ql);
+        }
+
+        // Load audit_log (last 500)
+        const alT = await sb.from("audit_log");
+        const alRows = await alT.select("*", "order=ts.desc&limit=500");
+        if (alRows?.length) {
+          const al = alRows.map(r=>({id:r.id,ts:r.ts,by:r.by_name,role:r.by_role,action:r.action,target:r.target||"",detail:r.detail||""}));
+          setAuditLogRaw(al);
+        }
+
+        // Load notes
+        const ntT = await sb.from("notes");
+        const ntRows = await ntT.select("*", "order=ts.desc");
+        if (ntRows?.length) {
+          setNotesRaw(ntRows.map(r=>({id:r.id,ts:r.ts,date:r.date,time:r.time,tag:r.tag,text:r.text})));
+        }
+
+      } catch(e) {
+        console.warn("Supabase load failed, using localStorage:", e);
+        // Fallback to localStorage
+        try {
+          const emp = localStorage.getItem("csops_employees"); if(emp) setEmployeesRaw(JSON.parse(emp));
+          else setEmployeesRaw(DEFAULT_EMPLOYEES);
+          const sh = localStorage.getItem("csops_shifts"); if(sh) setShiftsRaw(JSON.parse(sh));
+          else setShiftsRaw(DEFAULT_SHIFTS);
+          const sc = localStorage.getItem("csops_schedule"); if(sc) setScheduleRaw(JSON.parse(sc));
+          else setScheduleRaw(buildDefaultSchedule(DEFAULT_EMPLOYEES));
+          const at = localStorage.getItem("csops_attendance"); if(at) setAttendanceRaw(JSON.parse(at));
+          const pf = localStorage.getItem("csops_performance"); if(pf) setPerformanceRaw(JSON.parse(pf));
+          const hm = localStorage.getItem("csops_heatmap"); if(hm) setHeatmapRaw(JSON.parse(hm));
+          const ql = localStorage.getItem("csops_queueLog"); if(ql) setQueueLogRaw(JSON.parse(ql));
+          const al = localStorage.getItem("csops_auditLog"); if(al) setAuditLogRaw(JSON.parse(al));
+          const nt = localStorage.getItem("csops_notes"); if(nt) setNotesRaw(JSON.parse(nt));
+        } catch {}
+      } finally {
+        setLoading(false);
+      }
+    })();
+  });
+
+  // ── Supabase savers ───────────────────────────────────────────────────────
+  async function saveEmployees(emps) {
+    try {
+      const t = await sb.from("employees");
+      await t.upsert(emps.map(e=>({id:e.id,name:e.name,role:e.role,tasks:e.tasks||[]})));
+    } catch {}
+    localStorage.setItem("csops_employees", JSON.stringify(emps));
+  }
+  async function saveShifts(shs) {
+    try {
+      const t = await sb.from("shifts");
+      await t.upsert(shs.map(s=>({id:s.id,label:s.label,start_time:s.start,end_time:s.end,color:s.color})));
+    } catch {}
+    localStorage.setItem("csops_shifts", JSON.stringify(shs));
+  }
+  async function saveSchedule(sc) {
+    try {
+      const t = await sb.from("schedule");
+      await t.upsert(Object.entries(sc).map(([emp_id,days])=>({emp_id,days,updated_at:new Date().toISOString()})));
+    } catch {}
+    localStorage.setItem("csops_schedule", JSON.stringify(sc));
+  }
+  async function saveAttendance(att) {
+    try {
+      const rows = [];
+      Object.entries(att).forEach(([date, emps]) => {
+        Object.entries(emps).forEach(([emp_id, a]) => {
+          rows.push({id:`${date}_${emp_id}`,date,emp_id,status:a.status,check_in:a.checkIn||null,check_out:a.checkOut||null,late_min:a.lateMin||0,early_min:a.earlyMin||0,work_duration:a.workDuration||null,note:a.note||null,updated_at:new Date().toISOString()});
+        });
+      });
+      if (rows.length) { const t = await sb.from("attendance"); await t.upsert(rows); }
+    } catch {}
+    localStorage.setItem("csops_attendance", JSON.stringify(att));
+  }
+  async function savePerformance(pf) {
+    try {
+      const rows = [];
+      const rows = [];
+      Object.entries(pf).forEach(([date,emps])=>{
+        Object.entries(emps).forEach(([emp_id,p])=>{
+          rows.push({id:`${date}_${emp_id}`,date,emp_id,closed:p.closed||0,escalations:p.escalations||0,quality:p.quality||null,updated_at:new Date().toISOString()});
+        });
+      });
+      if (rows.length) { const t = await sb.from("performance"); await t.upsert(rows); }
+    } catch {}
+    localStorage.setItem("csops_performance", JSON.stringify(pf));
+  }
+  async function saveHeatmap(hm) {
+    try {
+      const rows = Object.entries(hm).map(([date,hours])=>({date,hours,updated_at:new Date().toISOString()}));
+      if (rows.length) { const t = await sb.from("heatmap"); await t.upsert(rows); }
+    } catch {}
+    localStorage.setItem("csops_heatmap", JSON.stringify(hm));
+  }
+  async function saveQueueLog(ql) {
+    try {
+      const rows = Object.entries(ql).map(([id,data])=>{
+        const [date,shift_id] = id.split("_");
+        return {id,date,shift_id:shift_id||"",data,updated_at:new Date().toISOString()};
+      });
+      if (rows.length) { const t = await sb.from("queue_log"); await t.upsert(rows); }
+    } catch {}
+    localStorage.setItem("csops_queueLog", JSON.stringify(ql));
+  }
+  async function saveAuditLog(al) {
+    try {
+      const latest = Array.isArray(al) ? al.slice(0,50) : []; // save only new 50
+      const rows = latest.map(l=>({id:l.id,ts:l.ts,by_name:l.by,by_role:l.role,action:l.action,target:l.target||"",detail:l.detail||""}));
+      if (rows.length) { const t = await sb.from("audit_log"); await t.upsert(rows); }
+    } catch {}
+    localStorage.setItem("csops_auditLog", JSON.stringify(al));
+  }
+  async function saveNotes(nt) {
+    try {
+      const rows = (Array.isArray(nt)?nt:[]).map(n=>({id:n.id,ts:n.ts,date:n.date,time:n.time||"",tag:n.tag||"General",text:n.text}));
+      if (rows.length) { const t = await sb.from("notes"); await t.upsert(rows); }
+    } catch {}
+    localStorage.setItem("csops_notes", JSON.stringify(nt));
+  }
+
+  // ── Wrapped setters that save to Supabase ─────────────────────────────────
+  function setEmployees(val)  { const n=typeof val==="function"?val(employees):val;  setEmployeesRaw(n);  saveEmployees(n); }
+  function setShifts(val)     { const n=typeof val==="function"?val(shifts):val;     setShiftsRaw(n);     saveShifts(n); }
+  function setSchedule(val)   { const n=typeof val==="function"?val(scheduleMap):val; setScheduleRaw(n);  saveSchedule(n); }
+  function setAttendance(val) { const n=typeof val==="function"?val(attendance):val; setAttendanceRaw(n); saveAttendance(n); }
+  function setPerformance(val){ const n=typeof val==="function"?val(performance):val;setPerformanceRaw(n);savePerformance(n); }
+  function setHeatmap(val)    { const n=typeof val==="function"?val(heatmap):val;    setHeatmapRaw(n);    saveHeatmap(n); }
+  function setQueueLog(val)   { const n=typeof val==="function"?val(queueLog):val;   setQueueLogRaw(n);   saveQueueLog(n); }
+  function setAuditLog(val)   { const n=typeof val==="function"?val(auditLog):val;   setAuditLogRaw(n);   saveAuditLog(n); }
+  function setNotes(val)      { const n=typeof val==="function"?val(notes):val;      setNotesRaw(n);      saveNotes(n); }
+
+  // Use scheduleMap as schedule
+  const schedule = scheduleMap;
 
   // Load SheetJS
   if (typeof window !== "undefined" && !window.XLSX) {
@@ -1589,79 +1772,165 @@ export default function App() {
     document.head.appendChild(s);
   }
 
-  // Not logged in → show login screen
-  if (!currentRole) {
-    return <LoginScreen onLogin={role => { setCurrentRole(role); setPage("Schedule"); }}/>;
+  // Loading screen
+  if (loading) {
+    return (
+      <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0F2744,#1E3A5F)",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", flexDirection:"column", gap:20 }}>
+        <div style={{ fontSize:48 }}>🎯</div>
+        <div style={{ color:"#fff", fontWeight:800, fontSize:20 }}>CS Operations</div>
+        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+          <div style={{ width:8, height:8, borderRadius:"50%", background:"#10B981",
+            animation:"pulse 1s infinite" }}/>
+          <span style={{ color:"rgba(255,255,255,0.7)", fontSize:14 }}>Connecting to database...</span>
+        </div>
+        <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
+      </div>
+    );
   }
 
-  const canEdit = ROLE_CAN_EDIT[currentRole];
-  const roleColor = ROLE_COLORS[currentRole];
+  // Not logged in → show login
+  if (!session) {
+    return <LoginScreen employees={employees} onLogin={sess => {
+      const entry = {
+        id: "al"+Date.now()+Math.random(),
+        ts: new Date().toISOString(),
+        by: sess.name, role: sess.role,
+        action: "Sign In", target: sess.name,
+        detail: `${sess.role} signed in`,
+      };
+      setAuditLog(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
+      setSession(sess);
+      try { const lp = localStorage.getItem("csops_lastPage"); if(lp) setPage(lp); } catch {}
+    }}/>;
+  }
 
-  // Guard: if Agent (read-only), replace setters with no-ops
+  const currentRole = session.role;
+  const currentName = session.name;
+  const canEdit     = ROLE_CAN_EDIT[currentRole];
+  const roleColor   = ROLE_COLORS[currentRole];
+
+  function navigate(p) {
+    setPage(p);
+    try { localStorage.setItem("csops_lastPage", p); } catch {}
+  }
+
   const noop = () => {};
-  const E = canEdit ? setEmployees   : noop;
-  const SH = canEdit ? setShifts     : noop;
-  const SC = canEdit ? setSchedule   : noop;
-  const AT = canEdit ? setAttendance : noop;
-  const PF = canEdit ? setPerformance: noop;
-  const HM = canEdit ? setHeatmap    : noop;
-  const KG = canEdit ? setKg         : noop;
-  const QL = canEdit ? setQueueLog   : noop;
+  const AL = setAuditLog;
 
-  function logout() { setCurrentRole(null); setPage("Schedule"); }
+  // ── Audited setter: wraps any setter and logs every change ──────────────────
+  function makeAudited(setter, label) {
+    if (!canEdit) return noop;
+    return (val) => {
+      setter(val);
+      const entry = {
+        id: "al"+Date.now()+Math.random(),
+        ts: new Date().toISOString(),
+        by: currentName,
+        role: currentRole,
+        action: label,
+        target: "",
+        detail: "",
+      };
+      setAuditLog(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
+    };
+  }
+
+  // ── Specific audited setters with meaningful labels ──────────────────────────
+  const E  = makeAudited(setEmployees,   "Employee Data Updated");
+  const SH = makeAudited(setShifts,      "Shift Config Updated");
+  const SC = makeAudited(setSchedule,    "Schedule Updated");
+  const AT = makeAudited(setAttendance,  "Attendance Recorded");
+  const PF = makeAudited(setPerformance, "Performance Updated");
+  const HM = makeAudited(setHeatmap,     "Heat Map Updated");
+  const QL = makeAudited(setQueueLog,    "Queue Data Updated");
+
+  // ── Fine-grained audit helper for specific actions (Tasks page, login, etc.) ──
+  function addAudit(action, target, detail) {
+    const entry = {
+      id: "al"+Date.now()+Math.random(),
+      ts: new Date().toISOString(),
+      by: currentName,
+      role: currentRole,
+      action, target, detail,
+    };
+    setAuditLog(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
+  }
+
+  function logout() {
+    addAudit("Sign Out", currentName, `${currentRole} signed out`);
+    // small delay so audit saves before session clears
+    setTimeout(() => setSession(null), 50);
+  }
+
+  // After session confirmed — override navigate to log page visits
+  function navigateLogged(p) {
+    setPage(p);
+    try { localStorage.setItem("csops_lastPage", p); } catch {}
+    addAudit("Page View", p, `Opened ${p}`);
+  }
 
   const pageComponents = {
     Schedule:      <SchedulePage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts}/>,
     Attendance:    <AttendancePage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT}/>,
-    Performance:   <PerformancePage employees={employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF}/>,
-    "Heat Map":    <HeatMapPage heatmap={heatmap} setHeatmap={HM}/>,
-    "KG Analysis": <KGPage kg={kg} setKg={KG}/>,
-    Queue:         <QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL}/>,
-    Roster:        <RosterPage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts}/>,
+    Queue:         <QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL} setHeatmap={HM}/>,
+    "Daily Tasks": <DailyTasksPage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} auditLog={auditLog} setAuditLog={AL} session={session}/>,
+    "Live Floor":  <LiveFloorPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT}/>,
+    "Heat Map":    <HeatMapPage queueLog={queueLog}/>,
+    "Audit Log":   <AuditLogPage auditLog={auditLog} session={session}/>,
+    Notes:         <NotesPage notes={notes} setNotes={canEdit?setNotes:noop}/>,
     Shifts:        <ShiftsPage shifts={shifts} setShifts={SH}/>,
-    Reports:       <ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={kg} queueLog={queueLog}/>,
+    Performance:   <PerformancePage employees={employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF}/>,
+    Reports:       <ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog}/>,
   };
 
   return (
     <div style={{ minHeight:"100vh", background:"#EFF3F8", fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif" }}>
-      {/* Header */}
       <div style={{ background:"#0F2744", position:"sticky", top:0, zIndex:100, boxShadow:"0 2px 12px rgba(0,0,0,0.25)" }}>
         <div style={{ maxWidth:1400, margin:"0 auto", padding:"0 16px" }}>
           <div style={{ display:"flex", alignItems:"center", gap:6, padding:"10px 0", overflowX:"auto" }}>
-
-            {/* Brand */}
             <div style={{ color:"#fff", fontWeight:800, fontSize:15, whiteSpace:"nowrap", marginRight:12,
-              paddingRight:12, borderRight:"1px solid rgba(255,255,255,0.15)", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+              paddingRight:12, borderRight:"1px solid rgba(255,255,255,0.15)",
+              display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
               🎯 CS Ops
               <span style={{ fontSize:10, background:"#10B981", color:"#fff", borderRadius:10, padding:"2px 7px", fontWeight:600 }}>💾</span>
             </div>
-
-            {/* Nav — ALL pages visible to everyone */}
             {PAGES.map(p => (
-              <button key={p} onClick={()=>setPage(p)}
+              <button key={p} onClick={()=>navigateLogged(p)}
                 style={{ background: page===p ? "#2563EB" : "rgba(255,255,255,0.1)",
-                  color:"#fff", border:"none", borderRadius:6, padding:"7px 13px", fontSize:12,
-                  cursor:"pointer", fontWeight:600, whiteSpace:"nowrap", transition:"background 0.15s" }}>
+                  color:"#fff", border:"none", borderRadius:6, padding:"7px 13px",
+                  fontSize:12, cursor:"pointer", fontWeight:600, whiteSpace:"nowrap", transition:"background 0.15s" }}>
                 {p}
               </button>
             ))}
-
-            {/* Role badge + Sign Out + Reset */}
             <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
               <div style={{ background: roleColor+"30", border:`1px solid ${roleColor}60`,
-                borderRadius:20, padding:"5px 12px", display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ fontSize:13 }}>{ROLE_ICONS[currentRole]}</span>
-                <span style={{ fontSize:12, fontWeight:700, color: roleColor }}>{currentRole}</span>
-                {!canEdit && <span style={{ fontSize:10, color:"#F59E0B", fontWeight:700 }}>· View Only</span>}
+                borderRadius:20, padding:"5px 12px", display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:14 }}>{ROLE_ICONS[currentRole]}</span>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:800, color:roleColor, lineHeight:1.2 }}>{currentName}</div>
+                  <div style={{ fontSize:10, color:"rgba(255,255,255,0.45)", lineHeight:1.2 }}>
+                    {currentRole}{!canEdit && " · View Only"}
+                  </div>
+                </div>
               </div>
               <button onClick={logout}
                 style={{ background:"rgba(239,68,68,0.15)", color:"#FCA5A5", border:"1px solid rgba(239,68,68,0.3)",
                   borderRadius:6, padding:"5px 10px", fontSize:11, cursor:"pointer", fontWeight:600, whiteSpace:"nowrap" }}>
                 Sign Out
               </button>
-              <button onClick={()=>{ if(!window.confirm("Reset ALL data to defaults?")) return;
-                ["employees","shifts","schedule","attendance","performance","heatmap","kg","queueLog","currentRole"]
+              {canResetPasswords(currentRole, currentName) && (
+                <button onClick={()=>setShowResetPw(true)}
+                  style={{ background:"rgba(245,158,11,0.15)", color:"#FCD34D", border:"1px solid rgba(245,158,11,0.3)",
+                    borderRadius:6, padding:"5px 10px", fontSize:11, cursor:"pointer", fontWeight:600, whiteSpace:"nowrap" }}>
+                  🔑
+                </button>
+              )}
+              <button onClick={()=>{ if(!window.confirm("Reset ALL local data? (Supabase data stays safe)")) return;
+                ["employees","shifts","schedule","attendance","performance","heatmap","queueLog","session","auditLog","notes","passwords"]
                   .forEach(k=>localStorage.removeItem("csops_"+k));
+                localStorage.removeItem("csops_lastPage");
                 window.location.reload(); }}
                 style={{ background:"rgba(100,116,139,0.2)", color:"#94A3B8", border:"1px solid rgba(100,116,139,0.3)",
                   borderRadius:6, padding:"5px 10px", fontSize:11, cursor:"pointer", fontWeight:600 }}>
@@ -1671,18 +1940,28 @@ export default function App() {
           </div>
         </div>
       </div>
-
-      {/* Page Content */}
       <div style={{ maxWidth:1400, margin:"0 auto", padding:"20px 16px" }}>
-        <div style={{ marginBottom:16 }}>
-          <h1 style={{ fontSize:20, fontWeight:800, color:"#0F2744", margin:0 }}>{page}</h1>
-          <div style={{ fontSize:12, color:"#94A3B8", marginTop:2 }}>
-            {new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}
+        <div style={{ marginBottom:16, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
+          <div>
+            <h1 style={{ fontSize:20, fontWeight:800, color:"#0F2744", margin:0 }}>{page}</h1>
+            <div style={{ fontSize:12, color:"#94A3B8", marginTop:2 }}>
+              {new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}
+            </div>
+          </div>
+          <div style={{ background:"#fff", border:"1px solid #E2E8F0", borderRadius:20, padding:"6px 14px",
+            display:"flex", alignItems:"center", gap:8, fontSize:12, color:"#475569" }}>
+            <span>{ROLE_ICONS[currentRole]}</span>
+            <span>Active: <strong style={{ color:roleColor }}>{currentName}</strong></span>
+            <span style={{ color:"#CBD5E1" }}>·</span>
+            <span style={{ color:"#94A3B8" }}>{new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}</span>
           </div>
         </div>
-        {!canEdit && <ReadOnlyBanner/>}
+        {!canEdit && <ReadOnlyBanner userName={currentName}/>}
         {pageComponents[page]}
       </div>
+      {showResetPw && (
+        <PasswordResetModal employees={employees} session={session} onClose={()=>setShowResetPw(false)}/>
+      )}
     </div>
   );
 }
