@@ -1,3 +1,4 @@
+// v2
 import { useState, useMemo, useRef, useCallback } from "react";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
