@@ -4377,7 +4377,7 @@ function AuditLogPage({ auditLog, session }) {
 
 
 // ─── OWNER ANALYTICS PAGE ────────────────────────────────────────────────────
-function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, attendance, performance, queueLog, alertThresholdCritical, alertThresholdWarning, saveAlertThresholds }) {
+function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, attendance, performance, queueLog, alertThresholdCritical, alertThresholdWarning, saveAlertThresholds, notes, setNotes }) {
   const [filterUser, setFilterUser]       = useState("");
   const [filterAction, setFilterAction]   = useState("");
   const [filterDate, setFilterDate]       = useState("");
@@ -4386,6 +4386,43 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
   const [activityFilter, setActivityFilter] = useState("All");
   const [editCritical, setEditCritical]   = useState(alertThresholdCritical);
   const [editWarning,  setEditWarning]    = useState(alertThresholdWarning);
+
+  // ── Manager Messages state ───────────────────────────────────────────────────
+  const [msgText, setMsgText]     = useState("");
+  const [msgTarget, setMsgTarget] = useState("all"); // "all" or employee name
+  const [msgType, setMsgType]     = useState("shoutout"); // "shoutout"|"motivation"|"reminder"
+  const [msgSaved, setMsgSaved]   = useState(false);
+
+  // All manager messages = notes with tag "Manager Message"
+  const managerMessages = useMemo(() =>
+    (Array.isArray(notes) ? notes : [])
+      .filter(n => n.tag === "Manager Message")
+      .sort((a,b) => b.ts.localeCompare(a.ts))
+  , [notes]);
+
+  function sendManagerMessage() {
+    if (!msgText.trim()) return;
+    const now = new Date();
+    const entry = {
+      id:   "mm"+Date.now(),
+      ts:   now.toISOString(),
+      date: now.toISOString().slice(0,10),
+      time: pad(now.getHours())+":"+pad(now.getMinutes()),
+      tag:  "Manager Message",
+      text: msgText.trim(),
+      from: session?.name || "المشرف",
+      target: msgTarget,
+      msgType,
+    };
+    setNotes(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 500));
+    setMsgText("");
+    setMsgSaved(true);
+    setTimeout(() => setMsgSaved(false), 2500);
+  }
+
+  function deleteMessage(id) {
+    setNotes(prev => (Array.isArray(prev)?prev:[]).filter(n => n.id !== id));
+  }
 
   const logs    = Array.isArray(auditLog) ? auditLog : [];
   const users   = [...new Set(logs.map(l=>l.by))].filter(Boolean).sort();
@@ -4552,6 +4589,137 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
           الإعدادات الحالية: Critical عند <strong style={{color:"#EF4444"}}>{alertThresholdCritical}</strong> حالة ·
           Warning عند <strong style={{color:"#F59E0B"}}>{alertThresholdWarning}</strong> حالة
         </div>
+      </div>
+
+      {/* ── Manager Messages Panel ── */}
+      <div style={{ background:_theme.card, border:`1.5px solid ${_theme.accent}30`,
+        borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, flexWrap:"wrap" }}>
+          <span style={{ fontSize:16 }}>💬</span>
+          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>رسائل الإدارة للفريق</span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>— تظهر في لوحة المتصدرين للموظفين</span>
+          {managerMessages.length > 0 && (
+            <span style={{ background:_theme.accent+"22", color:_theme.accent,
+              border:`1px solid ${_theme.accent}40`, borderRadius:20,
+              padding:"2px 10px", fontSize:11, fontWeight:700 }}>
+              {managerMessages.length} رسالة
+            </span>
+          )}
+        </div>
+
+        {/* Compose area */}
+        <div style={{ background:_theme.surface, borderRadius:10,
+          padding:"14px 16px", marginBottom:14, border:`1px solid ${_theme.cardBorder}` }}>
+
+          {/* Message type + target row */}
+          <div style={{ display:"flex", gap:8, marginBottom:10, flexWrap:"wrap" }}>
+            {/* Type buttons */}
+            <div style={{ display:"flex", gap:6 }}>
+              {[
+                { k:"shoutout",    icon:"🌟", label:"تقدير" },
+                { k:"motivation",  icon:"🚀", label:"تحفيز" },
+                { k:"reminder",    icon:"📌", label:"تذكير" },
+              ].map(({k,icon,label}) => (
+                <button key={k} onClick={()=>setMsgType(k)}
+                  style={{ border:`1.5px solid ${msgType===k?_theme.accent:_theme.cardBorder}`,
+                    borderRadius:8, padding:"5px 12px", fontSize:12, cursor:"pointer",
+                    fontWeight:700, background:msgType===k?_theme.accent+"22":"transparent",
+                    color:msgType===k?_theme.accent:_theme.textMuted, transition:"all 0.12s" }}>
+                  {icon} {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Target selector */}
+            <select value={msgTarget} onChange={e=>setMsgTarget(e.target.value)}
+              style={{ ...I({ width:180, marginBottom:0, fontSize:12 }) }}>
+              <option value="all">👥 للفريق كله</option>
+              {employees.filter(e=>e.role!=="Agent"||true).map(e=>(
+                <option key={e.id} value={e.name}>{e.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Text input */}
+          <textarea
+            value={msgText}
+            onChange={e=>setMsgText(e.target.value)}
+            rows={3}
+            placeholder={
+              msgType==="shoutout"   ? "أحسنت! اكتب كلمة شكر وتقدير للفريق أو لموظف محدد..." :
+              msgType==="motivation" ? "اكتب رسالة تحفيزية لرفع الهمة وتعزيز الإنتاجية..." :
+                                      "اكتب تذكيراً بمهمة أو هدف أو إجراء مطلوب..."
+            }
+            style={{ ...I(), resize:"vertical", marginBottom:10, fontSize:13 }}
+            onKeyDown={e=>{ if(e.ctrlKey&&e.key==="Enter") sendManagerMessage(); }}
+          />
+
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <span style={{ fontSize:11, color:_theme.textMuted }}>
+              Ctrl+Enter للإرسال السريع
+            </span>
+            <button onClick={sendManagerMessage} disabled={!msgText.trim()}
+              style={{ background: msgSaved?"#10B981":msgText.trim()?_theme.accent:"#374151",
+                color:"#fff", border:"none", borderRadius:8, padding:"9px 24px",
+                fontSize:13, cursor:msgText.trim()?"pointer":"default",
+                fontWeight:700, transition:"all 0.2s",
+                opacity: msgText.trim()?1:0.5 }}>
+              {msgSaved ? "✅ تم الإرسال!" : "📤 إرسال للفريق"}
+            </button>
+          </div>
+        </div>
+
+        {/* Previous messages list */}
+        {managerMessages.length > 0 ? (
+          <div style={{ display:"flex", flexDirection:"column", gap:8, maxHeight:320, overflowY:"auto" }}>
+            {managerMessages.slice(0,10).map(m => {
+              const typeConfig = {
+                shoutout:   { icon:"🌟", color:"#F59E0B", label:"تقدير" },
+                motivation: { icon:"🚀", color:_theme.primary, label:"تحفيز" },
+                reminder:   { icon:"📌", color:"#8B5CF6", label:"تذكير" },
+              }[m.msgType||"shoutout"] || { icon:"💬", color:_theme.accent, label:"رسالة" };
+
+              return (
+                <div key={m.id} style={{ background:_theme.surface,
+                  border:`1px solid ${typeConfig.color}30`,
+                  borderLeft:`3px solid ${typeConfig.color}`,
+                  borderRadius:8, padding:"10px 14px",
+                  display:"flex", gap:12, alignItems:"flex-start" }}>
+                  <span style={{ fontSize:20, flexShrink:0, marginTop:2 }}>{typeConfig.icon}</span>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8,
+                      marginBottom:5, flexWrap:"wrap" }}>
+                      <span style={{ fontSize:11, fontWeight:700,
+                        background:typeConfig.color+"22", color:typeConfig.color,
+                        borderRadius:6, padding:"1px 8px" }}>{typeConfig.label}</span>
+                      <span style={{ fontSize:11, fontWeight:700, color:_theme.text }}>
+                        {m.from || "المشرف"}
+                      </span>
+                      <span style={{ fontSize:11, color:_theme.textMuted }}>→</span>
+                      <span style={{ fontSize:11, color:typeConfig.color, fontWeight:600 }}>
+                        {m.target==="all"?"👥 الفريق كله":m.target}
+                      </span>
+                      <span style={{ fontSize:10, color:_theme.textMuted, marginLeft:"auto" }}>
+                        {m.date} · {m.time}
+                      </span>
+                    </div>
+                    <div style={{ fontSize:13, color:_theme.text, lineHeight:1.6,
+                      whiteSpace:"pre-wrap" }}>{m.text}</div>
+                  </div>
+                  <button onClick={()=>deleteMessage(m.id)}
+                    style={{ background:"none", border:`1px solid ${_theme.danger}40`,
+                      color:_theme.danger, borderRadius:5, padding:"2px 7px",
+                      cursor:"pointer", fontSize:11, flexShrink:0 }}>✕</button>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ textAlign:"center", padding:"20px", color:_theme.textMuted, fontSize:13 }}>
+            <div style={{ fontSize:28, marginBottom:6 }}>💬</div>
+            لم تُرسل أي رسائل بعد — ابدأ بتحفيز فريقك!
+          </div>
+        )}
       </div>
 
       {/* ── Data Edit History ── */}
@@ -4831,7 +4999,7 @@ function CriticalAlertPopup({ onDismiss, alerts }) {
 
 
 // ─── LEADERBOARD PAGE (Agent view) ────────────────────────────────────────────
-function LeaderboardPage({ employees, schedule, performance, session }) {
+function LeaderboardPage({ employees, schedule, performance, session, notes, canEdit }) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setTick(p => p+1), 60000);
@@ -4855,6 +5023,20 @@ function LeaderboardPage({ employees, schedule, performance, session }) {
   const myData      = sorted.find(e=>e.name===session?.name);
   const myRank      = myData ? sorted.indexOf(myData)+1 : null;
   const medals      = ["🥇","🥈","🥉"];
+
+  // Manager messages — show all + ones targeting this employee
+  const allNotes = Array.isArray(notes) ? notes : [];
+  const managerMessages = allNotes
+    .filter(n => n.tag === "Manager Message" &&
+      (n.target === "all" || n.target === session?.name))
+    .sort((a,b) => b.ts.localeCompare(a.ts))
+    .slice(0, 5); // show latest 5
+
+  const typeConfig = (t) => ({
+    shoutout:   { icon:"🌟", color:"#F59E0B", label:"تقدير" },
+    motivation: { icon:"🚀", color:_theme.primary, label:"تحفيز" },
+    reminder:   { icon:"📌", color:"#8B5CF6", label:"تذكير" },
+  }[t||"shoutout"] || { icon:"💬", color:_theme.accent, label:"رسالة" });
 
   return (
     <div>
@@ -4886,6 +5068,54 @@ function LeaderboardPage({ employees, schedule, performance, session }) {
           </div>
         )}
       </div>
+
+      {/* ── Manager Messages — shown to employees ── */}
+      {managerMessages.length > 0 && (
+        <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
+          {managerMessages.map(m => {
+            const cfg = typeConfig(m.msgType);
+            const isPersonal = m.target === session?.name;
+            return (
+              <div key={m.id} style={{
+                background: isPersonal
+                  ? `linear-gradient(135deg,${cfg.color}18,${_theme.card})`
+                  : _theme.card,
+                border:`1.5px solid ${cfg.color}${isPersonal?"60":"30"}`,
+                borderRadius:12, padding:"14px 18px",
+                display:"flex", gap:12, alignItems:"flex-start",
+                boxShadow: isPersonal?`0 4px 16px ${cfg.color}20`:"none",
+                animation: isPersonal?"fadeIn 0.4s ease":"none"
+              }}>
+                <div style={{ fontSize:28, flexShrink:0 }}>{cfg.icon}</div>
+                <div style={{ flex:1 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8,
+                    marginBottom:6, flexWrap:"wrap" }}>
+                    <span style={{ fontSize:11, fontWeight:700,
+                      background:cfg.color+"22", color:cfg.color,
+                      borderRadius:20, padding:"2px 10px" }}>{cfg.label}</span>
+                    {isPersonal && (
+                      <span style={{ fontSize:11, fontWeight:700,
+                        background:_theme.primary+"22", color:_theme.primary,
+                        borderRadius:20, padding:"2px 10px" }}>🎯 لك شخصياً</span>
+                    )}
+                    <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>
+                      من {m.from||"الإدارة"}
+                    </span>
+                    <span style={{ fontSize:10, color:_theme.textMuted, marginLeft:"auto" }}>
+                      {m.time}
+                    </span>
+                  </div>
+                  <div style={{ fontSize:14, color:_theme.text,
+                    fontWeight: isPersonal?600:400,
+                    lineHeight:1.7, whiteSpace:"pre-wrap" }}>
+                    {m.text}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Top 3 podium */}
       {sorted.slice(0,3).some(e=>e.perf.closed>0) && (
@@ -5985,8 +6215,8 @@ export default function App() {
     Shifts:        <ShiftsPage shifts={shifts} setShifts={SH}/>,
     Performance:   <PerformancePage employees={employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF}/>,
     Reports:       <ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog}/>,
-    "Owner Analytics": <OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds}/>,
-    Leaderboard:   <LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session}/>,
+    "Owner Analytics": <OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>,
+    Leaderboard:   <LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} canEdit={canEdit}/>,
   };
 
   // Page icons
