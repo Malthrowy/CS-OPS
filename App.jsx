@@ -124,8 +124,8 @@ const TASK_LIST = ["KFOOD","KEEMRT","TGA","Social Group","KSA OT","GCC T2 Cases"
 const TASK_LIST_ASSIGN = ["KFOOD","KEEMRT"]; // Only these two shown in Edit Employee dropdown
 const TASK_COLORS = ["#10B981","#3B82F6","#6366F1","#0EA5E9","#F59E0B","#10B981","#EF4444","#8B5CF6","#EC4899","#14B8A6","#F97316","#06B6D4","#84CC16","#A855F7","#E11D48"];
 const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Day Off"];
-const ALL_PAGES = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics"];
-const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics");
+const ALL_PAGES = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard"];
+const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics" && p !== "Leaderboard");
 const AGENT_PAGES = ["Schedule","Live Floor","Performance","Queue","Leaderboard"];
 
 // Super Admin
@@ -136,7 +136,7 @@ let _theme = THEMES.dark;
 let _lang = "en";
 function setGlobalTheme(t) { _theme = t; }
 function setGlobalLang(l) { _lang = l; }
-function t(key) { return T[_lang]?.[key] || T.en[key] || key; }
+function tr(key) { return T[_lang]?.[key] || T.en[key] || key; }
 
 // ─── STYLE HELPERS (theme-aware) ─────────────────────────────────────────────
 const I = (extra={}) => ({
@@ -5775,7 +5775,7 @@ export default function App() {
   const [notes,       setNotesRaw]       = useState([]);
 
   // ── Load ALL data from Supabase on mount ──────────────────────────────────
-  useState(() => {
+  useEffect(() => {
     (async () => {
       try {
         // Load employees
@@ -5896,7 +5896,7 @@ export default function App() {
         setLoading(false);
       }
     })();
-  });
+  }, []);
 
   // ── Supabase savers ───────────────────────────────────────────────────────
   async function saveEmployees(emps) {
