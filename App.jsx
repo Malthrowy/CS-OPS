@@ -6,7 +6,7 @@ const T = {
     appName: "CS Operations", appSub: "Management System",
     selectRole: "Select Your Role", yourName: "Your Name",
     selectName: "Select your name", agentNameLabel: "Select Your Name",
-    agentHint: "View only — no password required",
+    agentHint: "View only -- no password required",
     password: "Password", signIn: "Sign In", signInAs: "Sign In as",
     enterAs: "Enter as",
     setPassword: "Set Your Personal Password", firstLogin: "First time login",
@@ -29,17 +29,17 @@ const T = {
     dailyTipTitle: "Daily Tip",
     tips: [
       "Start each shift with a quick team check-in to align priorities.",
-      "Document escalations immediately — details fade fast.",
+      "Document escalations immediately -- details fade fast.",
       "A proactive break schedule reduces errors by up to 30%.",
       "Clear queue data = better staffing decisions tomorrow.",
-      "Recognition boosts productivity — acknowledge good work daily."
+      "Recognition boosts productivity -- acknowledge good work daily."
     ]
   },
   ar: {
     appName: "عمليات خدمة العملاء", appSub: "نظام إدارة العمليات",
     selectRole: "حدد صلاحيتك", yourName: "اسمك",
     selectName: "اختر اسمك", agentNameLabel: "اختر اسمك",
-    agentHint: "صلاحية عرض فقط — لا تحتاج إلى كلمة مرور",
+    agentHint: "صلاحية عرض فقط -- لا تحتاج إلى كلمة مرور",
     password: "كلمة المرور", signIn: "تسجيل الدخول", signInAs: "دخول بصفة",
     enterAs: "دخول كـ",
     setPassword: "إنشاء كلمة مرور شخصية", firstLogin: "أول تسجيل دخول",
@@ -62,10 +62,10 @@ const T = {
     dailyTipTitle: "نصيحة اليوم",
     tips: [
       "ابدأ كل شفت بجلسة توافق سريعة مع الفريق لتوحيد الأولويات.",
-      "وثّق التصعيدات فور حدوثها — التفاصيل تُنسى بسرعة.",
+      "وثّق التصعيدات فور حدوثها -- التفاصيل تُنسى بسرعة.",
       "جدولة الاستراحات بشكل استباقي تُقلل الأخطاء التشغيلية بنسبة 30%.",
       "بيانات قائمة الانتظار الدقيقة = قرارات توظيف أفضل للغد.",
-      "التقدير والاعتراف يرفعان الإنتاجية — احتفل بالإنجازات يومياً."
+      "التقدير والاعتراف يرفعان الإنتاجية -- احتفل بالإنجازات يومياً."
     ]
   }
 };
@@ -127,7 +127,7 @@ const ALL_PAGES = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor","B
 const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics" && p !== "Leaderboard");
 const AGENT_PAGES = ["Schedule","Live Floor","Performance","Queue","Leaderboard"];
 
-// Super Admin — protected by name AND role
+// Super Admin -- protected by name AND role
 const SUPER_ADMIN = "Mohammed Nasser Althurwi";
 const OWNER_ROLE = "owner";
 function isOwnerUser(session) {
@@ -295,7 +295,7 @@ function monthDates(y,m) {
 }
 function taskColor(t) { const i=TASK_LIST.indexOf(t); return TASK_COLORS[i%TASK_COLORS.length]; }
 
-// ─── TASK PICKER — Edit Employee: dropdown KFOOD / KEEMRT only ────────────────
+// ─── TASK PICKER -- Edit Employee: dropdown KFOOD / KEEMRT only ────────────────
 function TaskPicker({ selected=[], onChange }) {
   return (
     <div>
@@ -648,7 +648,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
           ...row.days
         };
       } else {
-        // New employee — create with unique id
+        // New employee -- create with unique id
         const id = "e" + Date.now() + Math.floor(Math.random()*10000);
         newEmployees.push({ id, name:row.name, role:row.role||"Agent", tasks:row.tasks||[], gender:"M" });
         newScheduleEntries[id] = {
@@ -1708,7 +1708,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
   const [sbApplied,  setSbApplied]  = useState(false);      // true when user pressed Calculate
   const [sbShifts,   setSbShifts]   = useState([]);         // applied shifts snapshot
 
-  // Active data key — uses sidebar shifts when applied, else auto-detected shift
+  // Active data key -- uses sidebar shifts when applied, else auto-detected shift
   const activeShiftId = sbApplied && sbShifts.length ? sbShifts[0] : autoShiftId;
   const key = `${todayKey}_${activeShiftId}`;
   const data = queueLog[key] || {};
@@ -1757,7 +1757,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
   ];
   const QUEUE_FIELDS = [...KSA_FIELDS, ...GCC_FIELDS];
 
-  // ── Calcs — when multi-shift applied, combine all selected shifts ─────────────
+  // ── Calcs -- when multi-shift applied, combine all selected shifts ─────────────
   const calcs = useMemo(() => {
     if (sbApplied && sbShifts.length > 1) {
       // Combine data from all selected shifts
@@ -1870,7 +1870,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
           ) : (
             <div>
               <div style={{ fontSize:11, fontWeight:700, color:_theme.success, marginBottom:4 }}>
-                🟢 Auto — Current Time
+                🟢 Auto -- Current Time
               </div>
               {currentShift && (
                 <div style={{ fontSize:11, color:currentShift.color, fontWeight:600,
@@ -1925,7 +1925,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
                     <div style={{ fontSize:11, fontWeight:700,
                       color:sel?sh.color:_theme.text, whiteSpace:"nowrap",
                       overflow:"hidden", textOverflow:"ellipsis" }}>{sh.label}</div>
-                    <div style={{ fontSize:9, color:_theme.textMuted }}>{sh.start} – {sh.end}</div>
+                    <div style={{ fontSize:9, color:_theme.textMuted }}>{sh.start} - {sh.end}</div>
                   </div>
                   {sel && <span style={{ fontSize:12, color:sh.color, fontWeight:800 }}>✓</span>}
                 </div>
@@ -2050,7 +2050,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
               {isMulti && (
                 <div style={{ fontSize:11, color:_theme.textMuted, background:_theme.surface,
                   borderRadius:6, padding:"5px 10px", marginBottom:8 }}>
-                  ℹ️ Combined view — edit individual shifts to update values
+                  ℹ️ Combined view -- edit individual shifts to update values
                 </div>
               )}
               <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
@@ -2425,7 +2425,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                     {sh?.start || "--"}
                   </td>
 
-                  {/* Offset input — only owner can edit */}
+                  {/* Offset input -- only owner can edit */}
                   <td style={{ padding:"8px 10px" }}>
                     {isOwner ? (
                       <div>
@@ -2512,10 +2512,10 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                   {/* Break Start / End */}
                   <td style={{ padding:"8px 10px", fontWeight:700,
                     color: bStart ? _theme.primary : _theme.textMuted }}>
-                    {bStart || "—"}
+                    {bStart || "--"}
                   </td>
                   <td style={{ padding:"8px 10px", fontWeight:700, color:_theme.textSub }}>
-                    {bEnd || "—"}
+                    {bEnd || "--"}
                   </td>
 
                   {/* Status */}
@@ -2542,7 +2542,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
       {isOwner && shiftEmps.length > 0 && (
         <div style={{ ...CRD({ padding:"14px 18px" }), marginTop:14 }}>
           <div style={{ fontWeight:700, color:_theme.text, marginBottom:10, fontSize:13 }}>
-            ⚡ Bulk Set Offset — apply same offset to all employees in this shift
+            ⚡ Bulk Set Offset -- apply same offset to all employees in this shift
           </div>
           <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
             {[1,2,3,4,5,6].map(h => (
@@ -2704,20 +2704,20 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
   // ── Staffing Sufficient: uses Queue data when available, else headcount ratio ──
   let pressure;
   if (totalQueueNow !== null && total > 0) {
-    // Cases per available agent — queue-driven assessment
+    // Cases per available agent -- queue-driven assessment
     const agentsAvail = Math.max(1, onlineCount);
     const caseLoad    = totalQueueNow / agentsAvail;
     const queueTrend  = totalQueueBase !== null ? totalQueueNow - totalQueueBase : 0;
 
     if (caseLoad <= 10 && queueTrend <= 0) {
       pressure = { label:"✅ Staffing Sufficient", color:"#10B981", bg:"rgba(16,185,129,0.08)",
-        sub:`${agentsAvail} agents · ${totalQueueNow} cases · ${caseLoad.toFixed(1)} per agent — Queue Stable`, pct:100 };
+        sub:`${agentsAvail} agents · ${totalQueueNow} cases · ${caseLoad.toFixed(1)} per agent -- Queue Stable`, pct:100 };
     } else if (caseLoad <= 20 || (caseLoad <= 30 && queueTrend <= 50)) {
-      pressure = { label:"⚠️ Staffing Low — Monitor Queue", color:"#F59E0B", bg:"rgba(245,158,11,0.08)",
-        sub:`${agentsAvail} agents · ${totalQueueNow} cases · ${caseLoad.toFixed(1)} per agent — ${queueTrend>0?"Queue Growing":"Stable"}`, pct:Math.round((10/caseLoad)*100) };
+      pressure = { label:"⚠️ Staffing Low -- Monitor Queue", color:"#F59E0B", bg:"rgba(245,158,11,0.08)",
+        sub:`${agentsAvail} agents · ${totalQueueNow} cases · ${caseLoad.toFixed(1)} per agent -- ${queueTrend>0?"Queue Growing":"Stable"}`, pct:Math.round((10/caseLoad)*100) };
     } else {
-      pressure = { label:"🚨 Critical Shortage — Immediate Action Required", color:"#EF4444", bg:"rgba(239,68,68,0.08)",
-        sub:`${agentsAvail} agents · ${totalQueueNow} cases · ${caseLoad.toFixed(1)} per agent — Queue Critical`, pct:Math.round((10/caseLoad)*100) };
+      pressure = { label:"🚨 Critical Shortage -- Immediate Action Required", color:"#EF4444", bg:"rgba(239,68,68,0.08)",
+        sub:`${agentsAvail} agents · ${totalQueueNow} cases · ${caseLoad.toFixed(1)} per agent -- Queue Critical`, pct:Math.round((10/caseLoad)*100) };
     }
   } else {
     // Fallback to headcount ratio when no queue data
@@ -2726,10 +2726,10 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
       pressure = { label:"✅ Staffing Sufficient", color:"#10B981", bg:"rgba(16,185,129,0.08)",
         sub:`${onlineCount} of ${total} agents available`, pct:Math.round(ratio*100) };
     } else if (ratio >= 0.6) {
-      pressure = { label:"⚠️ Staffing Low — Monitor", color:"#F59E0B", bg:"rgba(245,158,11,0.08)",
+      pressure = { label:"⚠️ Staffing Low -- Monitor", color:"#F59E0B", bg:"rgba(245,158,11,0.08)",
         sub:`${onlineCount} of ${total} agents available`, pct:Math.round(ratio*100) };
     } else {
-      pressure = { label:"🚨 Critical Shortage — Immediate Action Required", color:"#EF4444", bg:"rgba(239,68,68,0.08)",
+      pressure = { label:"🚨 Critical Shortage -- Immediate Action Required", color:"#EF4444", bg:"rgba(239,68,68,0.08)",
         sub:`${onlineCount} of ${total} agents available`, pct:Math.round(ratio*100) };
     }
   }
@@ -2768,7 +2768,7 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
                 </span>
               )}
               <span style={{ fontSize:11, color:_theme.textMuted }}>
-                🕐 Queue snapshot: {todayQueueData?.updTime || "—"}
+                🕐 Queue snapshot: {todayQueueData?.updTime || "--"}
               </span>
             </div>
           )}
@@ -4420,7 +4420,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
           <span style={{ fontSize:16 }}>🔔</span>
           <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>إعدادات عتبة التنبيهات</span>
-          <span style={{ fontSize:12, color:_theme.textMuted }}>— تخصيص حدود Critical Alert</span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>-- تخصيص حدود Critical Alert</span>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr auto", gap:12, alignItems:"flex-end" }}>
           <div>
@@ -4476,7 +4476,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, flexWrap:"wrap" }}>
           <span style={{ fontSize:16 }}>💬</span>
           <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>رسائل الإدارة للفريق</span>
-          <span style={{ fontSize:12, color:_theme.textMuted }}>— تظهر في لوحة المتصدرين للموظفين</span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>-- تظهر في لوحة المتصدرين للموظفين</span>
           {managerMessages.length > 0 && (
             <span style={{ background:_theme.accent+"22", color:_theme.accent,
               border:`1px solid ${_theme.accent}40`, borderRadius:20,
@@ -4596,7 +4596,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
         ) : (
           <div style={{ textAlign:"center", padding:"20px", color:_theme.textMuted, fontSize:13 }}>
             <div style={{ fontSize:28, marginBottom:6 }}>💬</div>
-            لم تُرسل أي رسائل بعد — ابدأ بتحفيز فريقك!
+            لم تُرسل أي رسائل بعد -- ابدأ بتحفيز فريقك!
           </div>
         )}
       </div>
@@ -4607,7 +4607,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
           <span style={{ fontSize:16 }}>🔒</span>
           <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>سجل التعديلات على البيانات</span>
-          <span style={{ fontSize:12, color:_theme.textMuted }}>— جميع التعديلات مسجّلة · لا يمكن حذفها</span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>-- جميع التعديلات مسجّلة · لا يمكن حذفها</span>
         </div>
 
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))", gap:8, marginBottom:14 }}>
@@ -4676,7 +4676,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
         <div style={{ fontWeight:700, fontSize:14, color:_theme.text, marginBottom:10,
           display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
           👥 نشاط المستخدمين المباشر
-          <span style={{ fontSize:11, fontWeight:400, color:_theme.textMuted }}>— بناءً على آخر إجراء مسجّل</span>
+          <span style={{ fontSize:11, fontWeight:400, color:_theme.textMuted }}>-- بناءً على آخر إجراء مسجّل</span>
           <select value={activityFilter} onChange={e=>setActivityFilter(e.target.value)}
             style={{ background:_theme.input, border:`1px solid ${_theme.inputBorder}`,
               borderRadius:6, padding:"5px 9px", fontSize:11, color:_theme.inputText,
@@ -4831,7 +4831,7 @@ function CriticalAlertPopup({ onDismiss, alerts }) {
           <div style={{ fontSize:36, animation:"pulse 1s infinite" }}>🚨</div>
           <div>
             <div style={{ color:"#FEF2F2", fontWeight:800, fontSize:18, letterSpacing:-0.3 }}>
-              تنبيه عاجل — Critical Alert
+              تنبيه عاجل -- Critical Alert
             </div>
             <div style={{ color:"#FCA5A5", fontSize:12, marginTop:2 }}>
               يستلزم تدخلاً فورياً من المشرف
@@ -4862,7 +4862,7 @@ function CriticalAlertPopup({ onDismiss, alerts }) {
             style={{ flex:1, background:"#EF4444", color:"#fff", border:"none",
               borderRadius:8, padding:"11px", fontSize:14, cursor:"pointer",
               fontWeight:700 }}>
-            ✓ تم الاطلاع — Acknowledged
+            ✓ تم الاطلاع -- Acknowledged
           </button>
           <button onClick={onDismiss}
             style={{ background:_theme.surface, color:_theme.textMuted,
@@ -4903,7 +4903,7 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, can
   const myRank      = myData ? sorted.indexOf(myData)+1 : null;
   const medals      = ["🥇","🥈","🥉"];
 
-  // Manager messages — show all + ones targeting this employee
+  // Manager messages -- show all + ones targeting this employee
   const allNotes = Array.isArray(notes) ? notes : [];
   const managerMessages = allNotes
     .filter(n => n.tag === "Manager Message" &&
@@ -4925,7 +4925,7 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, can
         padding:"24px 28px", marginBottom:20, textAlign:"center" }}>
         <div style={{ fontSize:40, marginBottom:8 }}>🏆</div>
         <div style={{ fontWeight:800, fontSize:22, color:_theme.text, marginBottom:4 }}>
-          لوحة المتصدرين — Today's Leaderboard
+          لوحة المتصدرين -- Today's Leaderboard
         </div>
         <div style={{ fontSize:13, color:_theme.textMuted }}>
           {new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",timeZone:"Asia/Riyadh"})}
@@ -4948,7 +4948,7 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, can
         )}
       </div>
 
-      {/* ── Manager Messages — shown to employees ── */}
+      {/* ── Manager Messages -- shown to employees ── */}
       {managerMessages.length > 0 && (
         <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
           {managerMessages.map(m => {
@@ -5261,21 +5261,21 @@ const ROLE_DESC_AR = {
 // ─── DAILY TIPS ───────────────────────────────────────────────────────────────
 const DAILY_TIPS_EN = [
   "💡 Start each shift with a quick team check-in to align priorities.",
-  "📊 Document escalations immediately — details fade fast.",
+  "📊 Document escalations immediately -- details fade fast.",
   "☕ A proactive break schedule reduces errors by up to 30%.",
   "🎯 Clear queue data = better staffing decisions tomorrow.",
-  "⭐ Recognition boosts productivity — acknowledge good work daily.",
+  "⭐ Recognition boosts productivity -- acknowledge good work daily.",
   "🔄 Review yesterday's performance before today's planning.",
-  "📱 Keep the team informed — communication prevents most issues.",
+  "📱 Keep the team informed -- communication prevents most issues.",
 ];
 const DAILY_TIPS_AR = [
   "💡 ابدأ كل شفت بفحص سريع للفريق لمواءمة الأولويات.",
-  "📊 وثّق التصعيدات فوراً — التفاصيل تُنسى بسرعة.",
+  "📊 وثّق التصعيدات فوراً -- التفاصيل تُنسى بسرعة.",
   "☕ جدولة الاستراحات بشكل استباقي تقلل الأخطاء بنسبة 30%.",
   "🎯 بيانات قائمة الانتظار الواضحة = قرارات توظيف أفضل غداً.",
-  "⭐ التقدير يرفع الإنتاجية — اعترف بالعمل الجيد يومياً.",
+  "⭐ التقدير يرفع الإنتاجية -- اعترف بالعمل الجيد يومياً.",
   "🔄 راجع أداء الأمس قبل تخطيط اليوم.",
-  "📱 أبقِ الفريق على اطلاع — التواصل يمنع معظم المشاكل.",
+  "📱 أبقِ الفريق على اطلاع -- التواصل يمنع معظم المشاكل.",
 ];
 
 // ─── LOGIN SCREEN ─────────────────────────────────────────────────────────────
@@ -5426,7 +5426,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
               borderRadius:8, padding:"10px 14px", marginBottom:14,
               fontSize:12, color:"#6EE7B7", textAlign:isRTL?"right":"left" }}>
               {selectedName
-                ? `👤 ${selectedName} — ${tr("agentHint")}`
+                ? `👤 ${selectedName} -- ${tr("agentHint")}`
                 : `👁️ ${tr("agentHint")}`}
             </div>
           )}
@@ -5439,7 +5439,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
                 🔐 {tr("setPassword")}
               </div>
               <div style={{ fontSize:12, color:"#6B7280", marginBottom:12 }}>
-                {tr("firstLogin")} — <strong style={{color:"#93C5FD"}}>{selectedName}</strong>
+                {tr("firstLogin")} -- <strong style={{color:"#93C5FD"}}>{selectedName}</strong>
               </div>
               <label style={{ ...LBL, color:"#9CA3AF" }}>{tr("newPassword")}</label>
               <div style={{ position:"relative", marginBottom:10 }}>
@@ -5592,14 +5592,62 @@ function ReadOnlyBanner({ userName }) {
 }
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
+
+// ─── LOAD SHEETJS ────────────────────────────────────────────────────────────
+if (typeof window !== "undefined" && !window.XLSX) {
+  const _s = document.createElement("script");
+  _s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+  _s.async = true;
+  document.head.appendChild(_s);
+}
+
+// ─── SUPABASE CLIENT ─────────────────────────────────────────────────────────
+const SUPABASE_URL = "https://ohbgpdsuaointhidnmps.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oYmdwZHN1YW9pbnRoaWRubXBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzI3MjMsImV4cCI6MjA4OTQ0ODcyM30.pEIUTSpOnMIFCJLWT07nk-8nDVZmepw6vaDEkzKQ-I0";
+
+const sb = {
+  async from(table) {
+    const base = `${SUPABASE_URL}/rest/v1/${table}`;
+    const headers = {
+      "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json", "Prefer": "return=representation",
+    };
+    return {
+      async select(cols="*", filter="") {
+        const url = `${base}?select=${cols}${filter?"&"+filter:""}`;
+        const r = await fetch(url, { headers });
+        return r.ok ? await r.json() : [];
+      },
+      async upsert(data) {
+        const r = await fetch(base, { method:"POST",
+          headers:{...headers,"Prefer":"resolution=merge-duplicates,return=representation"},
+          body:JSON.stringify(Array.isArray(data)?data:[data]) });
+        return r.ok ? await r.json() : null;
+      },
+      async delete(filter) {
+        const r = await fetch(`${base}?${filter}`, { method:"DELETE", headers });
+        return r.ok;
+      },
+    };
+  }
+};
+
+
 export default function App() {
+
+  // ══════════════════════════════════════════════════════════
+  // ALL useState HOOKS -- must be first, no exceptions
+  // ══════════════════════════════════════════════════════════
+
+  // UI state
   const [page, setPage] = useState(() => {
     try { return localStorage.getItem("csops_lastPage") || "Schedule"; } catch { return "Schedule"; }
   });
+  const [loading, setLoading]       = useState(true);
   const [showResetPw, setShowResetPw] = useState(false);
-  const [loading, setLoading]         = useState(true);
+  const [showTip, setShowTip]       = useState(false);
 
-  // ── Theme + Lang + Zoom ───────────────────────────────────────────────────
+  // Theme / Lang / Zoom
   const [themeKey, setThemeKey] = useState(() => {
     try { return localStorage.getItem("csops_theme") || "dark"; } catch { return "dark"; }
   });
@@ -5609,534 +5657,379 @@ export default function App() {
   const [zoom, setZoom] = useState(() => {
     try { return Number(localStorage.getItem("csops_zoom")) || 100; } catch { return 100; }
   });
-  const [showTip, setShowTip] = useState(false);
 
-  const theme = THEMES[themeKey] || THEMES.dark;
-  setGlobalTheme(theme);
-  setGlobalLang(lang);
-  const isRTL = lang === "ar";
-  const tr = (key) => T[lang]?.[key] || T.en[key] || key;
-
-  function changeTheme(key) {
-    setThemeKey(key);
-    try { localStorage.setItem("csops_theme", key); } catch {}
-  }
-  function changeLang(l) {
-    setLang(l);
-    try { localStorage.setItem("csops_lang", l); } catch {}
-  }
-  function changeZoom(z) {
-    const clamped = Math.min(200, Math.max(50, z));
-    setZoom(clamped);
-    try { localStorage.setItem("csops_zoom", clamped); } catch {}
-  }
-
-  // ── Session ────────────────────────────────────────────────────────────────
+  // Session
   const [session, _setSession] = useState(() => {
     try {
       const r = localStorage.getItem("csops_session");
       if (!r || r === "null") return null;
-      const parsed = JSON.parse(r);
-      // Validate session has required fields
-      if (!parsed?.name || !parsed?.role) return null;
-      return parsed;
+      const p = JSON.parse(r);
+      if (!p?.name || !p?.role) return null;
+      return p;
     } catch { return null; }
   });
-  function setSession(val) {
-    _setSession(val);
-    try {
-      if (val) {
-        localStorage.setItem("csops_session", JSON.stringify(val));
-      } else {
-        localStorage.removeItem("csops_session");
-      }
-    } catch {}
-  }
 
-  // ── Supabase-backed state ─────────────────────────────────────────────────
-  const [employees,   setEmployeesRaw]   = useState([]);
-  const [shifts,      setShiftsRaw]      = useState([]);
-  const [scheduleMap, setScheduleRaw]    = useState({});
-  const [attendance,  setAttendanceRaw]  = useState({});
-  const [performance, setPerformanceRaw] = useState({});
-  const [heatmap,     setHeatmapRaw]     = useState({});
-  const [queueLog,    setQueueLogRaw]    = useState({});
+  // Data state
+  const [employees,     setEmployeesRaw]   = useState([]);
+  const [shifts,        setShiftsRaw]      = useState([]);
+  const [scheduleMap,   setScheduleRaw]    = useState({});
+  const [attendance,    setAttendanceRaw]  = useState({});
+  const [performance,   setPerformanceRaw] = useState({});
+  const [heatmap,       setHeatmapRaw]     = useState({});
+  const [queueLog,      setQueueLogRaw]    = useState({});
   const [breakSchedule, setBreakScheduleRaw] = useState({});
-  const [auditLog,    setAuditLogRaw]    = useState([]);
-  const [notes,       setNotesRaw]       = useState([]);
+  const [auditLog,      setAuditLogRaw]    = useState([]);
+  const [notes,         setNotesRaw]       = useState([]);
 
-  // ── Load ALL data from Supabase on mount ──────────────────────────────────
-  // Safety timeout: if Supabase takes too long, unblock UI
+  // Alert state
+  const [criticalAlerts,          setCriticalAlerts]          = useState([]);
+  const [alertDismissed,          setAlertDismissed]          = useState(false);
+  const [lastAlertCheck,          setLastAlertCheck]          = useState(0);
+  const [alertThresholdCritical,  setAlertThresholdCritical]  = useState(() => {
+    try { return Number(localStorage.getItem("csops_alertCritical")) || 400; } catch { return 400; }
+  });
+  const [alertThresholdWarning,   setAlertThresholdWarning]   = useState(() => {
+    try { return Number(localStorage.getItem("csops_alertWarning")) || 200; } catch { return 200; }
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // ALL useEffect HOOKS -- after useState, before any return
+  // ══════════════════════════════════════════════════════════
+
+  // Safety timeout: max 8s wait for Supabase
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setLoading(false);
-    }, 8000); // 8 second max wait
-    return () => clearTimeout(timeout);
+    const t = setTimeout(() => setLoading(false), 8000);
+    return () => clearTimeout(t);
   }, []);
 
+  // Load all data from Supabase on mount
   useEffect(() => {
     (async () => {
       try {
-        // Load employees
         const empT = await sb.from("employees");
         const empRows = await empT.select();
         if (empRows?.length) {
-          const emps = empRows.map(r => ({ id:r.id, name:r.name, role:r.role, tasks:r.tasks||[], gender:r.gender||"M" }));
-          setEmployeesRaw(emps);
-          localStorage.setItem("csops_employees", JSON.stringify(emps));
+          setEmployeesRaw(empRows.map(r => ({ id:r.id, name:r.name, role:r.role, tasks:r.tasks||[], gender:r.gender||"M" })));
         } else {
-          const empT2 = await sb.from("employees");
-          await empT2.upsert(DEFAULT_EMPLOYEES.map(e=>({id:e.id,name:e.name,role:e.role,tasks:e.tasks,gender:e.gender||"M"})));
+          await (await sb.from("employees")).upsert(DEFAULT_EMPLOYEES.map(e => ({ id:e.id, name:e.name, role:e.role, tasks:e.tasks, gender:e.gender||"M" })));
           setEmployeesRaw(DEFAULT_EMPLOYEES);
         }
 
-        // Load shifts
-        const shT = await sb.from("shifts");
-        const shRows = await shT.select();
+        const shRows = await (await sb.from("shifts")).select();
         if (shRows?.length) {
-          const shs = shRows.map(r=>({id:r.id,label:r.label,start:r.start_time,end:r.end_time,color:r.color}));
-          setShiftsRaw(shs);
+          setShiftsRaw(shRows.map(r => ({ id:r.id, label:r.label, start:r.start_time, end:r.end_time, color:r.color })));
         } else {
-          const shT2 = await sb.from("shifts");
-          await shT2.upsert(DEFAULT_SHIFTS.map(s=>({id:s.id,label:s.label,start_time:s.start,end_time:s.end,color:s.color})));
+          await (await sb.from("shifts")).upsert(DEFAULT_SHIFTS.map(s => ({ id:s.id, label:s.label, start_time:s.start, end_time:s.end, color:s.color })));
           setShiftsRaw(DEFAULT_SHIFTS);
         }
 
-        // Load schedule
-        const scT = await sb.from("schedule");
-        const scRows = await scT.select();
+        const scRows = await (await sb.from("schedule")).select();
         if (scRows?.length) {
-          const sc = {};
-          scRows.forEach(r=>{ sc[r.emp_id]=r.days||{}; });
-          setScheduleRaw(sc);
+          const sc = {}; scRows.forEach(r => { sc[r.emp_id] = r.days || {}; }); setScheduleRaw(sc);
         } else {
           const def = buildDefaultSchedule(DEFAULT_EMPLOYEES);
-          const scT2 = await sb.from("schedule");
-          await scT2.upsert(Object.entries(def).map(([emp_id,days])=>({emp_id,days})));
+          await (await sb.from("schedule")).upsert(Object.entries(def).map(([emp_id,days]) => ({ emp_id, days })));
           setScheduleRaw(def);
         }
 
-        // Load attendance (last 90 days)
-        const attT = await sb.from("attendance");
-        const attRows = await attT.select("*", `date=gte.${new Date(Date.now()-90*864e5).toISOString().slice(0,10)}`);
+        const cutoff = new Date(Date.now() - 90*864e5).toISOString().slice(0,10);
+        const attRows = await (await sb.from("attendance")).select("*", `date=gte.${cutoff}`);
         if (attRows?.length) {
           const att = {};
           attRows.forEach(r => {
-            if (!att[r.date]) att[r.date]={};
-            att[r.date][r.emp_id]={status:r.status,checkIn:r.check_in||"",checkOut:r.check_out||"",lateMin:r.late_min||0,earlyMin:r.early_min||0,workDuration:r.work_duration||"",note:r.note||""};
+            if (!att[r.date]) att[r.date] = {};
+            att[r.date][r.emp_id] = { status:r.status, checkIn:r.check_in||"", checkOut:r.check_out||"", lateMin:r.late_min||0, earlyMin:r.early_min||0, workDuration:r.work_duration||"", note:r.note||"" };
           });
           setAttendanceRaw(att);
         }
 
-        // Load performance (last 90 days)
-        const pfT = await sb.from("performance");
-        const pfRows = await pfT.select("*", `date=gte.${new Date(Date.now()-90*864e5).toISOString().slice(0,10)}`);
+        const pfRows = await (await sb.from("performance")).select("*", `date=gte.${cutoff}`);
         if (pfRows?.length) {
           const pf = {};
           pfRows.forEach(r => {
-            if (!pf[r.date]) pf[r.date]={};
-            pf[r.date][r.emp_id]={closed:r.closed||0,escalations:r.escalations||0,quality:r.quality||""};
+            if (!pf[r.date]) pf[r.date] = {};
+            pf[r.date][r.emp_id] = { closed:r.closed||0, escalations:r.escalations||0, quality:r.quality||"" };
           });
           setPerformanceRaw(pf);
         }
 
-        // Load heatmap (last 90 days)
-        const hmT = await sb.from("heatmap");
-        const hmRows = await hmT.select();
-        if (hmRows?.length) {
-          const hm = {};
-          hmRows.forEach(r=>{ hm[r.date]=r.hours||{}; });
-          setHeatmapRaw(hm);
-        }
+        const hmRows = await (await sb.from("heatmap")).select();
+        if (hmRows?.length) { const hm = {}; hmRows.forEach(r => { hm[r.date] = r.hours||{}; }); setHeatmapRaw(hm); }
 
-        // Load queue_log (last 90 days)
-        const qlT = await sb.from("queue_log");
-        const qlRows = await qlT.select();
-        if (qlRows?.length) {
-          const ql = {};
-          qlRows.forEach(r=>{ ql[r.id]=r.data||{}; });
-          setQueueLogRaw(ql);
-        }
+        const qlRows = await (await sb.from("queue_log")).select();
+        if (qlRows?.length) { const ql = {}; qlRows.forEach(r => { ql[r.id] = r.data||{}; }); setQueueLogRaw(ql); }
 
-        // Load audit_log (last 500)
-        const alT = await sb.from("audit_log");
-        const alRows = await alT.select("*", "order=ts.desc&limit=500");
-        if (alRows?.length) {
-          const al = alRows.map(r=>({id:r.id,ts:r.ts,by:r.by_name,role:r.by_role,action:r.action,target:r.target||"",detail:r.detail||""}));
-          setAuditLogRaw(al);
-        }
+        const alRows = await (await sb.from("audit_log")).select("*", "order=ts.desc&limit=500");
+        if (alRows?.length) setAuditLogRaw(alRows.map(r => ({ id:r.id, ts:r.ts, by:r.by_name, role:r.by_role, action:r.action, target:r.target||"", detail:r.detail||"" })));
 
-        // Load notes
-        const ntT = await sb.from("notes");
-        const ntRows = await ntT.select("*", "order=ts.desc");
-        if (ntRows?.length) {
-          setNotesRaw(ntRows.map(r=>({id:r.id,ts:r.ts,date:r.date,time:r.time,tag:r.tag,text:r.text})));
-        }
+        const ntRows = await (await sb.from("notes")).select("*", "order=ts.desc");
+        if (ntRows?.length) setNotesRaw(ntRows.map(r => ({ id:r.id, ts:r.ts, date:r.date, time:r.time, tag:r.tag, text:r.text })));
+
+        const bs = localStorage.getItem("csops_breakSchedule");
+        if (bs) setBreakScheduleRaw(JSON.parse(bs));
 
       } catch(e) {
-        console.warn("Supabase load failed, using localStorage:", e);
-        // Fallback to localStorage
+        console.warn("Supabase failed, using localStorage:", e);
         try {
-          const emp = localStorage.getItem("csops_employees"); if(emp) setEmployeesRaw(JSON.parse(emp));
-          else setEmployeesRaw(DEFAULT_EMPLOYEES);
-          const sh = localStorage.getItem("csops_shifts"); if(sh) setShiftsRaw(JSON.parse(sh));
-          else setShiftsRaw(DEFAULT_SHIFTS);
-          const sc = localStorage.getItem("csops_schedule"); if(sc) setScheduleRaw(JSON.parse(sc));
-          else setScheduleRaw(buildDefaultSchedule(DEFAULT_EMPLOYEES));
-          const at = localStorage.getItem("csops_attendance"); if(at) setAttendanceRaw(JSON.parse(at));
-          const pf = localStorage.getItem("csops_performance"); if(pf) setPerformanceRaw(JSON.parse(pf));
-          const hm = localStorage.getItem("csops_heatmap"); if(hm) setHeatmapRaw(JSON.parse(hm));
-          const ql = localStorage.getItem("csops_queueLog"); if(ql) setQueueLogRaw(JSON.parse(ql));
-          const bs = localStorage.getItem("csops_breakSchedule"); if(bs) setBreakScheduleRaw(JSON.parse(bs));
-          const al = localStorage.getItem("csops_auditLog"); if(al) setAuditLogRaw(JSON.parse(al));
-          const nt = localStorage.getItem("csops_notes"); if(nt) setNotesRaw(JSON.parse(nt));
+          const emp = localStorage.getItem("csops_employees"); setEmployeesRaw(emp ? JSON.parse(emp) : DEFAULT_EMPLOYEES);
+          const sh  = localStorage.getItem("csops_shifts");    setShiftsRaw(sh ? JSON.parse(sh) : DEFAULT_SHIFTS);
+          const sc  = localStorage.getItem("csops_schedule");  setScheduleRaw(sc ? JSON.parse(sc) : buildDefaultSchedule(DEFAULT_EMPLOYEES));
+          const at  = localStorage.getItem("csops_attendance"); if(at) setAttendanceRaw(JSON.parse(at));
+          const pf  = localStorage.getItem("csops_performance"); if(pf) setPerformanceRaw(JSON.parse(pf));
+          const hm  = localStorage.getItem("csops_heatmap");   if(hm) setHeatmapRaw(JSON.parse(hm));
+          const ql  = localStorage.getItem("csops_queueLog");  if(ql) setQueueLogRaw(JSON.parse(ql));
+          const bs  = localStorage.getItem("csops_breakSchedule"); if(bs) setBreakScheduleRaw(JSON.parse(bs));
+          const al  = localStorage.getItem("csops_auditLog");  if(al) setAuditLogRaw(JSON.parse(al));
+          const nt  = localStorage.getItem("csops_notes");     if(nt) setNotesRaw(JSON.parse(nt));
         } catch {}
       } finally {
         setLoading(false);
+        // Show daily tip once per day
+        try {
+          const today = new Date().toLocaleDateString("en-CA", {timeZone:"Asia/Riyadh"});
+          const lastTip = localStorage.getItem("csops_tipDate");
+          if (lastTip !== today) {
+            setShowTip(true);
+            localStorage.setItem("csops_tipDate", today);
+          }
+        } catch {}
       }
     })();
   }, []);
 
-  // ── Supabase savers ───────────────────────────────────────────────────────
-  async function saveEmployees(emps) {
-    try {
-      const t = await sb.from("employees");
-      await t.upsert(emps.map(e=>({id:e.id,name:e.name,role:e.role,tasks:e.tasks||[]})));
-    } catch {}
-    localStorage.setItem("csops_employees", JSON.stringify(emps));
-  }
-  async function saveShifts(shs) {
-    try {
-      const t = await sb.from("shifts");
-      await t.upsert(shs.map(s=>({id:s.id,label:s.label,start_time:s.start,end_time:s.end,color:s.color})));
-    } catch {}
-    localStorage.setItem("csops_shifts", JSON.stringify(shs));
-  }
-  async function saveSchedule(sc) {
-    try {
-      const t = await sb.from("schedule");
-      await t.upsert(Object.entries(sc).map(([emp_id,days])=>({emp_id,days,updated_at:new Date().toISOString()})));
-    } catch {}
-    localStorage.setItem("csops_schedule", JSON.stringify(sc));
-  }
-  async function saveAttendance(att) {
-    try {
-      const rows = [];
-      Object.entries(att).forEach(([date, emps]) => {
-        Object.entries(emps).forEach(([emp_id, a]) => {
-          rows.push({id:`${date}_${emp_id}`,date,emp_id,status:a.status,check_in:a.checkIn||null,check_out:a.checkOut||null,late_min:a.lateMin||0,early_min:a.earlyMin||0,work_duration:a.workDuration||null,note:a.note||null,updated_at:new Date().toISOString()});
-        });
-      });
-      if (rows.length) { const t = await sb.from("attendance"); await t.upsert(rows); }
-    } catch {}
-    localStorage.setItem("csops_attendance", JSON.stringify(att));
-  }
-  async function savePerformance(pf) {
-    try {
-      const rows = [];
-      Object.entries(pf).forEach(([date,emps])=>{
-        Object.entries(emps).forEach(([emp_id,p])=>{
-          rows.push({id:`${date}_${emp_id}`,date,emp_id,closed:p.closed||0,escalations:p.escalations||0,quality:p.quality||null,updated_at:new Date().toISOString()});
-        });
-      });
-      if (rows.length) { const t = await sb.from("performance"); await t.upsert(rows); }
-    } catch {}
-    localStorage.setItem("csops_performance", JSON.stringify(pf));
-  }
-  async function saveHeatmap(hm) {
-    try {
-      const rows = Object.entries(hm).map(([date,hours])=>({date,hours,updated_at:new Date().toISOString()}));
-      if (rows.length) { const t = await sb.from("heatmap"); await t.upsert(rows); }
-    } catch {}
-    localStorage.setItem("csops_heatmap", JSON.stringify(hm));
-  }
-  async function saveQueueLog(ql) {
-    try {
-      const rows = Object.entries(ql).map(([id,data])=>{
-        const [date,shift_id] = id.split("_");
-        return {id,date,shift_id:shift_id||"",data,updated_at:new Date().toISOString()};
-      });
-      if (rows.length) { const t = await sb.from("queue_log"); await t.upsert(rows); }
-    } catch {}
-    localStorage.setItem("csops_queueLog", JSON.stringify(ql));
-  }
-  async function saveAuditLog(al) {
-    try {
-      const latest = Array.isArray(al) ? al.slice(0,50) : []; // save only new 50
-      const rows = latest.map(l=>({id:l.id,ts:l.ts,by_name:l.by,by_role:l.role,action:l.action,target:l.target||"",detail:l.detail||""}));
-      if (rows.length) { const t = await sb.from("audit_log"); await t.upsert(rows); }
-    } catch {}
-    localStorage.setItem("csops_auditLog", JSON.stringify(al));
-  }
-  async function saveNotes(nt) {
-    try {
-      const rows = (Array.isArray(nt)?nt:[]).map(n=>({id:n.id,ts:n.ts,date:n.date,time:n.time||"",tag:n.tag||"General",text:n.text}));
-      if (rows.length) { const t = await sb.from("notes"); await t.upsert(rows); }
-    } catch {}
-    localStorage.setItem("csops_notes", JSON.stringify(nt));
-  }
-
-  // ── Wrapped setters that save to Supabase ─────────────────────────────────
-  function setEmployees(val)  { const n=typeof val==="function"?val(employees):val;  setEmployeesRaw(n);  saveEmployees(n); }
-  function setShifts(val)     { const n=typeof val==="function"?val(shifts):val;     setShiftsRaw(n);     saveShifts(n); }
-  function setSchedule(val)   { const n=typeof val==="function"?val(scheduleMap):val; setScheduleRaw(n);  saveSchedule(n); }
-  function setAttendance(val) { const n=typeof val==="function"?val(attendance):val; setAttendanceRaw(n); saveAttendance(n); }
-  function setPerformance(val){ const n=typeof val==="function"?val(performance):val;setPerformanceRaw(n);savePerformance(n); }
-  function setHeatmap(val)    { const n=typeof val==="function"?val(heatmap):val;    setHeatmapRaw(n);    saveHeatmap(n); }
-  function setQueueLog(val)   { const n=typeof val==="function"?val(queueLog):val;   setQueueLogRaw(n);   saveQueueLog(n); }
-  function setBreakSchedule(val) {
-    const n=typeof val==="function"?val(breakSchedule):val;
-    setBreakScheduleRaw(n);
-    try { localStorage.setItem("csops_breakSchedule", JSON.stringify(n)); } catch {}
-    // Audit trail for break changes
-    const entry = {
-      id: "al"+Date.now()+Math.random(),
-      ts: new Date().toISOString(),
-      by: session?.name || "Unknown",
-      role: session?.role || "",
-      action: "Break Schedule Updated",
-      target: "",
-      detail: "Break schedule modified",
-    };
-    setAuditLogRaw(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
-  }
-  function setAuditLog(val)   { const n=typeof val==="function"?val(auditLog):val;   setAuditLogRaw(n);   saveAuditLog(n); }
-  function setNotes(val)      { const n=typeof val==="function"?val(notes):val;      setNotesRaw(n);      saveNotes(n); }
-
-  // Use scheduleMap as schedule
-  const schedule = scheduleMap;
-
-  // Loading screen
-
-  // Not logged in → show login
-
-  const [criticalAlerts, setCriticalAlerts]   = useState([]);
-  const [alertDismissed, setAlertDismissed]   = useState(false);
-  const [lastAlertCheck, setLastAlertCheck]   = useState(0);
-  const [alertThresholdCritical, setAlertThresholdCritical] = useState(() => {
-    try { return Number(localStorage.getItem("csops_alertCritical")) || 400; } catch { return 400; }
-  });
-  const [alertThresholdWarning, setAlertThresholdWarning] = useState(() => {
-    try { return Number(localStorage.getItem("csops_alertWarning")) || 200; } catch { return 200; }
-  });
-
-
-
+  // Alert check — once dismissed, stays hidden until severity level changes
   useEffect(() => {
-    if (!session || session.role === "Agent") return; // agents never see alert
-    const interval = setInterval(() => {
-      const now = Date.now();
-      if (now - lastAlertCheck < 55000) return; // debounce
-      setLastAlertCheck(now);
+    let lastSeverity = 0; // 0=none, 1=warning, 2=critical
+    let isDismissed = false;
 
-      const alerts = [];
-      const todayD = new Date().toISOString().slice(0,10);
-      const QUEUE_KEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
+    // Subscribe to dismiss state
+    const checkAlerts = () => {
+      if (!session || session.role === "Agent") return;
+      const todayD = new Date().toLocaleDateString("en-CA", { timeZone:"Asia/Riyadh" });
+      const KEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
+      const entries = Object.entries(queueLog||{}).filter(([k]) => k.startsWith(todayD)).map(([,v]) => v);
+      if (!entries.length) return;
+      const latest = entries.reduce((a,b) => ((b.updTime||"") > (a.updTime||"") ? b : a));
+      const total  = KEYS.reduce((s,k) => s + Number(latest[k+"Curr"]||0), 0);
 
-      // Check all today's queue entries
-      const todayEntries = Object.entries(queueLog||{})
-        .filter(([k])=>k.startsWith(todayD))
-        .map(([,v])=>v);
+      let newSeverity = 0;
+      if (total > alertThresholdCritical) newSeverity = 2;
+      else if (total > alertThresholdWarning) newSeverity = 1;
 
-      if (todayEntries.length) {
-        const latest = todayEntries.reduce((best,e)=>(e.updTime||"")>(best.updTime||"")?e:best, todayEntries[0]);
-        const totalCurr = QUEUE_KEYS.reduce((s,k)=>s+Number(latest[k+"Curr"]||0),0);
-        if (totalCurr > alertThresholdCritical) {
-          alerts.push({
-            icon:"🚨",
-            title:`Queue Critical — ${totalCurr} cases`,
-            detail:`إجمالي الحالات تجاوز الحد الحرج (${alertThresholdCritical}+). يتطلب تدخلاً فورياً وإعادة توزيع الطاقم.`
-          });
-        } else if (totalCurr > alertThresholdWarning) {
-          alerts.push({
-            icon:"⚠️",
-            title:`Queue Warning — ${totalCurr} cases`,
-            detail:`إجمالي الحالات في منطقة التحذير (${alertThresholdWarning}+). راقب الوضع عن كثب.`
-          });
-        }
+      if (newSeverity === 0) {
+        setCriticalAlerts([]);
+        lastSeverity = 0;
+        isDismissed = false;
+        return;
       }
 
-      if (alerts.length > 0) {
-        setCriticalAlerts(alerts);
+      // Only show if severity INCREASED (new threat level)
+      if (newSeverity > lastSeverity) {
+        isDismissed = false;
         setAlertDismissed(false);
       }
-    }, 60000);
+      lastSeverity = newSeverity;
 
-    // Also run once on mount after 3s delay
-    const initial = setTimeout(() => {
-      const todayD = new Date().toISOString().slice(0,10);
-      const QUEUE_KEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
-      const todayEntries = Object.entries(queueLog||{})
-        .filter(([k])=>k.startsWith(todayD)).map(([,v])=>v);
-      if (!todayEntries.length) return;
-      const latest = todayEntries.reduce((best,e)=>(e.updTime||"")>(best.updTime||"")?e:best, todayEntries[0]);
-      const totalCurr = QUEUE_KEYS.reduce((s,k)=>s+Number(latest[k+"Curr"]||0),0);
-      if (totalCurr > alertThresholdCritical) {
-        setCriticalAlerts([{
-          icon:"🚨",
-          title:`Queue Critical — ${totalCurr} cases`,
-          detail:`إجمالي الحالات تجاوز الحد الحرج (${alertThresholdCritical}+). يتطلب تدخلاً فورياً.`
-        }]);
-      } else if (totalCurr > alertThresholdWarning) {
-        setCriticalAlerts([{
-          icon:"⚠️",
-          title:`Queue Warning — ${totalCurr} cases`,
-          detail:`إجمالي الحالات في منطقة التحذير (${alertThresholdWarning}+). راقب الوضع.`
-        }]);
+      if (!isDismissed) {
+        if (newSeverity === 2) {
+          setCriticalAlerts([{ icon:"🚨", title:`Queue Critical — ${total} cases`,
+            detail:`Total cases exceeded critical threshold (${alertThresholdCritical}+). Immediate action required.` }]);
+        } else {
+          setCriticalAlerts([{ icon:"⚠️", title:`Queue Warning — ${total} cases`,
+            detail:`Total cases in warning zone (${alertThresholdWarning}+). Monitor closely.` }]);
+        }
       }
-    }, 3000);
+    };
 
-    return () => { clearInterval(interval); clearTimeout(initial); };
+    // Run after 5s on mount
+    const initial = setTimeout(checkAlerts, 5000);
+    // Then every 60s
+    const interval = setInterval(checkAlerts, 60000);
+
+    return () => { clearTimeout(initial); clearInterval(interval); };
   }, [session, queueLog, alertThresholdCritical, alertThresholdWarning]);
 
+  // ══════════════════════════════════════════════════════════
+  // CONDITIONAL RETURNS -- after ALL hooks
+  // ══════════════════════════════════════════════════════════
 
+  // 1. Loading screen
   if (loading) {
     return (
-      <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0F2744,#1E3A5F)",
+      <div style={{ minHeight:"100dvh", background:"linear-gradient(135deg,#0F2744,#1E3A5F)",
         display:"flex", alignItems:"center", justifyContent:"center",
-        fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", flexDirection:"column", gap:20 }}>
+        fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", flexDirection:"column", gap:16 }}>
         <div style={{ fontSize:48 }}>🎯</div>
-        <div style={{ color:"#fff", fontWeight:800, fontSize:20 }}>CS Operations</div>
+        <div style={{ color:"#fff", fontWeight:800, fontSize:22 }}>CS Operations</div>
         <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-          <div style={{ width:8, height:8, borderRadius:"50%", background:"#10B981",
-            animation:"pulse 1s infinite" }}/>
+          <div style={{ width:8, height:8, borderRadius:"50%", background:"#10B981", animation:"pulse 1s infinite" }}/>
           <span style={{ color:"rgba(255,255,255,0.7)", fontSize:14 }}>Connecting to database...</span>
         </div>
-        <button onClick={()=>setLoading(false)}
-          style={{ marginTop:24, background:"transparent",
-            border:"1px solid rgba(255,255,255,0.2)",
-            color:"rgba(255,255,255,0.45)", borderRadius:8,
-            padding:"8px 24px", cursor:"pointer", fontSize:12 }}>
+        <button onClick={()=>setLoading(false)} style={{ marginTop:16, background:"transparent",
+          border:"1px solid rgba(255,255,255,0.2)", color:"rgba(255,255,255,0.5)",
+          borderRadius:8, padding:"8px 24px", cursor:"pointer", fontSize:12 }}>
           Taking too long? Click to continue →
         </button>
         <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
       </div>
     );
   }
+
+  // 2. Login screen
   if (!session) {
-    return <LoginScreen employees={employees} lang={lang} setLang={changeLang} onLogin={sess => {
-      const entry = {
-        id: "al"+Date.now()+Math.random(),
-        ts: new Date().toISOString(),
-        by: sess.name, role: sess.role,
-        action: "Sign In", target: sess.name,
-        detail: `${sess.role} signed in`,
-      };
-      setAuditLog(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
-      setSession(sess);
+    return <LoginScreen employees={employees} lang={lang} setLang={(l)=>{ setLang(l); try{localStorage.setItem("csops_lang",l);}catch{} }} onLogin={sess => {
+      const entry = { id:"al"+Date.now()+Math.random(), ts:new Date().toISOString(),
+        by:sess.name, role:sess.role, action:"Sign In", target:sess.name, detail:`${sess.role} signed in` };
+      setAuditLogRaw(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0,2000));
+      try { localStorage.setItem("csops_auditLog", JSON.stringify([entry])); } catch {}
+      _setSession(sess);
+      try { localStorage.setItem("csops_session", JSON.stringify(sess)); } catch {}
       setShowTip(true);
       try { const lp = localStorage.getItem("csops_lastPage"); if(lp) setPage(lp); } catch {}
     }}/>;
   }
 
-  const currentRole = session.role;
-  const currentName = session.name;
-  const canEdit     = ROLE_CAN_EDIT[currentRole];
-  const roleColor   = ROLE_COLORS[currentRole];
+  // ══════════════════════════════════════════════════════════
+  // POST-LOGIN SETUP -- session is guaranteed here
+  // ══════════════════════════════════════════════════════════
+
+  const theme        = THEMES[themeKey] || THEMES.dark;
+  setGlobalTheme(theme);
+  setGlobalLang(lang);
+  const isRTL        = lang === "ar";
+  const tr           = (key) => T[lang]?.[key] || T.en[key] || key;
+  const currentRole  = session.role;
+  const currentName  = session.name;
+  const canEdit      = ROLE_CAN_EDIT[currentRole] !== false;
+  const roleColor    = ROLE_COLORS[currentRole] || "#64748B";
   const isSuperAdmin = isOwnerUser(session);
-  const isAgent = currentRole === "Agent";
+  const isAgent      = currentRole === "Agent";
+  const schedule     = scheduleMap;
 
-  // ── Critical Alert System ──────────────────────────────────────────────────
+  // Savers
+  async function saveEmployees(emps) {
+    try { await (await sb.from("employees")).upsert(emps.map(e=>({id:e.id,name:e.name,role:e.role,tasks:e.tasks||[],gender:e.gender||"M"}))); } catch {}
+    try { localStorage.setItem("csops_employees", JSON.stringify(emps)); } catch {}
+  }
+  async function saveShifts(shs) {
+    try { await (await sb.from("shifts")).upsert(shs.map(s=>({id:s.id,label:s.label,start_time:s.start,end_time:s.end,color:s.color}))); } catch {}
+    try { localStorage.setItem("csops_shifts", JSON.stringify(shs)); } catch {}
+  }
+  async function saveSchedule(sc) {
+    try { await (await sb.from("schedule")).upsert(Object.entries(sc).map(([emp_id,days])=>({emp_id,days,updated_at:new Date().toISOString()}))); } catch {}
+    try { localStorage.setItem("csops_schedule", JSON.stringify(sc)); } catch {}
+  }
+  async function saveAttendance(att) {
+    try {
+      const rows=[];
+      Object.entries(att).forEach(([date,emps])=>{ Object.entries(emps).forEach(([emp_id,a])=>{ rows.push({id:`${date}_${emp_id}`,date,emp_id,status:a.status,check_in:a.checkIn||null,check_out:a.checkOut||null,late_min:a.lateMin||0,early_min:a.earlyMin||0,work_duration:a.workDuration||null,note:a.note||null,updated_at:new Date().toISOString()}); }); });
+      if(rows.length) await (await sb.from("attendance")).upsert(rows);
+    } catch {}
+    try { localStorage.setItem("csops_attendance", JSON.stringify(att)); } catch {}
+  }
+  async function savePerformance(pf) {
+    try {
+      const rows=[];
+      Object.entries(pf).forEach(([date,emps])=>{ Object.entries(emps).forEach(([emp_id,p])=>{ rows.push({id:`${date}_${emp_id}`,date,emp_id,closed:p.closed||0,escalations:p.escalations||0,quality:p.quality||null,updated_at:new Date().toISOString()}); }); });
+      if(rows.length) await (await sb.from("performance")).upsert(rows);
+    } catch {}
+    try { localStorage.setItem("csops_performance", JSON.stringify(pf)); } catch {}
+  }
+  async function saveHeatmap(hm) {
+    try { const rows=Object.entries(hm).map(([date,hours])=>({date,hours,updated_at:new Date().toISOString()})); if(rows.length) await (await sb.from("heatmap")).upsert(rows); } catch {}
+    try { localStorage.setItem("csops_heatmap", JSON.stringify(hm)); } catch {}
+  }
+  async function saveQueueLog(ql) {
+    try { const rows=Object.entries(ql).map(([id,data])=>{const[date,shift_id]=id.split("_");return{id,date,shift_id:shift_id||"",data,updated_at:new Date().toISOString()};}); if(rows.length) await (await sb.from("queue_log")).upsert(rows); } catch {}
+    try { localStorage.setItem("csops_queueLog", JSON.stringify(ql)); } catch {}
+  }
+  async function saveAuditLog(al) {
+    try { const rows=(Array.isArray(al)?al.slice(0,50):[]).map(l=>({id:l.id,ts:l.ts,by_name:l.by,by_role:l.role,action:l.action,target:l.target||"",detail:l.detail||""})); if(rows.length) await (await sb.from("audit_log")).upsert(rows); } catch {}
+    try { localStorage.setItem("csops_auditLog", JSON.stringify(al)); } catch {}
+  }
+  async function saveNotes(nt) {
+    try { const rows=(Array.isArray(nt)?nt:[]).map(n=>({id:n.id,ts:n.ts,date:n.date,time:n.time||"",tag:n.tag||"General",text:n.text})); if(rows.length) await (await sb.from("notes")).upsert(rows); } catch {}
+    try { localStorage.setItem("csops_notes", JSON.stringify(nt)); } catch {}
+  }
+  function saveBreakSchedule(bs) {
+    try { localStorage.setItem("csops_breakSchedule", JSON.stringify(bs)); } catch {}
+  }
+
+  // Wrapped setters
+  function setEmployees(v)     { const n=typeof v==="function"?v(employees):v;     setEmployeesRaw(n);     saveEmployees(n); }
+  function setShifts(v)        { const n=typeof v==="function"?v(shifts):v;         setShiftsRaw(n);        saveShifts(n); }
+  function setSchedule(v)      { const n=typeof v==="function"?v(scheduleMap):v;    setScheduleRaw(n);      saveSchedule(n); }
+  function setAttendance(v)    { const n=typeof v==="function"?v(attendance):v;     setAttendanceRaw(n);    saveAttendance(n); }
+  function setPerformance(v)   { const n=typeof v==="function"?v(performance):v;    setPerformanceRaw(n);   savePerformance(n); }
+  function setHeatmap(v)       { const n=typeof v==="function"?v(heatmap):v;        setHeatmapRaw(n);       saveHeatmap(n); }
+  function setQueueLog(v)      { const n=typeof v==="function"?v(queueLog):v;       setQueueLogRaw(n);      saveQueueLog(n); }
+  function setBreakSchedule(v) { const n=typeof v==="function"?v(breakSchedule):v;  setBreakScheduleRaw(n); saveBreakSchedule(n); }
+  function setAuditLog(v)      { const n=typeof v==="function"?v(auditLog):v;       setAuditLogRaw(n);      saveAuditLog(n); }
+  function setNotes(v)         { const n=typeof v==="function"?v(notes):v;          setNotesRaw(n);         saveNotes(n); }
+
+  function setSession(val) {
+    _setSession(val);
+    try { if(val) localStorage.setItem("csops_session",JSON.stringify(val)); else localStorage.removeItem("csops_session"); } catch {}
+  }
+
   function saveAlertThresholds(c, w) {
-    setAlertThresholdCritical(c);
-    setAlertThresholdWarning(w);
-    try { localStorage.setItem("csops_alertCritical", String(c)); localStorage.setItem("csops_alertWarning", String(w)); } catch {}
+    setAlertThresholdCritical(c); setAlertThresholdWarning(w);
+    try { localStorage.setItem("csops_alertCritical",String(c)); localStorage.setItem("csops_alertWarning",String(w)); } catch {}
   }
 
-  // Check every 60 seconds for critical conditions (supervisors only)
-
-  const showCriticalAlert = !isAgent && !alertDismissed && criticalAlerts.length > 0;
-
-  // Pages visible to this user
-  // Mohammed Nasser Althurwi (SUPER_ADMIN) always sees Owner Analytics
-  const visiblePages = isAgent ? AGENT_PAGES : (isSuperAdmin ? [...PAGES, "Owner Analytics"] : PAGES);
-  // Inject Owner Analytics for super admin even if role is SME
-  // (already handled above — isSuperAdmin check covers this)
-
-  function navigate(p) {
-    setPage(p);
-    try { localStorage.setItem("csops_lastPage", p); } catch {}
-  }
+  function changeTheme(k)  { setThemeKey(k);  try{localStorage.setItem("csops_theme",k);}catch{} }
+  function changeLang(l)   { setLang(l);       try{localStorage.setItem("csops_lang",l);}catch{} }
+  function changeZoom(z)   { const c=Math.min(200,Math.max(50,z)); setZoom(c); try{localStorage.setItem("csops_zoom",c);}catch{} }
 
   const noop = () => {};
-  const AL = setAuditLog;
+  const AL   = setAuditLog;
 
-  // ── Audited setter: wraps any setter and logs every change ──────────────────
+  function addAudit(action, target, detail) {
+    const entry = { id:"al"+Date.now()+Math.random(), ts:new Date().toISOString(), by:currentName, role:currentRole, action, target:target||"", detail:detail||"" };
+    setAuditLog(prev => [entry,...(Array.isArray(prev)?prev:[])].slice(0,2000));
+  }
+
   function makeAudited(setter, label) {
     if (!canEdit) return noop;
-    return (val) => {
-      setter(val);
-      const entry = {
-        id: "al"+Date.now()+Math.random(),
-        ts: new Date().toISOString(),
-        by: currentName,
-        role: currentRole,
-        action: label,
-        target: "",
-        detail: "",
-      };
-      setAuditLog(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
-    };
+    return (val) => { setter(val); addAudit(label,"",""); };
   }
 
-  // ── Specific audited setters with meaningful labels ──────────────────────────
-  const E  = makeAudited(setEmployees,   "Employee Data Updated");
-  const SH = makeAudited(setShifts,      "Shift Config Updated");
-  const SC = makeAudited(setSchedule,    "Schedule Updated");
-  const AT = makeAudited(setAttendance,  "Attendance Recorded");
-  const PF = makeAudited(setPerformance, "Performance Updated");
-  const HM = makeAudited(setHeatmap,     "Heat Map Updated");
-  const QL = makeAudited(setQueueLog,    "Queue Data Updated");
-
-  // ── Fine-grained audit helper for specific actions (Tasks page, login, etc.) ──
-  function addAudit(action, target, detail) {
-    const entry = {
-      id: "al"+Date.now()+Math.random(),
-      ts: new Date().toISOString(),
-      by: currentName,
-      role: currentRole,
-      action, target, detail,
-    };
-    setAuditLog(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
-  }
+  const E  = makeAudited(setEmployees,  "Employee Data Updated");
+  const SH = makeAudited(setShifts,     "Shift Config Updated");
+  const SC = makeAudited(setSchedule,   "Schedule Updated");
+  const AT = makeAudited(setAttendance, "Attendance Recorded");
+  const PF = makeAudited(setPerformance,"Performance Updated");
+  const HM = makeAudited(setHeatmap,    "Heat Map Updated");
+  const QL = makeAudited(setQueueLog,   "Queue Data Updated");
 
   function logout() {
     addAudit("Sign Out", currentName, `${currentRole} signed out`);
-    // small delay so audit saves before session clears
-    setTimeout(() => setSession(null), 50);
+    setTimeout(() => setSession(null), 100);
   }
 
-  // After session confirmed -- override navigate to log page visits
   function navigateLogged(p) {
     setPage(p);
     try { localStorage.setItem("csops_lastPage", p); } catch {}
     addAudit("Page View", p, `Opened ${p}`);
   }
 
-  const pageComponents = {
-    Schedule:      <SchedulePage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} canEdit={canEdit}/>,
-    Attendance:    <AttendancePage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT}/>,
-    Queue:         <QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL} setHeatmap={HM}/>,
-    "Daily Tasks": <DailyTasksPage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} auditLog={auditLog} setAuditLog={AL} session={session}/>,
-    "Live Floor":  <LiveFloorPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} queueLog={queueLog}/>,
-    Break:         <BreakPage employees={employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={canEdit} addAudit={addAudit} session={session}/>,
-    "Heat Map":    <HeatMapPage queueLog={queueLog}/>,
-    "Audit Log":   <AuditLogPage auditLog={auditLog} session={session}/>,
-    Notes:         <NotesPage notes={notes} setNotes={canEdit?setNotes:noop}/>,
-    Shifts:        <ShiftsPage shifts={shifts} setShifts={SH}/>,
-    Performance:   <PerformancePage employees={employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF}/>,
-    Reports:       <ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog}/>,
-    "Owner Analytics": <OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>,
-    Leaderboard:   <LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} canEdit={canEdit}/>,
-  };
+  // Visible pages by role
+  const visiblePages = isAgent
+    ? AGENT_PAGES
+    : isSuperAdmin
+      ? [...PAGES, "Owner Analytics", "Leaderboard"]
+      : [...PAGES, "Leaderboard"];
 
-  // Page icons
+  const safeCurrentPage = visiblePages.includes(page) ? page : visiblePages[0];
+  const showCriticalAlert = !isAgent && !alertDismissed && criticalAlerts.length > 0;
+
+  // Page labels
   const PAGE_ICONS = {
     "Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
-    "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍","Notes":"📝",
-    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️","Leaderboard":"🏆"
+    "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍",
+    "Notes":"📝","Shifts":"⏰","Performance":"⚡","Reports":"📑",
+    "Owner Analytics":"👁️","Leaderboard":"🏆"
   };
-
   const PAGE_LABELS = {
     "Schedule": tr("schedule"), "Attendance": tr("attendance"),
     "Queue": tr("queue"), "Daily Tasks": tr("dailyTasks"),
@@ -6145,33 +6038,41 @@ export default function App() {
     "Notes": tr("notes"), "Shifts": tr("shifts"),
     "Performance": tr("performance"), "Reports": tr("reports"),
     "Owner Analytics": tr("ownerAnalytics"),
-    "Leaderboard": lang==="ar"?"لوحة المتصدرين":"Leaderboard"
+    "Leaderboard": lang==="ar" ? "لوحة المتصدرين" : "Leaderboard"
   };
 
-  const safeCurrentPage = visiblePages.includes(page) ? page : visiblePages[0];
+  // Page components map
+  const pageComponents = {
+    Schedule:          <SchedulePage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} canEdit={canEdit}/>,
+    Attendance:        <AttendancePage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT}/>,
+    Queue:             <QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL} setHeatmap={HM}/>,
+    "Daily Tasks":     <DailyTasksPage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} auditLog={auditLog} setAuditLog={AL} session={session}/>,
+    "Live Floor":      <LiveFloorPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} queueLog={queueLog}/>,
+    Break:             <BreakPage employees={employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={canEdit} addAudit={addAudit} session={session}/>,
+    "Heat Map":        <HeatMapPage queueLog={queueLog}/>,
+    "Audit Log":       <AuditLogPage auditLog={auditLog} session={session}/>,
+    Notes:             <NotesPage notes={notes} setNotes={canEdit?setNotes:noop}/>,
+    Shifts:            <ShiftsPage shifts={shifts} setShifts={SH}/>,
+    Performance:       <PerformancePage employees={employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF}/>,
+    Reports:           <ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog}/>,
+    "Owner Analytics": <OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} shifts={shifts}/>,
+    Leaderboard:       <LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} canEdit={canEdit}/>,
+  };
 
+  // ══════════════════════════════════════════════════════════
+  // RENDER
+  // ══════════════════════════════════════════════════════════
   return (
-    <div dir={isRTL?"rtl":"ltr"} style={{
-      minHeight:"100dvh", background:theme.bg,
-      fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif",
-      color:theme.text
-    }}>
+    <div dir={isRTL?"rtl":"ltr"} style={{ minHeight:"100dvh", background:theme.bg,
+      fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", color:theme.text, fontSize:`${zoom}%` }}>
 
-      {/* Critical Alert Popup — supervisors only, auto-triggered by queue */}
-      {showCriticalAlert && (
-        <CriticalAlertPopup
-          alerts={criticalAlerts}
-          onDismiss={()=>{ setAlertDismissed(true); setCriticalAlerts([]); }}
-        />
-      )}
-
-      {/* Daily Tip Popup */}
+      {/* Daily Tip popup */}
       {showTip && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)",
-          zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
-          <div style={{ background:theme.card, border:`1px solid ${theme.primary}40`,
-            borderRadius:16, padding:"28px 32px", maxWidth:420, width:"100%",
-            boxShadow:"0 20px 60px rgba(0,0,0,0.5)", textAlign:"center" }}>
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:2000,
+          display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div style={{ background:theme.card, border:`1px solid ${theme.primary}40`, borderRadius:16,
+            padding:"28px 32px", maxWidth:420, width:"100%", textAlign:"center",
+            boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }}>
             <div style={{ fontSize:40, marginBottom:12 }}>💡</div>
             <div style={{ fontWeight:800, fontSize:18, color:theme.primary, marginBottom:12 }}>
               {tr("dailyTipTitle")}
@@ -6188,132 +6089,124 @@ export default function App() {
         </div>
       )}
 
+      {/* Critical Alert */}
+      {showCriticalAlert && (
+        <div style={{ position:"fixed", top:70, right:16, zIndex:1500, maxWidth:360,
+          background:theme.card, border:`2px solid ${theme.danger}`, borderRadius:12,
+          boxShadow:"0 8px 32px rgba(0,0,0,0.4)", padding:"16px 20px" }}>
+          {criticalAlerts.map((a,i) => (
+            <div key={i}>
+              <div style={{ fontWeight:800, fontSize:14, color:theme.danger, marginBottom:4 }}>{a.icon} {a.title}</div>
+              <div style={{ fontSize:12, color:theme.textSub }}>{a.detail}</div>
+            </div>
+          ))}
+          <button onClick={()=>setAlertDismissed(true)}
+            style={{ marginTop:10, background:"none", border:`1px solid ${theme.cardBorder}`,
+              color:theme.textSub, borderRadius:6, padding:"4px 12px", cursor:"pointer", fontSize:12 }}>
+            Dismiss ✕
+          </button>
+        </div>
+      )}
+
       <style>{`
-        @media (max-width: 768px) { .desktop-nav { display: none !important; } }
-        @media (min-width: 769px) { .mobile-bottom-nav { display: none !important; } }
-        .desktop-nav::-webkit-scrollbar { display: none; }
+        @media(max-width:768px){.desktop-nav{display:none!important}}
+        @media(min-width:769px){.mobile-bottom-nav{display:none!important}}
+        .desktop-nav::-webkit-scrollbar{display:none}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-        .nav-btn { transition: all 0.15s; }
-        .nav-btn:hover { opacity: 0.85; transform: translateY(-1px); }
-        select option { background: #1C2333; color: #E6EDF3; }
       `}</style>
 
-      {/* Top Header */}
+      {/* TOP HEADER */}
       <div style={{ background:theme.header, position:"sticky", top:0, zIndex:100,
         borderBottom:`1px solid ${theme.cardBorder}`,
-        boxShadow:theme.isDark?"0 2px 16px rgba(0,0,0,0.6)":"0 2px 8px rgba(0,0,0,0.12)" }}>
+        boxShadow:theme.isDark?"0 2px 20px rgba(0,0,0,0.5)":"0 2px 8px rgba(0,0,0,0.1)" }}>
         <div style={{ maxWidth:1400, margin:"0 auto", padding:"0 12px" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:5, padding:"8px 0" }}>
-
+          <div style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 0" }}>
             {/* Brand */}
             <div style={{ color:theme.text, fontWeight:800, fontSize:15, whiteSpace:"nowrap",
               display:"flex", alignItems:"center", gap:6, flexShrink:0,
-              marginRight:6, paddingRight:8, borderRight:`1px solid ${theme.cardBorder}` }}>
+              paddingRight:10, borderRight:`1px solid ${theme.cardBorder}` }}>
               🎯 <span style={{color:theme.primary}}>CS</span> Ops
               <span style={{ fontSize:9, background:theme.success, color:"#fff",
-                borderRadius:10, padding:"2px 6px", fontWeight:700, animation:"pulse 2s infinite" }}>LIVE</span>
+                borderRadius:10, padding:"2px 6px", fontWeight:700 }}>LIVE</span>
             </div>
-
-            {/* Desktop nav — scrollable quick navigation */}
-            <div className="desktop-nav" style={{ display:"flex", gap:2, overflowX:"auto",
-              flex:1, scrollbarWidth:"none", alignItems:"center" }}>
-              {visiblePages.map(p => {
-                const isActive = safeCurrentPage===p;
-                return (
-                  <button key={p} className="nav-btn" onClick={()=>navigateLogged(p)}
-                    style={{ background: isActive ? theme.primary : "transparent",
-                      color: isActive ? "#fff" : theme.textSub,
-                      border:`1px solid ${isActive ? theme.primary : "transparent"}`,
-                      borderRadius:7, padding:"5px 9px", fontSize:11,
-                      cursor:"pointer", fontWeight: isActive ? 700 : 500,
-                      whiteSpace:"nowrap", flexShrink:0,
-                      boxShadow: isActive ? `0 2px 8px ${theme.primary}40` : "none" }}>
-                    {PAGE_ICONS[p]} {PAGE_LABELS[p]||p}
-                  </button>
-                );
-              })}
+            {/* Desktop nav */}
+            <div className="desktop-nav" style={{ display:"flex", gap:3, overflowX:"auto",
+              flex:1, scrollbarWidth:"none" }}>
+              {visiblePages.map(p => (
+                <button key={p} onClick={()=>navigateLogged(p)}
+                  style={{ background:safeCurrentPage===p?theme.primary:"transparent",
+                    color:safeCurrentPage===p?"#fff":theme.textSub,
+                    border:`1px solid ${safeCurrentPage===p?theme.primary:"transparent"}`,
+                    borderRadius:7, padding:"5px 10px", fontSize:11,
+                    cursor:"pointer", fontWeight:600, whiteSpace:"nowrap", transition:"all 0.15s", flexShrink:0 }}>
+                  {PAGE_ICONS[p]} {PAGE_LABELS[p]||p}
+                </button>
+              ))}
             </div>
-
             {/* Right controls */}
-            <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
-
-              {/* Zoom — fixed to apply to content wrapper only */}
+            <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
+              {/* Zoom */}
               <div className="desktop-nav" style={{ display:"flex", alignItems:"center", gap:1,
-                background:theme.surface, border:`1px solid ${theme.cardBorder}`,
-                borderRadius:8, padding:"2px 3px" }}>
-                <button onClick={()=>changeZoom(zoom-10)}
-                  style={{ background:"none", border:"none", color:theme.textSub,
-                    cursor:"pointer", fontSize:14, padding:"1px 6px", lineHeight:1,
-                    borderRadius:4, fontWeight:700 }}>−</button>
-                <span style={{ fontSize:10, color:theme.textMuted, minWidth:32, textAlign:"center",
-                  fontWeight:600 }}>{zoom}%</span>
-                <button onClick={()=>changeZoom(zoom+10)}
-                  style={{ background:"none", border:"none", color:theme.textSub,
-                    cursor:"pointer", fontSize:14, padding:"1px 6px", lineHeight:1,
-                    borderRadius:4, fontWeight:700 }}>+</button>
+                background:theme.surface, border:`1px solid ${theme.cardBorder}`, borderRadius:8, padding:"2px 4px" }}>
+                <button onClick={()=>changeZoom(zoom-10)} style={{ background:"none", border:"none",
+                  color:theme.textSub, cursor:"pointer", fontSize:13, padding:"2px 5px" }}>−</button>
+                <span style={{ fontSize:10, color:theme.textMuted, minWidth:30, textAlign:"center" }}>{zoom}%</span>
+                <button onClick={()=>changeZoom(zoom+10)} style={{ background:"none", border:"none",
+                  color:theme.textSub, cursor:"pointer", fontSize:13, padding:"2px 5px" }}>+</button>
               </div>
-
               {/* Lang */}
               <button onClick={()=>changeLang(lang==="en"?"ar":"en")}
                 style={{ background:theme.surface, border:`1px solid ${theme.cardBorder}`,
-                  color:theme.textSub, borderRadius:7, padding:"5px 9px",
-                  fontSize:11, cursor:"pointer", fontWeight:700 }}>
+                  color:theme.textSub, borderRadius:7, padding:"5px 9px", fontSize:11, cursor:"pointer", fontWeight:700 }}>
                 {lang==="en"?"🌐 AR":"🌐 EN"}
               </button>
-
               {/* Theme */}
               <select value={themeKey} onChange={e=>changeTheme(e.target.value)}
                 className="desktop-nav"
                 style={{ background:theme.surface, border:`1px solid ${theme.cardBorder}`,
-                  color:theme.textSub, borderRadius:7, padding:"5px 7px",
-                  fontSize:11, cursor:"pointer", outline:"none" }}>
+                  color:theme.textSub, borderRadius:7, padding:"5px 7px", fontSize:11, cursor:"pointer" }}>
                 {Object.entries(THEMES).map(([k,v])=>(
                   <option key={k} value={k}>{lang==="ar"?v.nameAr:v.name}</option>
                 ))}
               </select>
-
-              {/* Auto-save indicator */}
+              {/* Saved indicator */}
               <div style={{ display:"flex", alignItems:"center", gap:3,
-                background:`${theme.success}18`, border:`1px solid ${theme.success}30`,
+                background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.2)",
                 borderRadius:20, padding:"3px 7px" }}>
-                <div style={{ width:5, height:5, borderRadius:"50%", background:theme.success,
-                  animation:"pulse 2s infinite" }}/>
-                <span style={{ fontSize:9, color:theme.success, fontWeight:700 }}>{tr("saved")}</span>
+                <div style={{ width:5, height:5, borderRadius:"50%", background:"#10B981", animation:"pulse 2s infinite" }}/>
+                <span style={{ fontSize:9, color:"#10B981", fontWeight:700 }}>Saved</span>
               </div>
-
               {/* User badge */}
-              <div style={{ background:`${roleColor}18`, border:`1px solid ${roleColor}40`,
+              <div style={{ background:roleColor+"20", border:`1px solid ${roleColor}40`,
                 borderRadius:20, padding:"4px 10px", display:"flex", alignItems:"center", gap:5 }}>
-                <span style={{ fontSize:13 }}>{ROLE_ICONS[currentRole]}</span>
+                <span style={{ fontSize:13 }}>{ROLE_ICONS[currentRole]||"👤"}</span>
                 <div>
                   <div style={{ fontSize:11, fontWeight:800, color:roleColor, lineHeight:1.2 }}>
                     {currentName.split(" ")[0]}
+                    {isSuperAdmin && <span style={{ marginLeft:4, fontSize:9, background:"#F59E0B", color:"#000",
+                      borderRadius:4, padding:"1px 4px", fontWeight:800 }}>OWNER</span>}
                   </div>
                   <div style={{ fontSize:9, color:theme.textMuted, lineHeight:1.2 }}>
-                    {currentRole}{!canEdit && " · 👁️"}
+                    {currentRole}{!canEdit&&" · 👁️"}
                   </div>
                 </div>
               </div>
-
               {/* Sign out */}
-              <button onClick={logout}
-                style={{ background:`${theme.danger}18`, color:theme.danger,
-                  border:`1px solid ${theme.danger}30`, borderRadius:7,
-                  padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>⏏️</button>
-
+              <button onClick={logout} style={{ background:"rgba(239,68,68,0.1)", color:"#FCA5A5",
+                border:"1px solid rgba(239,68,68,0.2)", borderRadius:7,
+                padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>⏏️</button>
               {/* Reset passwords */}
               {canResetPasswords(currentRole, currentName) && (
                 <button onClick={()=>setShowResetPw(true)}
-                  style={{ background:`${theme.warning}18`, color:theme.warning,
-                    border:`1px solid ${theme.warning}30`, borderRadius:7,
+                  style={{ background:"rgba(245,158,11,0.1)", color:"#FCD34D",
+                    border:"1px solid rgba(245,158,11,0.2)", borderRadius:7,
                     padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>🔑</button>
               )}
-
-              {/* Audit log quick access */}
-              {(currentRole==="Team Lead"||currentRole==="Shift Leader"||currentName===SUPER_ADMIN) && (
+              {/* History/Audit */}
+              {(currentRole==="Team Lead"||currentRole==="Shift Leader"||isSuperAdmin) && (
                 <button onClick={()=>navigateLogged("Audit Log")}
-                  style={{ background:"rgba(99,102,241,0.15)", color:"#818CF8",
-                    border:"1px solid rgba(99,102,241,0.25)", borderRadius:7,
+                  style={{ background:"rgba(99,102,241,0.1)", color:"#A5B4FC",
+                    border:"1px solid rgba(99,102,241,0.2)", borderRadius:7,
                     padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>🕐</button>
               )}
             </div>
@@ -6321,10 +6214,8 @@ export default function App() {
         </div>
       </div>
 
-      {/* Page Content */}
-      <div style={{ maxWidth:1400, margin:"0 auto", padding:"16px 12px 100px",
-        transform:`scale(${zoom/100})`, transformOrigin:"top center",
-        transition:"transform 0.15s" }}>
+      {/* PAGE CONTENT */}
+      <div style={{ maxWidth:1400, margin:"0 auto", padding:"16px 12px 100px" }}>
         <div style={{ marginBottom:14, display:"flex", alignItems:"center",
           justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
           <div>
@@ -6333,26 +6224,27 @@ export default function App() {
             </h1>
             <div style={{ fontSize:11, color:theme.textMuted, marginTop:2 }}>
               {new Date().toLocaleDateString(lang==="ar"?"ar-SA":"en-US",
-                {weekday:"long",year:"numeric",month:"long",day:"numeric"})}
+                {weekday:"long",year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Riyadh"})}
             </div>
           </div>
           <div style={{ background:theme.card, border:`1px solid ${theme.cardBorder}`,
             borderRadius:20, padding:"5px 12px", display:"flex", alignItems:"center",
             gap:6, fontSize:11, color:theme.textSub }}>
-            <span>{ROLE_ICONS[currentRole]}</span>
+            <span>{ROLE_ICONS[currentRole]||"👤"}</span>
             <strong style={{ color:roleColor }}>{currentName.split(" ")[0]}</strong>
             <span style={{ color:theme.textMuted }}>·</span>
-            <span>{new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}</span>
+            <span>{new Date().toLocaleTimeString("en-GB",{hour12:false,timeZone:"Asia/Riyadh"})}</span>
           </div>
         </div>
 
+        {/* Read-only banner for agents */}
         {!canEdit && (
           <div style={{ background:"rgba(245,158,11,0.08)", border:"1.5px solid rgba(245,158,11,0.3)",
             borderRadius:10, padding:"10px 16px", marginBottom:16,
             display:"flex", alignItems:"center", gap:10 }}>
             <span style={{ fontSize:18 }}>👁️</span>
             <div style={{ fontSize:13, color:"#FCD34D" }}>
-              <strong>{tr("readOnlyMode")}</strong> — {tr("readOnlyDesc")}
+              <strong>{tr("readOnlyMode")}</strong> -- {tr("readOnlyDesc")}
             </div>
           </div>
         )}
@@ -6360,23 +6252,22 @@ export default function App() {
         {pageComponents[safeCurrentPage]}
       </div>
 
-      {/* Mobile Bottom Nav */}
+      {/* MOBILE BOTTOM NAV */}
       <div className="mobile-bottom-nav"
         style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:200,
           background:theme.header, borderTop:`1px solid ${theme.cardBorder}`,
-          paddingBottom:"env(safe-area-inset-bottom, 0px)" }}>
-        <div style={{ display:"flex", justifyContent:"space-around", overflowX:"auto",
-          padding:"5px 2px 7px" }}>
+          paddingBottom:"env(safe-area-inset-bottom,0px)" }}>
+        <div style={{ display:"flex", justifyContent:"space-around", overflowX:"auto", padding:"5px 2px 7px" }}>
           {visiblePages.map(p => (
             <button key={p} onClick={()=>navigateLogged(p)}
               style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:1,
-                background: safeCurrentPage===p ? theme.primary+"30" : "transparent",
+                background:safeCurrentPage===p?theme.primary+"30":"transparent",
                 border:"none", cursor:"pointer", padding:"4px 6px",
                 borderRadius:8, minWidth:42, transition:"background 0.15s", flexShrink:0 }}>
               <span style={{ fontSize:18 }}>{PAGE_ICONS[p]}</span>
-              <span style={{ fontSize:8, color: safeCurrentPage===p ? theme.primary : theme.textMuted,
-                fontWeight: safeCurrentPage===p ? 700 : 400, whiteSpace:"nowrap" }}>
-                {(PAGE_LABELS[p]||p).length > 7 ? (PAGE_LABELS[p]||p).slice(0,6)+"..." : (PAGE_LABELS[p]||p)}
+              <span style={{ fontSize:8, color:safeCurrentPage===p?theme.primary:theme.textMuted,
+                fontWeight:safeCurrentPage===p?700:400, whiteSpace:"nowrap" }}>
+                {(PAGE_LABELS[p]||p).length>7?(PAGE_LABELS[p]||p).slice(0,6)+"...":PAGE_LABELS[p]||p}
               </span>
             </button>
           ))}
@@ -6396,7 +6287,3 @@ export default function App() {
     </div>
   );
 }
-
-
-
-
