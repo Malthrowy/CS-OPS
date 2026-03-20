@@ -120,23 +120,27 @@ const THEMES = {
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-const TASK_LIST = ["KFOOD","KEEMRT","TGA","Social Group","KSA OT","GCC T2 Cases","KWT T2 Cases","KSA SOME Cases","KWT SOME Cases","GCC SOME Cases","180","OSLO","Keemart Online","Survey","Failed Refund Sheet"];
-const TASK_LIST_ASSIGN = ["KFOOD","KEEMRT"]; // Only these two shown in Edit Employee dropdown
+const TASK_LIST = ["KFOOD","KEEMRT"];
 const TASK_COLORS = ["#10B981","#3B82F6","#6366F1","#0EA5E9","#F59E0B","#10B981","#EF4444","#8B5CF6","#EC4899","#14B8A6","#F97316","#06B6D4","#84CC16","#A855F7","#E11D48"];
 const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Day Off"];
 const ALL_PAGES = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard"];
 const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics" && p !== "Leaderboard");
 const AGENT_PAGES = ["Schedule","Live Floor","Performance","Queue","Leaderboard"];
 
-// Super Admin
+// Super Admin — protected by name AND role
 const SUPER_ADMIN = "Mohammed Nasser Althurwi";
+const OWNER_ROLE = "owner";
+function isOwnerUser(session) {
+  if (!session) return false;
+  return session.name === SUPER_ADMIN || session.role === OWNER_ROLE;
+}
 
 // ─── THEME CONTEXT (global) ───────────────────────────────────────────────────
 let _theme = THEMES.dark;
 let _lang = "en";
 function setGlobalTheme(t) { _theme = t; }
 function setGlobalLang(l) { _lang = l; }
-function tr(key) { return T[_lang]?.[key] || T.en[key] || key; }
+function t(key) { return T[_lang]?.[key] || T.en[key] || key; }
 
 // ─── STYLE HELPERS (theme-aware) ─────────────────────────────────────────────
 const I = (extra={}) => ({
@@ -159,7 +163,7 @@ const PBT = (color="#2563EB", extra={}) => ({
   padding:"8px 16px", fontSize:13, cursor:"pointer", fontWeight:600,
   transition:"opacity 0.15s", ...extra
 });
-const LBL = { fontSize:12, fontWeight:600, marginBottom:4, display:"block" };
+const LBL = { fontSize:12, fontWeight:600, marginBottom:4, display:"block", color:_theme.textSub };
 
 // ─── DEFAULT DATA ─────────────────────────────────────────────────────────────
 const DEFAULT_SHIFTS = [
@@ -405,7 +409,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
     // ── Time range e.g. "08:00-17:00" or "8:00-17:00" ──
     const rangeMatch = v.match(/^(\d{1,2}:\d{2})\s*[-\u2013\u2014]\s*(\d{1,2}:\d{2})$/);
     if (rangeMatch) {
-      const norm = t => t.replace(/^(\d):/, "0$1:");
+      const norm = ts => ts.replace(/^(\d):/, "0$1:");
       const start = norm(rangeMatch[1]);
       const end   = norm(rangeMatch[2]);
       const exact = shifts.find(s => s.start === start && s.end === end);
@@ -422,7 +426,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
     // ── Single time "08:00" → match start ──
     const timeMatch = v.match(/^(\d{1,2}:\d{2})$/);
     if (timeMatch) {
-      const norm = t => t.replace(/^(\d):/, "0$1:");
+      const norm = ts => ts.replace(/^(\d):/, "0$1:");
       const s = shifts.find(sh => sh.start === norm(timeMatch[1]));
       if (s) return s.id;
     }
@@ -2189,40 +2193,47 @@ function NotesPage({ notes, setNotes }) {
 }
 
 // ─── BREAK DURATION HELPER ────────────────────────────────────────────────────
-// Before 20/03/2026 → 30 min | From 20/03/2026 onwards → 60 min
 function getDefaultBreakDuration(dateStr) {
   const cutoff = new Date("2026-03-20");
   const d = dateStr ? new Date(dateStr+"T00:00:00") : new Date();
   return d >= cutoff ? 60 : 30;
 }
+
+// ─── BREAK PAGE ── نظام الإدخال الرقمي (ساعات من بداية الشفت) ────────────────
 function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedule, canEdit, addAudit, session }) {
-  const [date, setDate]         = useState(todayStr());
-  const [shiftId, setShiftId]   = useState(shifts[0]?.id||"");
-  const [templates, setTemplates]   = useState(() => {
-    try { return JSON.parse(localStorage.getItem("csops_breakTemplates")||"{}"); } catch { return {}; }
-  });
-  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
-  const [templateName, setTemplateName]         = useState("");
-  const [showLoadTemplate, setShowLoadTemplate] = useState(false);
+  const [date, setDate]     = useState(todayStr());
+  const [shiftId, setShiftId] = useState(shifts[0]?.id||"");
+  const isOwner = session && isOwnerUser(session);
 
   const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
   const key = `${date}_${shiftId}`;
+  const sh  = shifts.find(s => s.id === shiftId);
 
-  // Employees on this shift today
+  // Shift length in minutes
+  const shiftLenMin = useMemo(() => {
+    if (!sh) return 480;
+    let l = toMin(sh.end) - toMin(sh.start);
+    if (l <= 0) l += 1440;
+    return l;
+  }, [sh]);
+  const shiftLenHours = (shiftLenMin / 60).toFixed(1);
+
+  // Employees on this shift
   const shiftEmps = useMemo(() =>
     employees.filter(emp => (schedule[emp.id]||{})[dayName] === shiftId),
     [employees, schedule, shiftId, dayName]
   );
 
-  // Get break entry for employee
+  // Entry: { offsetHours, offsetMins, durationMin, overMin }
   function getEntry(empId) {
-    const defaultDur = getDefaultBreakDuration(date);
-    return ((breakSchedule[key]||{})[empId]) || { start:"", durationMin:defaultDur, overMin:0 };
+    const def = getDefaultBreakDuration(date);
+    return ((breakSchedule[key]||{})[empId]) || {
+      offsetHours: 0, offsetMins: 0, durationMin: def, overMin: 0
+    };
   }
 
   function setEntry(empId, field, val) {
     if (!canEdit) return;
-    const emp = employees.find(e=>e.id===empId);
     setBreakSchedule(prev => ({
       ...prev,
       [key]: {
@@ -2230,338 +2241,262 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
         [empId]: { ...getEntry(empId), [field]: val }
       }
     }));
-    // Audit log for break time changes
-    if (field === "start" && addAudit) {
-      addAudit("Break Updated", emp?.name||empId, `Break start set to ${val} on ${date} (${shiftId})`);
-    }
+    if (addAudit) addAudit("Break Updated", employees.find(e=>e.id===empId)?.name||empId,
+      `${field}=${val} | date=${date}`);
   }
 
-  // ── Compute break start from offset (hours from shift start) ──────────────
-  function offsetToTime(sid, offsetHours) {
-    const sh = shifts.find(s=>s.id===sid);
+  // Calculate actual break start time from offset + shift start
+  function calcBreakStart(empId) {
     if (!sh) return "";
-    const shStartMin = toMin(sh.start);
-    const breakMin   = (shStartMin + Math.round(offsetHours * 60)) % 1440;
-    return pad(Math.floor(breakMin/60))+":"+pad(breakMin%60);
-  }
-
-  function timeToOffset(sid, timeStr) {
-    if (!timeStr) return "";
-    const sh = shifts.find(s=>s.id===sid);
-    if (!sh) return "";
-    let diff = toMin(timeStr) - toMin(sh.start);
-    if (diff < 0) diff += 1440;
-    return (diff / 60).toFixed(1);
-  }
-
-  function setEntryByOffset(empId, offsetHours) {
-    const sid = (schedule[empId]||{})[dayName];
-    const newStart = offsetToTime(sid, offsetHours);
-    setEntry(empId, "start", newStart);
-  }
-
-  // Auto-calc end time
-  function calcEnd(start, dur) {
-    if (!start || !dur) return "";
-    const endMin = (toMin(start) + Number(dur)) % 1440;
-    return pad(Math.floor(endMin/60))+":"+pad(endMin%60);
-  }
-
-  // Status for each employee based on current time
-  function getLiveStatus(empId) {
     const entry = getEntry(empId);
-    if (!entry.start || !entry.durationMin) return "pending";
-    const now = new Date();
-    const nowMin = now.getHours()*60 + now.getMinutes();
-    const startMin = toMin(entry.start);
-    const endMin   = (startMin + Number(entry.durationMin)) % 1440;
-    // Is currently on break?
-    let onBreak = false;
-    if (endMin > startMin) onBreak = nowMin >= startMin && nowMin < endMin;
-    else onBreak = nowMin >= startMin || nowMin < endMin;
+    const totalOffsetMin = (Number(entry.offsetHours)||0)*60 + (Number(entry.offsetMins)||0);
+    const shiftStartMin  = toMin(sh.start);
+    const breakStartMin  = (shiftStartMin + totalOffsetMin) % 1440;
+    return pad(Math.floor(breakStartMin/60)) + ":" + pad(breakStartMin%60);
+  }
+
+  function calcBreakEnd(empId) {
+    const startStr = calcBreakStart(empId);
+    if (!startStr) return "";
+    const entry = getEntry(empId);
+    const endMin = (toMin(startStr) + Number(entry.durationMin)) % 1440;
+    return pad(Math.floor(endMin/60)) + ":" + pad(endMin%60);
+  }
+
+  // Validation: offset must not exceed shift length
+  function isOverShift(empId) {
+    const entry = getEntry(empId);
+    const totalOffset = (Number(entry.offsetHours)||0)*60 + (Number(entry.offsetMins)||0);
+    return totalOffset >= shiftLenMin;
+  }
+
+  // Live status
+  function getLiveStatus(empId) {
+    const startStr = calcBreakStart(empId);
+    const entry    = getEntry(empId);
+    if (!startStr || (!entry.offsetHours && !entry.offsetMins)) return { status:"pending" };
+    const now     = new Date();
+    const nowMin  = now.getHours()*60 + now.getMinutes();
+    const bStart  = toMin(startStr);
+    const dur     = Number(entry.durationMin) || 60;
+    const bEnd    = (bStart + dur) % 1440;
+    let onBreak   = bEnd > bStart ? nowMin>=bStart && nowMin<bEnd : nowMin>=bStart||nowMin<bEnd;
     if (onBreak) {
-      const elapsed = nowMin >= startMin ? nowMin - startMin : nowMin + 1440 - startMin;
-      return { status:"on_break", elapsed, over: Math.max(0, elapsed - Number(entry.durationMin)) };
+      const elapsed = nowMin >= bStart ? nowMin - bStart : nowMin + 1440 - bStart;
+      return { status:"on_break", elapsed, over: Math.max(0, elapsed - dur) };
     }
-    // Break finished?
-    let finished = false;
-    if (endMin > startMin) finished = nowMin >= endMin;
-    else finished = nowMin >= endMin && nowMin < startMin;
-    if (finished) return { status:"finished", elapsed: Number(entry.durationMin) + Number(entry.overMin||0) };
+    let finished = bEnd > bStart ? nowMin >= bEnd : nowMin>=bEnd && nowMin<bStart;
+    if (finished) return { status:"finished" };
     return { status:"pending" };
   }
 
-  // ── Auto Distribute with custom formula ──────────────────────────────────
-  const [showFormulaModal, setShowFormulaModal] = useState(false);
-  const [formulaExpr, setFormulaExpr] = useState(() => {
-    try { return localStorage.getItem("csops_breakFormula") || "shiftStart + (shiftLen * 0.2) + i * (shiftLen * 0.6 / count)"; } catch { return "shiftStart + (shiftLen * 0.2) + i * (shiftLen * 0.6 / count)"; }
-  });
-  const [formulaError, setFormulaError] = useState("");
-  const [formulaDur, setFormulaDur] = useState(() => {
-    try { return Number(localStorage.getItem("csops_breakFormulaDur")) || 0; } catch { return 0; }
-  });
-
-  function evalFormula(expr, vars) {
-    // Safe eval: replace variable names then compute
-    const { shiftStart, shiftLen, count, i, breakDur } = vars;
-    try {
-      // Replace variable names
-      let e = expr
-        .replace(/shiftStart/g, shiftStart)
-        .replace(/shiftLen/g, shiftLen)
-        .replace(/count/g, count)
-        .replace(/\bi\b/g, i)
-        .replace(/breakDur/g, breakDur);
-      // eslint-disable-next-line no-new-func
-      const result = new Function(`return (${e})`)();
-      if (typeof result !== "number" || isNaN(result)) throw new Error("Result is not a number");
-      return result;
-    } catch(err) {
-      throw new Error(`Formula error: ${err.message}`);
-    }
-  }
-
-  function previewFormula() {
-    const sh = shifts.find(s=>s.id===shiftId);
-    if (!sh || !shiftEmps.length) return [];
-    const shStart = toMin(sh.start);
-    const shLen   = (() => { let l = toMin(sh.end) - shStart; if(l<=0) l+=1440; return l; })();
-    const dur = formulaDur > 0 ? formulaDur : getDefaultBreakDuration(date);
-    const results = [];
-    for (let i = 0; i < Math.min(shiftEmps.length, 5); i++) {
-      try {
-        const min = Math.round(evalFormula(formulaExpr, { shiftStart: shStart, shiftLen, count: shiftEmps.length, i, breakDur: dur }));
-        const clamped = ((min % 1440) + 1440) % 1440;
-        results.push({ name: shiftEmps[i].name, time: pad(Math.floor(clamped/60))+":"+pad(clamped%60), ok: true });
-      } catch(e) {
-        results.push({ name: shiftEmps[i].name, time: "—", ok: false, err: e.message });
-      }
-    }
-    return results;
-  }
-
-  function autoDistribute() {
-    if (!canEdit || !shiftEmps.length) return;
-    setShowFormulaModal(true);
-  }
-
-  function applyFormula() {
-    const sh = shifts.find(s=>s.id===shiftId);
-    if (!sh) return;
-    const shStart = toMin(sh.start);
-    const shLen   = (() => { let l = toMin(sh.end) - shStart; if(l<=0) l+=1440; return l; })();
-    const dur = formulaDur > 0 ? formulaDur : getDefaultBreakDuration(date);
-    const updates = {};
-    try {
-      shiftEmps.forEach((emp, i) => {
-        const min = Math.round(evalFormula(formulaExpr, { shiftStart: shStart, shiftLen, count: shiftEmps.length, i, breakDur: dur }));
-        const clamped = ((min % 1440) + 1440) % 1440;
-        updates[emp.id] = { start: pad(Math.floor(clamped/60))+":"+pad(clamped%60), durationMin: dur, overMin: 0 };
-      });
-      setBreakSchedule(prev => ({ ...prev, [key]: { ...(prev[key]||{}), ...updates } }));
-      localStorage.setItem("csops_breakFormula", formulaExpr);
-      localStorage.setItem("csops_breakFormulaDur", String(dur));
-      setFormulaError("");
-      setShowFormulaModal(false);
-    } catch(e) {
-      setFormulaError(e.message);
-    }
-  }
-
-  // Save template
-  function saveTemplate() {
-    if (!templateName.trim()) return;
-    const data = breakSchedule[key] || {};
-    const tmpl = { ...templates, [templateName.trim()]: data };
-    setTemplates(tmpl);
-    localStorage.setItem("csops_breakTemplates", JSON.stringify(tmpl));
-    setTemplateName(""); setShowSaveTemplate(false);
-    alert(`✅ Template "${templateName.trim()}" saved.`);
-  }
-
-  // Load template
-  function loadTemplate(name) {
-    const data = templates[name];
-    if (!data) return;
-    setBreakSchedule(prev => ({ ...prev, [key]: data }));
-    setShowLoadTemplate(false);
-  }
-
   // Summary counts
-  const now2 = new Date();
-  const statuses = shiftEmps.map(e => getLiveStatus(e.id));
-  const onBreakCount  = statuses.filter(s=>s.status==="on_break").length;
-  const finishedCount = statuses.filter(s=>s.status==="finished").length;
-  const pendingCount  = statuses.filter(s=>s.status==="pending").length;
-  const overtimeCount = statuses.filter(s=>s.status==="on_break"&&s.over>0).length;
+  const statuses   = shiftEmps.map(e => getLiveStatus(e.id));
+  const onBreakCnt = statuses.filter(s => s.status==="on_break").length;
+  const finishCnt  = statuses.filter(s => s.status==="finished").length;
+  const pendingCnt = statuses.filter(s => s.status==="pending").length;
+  const overCnt    = statuses.filter(s => s.status==="on_break" && s.over>0).length;
 
-  const sh = shifts.find(s=>s.id===shiftId);
+  const defaultDur = getDefaultBreakDuration(date);
 
   return (
     <div>
       {/* Toolbar */}
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>☕ Break Schedule</span>
-        <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
-        <select value={shiftId} onChange={e=>setShiftId(e.target.value)} style={{ ...I(), width:160 }}>
+        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>☕ Break Schedule</span>
+        <input type="date" value={date} onChange={e=>setDate(e.target.value)}
+          style={{ ...I(), width:150 }}/>
+        <select value={shiftId} onChange={e=>setShiftId(e.target.value)}
+          style={{ ...I(), width:170 }}>
           {shifts.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}
         </select>
-        {/* Break duration indicator */}
-        <div style={{ background: getDefaultBreakDuration(date)===60?"#F0FDF4":"#FEF9C3",
-          border:`1px solid ${getDefaultBreakDuration(date)===60?"#86EFAC":"#F59E0B"}`,
-          borderRadius:20, padding:"4px 12px", fontSize:12, fontWeight:700,
-          color: getDefaultBreakDuration(date)===60?"#166534":"#92400E" }}>
-          ⏱ Default: {getDefaultBreakDuration(date)}m break
-          {getDefaultBreakDuration(date)===60 && <span style={{ marginLeft:4, fontSize:10 }}>( ≥ 20 Mar 2026)</span>}
+        <div style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
+          borderRadius:20, padding:"4px 14px", fontSize:12, fontWeight:700,
+          color:_theme.textSub }}>
+          ⏱ Default: {defaultDur}m
         </div>
-        {canEdit && <>
-          <button style={PBT("#6366F1")} onClick={autoDistribute}>⚡ Auto Distribute</button>
-          <button style={PBT("#10B981")} onClick={()=>setShowSaveTemplate(true)}>💾 Save Template</button>
-          <button style={PBT("#475569")} onClick={()=>setShowLoadTemplate(true)}>📂 Load Template</button>
-        </>}
-      </div>
-
-      {/* Live Summary */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:16 }}>
-        {[
-          ["☕ On Break",   onBreakCount,  "#F59E0B"],
-          ["✅ Finished",   finishedCount, "#10B981"],
-          ["⏳ Pending",    pendingCount,  "#64748B"],
-          ["⚠️ Overtime",   overtimeCount, "#EF4444"],
-        ].map(([l,v,c])=>(
-          <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
-            <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>{l}</div>
-            <div style={{ fontSize:28, fontWeight:800, color:c }}>{v}</div>
+        {!canEdit && (
+          <div style={{ background:"rgba(245,158,11,0.1)", border:"1px solid rgba(245,158,11,0.3)",
+            borderRadius:8, padding:"5px 12px", fontSize:12, color:"#F59E0B", fontWeight:600 }}>
+            👁️ View Only
           </div>
-        ))}
+        )}
       </div>
 
       {/* Shift info */}
       {sh && (
-        <div style={{ background:sh.color+"15", border:`1.5px solid ${sh.color}40`, borderRadius:10,
-          padding:"10px 16px", marginBottom:14, display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
-          <span style={{ fontWeight:800, color:sh.color }}>⏰ {sh.label}</span>
-          <span style={{ fontSize:12, color:_theme.textSub }}>{shiftEmps.length} employees scheduled</span>
+        <div style={{ background:sh.color+"18", border:`1.5px solid ${sh.color}40`,
+          borderRadius:10, padding:"10px 18px", marginBottom:14,
+          display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
+          <span style={{ fontWeight:800, color:sh.color, fontSize:14 }}>⏰ {sh.label}</span>
+          <span style={{ fontSize:12, color:_theme.textSub }}>
+            {shiftEmps.length} employees · Shift length: <strong>{shiftLenHours}h ({shiftLenMin}m)</strong>
+          </span>
           <span style={{ fontSize:12, color:_theme.textMuted }}>{dayName} · {date}</span>
         </div>
       )}
 
-      {/* Break schedule table */}
-      <div style={{ ...CRD(), overflowX:"auto" }}>
-        {/* Legend */}
-        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:10, flexWrap:"wrap" }}>
-          <div style={{ fontSize:12, color:_theme.textMuted }}>
-            💡 <strong>طريقة الإدخال:</strong> أدخل رقماً يمثل عدد الساعات من بداية الشفت
-            <span style={{ color:_theme.primary, marginLeft:6 }}>مثال: 2 = بعد ساعتين · 2.5 = بعد ساعتين ونص</span>
+      {/* Live summary KPIs */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:16 }}>
+        {[["☕ On Break",onBreakCnt,"#F59E0B"],["✅ Finished",finishCnt,"#3FB950"],
+          ["⏳ Pending",pendingCnt,"#8B949E"],["⚠️ Overtime",overCnt,"#F85149"]].map(([l,v,c])=>(
+          <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
+            <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>{l}</div>
+            <div style={{ fontSize:26, fontWeight:800, color:c }}>{v}</div>
           </div>
+        ))}
+      </div>
+
+      {/* Explanation box for viewers */}
+      {!isOwner && canEdit && (
+        <div style={{ background:"rgba(59,130,246,0.08)", border:"1px solid rgba(59,130,246,0.2)",
+          borderRadius:8, padding:"10px 16px", marginBottom:14, fontSize:12, color:_theme.textSub }}>
+          📋 Break times are set by the Owner. The offset (hours after shift start) is calculated per employee based on their shift start time.
         </div>
+      )}
+
+      {/* Break table */}
+      <div style={{ ...CRD(), overflowX:"auto" }}>
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
-            <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
-              {["#","الموظف","+ ساعات من الشفت","وقت البريك","المدة","نهاية البريك","الحالة","تجاوز الوقت"].map(h=>(
+            <tr style={{ background:_theme.tableHead }}>
+              {["#","Employee","Shift Start",
+                isOwner ? "Offset from Shift Start" : "Break Offset",
+                isOwner ? "Duration" : "Duration",
+                "Break Start","Break End","Status"].map(h => (
                 <th key={h} style={{ padding:"10px 10px", textAlign:"left", fontWeight:700,
-                  color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
+                  color:_theme.text, borderBottom:`2px solid ${_theme.tableBorder}`,
+                  whiteSpace:"nowrap", fontSize:12 }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {shiftEmps.map((emp, ri) => {
               const entry   = getEntry(emp.id);
-              const endStr  = calcEnd(entry.start, entry.durationMin);
+              const bStart  = calcBreakStart(emp.id);
+              const bEnd    = calcBreakEnd(emp.id);
               const ls      = getLiveStatus(emp.id);
-              const empSid  = (schedule[emp.id]||{})[dayName] || shiftId;
-              const empSh   = shifts.find(s=>s.id===empSid);
-              const empShiftLenH = empSh
-                ? (() => { let l = toMin(empSh.end)-toMin(empSh.start); if(l<=0) l+=1440; return Math.round(l/60*2)/2; })()
-                : 12;
-              const offset  = entry.start ? timeToOffset(empSid, entry.start) : "";
-              const statusColor = ls.status==="on_break"?(ls.over>0?"#EF4444":"#F59E0B")
-                               : ls.status==="finished"?"#10B981":_theme.textMuted;
+              const overShift = isOverShift(emp.id);
+              const statusColor = ls.status==="on_break" ? (ls.over>0?"#F85149":"#F59E0B")
+                                : ls.status==="finished" ? "#3FB950" : "#8B949E";
               const statusLabel = ls.status==="on_break"
-                ? (ls.over>0 ? `⚠️ +${ls.over}م تجاوز` : `☕ ${ls.elapsed||0}م`)
-                : ls.status==="finished" ? "✅ انتهى" : "⏳ انتظار";
+                ? (ls.over>0 ? `⚠️ +${ls.over}m OVER` : `☕ ${ls.elapsed}m`)
+                : ls.status==="finished" ? "✅ Done" : "⏳ Pending";
 
               return (
-                <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
+                <tr key={emp.id} style={{
+                  background: ri%2===0 ? _theme.tableRow : _theme.tableRowAlt,
+                  opacity: overShift ? 0.7 : 1
+                }}>
                   <td style={{ padding:"8px 10px", color:_theme.textMuted, fontWeight:600 }}>{ri+1}</td>
                   <td style={{ padding:"8px 10px", fontWeight:700, color:_theme.text }}>
                     {emp.name}
                     <span style={{ marginLeft:6, fontSize:9, fontWeight:800, padding:"1px 5px",
-                      borderRadius:4, background:emp.gender==="F"?"#FCE7F3":"#EFF6FF",
-                      color:emp.gender==="F"?"#BE185D":"#1D4ED8",
-                      border:emp.gender==="F"?"1px solid #F9A8D4":"1px solid #BFDBFE" }}>
+                      borderRadius:4,
+                      background:emp.gender==="F"?"#FCE7F3":"#EFF6FF",
+                      color:emp.gender==="F"?"#BE185D":"#1D4ED8" }}>
                       {emp.gender||"M"}
                     </span>
+                    <div style={{ fontSize:11, color:_theme.textMuted }}>{emp.role}</div>
+                  </td>
+                  <td style={{ padding:"8px 10px", color:_theme.textSub, fontWeight:600 }}>
+                    {sh?.start || "--"}
                   </td>
 
-                  {/* ── Numeric offset input (hours from shift start) ── */}
+                  {/* Offset input — only owner can edit */}
                   <td style={{ padding:"8px 10px" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-                      <button disabled={!canEdit}
-                        onClick={()=>{ const v=offset?Math.max(0,parseFloat(offset)-0.5):0; setEntryByOffset(emp.id,v); }}
-                        style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
-                          color:_theme.text, borderRadius:"6px 0 0 6px", padding:"6px 9px",
-                          cursor:canEdit?"pointer":"default", fontSize:14, fontWeight:700, lineHeight:1 }}>−</button>
-                      <input
-                        type="number" min="0" max={empShiftLenH} step="0.5"
-                        value={offset}
-                        disabled={!canEdit}
-                        onChange={e=>{
-                          const v = parseFloat(e.target.value);
-                          if (!isNaN(v) && v >= 0 && v <= empShiftLenH) setEntryByOffset(emp.id, v);
-                          else if (e.target.value==="") setEntry(emp.id,"start","");
-                        }}
-                        style={{ ...I({ width:65, borderRadius:0, textAlign:"center",
-                          fontWeight:700, fontSize:14,
-                          border: offset && parseFloat(offset) >= empShiftLenH
-                            ? "2px solid #EF4444"
-                            : `1px solid ${_theme.inputBorder}`,
-                          background: offset?_theme.primary+"15":_theme.input }) }}
-                        placeholder="h"
-                      />
-                      <button disabled={!canEdit}
-                        onClick={()=>{ const v=offset?Math.min(empShiftLenH,parseFloat(offset)+0.5):0.5; setEntryByOffset(emp.id,v); }}
-                        style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
-                          color:_theme.text, borderRadius:"0 6px 6px 0", padding:"6px 9px",
-                          cursor:canEdit?"pointer":"default", fontSize:14, fontWeight:700, lineHeight:1 }}>+</button>
-                    </div>
-                    <div style={{ fontSize:9, color:_theme.textMuted, marginTop:2, textAlign:"center" }}>
-                      max {empShiftLenH}h
-                    </div>
+                    {isOwner ? (
+                      <div>
+                        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
+                          {/* Hours */}
+                          <div style={{ display:"flex", alignItems:"center", gap:2 }}>
+                            <button onClick={()=>setEntry(emp.id,"offsetHours",Math.max(0,Number(entry.offsetHours||0)-1))}
+                              style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
+                                color:_theme.text, borderRadius:6, width:24, height:24,
+                                cursor:"pointer", fontSize:14, fontWeight:700, display:"flex",
+                                alignItems:"center", justifyContent:"center" }}>−</button>
+                            <input type="number" min="0" max="23"
+                              value={entry.offsetHours||0}
+                              onChange={e=>setEntry(emp.id,"offsetHours",Math.max(0,Number(e.target.value)))}
+                              style={{ ...I({ width:46, textAlign:"center", padding:"4px 6px" })}}/>
+                            <button onClick={()=>setEntry(emp.id,"offsetHours",Math.min(23,Number(entry.offsetHours||0)+1))}
+                              style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
+                                color:_theme.text, borderRadius:6, width:24, height:24,
+                                cursor:"pointer", fontSize:14, fontWeight:700, display:"flex",
+                                alignItems:"center", justifyContent:"center" }}>+</button>
+                            <span style={{ fontSize:11, color:_theme.textMuted }}>h</span>
+                          </div>
+                          {/* Minutes */}
+                          <div style={{ display:"flex", alignItems:"center", gap:2 }}>
+                            <button onClick={()=>setEntry(emp.id,"offsetMins",Math.max(0,Number(entry.offsetMins||0)-5))}
+                              style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
+                                color:_theme.text, borderRadius:6, width:24, height:24,
+                                cursor:"pointer", fontSize:14, fontWeight:700, display:"flex",
+                                alignItems:"center", justifyContent:"center" }}>−</button>
+                            <input type="number" min="0" max="59"
+                              value={entry.offsetMins||0}
+                              onChange={e=>setEntry(emp.id,"offsetMins",Math.max(0,Number(e.target.value)))}
+                              style={{ ...I({ width:46, textAlign:"center", padding:"4px 6px" })}}/>
+                            <button onClick={()=>setEntry(emp.id,"offsetMins",Math.min(55,Number(entry.offsetMins||0)+5))}
+                              style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
+                                color:_theme.text, borderRadius:6, width:24, height:24,
+                                cursor:"pointer", fontSize:14, fontWeight:700, display:"flex",
+                                alignItems:"center", justifyContent:"center" }}>+</button>
+                            <span style={{ fontSize:11, color:_theme.textMuted }}>m</span>
+                          </div>
+                        </div>
+                        {overShift && (
+                          <div style={{ fontSize:10, color:"#F85149", fontWeight:700 }}>
+                            ⚠️ Exceeds shift ({shiftLenHours}h)
+                          </div>
+                        )}
+                        <div style={{ fontSize:10, color:_theme.textMuted }}>
+                          = after {(Number(entry.offsetHours||0)*60+Number(entry.offsetMins||0))}m from {sh?.start}
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ color:_theme.textSub, fontWeight:600 }}>
+                        +{entry.offsetHours||0}h {entry.offsetMins||0}m
+                      </div>
+                    )}
                   </td>
 
-                  {/* ── Resolved clock time (auto-computed, also manually editable) ── */}
+                  {/* Duration */}
                   <td style={{ padding:"8px 10px" }}>
-                    <input type="time" value={entry.start||""} disabled={!canEdit}
-                      onChange={e=>setEntry(emp.id,"start",e.target.value)}
-                      style={{ ...I({ width:105, fontSize:12,
-                        color: entry.start?_theme.primary:_theme.textMuted }) }}/>
+                    {isOwner ? (
+                      <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
+                        {[30,45,60,90].map(d => {
+                          const isDef = d === defaultDur;
+                          const isSel = entry.durationMin === d;
+                          return (
+                            <button key={d} onClick={()=>setEntry(emp.id,"durationMin",d)}
+                              style={{ border:`1.5px solid ${isSel?"#58A6FF":isDef?"#3FB950":_theme.cardBorder}`,
+                                borderRadius:6, padding:"3px 8px", fontSize:11, cursor:"pointer",
+                                background:isSel?"#58A6FF18":isDef?"#3FB95018":_theme.surface,
+                                color:isSel?"#58A6FF":isDef?"#3FB950":_theme.textSub, fontWeight:700 }}>
+                              {d}m{isDef&&!isSel?" ★":""}
+                            </button>
+                          );
+                        })}
+                        <input type="number" min="10" max="120" value={entry.durationMin||defaultDur}
+                          onChange={e=>setEntry(emp.id,"durationMin",Number(e.target.value))}
+                          style={{ ...I({ width:55, padding:"3px 6px" })}} placeholder="min"/>
+                      </div>
+                    ) : (
+                      <span style={{ fontWeight:600, color:_theme.textSub }}>{entry.durationMin||defaultDur}m</span>
+                    )}
                   </td>
 
-                  {/* ── Duration ── */}
-                  <td style={{ padding:"8px 10px" }}>
-                    <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
-                      {[15,30,45,60].map(d=>{
-                        const isDefault = d === getDefaultBreakDuration(date);
-                        const isSel     = entry.durationMin===d;
-                        return (
-                          <button key={d} disabled={!canEdit} onClick={()=>setEntry(emp.id,"durationMin",d)}
-                            style={{ border:`1.5px solid ${isSel?"#F59E0B":isDefault?_theme.success:_theme.cardBorder}`,
-                              borderRadius:6, padding:"3px 7px", fontSize:11,
-                              cursor:canEdit?"pointer":"default",
-                              background:isSel?"#FEF9C3":isDefault?_theme.success+"18":_theme.surface,
-                              color:isSel?"#92400E":isDefault?_theme.success:_theme.textMuted,
-                              fontWeight:700 }}>
-                            {d}م{isDefault&&!isSel?"★":""}
-                          </button>
-                        );
-                      })}
-                    </div>
+                  {/* Break Start / End */}
+                  <td style={{ padding:"8px 10px", fontWeight:700,
+                    color: bStart ? _theme.primary : _theme.textMuted }}>
+                    {bStart || "—"}
                   </td>
-
                   <td style={{ padding:"8px 10px", fontWeight:700, color:_theme.textSub }}>
-                    {endStr || "--"}
+                    {bEnd || "—"}
                   </td>
+
+                  {/* Status */}
                   <td style={{ padding:"8px 10px" }}>
                     <span style={{ background:statusColor+"18", color:statusColor,
                       border:`1px solid ${statusColor}40`, borderRadius:20,
@@ -2569,161 +2504,45 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                       {statusLabel}
                     </span>
                   </td>
-                  <td style={{ padding:"8px 10px" }}>
-                    {ls.status==="on_break" && ls.over>0 ? (
-                      <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                        <input type="number" min="0" max="120"
-                          value={entry.overMin||ls.over||""}
-                          onChange={e=>setEntry(emp.id,"overMin",Number(e.target.value))}
-                          style={{ ...I({ width:60, border:"2px solid #EF4444" })}}
-                          placeholder="م"/>
-                        <span style={{ fontSize:11, color:"#EF4444", fontWeight:700 }}>م</span>
-                      </div>
-                    ) : entry.overMin > 0 ? (
-                      <span style={{ fontSize:12, color:"#EF4444", fontWeight:700 }}>+{entry.overMin}م</span>
-                    ) : (
-                      <span style={{ color:_theme.textMuted, fontSize:12 }}>--</span>
-                    )}
-                  </td>
                 </tr>
               );
             })}
-            {shiftEmps.length===0 && (
+            {shiftEmps.length === 0 && (
               <tr><td colSpan={8} style={{ padding:32, textAlign:"center", color:_theme.textMuted }}>
-                لا يوجد موظفون مجدولون لهذا الشفت في {dayName}
+                No employees scheduled for this shift on {dayName}
               </td></tr>
             )}
           </tbody>
         </table>
       </div>
 
-      {/* Save Template Modal */}
-      {showSaveTemplate && (
-        <Modal title="💾 Save as Template" onClose={()=>setShowSaveTemplate(false)} width={380}>
-          <label style={LBL}>Template Name</label>
-          <input value={templateName} onChange={e=>setTemplateName(e.target.value)}
-            style={{ ...I(), marginBottom:14 }} placeholder="e.g. Shift 1 - Tuesday pattern"
-            onKeyDown={e=>e.key==="Enter"&&saveTemplate()} autoFocus/>
-          <button style={PBT("#10B981",{width:"100%",padding:"10px"})} onClick={saveTemplate}>
-            💾 Save Template
-          </button>
-        </Modal>
-      )}
-
-      {/* Load Template Modal */}
-      {showLoadTemplate && (
-        <Modal title="📂 Load Template" onClose={()=>setShowLoadTemplate(false)} width={420}>
-          {Object.keys(templates).length===0 ? (
-            <div style={{ textAlign:"center", color:_theme.textMuted, padding:24 }}>No templates saved yet.</div>
-          ) : (
-            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-              {Object.keys(templates).map(name=>(
-                <div key={name} style={{ display:"flex", alignItems:"center", gap:10,
-                  background:_theme.isDark?"#0D1117":"#F8FAFC", borderRadius:8, padding:"10px 14px" }}>
-                  <span style={{ flex:1, fontWeight:600, fontSize:13 }}>📋 {name}</span>
-                  <button style={PBT("#2563EB",{padding:"5px 14px",fontSize:12})}
-                    onClick={()=>loadTemplate(name)}>Load</button>
-                  <button onClick={()=>{
-                    const t={...templates}; delete t[name]; setTemplates(t);
-                    localStorage.setItem("csops_breakTemplates",JSON.stringify(t));
-                  }} style={{ background:"none", border:"1px solid #FCA5A5", color:"#EF4444",
-                    borderRadius:6, padding:"4px 8px", cursor:"pointer", fontSize:12 }}>✕</button>
-                </div>
-              ))}
-            </div>
-          )}
-        </Modal>
-      )}
-
-      {/* ── Auto Distribute Formula Modal ── */}
-      {showFormulaModal && (
-        <Modal title="⚡ Auto Distribute — Custom Formula" onClose={()=>{ setShowFormulaModal(false); setFormulaError(""); }} width={560}>
-          <div style={{ background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:8, padding:"10px 14px", marginBottom:14, fontSize:12, color:"#1D4ED8" }}>
-            <strong>المتغيرات المتاحة في المعادلة:</strong>
-            <div style={{ marginTop:6, display:"grid", gridTemplateColumns:"1fr 1fr", gap:4 }}>
-              {[
-                ["shiftStart","بداية الشفت بالدقائق (e.g. 480 = 08:00)"],
-                ["shiftLen","مدة الشفت الكاملة بالدقائق"],
-                ["count","عدد الموظفين في الشفت"],
-                ["i","رقم الموظف الحالي (يبدأ من 0)"],
-                ["breakDur","مدة الاستراحة المحددة أدناه"],
-              ].map(([v,d])=>(
-                <div key={v} style={{ background:"#fff", borderRadius:4, padding:"3px 8px", fontSize:11 }}>
-                  <code style={{ color:"#2563EB", fontWeight:700 }}>{v}</code>
-                  <span style={{ color:_theme.textMuted, marginLeft:4 }}>— {d}</span>
-                </div>
-              ))}
-            </div>
+      {/* Owner-only: Bulk set offset */}
+      {isOwner && shiftEmps.length > 0 && (
+        <div style={{ ...CRD({ padding:"14px 18px" }), marginTop:14 }}>
+          <div style={{ fontWeight:700, color:_theme.text, marginBottom:10, fontSize:13 }}>
+            ⚡ Bulk Set Offset — apply same offset to all employees in this shift
           </div>
-
-          <label style={{ ...LBL, color:_theme.text }}>📐 معادلة حساب وقت بداية الاستراحة (بالدقائق)</label>
-          <input value={formulaExpr} onChange={e=>{ setFormulaExpr(e.target.value); setFormulaError(""); }}
-            style={{ ...I(), marginBottom:10, fontFamily:"monospace", fontSize:13 }}
-            placeholder="shiftStart + (shiftLen * 0.2) + i * (shiftLen * 0.6 / count)"/>
-
-          <div style={{ marginBottom:14 }}>
-            <label style={{ ...LBL, color:_theme.text }}>⏱ مدة الاستراحة (دقيقة) — اتركه 0 للاستخدام الافتراضي ({getDefaultBreakDuration(date)}m)</label>
-            <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-              {[0,15,20,30,45,60].map(d=>(
-                <button key={d} onClick={()=>setFormulaDur(d)}
-                  style={{ border:`2px solid ${formulaDur===d?"#6366F1":"#CBD5E1"}`, borderRadius:7,
-                    padding:"5px 12px", fontSize:12, cursor:"pointer", fontWeight:700,
-                    background:formulaDur===d?"#EEF2FF":"#fff", color:formulaDur===d?"#4338CA":"#64748B" }}>
-                  {d===0?"افتراضي":d+"m"}
-                </button>
-              ))}
-              <input type="number" min="1" max="120" value={formulaDur||""}
-                onChange={e=>setFormulaDur(Number(e.target.value))}
-                style={{ ...I({ width:80 })}} placeholder="مخصص"/>
-            </div>
+          <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
+            {[1,2,3,4,5,6].map(h => (
+              <button key={h} onClick={() => {
+                const updates = {};
+                shiftEmps.forEach(emp => {
+                  updates[emp.id] = { ...getEntry(emp.id), offsetHours: h, offsetMins: 0 };
+                });
+                setBreakSchedule(prev => ({ ...prev, [key]: { ...(prev[key]||{}), ...updates } }));
+                if (addAudit) addAudit("Break Bulk Set", `Shift ${shiftId}`, `All employees: +${h}h offset`);
+              }}
+                style={{ background:_theme.surface, border:`1.5px solid ${_theme.cardBorder}`,
+                  borderRadius:8, padding:"7px 16px", fontSize:13, cursor:"pointer",
+                  color:_theme.text, fontWeight:700, transition:"all 0.15s" }}>
+                +{h}h
+              </button>
+            ))}
+            <span style={{ fontSize:12, color:_theme.textMuted }}>
+              from shift start ({sh?.start})
+            </span>
           </div>
-
-          {/* Preview */}
-          {(() => {
-            const sh2 = shifts.find(s=>s.id===shiftId);
-            if (!sh2 || !shiftEmps.length) return null;
-            const preview = previewFormula();
-            const hasError = preview.some(p=>!p.ok);
-            return (
-              <div style={{ background: hasError?"#FEF2F2":"#F0FDF4", border:`1px solid ${hasError?"#FCA5A5":"#86EFAC"}`,
-                borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
-                <div style={{ fontWeight:700, fontSize:12, color: hasError?"#B91C1C":"#166534", marginBottom:8 }}>
-                  {hasError?"❌ خطأ في المعادلة":"✅ معاينة (أول 5 موظفين):"}
-                </div>
-                {preview.map((p,idx)=>(
-                  <div key={idx} style={{ fontSize:12, color: p.ok?"#166534":"#B91C1C", marginBottom:2 }}>
-                    {p.ok ? `${idx+1}. ${p.name} → ${p.time}` : `❌ ${p.err}`}
-                  </div>
-                ))}
-                {shiftEmps.length > 5 && !hasError && (
-                  <div style={{ fontSize:11, color:_theme.textMuted, marginTop:4 }}>... و {shiftEmps.length-5} موظف آخرين</div>
-                )}
-              </div>
-            );
-          })()}
-
-          {formulaError && (
-            <div style={{ background:"#FEF2F2", border:"1px solid #FCA5A5", borderRadius:6, padding:"8px 12px", marginBottom:12, fontSize:12, color:"#B91C1C" }}>
-              ❌ {formulaError}
-            </div>
-          )}
-
-          <div style={{ background:"#FFFBEB", border:"1px solid #F59E0B40", borderRadius:6, padding:"8px 12px", marginBottom:14, fontSize:11, color:"#78350F" }}>
-            💡 <strong>أمثلة على المعادلات:</strong><br/>
-            • توزيع منتظم في منتصف الشفت: <code>shiftStart + (shiftLen * 0.2) + i * (shiftLen * 0.6 / count)</code><br/>
-            • بدء من ساعة بعد الشفت: <code>shiftStart + 60 + i * 30</code><br/>
-            • كل موظف بفارق 20 دقيقة: <code>shiftStart + (shiftLen / 2) + i * 20</code>
-          </div>
-
-          <div style={{ display:"flex", gap:8 }}>
-            <button style={{ background:"#6366F1", color:"#fff", border:"none", borderRadius:8, padding:"11px", fontSize:14, cursor:"pointer", fontWeight:700, flex:1 }} onClick={applyFormula}>
-              ⚡ تطبيق المعادلة على {shiftEmps.length} موظف
-            </button>
-            <button style={{ background:"#94A3B8", color:"#fff", border:"none", borderRadius:8, padding:"11px 18px", fontSize:13, cursor:"pointer", fontWeight:600 }} onClick={()=>{ setShowFormulaModal(false); setFormulaError(""); }}>
-              إلغاء
-            </button>
-          </div>
-        </Modal>
+        </div>
       )}
     </div>
   );
