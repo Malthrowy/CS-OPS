@@ -3,7 +3,7 @@ import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 // ─── i18n TRANSLATIONS ────────────────────────────────────────────────────────
 const T = {
   en: {
-    appName: "CS Operations", appSub: "Management System",
+    appName: "عمليات CS", appSub: "Management System",
     selectRole: "Select Your Role", yourName: "Your Name",
     selectName: "Select your name", agentNameLabel: "Select Your Name",
     agentHint: "View only — no password required",
@@ -283,7 +283,10 @@ function calcLateMin(shiftStart, checkIn) {
 }
 function fmt(n) { return n>=0 ? `+${n}m` : `${n}m`; }
 function pad(n) { return String(n).padStart(2,"0"); }
-function todayStr() { return new Date().toISOString().slice(0,10); }
+function todayStr() {
+  // Always use Asia/Riyadh timezone
+  return new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Riyadh"});
+}
 function monthDates(y,m) {
   const days=[];
   const d = new Date(y,m,1);
@@ -1085,8 +1088,27 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                   color: editEmp.gender===v?(v==="F"?"#BE185D":"#1D4ED8"):"#64748B" }}>{l}</button>
             ))}
           </div>
-          <label style={LBL}>Tasks</label>
-          <div style={{ marginBottom:16 }}><TaskPicker selected={editEmp.tasks} onChange={tasks=>setEditEmp(p=>({...p,tasks}))}/></div>
+          <label style={LBL}>Assignment</label>
+              <div style={{ marginBottom:16 }}>
+                <div style={{ display:"flex", gap:8 }}>
+                  {["KFOOD","KEEMRT"].map(t => {
+                    const sel = (editEmp.tasks||[]).includes(t);
+                    const color = t==="KFOOD" ? "#3FB950" : "#58A6FF";
+                    return (
+                      <button key={t} onClick={()=>{
+                        const cur = editEmp.tasks||[];
+                        const next = sel ? cur.filter(x=>x!==t) : [...cur,t];
+                        setEditEmp(p=>({...p,tasks:next}));
+                      }} style={{ flex:1, border:`2px solid ${sel?color:_theme.cardBorder}`,
+                        borderRadius:10, padding:"10px", cursor:"pointer", fontWeight:700,
+                        fontSize:14, background:sel?color+"18":_theme.surface,
+                        color:sel?color:_theme.textSub, transition:"all 0.15s" }}>
+                        {sel ? "✓ " : ""}{t}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
           <button style={PBT("#2563EB",{width:"100%"})} onClick={updateEmployee}>Save Changes</button>
         </Modal>
       )}
@@ -1932,7 +1954,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
           <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:700,
             letterSpacing:"0.05em", marginBottom:6 }}>TODAY</div>
           <div style={{ fontSize:12, fontWeight:700, color:_theme.text }}>
-            {new Date().toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})}
+            {new Date().toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"Asia/Riyadh"})}
           </div>
           <div style={{ fontSize:11, color:_theme.primary, fontWeight:600, marginTop:2 }}>
             🕐 {autoNow()}
@@ -3116,7 +3138,26 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
             <input style={{ ...I(), marginBottom:12 }} value={editEmp.customRole||""} onChange={e=>setEditEmp(p=>({...p,customRole:e.target.value}))} placeholder="Enter custom role title..."/>
           )}
           <label style={LBL}>Tasks</label>
-          <div style={{ marginBottom:16 }}><TaskPicker selected={editEmp.tasks} onChange={tasks=>setEditEmp(p=>({...p,tasks}))}/></div>
+          <div style={{ marginBottom:16 }}>
+            <div style={{ display:"flex", gap:8 }}>
+              {["KFOOD","KEEMRT"].map(t => {
+                const sel = (editEmp.tasks||[]).includes(t);
+                const color = t==="KFOOD" ? "#3FB950" : "#58A6FF";
+                return (
+                  <button key={t} onClick={()=>{
+                    const cur = editEmp.tasks||[];
+                    const next = sel ? cur.filter(x=>x!==t) : [...cur,t];
+                    setEditEmp(p=>({...p,tasks:next}));
+                  }} style={{ flex:1, border:`2px solid ${sel?color:_theme.cardBorder}`,
+                    borderRadius:10, padding:"10px", cursor:"pointer", fontWeight:700,
+                    fontSize:14, background:sel?color+"18":_theme.surface,
+                    color:sel?color:_theme.textSub, transition:"all 0.15s" }}>
+                    {sel ? "✓ " : ""}{t}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <button style={PBT("#2563EB",{width:"100%"})} onClick={saveEdit}>Save Changes</button>
         </Modal>
       )}
@@ -3355,7 +3396,7 @@ function ReportsPage({ employees, schedule, shifts, attendance, performance, hea
     const ksaCritical = n(ksaOBCurr)>400 || n(ksaOsloCurr)>10;
     const gccStatus   = gccT2Net<=0 ? "🟢 GCC Queue [STABLE & IMPROVING]" : "🟡 GCC Queue [MONITOR]";
 
-    return `Date: ${new Date(date+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}
+    return `Date: ${new Date(date+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Riyadh"})}
 Time of Update: ${opsUpdTime} (Comparative Analysis: ${opsBaseTime} vs ${opsUpdTime})
 Subject: Operations Performance, Productivity Analysis & Shift Allocation
 Overall Operations Status: ${opsStatus}${opsStatusNote ? ` (${opsStatusNote})` : ""}
@@ -3854,7 +3895,7 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
                       ? <div>
                           <div style={{ fontWeight:600, color:_theme.text }}>{lastEdit.by}</div>
                           <div style={{ fontSize:11, color:_theme.textMuted }}>
-                            {new Date(lastEdit.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})} {new Date(lastEdit.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
+                            {new Date(lastEdit.ts).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"Asia/Riyadh"})} {new Date(lastEdit.ts).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
                           </div>
                         </div>
                       : <span style={{ color:"#CBD5E1" }}>--</span>
@@ -3876,7 +3917,26 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
           <div style={{ marginBottom:10, fontSize:12, color:_theme.textMuted }}>
             Select tasks assigned to <strong>{editEmp.name}</strong>. Changes will be logged with your name.
           </div>
-          <TaskPicker selected={editEmp.tasks||[]} onChange={tasks=>setEditEmp(p=>({...p,tasks}))}/>
+          <div style={{ marginBottom:16 }}>
+            <div style={{ display:"flex", gap:8 }}>
+              {["KFOOD","KEEMRT"].map(t => {
+                const sel = (editEmp.tasks||[]).includes(t);
+                const color = t==="KFOOD" ? "#3FB950" : "#58A6FF";
+                return (
+                  <button key={t} onClick={()=>{
+                    const cur = editEmp.tasks||[];
+                    const next = sel ? cur.filter(x=>x!==t) : [...cur,t];
+                    setEditEmp(p=>({...p,tasks:next}));
+                  }} style={{ flex:1, border:`2px solid ${sel?color:_theme.cardBorder}`,
+                    borderRadius:10, padding:"10px", cursor:"pointer", fontWeight:700,
+                    fontSize:14, background:sel?color+"18":_theme.surface,
+                    color:sel?color:_theme.textSub, transition:"all 0.15s" }}>
+                    {sel ? "✓ " : ""}{t}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <div style={{ marginTop:16, display:"flex", gap:8 }}>
             <button style={PBT("#2563EB",{flex:1,padding:"10px"})} onClick={saveTaskEdit}>💾 Save & Log Changes</button>
             <button style={PBT("#94A3B8",{flex:"none",padding:"10px 16px"})} onClick={()=>setEditEmp(null)}>Cancel</button>
@@ -3961,7 +4021,7 @@ function AuditLogPage({ auditLog, session }) {
     if (m < 60) return `${m}m ago`;
     const h = Math.floor(m/60);
     if (h < 24) return `${h}h ago`;
-    return new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric"});
+    return new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"Asia/Riyadh"});
   }
   function statusDot(ts) {
     const m = minsAgo(ts);
@@ -4012,7 +4072,7 @@ function AuditLogPage({ auditLog, session }) {
                   </div>
                   {lastEntry && (
                     <div style={{ fontSize:10, color:_theme.textMuted, marginTop:2 }}>
-                      Last: {new Date(lastEntry.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})} {new Date(lastEntry.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
+                      Last: {new Date(lastEntry.ts).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"Asia/Riyadh"})} {new Date(lastEntry.ts).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
                     </div>
                   )}
                 </div>
@@ -4039,8 +4099,8 @@ function AuditLogPage({ auditLog, session }) {
                   <div key={log.id||i} style={{ display:"flex", gap:12, padding:"8px 0",
                     borderBottom:"1px solid #F1F5F9", alignItems:"flex-start" }}>
                     <div style={{ fontSize:10, color:_theme.textMuted, whiteSpace:"nowrap", paddingTop:2, minWidth:110 }}>
-                      {new Date(log.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})}
-                      {" "}{new Date(log.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
+                      {new Date(log.ts).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"Asia/Riyadh"})}
+                      {" "}{new Date(log.ts).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
                     </div>
                     <div style={{ flex:1 }}>
                       <span style={{ background:"#6366F118", color:"#6366F1", border:"1px solid #6366F130",
@@ -4116,7 +4176,7 @@ function AuditLogPage({ auditLog, session }) {
                     <div style={{ fontSize:11, color:_theme.textMuted, marginTop:4, display:"flex", alignItems:"center", gap:4 }}>
                       🕐 {timeAgoLabel(l.ts)}
                       <span style={{ color:"#E2E8F0" }}>·</span>
-                      <span>{new Date(l.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}</span>
+                      <span>{new Date(l.ts).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}</span>
                     </div>
                   </div>
                 );
@@ -4175,7 +4235,7 @@ function AuditLogPage({ auditLog, session }) {
                     <span style={{ fontWeight:700, fontSize:13, color:_theme.text }}>{log.by}</span>
                     <span style={{ fontSize:11, color: ROLE_COLORS[log.role]||"#94A3B8", fontWeight:600 }}>{ROLE_ICONS[log.role]||""} {log.role}</span>
                     <span style={{ marginLeft:"auto", fontSize:11, color:_theme.textMuted, whiteSpace:"nowrap" }}>
-                      {dt.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})} · {dt.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
+                      {dt.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"Asia/Riyadh"})} · {dt.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
                     </span>
                   </div>
                   {log.target && log.action!=="Page View" && (
@@ -4299,7 +4359,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
     if (m < 60) return `${m}m ago`;
     const h = Math.floor(m/60);
     if (h < 24) return `${h}h ago`;
-    return new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric"});
+    return new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"Asia/Riyadh"});
   }
   function statusDot(ts) {
     const m = minsAgo(ts);
@@ -4567,7 +4627,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
                 </div>
                 {lastEntry && (
                   <div style={{ fontSize:10, color:_theme.textMuted, marginTop:2 }}>
-                    آخر تعديل: {new Date(lastEntry.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})} {new Date(lastEntry.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
+                    آخر تعديل: {new Date(lastEntry.ts).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"Asia/Riyadh"})} {new Date(lastEntry.ts).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
                   </div>
                 )}
               </div>
@@ -4593,8 +4653,8 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
                 <div key={log.id||i} style={{ display:"flex", gap:12, padding:"8px 0",
                   borderBottom:`1px solid ${_theme.cardBorder}`, alignItems:"flex-start" }}>
                   <div style={{ fontSize:10, color:_theme.textMuted, whiteSpace:"nowrap", paddingTop:2, minWidth:120 }}>
-                    {new Date(log.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})}
-                    {" "}{new Date(log.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
+                    {new Date(log.ts).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"Asia/Riyadh"})}
+                    {" "}{new Date(log.ts).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
                   </div>
                   <div style={{ flex:1 }}>
                     <span style={{ background:"#6366F118", color:"#6366F1", border:"1px solid #6366F130",
@@ -4669,7 +4729,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
                   <div style={{ fontSize:11, color:_theme.textMuted, marginTop:4, display:"flex", alignItems:"center", gap:4 }}>
                     🕐 {timeAgoLabel(l.ts)}
                     <span>·</span>
-                    <span>{new Date(l.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}</span>
+                    <span>{new Date(l.ts).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}</span>
                   </div>
                 </div>
               );
@@ -4737,7 +4797,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
                     <span style={{ fontWeight:700, fontSize:13, color:_theme.text }}>{log.by}</span>
                     <span style={{ fontSize:11, color: ROLE_COLORS[log.role]||_theme.textMuted, fontWeight:600 }}>{ROLE_ICONS[log.role]||""} {log.role}</span>
                     <span style={{ marginLeft:"auto", fontSize:11, color:_theme.textMuted, whiteSpace:"nowrap" }}>
-                      {dt.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})} · {dt.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
+                      {dt.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"Asia/Riyadh"})} · {dt.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
                     </span>
                   </div>
                   {log.target && log.action!=="Page View" && (
@@ -4779,7 +4839,7 @@ function CriticalAlertPopup({ onDismiss, alerts }) {
           </div>
           <div style={{ marginLeft:"auto", background:"rgba(255,255,255,0.15)",
             borderRadius:8, padding:"2px 8px", fontSize:11, color:"#FEF2F2", fontWeight:700 }}>
-            {new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
+            {new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
           </div>
         </div>
         {/* Alerts list */}
@@ -4868,7 +4928,7 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, can
           لوحة المتصدرين — Today's Leaderboard
         </div>
         <div style={{ fontSize:13, color:_theme.textMuted }}>
-          {new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}
+          {new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",timeZone:"Asia/Riyadh"})}
           &nbsp;·&nbsp; {todayEmps.length} موظف مجدول · {totalClosed} حالة مُغلقة
         </div>
         {myRank && (
@@ -5266,7 +5326,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
 
   return (
     <div dir={isRTL?"rtl":"ltr"} style={{
-      minHeight:"100vh", minHeight:"100dvh",
+      minHeight:"100dvh",
       background:"linear-gradient(135deg,#0A0F1E 0%,#0F2744 50%,#0A0F1E 100%)",
       display:"flex", alignItems:"center", justifyContent:"center",
       fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", padding:16,
@@ -5865,7 +5925,7 @@ export default function App() {
   const currentName = session.name;
   const canEdit     = ROLE_CAN_EDIT[currentRole];
   const roleColor   = ROLE_COLORS[currentRole];
-  const isSuperAdmin = currentName === SUPER_ADMIN;
+  const isSuperAdmin = isOwnerUser(session);
   const isAgent = currentRole === "Agent";
 
   // ── Critical Alert System ──────────────────────────────────────────────────
@@ -6060,7 +6120,7 @@ export default function App() {
 
   return (
     <div dir={isRTL?"rtl":"ltr"} style={{
-      minHeight:"100vh", minHeight:"100dvh", background:theme.bg,
+      minHeight:"100dvh", background:theme.bg,
       fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif",
       color:theme.text
     }}>
@@ -6250,7 +6310,7 @@ export default function App() {
             <span>{ROLE_ICONS[currentRole]}</span>
             <strong style={{ color:roleColor }}>{currentName.split(" ")[0]}</strong>
             <span style={{ color:theme.textMuted }}>·</span>
-            <span>{new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}</span>
+            <span>{new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}</span>
           </div>
         </div>
 
