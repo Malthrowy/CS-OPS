@@ -125,7 +125,7 @@ const TASK_COLORS = ["#10B981","#3B82F6","#6366F1","#0EA5E9","#F59E0B","#10B981"
 const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Day Off"];
 const ALL_PAGES = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics"];
 const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics");
-const AGENT_PAGES = ["Schedule","Live Floor","Break","Performance","Queue"];
+const AGENT_PAGES = ["Schedule","Live Floor","Performance","Queue"];
 
 // Super Admin
 const SUPER_ADMIN = "Mohammed Nasser Althurwi";
@@ -3466,7 +3466,7 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
                       ? <div>
                           <div style={{ fontWeight:600, color:"#1E293B" }}>{lastEdit.by}</div>
                           <div style={{ fontSize:11, color:"#94A3B8" }}>
-                            {new Date(lastEdit.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})} {new Date(lastEdit.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}
+                            {new Date(lastEdit.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})} {new Date(lastEdit.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
                           </div>
                         </div>
                       : <span style={{ color:"#CBD5E1" }}>--</span>
@@ -3507,9 +3507,10 @@ function AuditLogPage({ auditLog, session }) {
   const [hidePageViews, setHidePageViews] = useState(true);
   const [showHistoryFor, setShowHistoryFor] = useState(null); // action type to drill into
 
+  const isSuperAdminSession = session?.name === "Mohammed Nasser Althurwi";
   const canViewHistory = session?.role === "Team Lead" ||
                          session?.role === "Shift Leader" ||
-                         session?.name === "Mohammed Nasser Althurwi";
+                         isSuperAdminSession;
 
   const logs    = Array.isArray(auditLog) ? auditLog : [];
   const users   = [...new Set(logs.map(l=>l.by))].filter(Boolean).sort();
@@ -3590,7 +3591,7 @@ function AuditLogPage({ auditLog, session }) {
     return map;
   }, [logs]);
 
-  const canSeeLiveView = session?.role !== "Agent";
+  const canSeeLiveView = session?.role !== "Agent" || isSuperAdminSession;
   const [activityFilter, setActivityFilter] = useState("All");
 
   return (
@@ -3623,7 +3624,7 @@ function AuditLogPage({ auditLog, session }) {
                   </div>
                   {lastEntry && (
                     <div style={{ fontSize:10, color:"#94A3B8", marginTop:2 }}>
-                      Last: {new Date(lastEntry.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})} {new Date(lastEntry.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}
+                      Last: {new Date(lastEntry.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})} {new Date(lastEntry.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
                     </div>
                   )}
                 </div>
@@ -3651,7 +3652,7 @@ function AuditLogPage({ auditLog, session }) {
                     borderBottom:"1px solid #F1F5F9", alignItems:"flex-start" }}>
                     <div style={{ fontSize:10, color:"#94A3B8", whiteSpace:"nowrap", paddingTop:2, minWidth:110 }}>
                       {new Date(log.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})}
-                      {" "}{new Date(log.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}
+                      {" "}{new Date(log.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
                     </div>
                     <div style={{ flex:1 }}>
                       <span style={{ background:"#6366F118", color:"#6366F1", border:"1px solid #6366F130",
@@ -3727,7 +3728,7 @@ function AuditLogPage({ auditLog, session }) {
                     <div style={{ fontSize:11, color:"#94A3B8", marginTop:4, display:"flex", alignItems:"center", gap:4 }}>
                       🕐 {timeAgoLabel(l.ts)}
                       <span style={{ color:"#E2E8F0" }}>·</span>
-                      <span>{new Date(l.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}</span>
+                      <span>{new Date(l.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}</span>
                     </div>
                   </div>
                 );
@@ -3786,13 +3787,349 @@ function AuditLogPage({ auditLog, session }) {
                     <span style={{ fontWeight:700, fontSize:13, color:"#1E293B" }}>{log.by}</span>
                     <span style={{ fontSize:11, color: ROLE_COLORS[log.role]||"#94A3B8", fontWeight:600 }}>{ROLE_ICONS[log.role]||""} {log.role}</span>
                     <span style={{ marginLeft:"auto", fontSize:11, color:"#94A3B8", whiteSpace:"nowrap" }}>
-                      {dt.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})} · {dt.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}
+                      {dt.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})} · {dt.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
                     </span>
                   </div>
                   {log.target && log.action!=="Page View" && (
                     <div style={{ fontSize:12, color:"#475569" }}>👤 <strong>{log.target}</strong></div>
                   )}
                   {log.detail && <div style={{ fontSize:12, color:"#94A3B8", marginTop:1 }}>{log.detail}</div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+
+
+// ─── OWNER ANALYTICS PAGE ────────────────────────────────────────────────────
+function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, attendance, performance, queueLog }) {
+  const [filterUser, setFilterUser]       = useState("");
+  const [filterAction, setFilterAction]   = useState("");
+  const [filterDate, setFilterDate]       = useState("");
+  const [hidePageViews, setHidePageViews] = useState(true);
+  const [showHistoryFor, setShowHistoryFor] = useState(null);
+  const [activityFilter, setActivityFilter] = useState("All");
+
+  const logs    = Array.isArray(auditLog) ? auditLog : [];
+  const users   = [...new Set(logs.map(l=>l.by))].filter(Boolean).sort();
+  const actions = [...new Set(logs.map(l=>l.action))].filter(Boolean).sort();
+
+  const filtered = logs.filter(l => {
+    const mu = !filterUser   || l.by === filterUser;
+    const ma = !filterAction || l.action === filterAction;
+    const md = !filterDate   || l.ts?.startsWith(filterDate);
+    const mp = !hidePageViews || l.action !== "Page View";
+    return mu && ma && md && mp;
+  });
+
+  const editHistory = logs.filter(l =>
+    l.action !== "Page View" && l.action !== "Sign In" && l.action !== "Sign Out"
+  );
+
+  const userEditCounts = {};
+  editHistory.forEach(l => { userEditCounts[l.by] = (userEditCounts[l.by]||0)+1; });
+
+  function actionColor(action) {
+    if (!action) return "#64748B";
+    if (action==="Sign In")    return "#10B981";
+    if (action==="Sign Out")   return "#EF4444";
+    if (action==="Page View")  return "#CBD5E1";
+    if (action==="Task Assignment") return "#8B5CF6";
+    if (action.includes("Schedule"))  return "#2563EB";
+    if (action.includes("Attendance")) return "#0EA5E9";
+    if (action.includes("Performance")) return "#F59E0B";
+    if (action.includes("Queue"))      return "#6366F1";
+    if (action.includes("Shift"))      return "#EC4899";
+    if (action.includes("Employee")||action.includes("Roster")) return "#14B8A6";
+    if (action.includes("Heat"))       return "#EF4444";
+    if (action.includes("Add"))        return "#10B981";
+    if (action.includes("Edit")||action.includes("Update")) return "#2563EB";
+    if (action.includes("Delete"))     return "#EF4444";
+    return "#64748B";
+  }
+
+  const lastActivity = useMemo(() => {
+    const map = {};
+    logs.forEach(l => {
+      if (!l.by) return;
+      if (!map[l.by] || l.ts > map[l.by].ts) map[l.by] = l;
+    });
+    return Object.values(map).sort((a,b) => b.ts.localeCompare(a.ts));
+  }, [logs]);
+
+  function minsAgo(ts) {
+    return Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
+  }
+  function timeAgoLabel(ts) {
+    const m = minsAgo(ts);
+    if (m < 1)  return "Just now";
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m/60);
+    if (h < 24) return `${h}h ago`;
+    return new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  }
+  function statusDot(ts) {
+    const m = minsAgo(ts);
+    if (m < 15)  return { color:"#10B981", label:"Active"  };
+    if (m < 60)  return { color:"#F59E0B", label:"Recent"  };
+    return           { color:"#6B7280", label:"Offline" };
+  }
+
+  const lastPage = useMemo(() => {
+    const map = {};
+    logs.filter(l=>l.action==="Page View").forEach(l=>{
+      if (!map[l.by] || l.ts > map[l.by].ts) map[l.by] = l;
+    });
+    return map;
+  }, [logs]);
+
+  // ── Quick KPIs ──────────────────────────────────────────────────────────────
+  const todayKey = new Date().toISOString().slice(0,10);
+  const todayDayName = DAYS[new Date().getDay()];
+  const totalEmployees = employees.length;
+  const todayScheduled = employees.filter(e => {
+    const v = (schedule[e.id]||{})[todayDayName];
+    return v && v !== "OFF";
+  }).length;
+  const todayAttendance = attendance[todayKey] || {};
+  const presentToday = Object.values(todayAttendance).filter(a => a.status === "Present" || a.status === "Late").length;
+  const absentToday  = Object.values(todayAttendance).filter(a => a.status === "Absent").length;
+
+  const signInsToday = logs.filter(l => l.ts?.startsWith(todayKey) && l.action === "Sign In").length;
+  const editsToday   = logs.filter(l => l.ts?.startsWith(todayKey) && l.action !== "Page View" && l.action !== "Sign In" && l.action !== "Sign Out").length;
+
+  const activeNow = lastActivity.filter(l => minsAgo(l.ts) <= 15).length;
+
+  return (
+    <div>
+      {/* ── Owner KPI Strip ── */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:10, marginBottom:20 }}>
+        {[
+          { label:"Total Staff",     value:totalEmployees, color:"#3B82F6",  icon:"👥" },
+          { label:"Scheduled Today", value:todayScheduled, color:"#8B5CF6",  icon:"📅" },
+          { label:"Present Today",   value:presentToday,   color:"#10B981",  icon:"✅" },
+          { label:"Absent Today",    value:absentToday,    color:"#EF4444",  icon:"❌" },
+          { label:"Active Now",      value:activeNow,      color:"#10B981",  icon:"🟢" },
+          { label:"Sign-ins Today",  value:signInsToday,   color:"#0EA5E9",  icon:"🔑" },
+          { label:"Edits Today",     value:editsToday,     color:"#F59E0B",  icon:"✏️" },
+        ].map(k => (
+          <div key={k.label} style={{ background:_theme.card, border:`1px solid ${_theme.cardBorder}`,
+            borderRadius:12, padding:"14px 16px", borderTop:`3px solid ${k.color}` }}>
+            <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600, marginBottom:4 }}>{k.icon} {k.label}</div>
+            <div style={{ fontSize:28, fontWeight:800, color:k.color }}>{k.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Data Edit History ── */}
+      <div style={{ background:_theme.card, borderRadius:12, padding:"16px 20px",
+        border:`2px solid #6366F130`, marginBottom:20 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
+          <span style={{ fontSize:16 }}>🔒</span>
+          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>سجل التعديلات على البيانات</span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>— جميع التعديلات مسجّلة · لا يمكن حذفها</span>
+        </div>
+
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))", gap:8, marginBottom:14 }}>
+          {Object.entries(userEditCounts).sort((a,b)=>b[1]-a[1]).map(([user, count]) => {
+            const lastEntry = editHistory.filter(l=>l.by===user).sort((a,b)=>b.ts.localeCompare(a.ts))[0];
+            const roleColor2 = ROLE_COLORS[lastEntry?.role]||"#64748B";
+            return (
+              <div key={user} style={{ background:_theme.surface, borderRadius:8, padding:"10px 12px",
+                border:`1.5px solid ${roleColor2}30`, cursor:"pointer" }}
+                onClick={()=>{ setFilterUser(user); setShowHistoryFor(user); }}>
+                <div style={{ fontWeight:700, fontSize:13, color:_theme.text }}>{user}</div>
+                <div style={{ fontSize:11, color:roleColor2, fontWeight:600, marginTop:2 }}>
+                  {ROLE_ICONS[lastEntry?.role]||"👤"} {lastEntry?.role}
+                </div>
+                <div style={{ fontSize:12, color:"#6366F1", fontWeight:700, marginTop:4 }}>
+                  {count} تعديل{count!==1?"":""}
+                </div>
+                {lastEntry && (
+                  <div style={{ fontSize:10, color:_theme.textMuted, marginTop:2 }}>
+                    آخر تعديل: {new Date(lastEntry.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})} {new Date(lastEntry.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {Object.keys(userEditCounts).length === 0 && (
+            <div style={{ color:_theme.textMuted, fontSize:13, padding:8 }}>لا توجد تعديلات مسجّلة بعد.</div>
+          )}
+        </div>
+
+        {showHistoryFor && (
+          <div>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+              <span style={{ fontWeight:700, fontSize:13, color:"#6366F1" }}>
+                📋 تعديلات {showHistoryFor}
+              </span>
+              <button onClick={()=>{ setShowHistoryFor(null); setFilterUser(""); }}
+                style={{ background:"none", border:`1px solid ${_theme.cardBorder}`, borderRadius:6,
+                  padding:"2px 8px", fontSize:12, cursor:"pointer", color:_theme.textMuted }}>✕ إغلاق</button>
+            </div>
+            <div style={{ maxHeight:260, overflowY:"auto" }}>
+              {editHistory.filter(l=>l.by===showHistoryFor).map((log,i) => (
+                <div key={log.id||i} style={{ display:"flex", gap:12, padding:"8px 0",
+                  borderBottom:`1px solid ${_theme.cardBorder}`, alignItems:"flex-start" }}>
+                  <div style={{ fontSize:10, color:_theme.textMuted, whiteSpace:"nowrap", paddingTop:2, minWidth:120 }}>
+                    {new Date(log.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})}
+                    {" "}{new Date(log.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <span style={{ background:"#6366F118", color:"#6366F1", border:"1px solid #6366F130",
+                      borderRadius:4, padding:"1px 6px", fontSize:11, fontWeight:600, marginRight:6 }}>
+                      {log.action}
+                    </span>
+                    {log.target && <span style={{ fontSize:12, color:_theme.text, fontWeight:600 }}>{log.target}</span>}
+                    {log.detail && <div style={{ fontSize:11, color:_theme.textMuted, marginTop:2 }}>{log.detail}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Live Activity Panel ── */}
+      <div style={{ marginBottom:20 }}>
+        <div style={{ fontWeight:700, fontSize:14, color:_theme.text, marginBottom:10,
+          display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+          👥 نشاط المستخدمين المباشر
+          <span style={{ fontSize:11, fontWeight:400, color:_theme.textMuted }}>— بناءً على آخر إجراء مسجّل</span>
+          <select value={activityFilter} onChange={e=>setActivityFilter(e.target.value)}
+            style={{ background:_theme.input, border:`1px solid ${_theme.inputBorder}`,
+              borderRadius:6, padding:"5px 9px", fontSize:11, color:_theme.inputText,
+              outline:"none", cursor:"pointer", marginLeft:"auto" }}>
+            <option value="All">جميع المستخدمين</option>
+            <option value="Online">🟢 نشط (≤15 دقيقة)</option>
+            <option value="Offline">⚫ غير نشط</option>
+          </select>
+        </div>
+        {lastActivity.length === 0 ? (
+          <div style={{ background:_theme.card, border:`1px solid ${_theme.cardBorder}`,
+            borderRadius:12, padding:"32px 20px", textAlign:"center", color:_theme.textMuted, fontSize:13 }}>
+            <div style={{ fontSize:32, marginBottom:10 }}>📭</div>
+            <div style={{ fontWeight:600 }}>لا يوجد نشاط مسجّل بعد</div>
+            <div style={{ fontSize:12, marginTop:6 }}>ستظهر البيانات فور تسجيل دخول أعضاء الفريق</div>
+          </div>
+        ) : (
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))", gap:10 }}>
+            {lastActivity.filter(l => {
+              if (activityFilter==="All") return true;
+              const m = minsAgo(l.ts);
+              if (activityFilter==="Online") return m<=15;
+              return m>15;
+            }).map(l => {
+              const dot = statusDot(l.ts);
+              const pg  = lastPage[l.by];
+              return (
+                <div key={l.by} style={{ background:_theme.card, border:`1px solid ${_theme.cardBorder}`,
+                  borderRadius:12, padding:"14px 16px",
+                  borderLeft:`4px solid ${dot.color}`, position:"relative" }}>
+                  <div style={{ position:"absolute", top:12, right:12, display:"flex", alignItems:"center", gap:4 }}>
+                    <div style={{ width:8, height:8, borderRadius:"50%", background:dot.color,
+                      animation: dot.color==="#10B981" ? "pulse 2s infinite" : "none" }}/>
+                    <span style={{ fontSize:10, color:dot.color, fontWeight:700 }}>{dot.label}</span>
+                  </div>
+                  <div style={{ fontWeight:800, fontSize:14, color:_theme.text, marginBottom:2, paddingRight:64 }}>{l.by}</div>
+                  <div style={{ fontSize:11, color: ROLE_COLORS[l.role]||_theme.textMuted, fontWeight:600, marginBottom:8 }}>
+                    {ROLE_ICONS[l.role]||"👤"} {l.role}
+                  </div>
+                  <div style={{ fontSize:12, color:_theme.textSub, marginBottom:4 }}>
+                    <span style={{ background:actionColor(l.action)+"22", color:actionColor(l.action),
+                      border:`1px solid ${actionColor(l.action)}40`, borderRadius:4,
+                      padding:"1px 6px", fontSize:11, fontWeight:600 }}>{l.action}</span>
+                  </div>
+                  {pg && (
+                    <div style={{ fontSize:11, color:_theme.textMuted, marginBottom:4 }}>
+                      📄 آخر صفحة: <strong style={{color:_theme.primary}}>{pg.target}</strong>
+                    </div>
+                  )}
+                  <div style={{ fontSize:11, color:_theme.textMuted, marginTop:4, display:"flex", alignItems:"center", gap:4 }}>
+                    🕐 {timeAgoLabel(l.ts)}
+                    <span>·</span>
+                    <span>{new Date(l.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ── Full Audit Log ── */}
+      <div style={{ background:_theme.surface, borderRadius:10, padding:"12px 16px",
+        marginBottom:14, display:"flex", alignItems:"center", gap:10, flexWrap:"wrap",
+        border:`1px solid ${_theme.cardBorder}` }}>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🔍 سجل المراجعة الكامل</span>
+        <select value={filterUser} onChange={e=>setFilterUser(e.target.value)}
+          style={{ background:_theme.input, border:`1px solid ${_theme.inputBorder}`, borderRadius:6,
+            padding:"7px 11px", fontSize:13, color:_theme.inputText, outline:"none", width:180 }}>
+          <option value="">جميع المستخدمين</option>
+          {users.map(u=><option key={u}>{u}</option>)}
+        </select>
+        <select value={filterAction} onChange={e=>setFilterAction(e.target.value)}
+          style={{ background:_theme.input, border:`1px solid ${_theme.inputBorder}`, borderRadius:6,
+            padding:"7px 11px", fontSize:13, color:_theme.inputText, outline:"none", width:180 }}>
+          <option value="">جميع الإجراءات</option>
+          {actions.map(a=><option key={a}>{a}</option>)}
+        </select>
+        <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)}
+          style={{ background:_theme.input, border:`1px solid ${_theme.inputBorder}`, borderRadius:6,
+            padding:"7px 11px", fontSize:13, color:_theme.inputText, outline:"none", width:150 }}/>
+        {(filterUser||filterAction||filterDate) && (
+          <button onClick={()=>{setFilterUser("");setFilterAction("");setFilterDate("");}}
+            style={{ background:"#94A3B8", color:"#fff", border:"none", borderRadius:8,
+              padding:"7px 12px", fontSize:12, cursor:"pointer", fontWeight:600 }}>✕ مسح</button>
+        )}
+        <label style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, color:_theme.textMuted, cursor:"pointer" }}>
+          <input type="checkbox" checked={hidePageViews} onChange={e=>setHidePageViews(e.target.checked)}/>
+          إخفاء مشاهدات الصفحات
+        </label>
+        <span style={{ fontSize:12, color:_theme.textMuted, marginLeft:"auto" }}>{filtered.length} سجل</span>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div style={{ background:_theme.card, border:`1px solid ${_theme.cardBorder}`,
+          borderRadius:12, textAlign:"center", padding:"48px 20px", color:_theme.textMuted }}>
+          <div style={{ fontSize:32, marginBottom:12 }}>📭</div>
+          <div style={{ fontWeight:600, fontSize:14 }}>لا توجد سجلات تطابق الفلتر</div>
+          <div style={{ fontSize:12, marginTop:6 }}>يظهر النشاط هنا فور قيام المستخدمين بإجراء تغييرات</div>
+        </div>
+      ) : (
+        <div style={{ background:_theme.card, border:`1px solid ${_theme.cardBorder}`,
+          borderRadius:12, padding:"16px 20px" }}>
+          {filtered.map((log, i) => {
+            const dt = new Date(log.ts);
+            return (
+              <div key={log.id||i} style={{ display:"flex", gap:14, padding:"10px 0",
+                borderBottom: i<filtered.length-1?`1px solid ${_theme.cardBorder}`:"none", alignItems:"flex-start" }}>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, flexShrink:0, paddingTop:4 }}>
+                  <div style={{ width:9, height:9, borderRadius:"50%", background:actionColor(log.action) }}/>
+                  {i<filtered.length-1 && <div style={{ width:2, flex:1, minHeight:16, background:_theme.cardBorder }}/>}
+                </div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:2 }}>
+                    <span style={{ background:actionColor(log.action)+"22", color:actionColor(log.action),
+                      border:`1px solid ${actionColor(log.action)}40`, borderRadius:6,
+                      padding:"2px 8px", fontSize:11, fontWeight:700, whiteSpace:"nowrap" }}>{log.action}</span>
+                    <span style={{ fontWeight:700, fontSize:13, color:_theme.text }}>{log.by}</span>
+                    <span style={{ fontSize:11, color: ROLE_COLORS[log.role]||_theme.textMuted, fontWeight:600 }}>{ROLE_ICONS[log.role]||""} {log.role}</span>
+                    <span style={{ marginLeft:"auto", fontSize:11, color:_theme.textMuted, whiteSpace:"nowrap" }}>
+                      {dt.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})} · {dt.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
+                    </span>
+                  </div>
+                  {log.target && log.action!=="Page View" && (
+                    <div style={{ fontSize:12, color:_theme.textSub }}>👤 <strong>{log.target}</strong></div>
+                  )}
+                  {log.detail && <div style={{ fontSize:12, color:_theme.textMuted, marginTop:1 }}>{log.detail}</div>}
                 </div>
               </div>
             );
@@ -4637,7 +4974,10 @@ export default function App() {
   const isAgent = currentRole === "Agent";
 
   // Pages visible to this user
+  // Mohammed Nasser Althurwi (SUPER_ADMIN) always sees Owner Analytics
   const visiblePages = isAgent ? AGENT_PAGES : (isSuperAdmin ? [...PAGES, "Owner Analytics"] : PAGES);
+  // Inject Owner Analytics for super admin even if role is SME
+  // (already handled above — isSuperAdmin check covers this)
 
   function navigate(p) {
     setPage(p);
@@ -4712,6 +5052,7 @@ export default function App() {
     Shifts:        <ShiftsPage shifts={shifts} setShifts={SH}/>,
     Performance:   <PerformancePage employees={employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF}/>,
     Reports:       <ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog}/>,
+    "Owner Analytics": <OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog}/>,
   };
 
   // Page icons
@@ -4737,7 +5078,8 @@ export default function App() {
     <div dir={isRTL?"rtl":"ltr"} style={{
       minHeight:"100vh", minHeight:"100dvh", background:theme.bg,
       fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif",
-      color:theme.text
+      color:theme.text,
+      zoom: zoom/100
     }}>
 
       {/* Daily Tip Popup */}
@@ -4898,7 +5240,7 @@ export default function App() {
             <span>{ROLE_ICONS[currentRole]}</span>
             <strong style={{ color:roleColor }}>{currentName.split(" ")[0]}</strong>
             <span style={{ color:theme.textMuted }}>·</span>
-            <span>{new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}</span>
+            <span>{new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}</span>
           </div>
         </div>
 
