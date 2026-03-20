@@ -1,18 +1,164 @@
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
+
+// ─── i18n TRANSLATIONS ────────────────────────────────────────────────────────
+const T = {
+  en: {
+    appName: "CS Operations", appSub: "Management System",
+    selectRole: "Select Your Role", yourName: "Your Name",
+    selectName: "Select your name", agentNameLabel: "Select Your Name",
+    agentHint: "View only — no password required",
+    password: "Password", signIn: "Sign In", signInAs: "Sign In as",
+    enterAs: "Enter as",
+    setPassword: "Set Your Personal Password", firstLogin: "First time login",
+    newPassword: "New Password (min. 4 characters)", confirmPassword: "Confirm Password",
+    setAndSignIn: "Set Password & Sign In",
+    incorrectPassword: "Incorrect password. Please try again.",
+    selectYourName: "Please select your name.",
+    personalPassword: "Personal password", viewOnly: "View Only",
+    autoSaved: "Auto-saved", saved: "Saved",
+    signOut: "Sign Out", history: "History",
+    readOnlyMode: "View Only Mode",
+    readOnlyDesc: "You can browse data but cannot make changes.",
+    schedule: "Schedule", attendance: "Attendance", queue: "Queue",
+    dailyTasks: "Daily Tasks", liveFloor: "Live Floor", breakPage: "Break",
+    heatMap: "Heat Map", auditLog: "Audit Log", notes: "Notes",
+    shifts: "Shifts", performance: "Performance", reports: "Reports",
+    ownerAnalytics: "Owner Analytics",
+    today: "TODAY", employee: "Employee", role: "Role",
+    theme: "Theme", language: "Language",
+    dailyTipTitle: "Daily Tip",
+    tips: [
+      "Start each shift with a quick team check-in to align priorities.",
+      "Document escalations immediately — details fade fast.",
+      "A proactive break schedule reduces errors by up to 30%.",
+      "Clear queue data = better staffing decisions tomorrow.",
+      "Recognition boosts productivity — acknowledge good work daily."
+    ]
+  },
+  ar: {
+    appName: "العمليات CS", appSub: "نظام إدارة العمليات",
+    selectRole: "اختر دورك", yourName: "اسمك",
+    selectName: "اختر اسمك", agentNameLabel: "اختر اسمك",
+    agentHint: "عرض فقط — لا يلزم رقم سري",
+    password: "كلمة المرور", signIn: "تسجيل الدخول", signInAs: "دخول كـ",
+    enterAs: "دخول كـ",
+    setPassword: "إنشاء كلمة مرور شخصية", firstLogin: "تسجيل دخول أول مرة",
+    newPassword: "كلمة مرور جديدة (4 أحرف على الأقل)", confirmPassword: "تأكيد كلمة المرور",
+    setAndSignIn: "حفظ كلمة المرور والدخول",
+    incorrectPassword: "كلمة المرور غير صحيحة. حاول مرة أخرى.",
+    selectYourName: "الرجاء اختيار اسمك.",
+    personalPassword: "كلمة مرور شخصية", viewOnly: "عرض فقط",
+    autoSaved: "محفوظ تلقائياً", saved: "محفوظ",
+    signOut: "تسجيل الخروج", history: "السجل",
+    readOnlyMode: "وضع العرض فقط",
+    readOnlyDesc: "يمكنك تصفح البيانات لكن لا يمكن إجراء تعديلات.",
+    schedule: "الجدول", attendance: "الحضور", queue: "قائمة الانتظار",
+    dailyTasks: "المهام اليومية", liveFloor: "الطابق المباشر", breakPage: "الاستراحات",
+    heatMap: "خريطة الحرارة", auditLog: "سجل التدقيق", notes: "الملاحظات",
+    shifts: "الشفتات", performance: "الأداء", reports: "التقارير",
+    ownerAnalytics: "تحليلات المالك",
+    today: "اليوم", employee: "الموظف", role: "الدور",
+    theme: "المظهر", language: "اللغة",
+    dailyTipTitle: "نصيحة اليوم",
+    tips: [
+      "ابدأ كل شفت بفحص سريع للفريق لمواءمة الأولويات.",
+      "وثّق التصعيدات فوراً — التفاصيل تُنسى بسرعة.",
+      "جدولة الاستراحات بشكل استباقي تقلل الأخطاء بنسبة 30%.",
+      "بيانات قائمة الانتظار الواضحة = قرارات توظيف أفضل غداً.",
+      "التقدير يرفع الإنتاجية — اعترف بالعمل الجيد يومياً."
+    ]
+  }
+};
+
+// ─── THEMES ───────────────────────────────────────────────────────────────────
+const THEMES = {
+  dark: {
+    name: "Dark Pro", nameAr: "داكن احترافي",
+    bg: "#0A0F1E", surface: "#111827", card: "#1F2937",
+    cardBorder: "#374151", header: "#060B14",
+    text: "#F9FAFB", textSub: "#9CA3AF", textMuted: "#6B7280",
+    primary: "#3B82F6", primaryHover: "#2563EB",
+    success: "#10B981", warning: "#F59E0B", danger: "#EF4444",
+    accent: "#8B5CF6", accentGold: "#F59E0B",
+    input: "#1F2937", inputBorder: "#374151", inputText: "#F9FAFB",
+    isDark: true
+  },
+  navy: {
+    name: "Navy & Gold", nameAr: "بحري وذهبي",
+    bg: "#0F2744", surface: "#1a3a5c", card: "#1E4976",
+    cardBorder: "#2563EB40", header: "#0A1E36",
+    text: "#FFFFFF", textSub: "#93C5FD", textMuted: "#60A5FA",
+    primary: "#F59E0B", primaryHover: "#D97706",
+    success: "#10B981", warning: "#F59E0B", danger: "#EF4444",
+    accent: "#F59E0B", accentGold: "#F59E0B",
+    input: "#1a3a5c", inputBorder: "#2563EB60", inputText: "#FFFFFF",
+    isDark: true
+  },
+  light: {
+    name: "Clean Light", nameAr: "فاتح نظيف",
+    bg: "#F8FAFC", surface: "#F1F5F9", card: "#FFFFFF",
+    cardBorder: "#E2E8F0", header: "#0F2744",
+    text: "#0F172A", textSub: "#475569", textMuted: "#94A3B8",
+    primary: "#2563EB", primaryHover: "#1D4ED8",
+    success: "#10B981", warning: "#F59E0B", danger: "#EF4444",
+    accent: "#8B5CF6", accentGold: "#F59E0B",
+    input: "#FFFFFF", inputBorder: "#CBD5E1", inputText: "#0F172A",
+    isDark: false
+  },
+  purple: {
+    name: "Midnight Purple", nameAr: "بنفسجي غامق",
+    bg: "#0D0D1A", surface: "#13132B", card: "#1A1A35",
+    cardBorder: "#7C3AED40", header: "#080812",
+    text: "#F5F3FF", textSub: "#C4B5FD", textMuted: "#8B5CF6",
+    primary: "#7C3AED", primaryHover: "#6D28D9",
+    success: "#10B981", warning: "#F59E0B", danger: "#EF4444",
+    accent: "#EC4899", accentGold: "#F59E0B",
+    input: "#1A1A35", inputBorder: "#7C3AED60", inputText: "#F5F3FF",
+    isDark: true
+  }
+};
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-const TASK_LIST = ["TGA","Social Group","KSA OT","GCC T2 Cases","KWT T2 Cases","KSA SOME Cases","KWT SOME Cases","GCC SOME Cases","180","OSLO","Keemart Online","Survey","Failed Refund Sheet"];
-const TASK_COLORS = ["#6366F1","#0EA5E9","#F59E0B","#10B981","#EF4444","#8B5CF6","#EC4899","#14B8A6","#F97316","#06B6D4","#84CC16","#A855F7","#E11D48"];
+const TASK_LIST = ["KFOOD","KEEMRT","TGA","Social Group","KSA OT","GCC T2 Cases","KWT T2 Cases","KSA SOME Cases","KWT SOME Cases","GCC SOME Cases","180","OSLO","Keemart Online","Survey","Failed Refund Sheet"];
+const TASK_COLORS = ["#10B981","#3B82F6","#6366F1","#0EA5E9","#F59E0B","#10B981","#EF4444","#8B5CF6","#EC4899","#14B8A6","#F97316","#06B6D4","#84CC16","#A855F7","#E11D48"];
 const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Day Off"];
-const PAGES = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports"];
+const ALL_PAGES = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics"];
+const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics");
+const AGENT_PAGES = ["Schedule","Live Floor","Break","Performance","Queue"];
 
-// ─── STYLE HELPERS ────────────────────────────────────────────────────────────
-const I = (extra={}) => ({ background:"#fff", border:"1px solid #CBD5E1", borderRadius:6, padding:"6px 10px", fontSize:13, color:"#1E293B", outline:"none", width:"100%", boxSizing:"border-box", ...extra });
-const CRD = (extra={}) => ({ background:"#fff", borderRadius:10, padding:"16px 20px", boxShadow:"0 1px 4px rgba(0,0,0,0.08)", ...extra });
-const SBR = (extra={}) => ({ background:"#F1F5F9", borderRadius:8, padding:"10px 16px", marginBottom:12, display:"flex", alignItems:"center", gap:10, flexWrap:"wrap", ...extra });
-const PBT = (color="#2563EB", extra={}) => ({ background:color, color:"#fff", border:"none", borderRadius:6, padding:"7px 14px", fontSize:13, cursor:"pointer", fontWeight:600, ...extra });
-const LBL = { fontSize:12, fontWeight:600, color:"#64748B", marginBottom:4, display:"block" };
+// Super Admin
+const SUPER_ADMIN = "Mohammed Nasser Althurwi";
+
+// ─── THEME CONTEXT (global) ───────────────────────────────────────────────────
+let _theme = THEMES.dark;
+let _lang = "en";
+function setGlobalTheme(t) { _theme = t; }
+function setGlobalLang(l) { _lang = l; }
+function t(key) { return T[_lang]?.[key] || T.en[key] || key; }
+
+// ─── STYLE HELPERS (theme-aware) ─────────────────────────────────────────────
+const I = (extra={}) => ({
+  background: _theme.input, border: `1px solid ${_theme.inputBorder}`,
+  borderRadius:6, padding:"8px 12px", fontSize:13, color: _theme.inputText,
+  outline:"none", width:"100%", boxSizing:"border-box", ...extra
+});
+const CRD = (extra={}) => ({
+  background: _theme.card, borderRadius:12, padding:"16px 20px",
+  boxShadow: _theme.isDark ? "0 4px 20px rgba(0,0,0,0.4)" : "0 1px 4px rgba(0,0,0,0.08)",
+  border: `1px solid ${_theme.cardBorder}`, ...extra
+});
+const SBR = (extra={}) => ({
+  background: _theme.surface, borderRadius:10, padding:"12px 16px",
+  marginBottom:14, display:"flex", alignItems:"center", gap:10, flexWrap:"wrap",
+  border: `1px solid ${_theme.cardBorder}`, ...extra
+});
+const PBT = (color="#2563EB", extra={}) => ({
+  background:color, color:"#fff", border:"none", borderRadius:8,
+  padding:"8px 16px", fontSize:13, cursor:"pointer", fontWeight:600,
+  transition:"opacity 0.15s", ...extra
+});
+const LBL = { fontSize:12, fontWeight:600, marginBottom:4, display:"block" };
 
 // ─── DEFAULT DATA ─────────────────────────────────────────────────────────────
 const DEFAULT_SHIFTS = [
@@ -188,7 +334,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
   const [swapEmp2, setSwapEmp2]     = useState("");
   const [swapDay,  setSwapDay]      = useState(DAYS[new Date().getDay()]);
   const [swapDone, setSwapDone]     = useState("");
-  // Day filter: {dayName: Set of shiftIds} — null means show all
+  // Day filter: {dayName: Set of shiftIds} -- null means show all
   const [dayFilters, setDayFilters] = useState({}); // { "Sunday": ["s1","s2"], ... }
   const [filterPopup, setFilterPopup] = useState(null); // dayName currently showing popup
   const fileRef = useRef();
@@ -248,8 +394,8 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
     const byLabel = shifts.find(s => s.label.toLowerCase() === v.toLowerCase());
     if (byLabel) return byLabel.id;
 
-    // ── Time range e.g. "08:00-17:00" or "8:00-17:00" or "08:00–17:00" ──
-    const rangeMatch = v.match(/^(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})$/);
+    // ── Time range e.g. "08:00-17:00" or "8:00-17:00" ──
+    const rangeMatch = v.match(/^(\d{1,2}:\d{2})\s*[-\u2013\u2014]\s*(\d{1,2}:\d{2})$/);
     if (rangeMatch) {
       const norm = t => t.replace(/^(\d):/, "0$1:");
       const start = norm(rangeMatch[1]);
@@ -290,7 +436,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
     return "OFF";
   }
 
-  // ── Parse Excel file — handles ANY structure ──────────────────────────────────
+  // ── Parse Excel file -- handles ANY structure ──────────────────────────────────
   function handleFile(e) {
     const file = e.target.files[0];
     e.target.value = "";
@@ -393,7 +539,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
           });
 
           if (dayCount >= 3) {
-            // Good header row — has enough day columns
+            // Good header row -- has enough day columns
             colMap = tmpMap;
             headerRowIdx = ri;
             // Also check same row for name col
@@ -415,7 +561,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
 
         // ── If still no day columns, try each row looking for time ranges ───
         if (Object.keys(colMap).length === 0) {
-          // Maybe the file has NO day header — just name + shift values
+          // Maybe the file has NO day header -- just name + shift values
           // In this case try row 0 as header
           headerRowIdx = 0;
           nameCol = 0;
@@ -473,23 +619,47 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
 
   // ── Confirm import: update existing employees or add new ones ──
   function confirmImport() {
+    // Batch ALL schedule changes into one single setState call
+    const newScheduleEntries = {};
+    const newEmployees = [];
+
     importPreview.forEach(row => {
-      // Try to match existing employee by name (case-insensitive)
-      const existing = employees.find(e => e.name.toLowerCase()===row.name.toLowerCase());
+      const existing = employees.find(e => e.name.toLowerCase().trim() === row.name.toLowerCase().trim());
       if (existing) {
-        // Update schedule only (preserve tasks/role unless provided)
-        if (row.role && row.role!=="Agent") setEmployees(prev=>prev.map(e=>e.id===existing.id?{...e,role:row.role,tasks:row.tasks.length?row.tasks:e.tasks}:e));
-        setSchedule(prev => ({ ...prev, [existing.id]: row.days }));
+        // Update schedule for existing employee
+        newScheduleEntries[existing.id] = {
+          Sunday:"OFF", Monday:"OFF", Tuesday:"OFF",
+          Wednesday:"OFF", Thursday:"OFF", Friday:"OFF", Saturday:"OFF",
+          ...row.days
+        };
       } else {
-        // New employee
-        const id = "e"+Date.now()+Math.random();
-        setEmployees(prev => [...prev, { id, name:row.name, role:row.role||"Agent", tasks:row.tasks }]);
-        setSchedule(prev => ({ ...prev, [id]: row.days }));
+        // New employee — create with unique id
+        const id = "e" + Date.now() + Math.floor(Math.random()*10000);
+        newEmployees.push({ id, name:row.name, role:row.role||"Agent", tasks:row.tasks||[], gender:"M" });
+        newScheduleEntries[id] = {
+          Sunday:"OFF", Monday:"OFF", Tuesday:"OFF",
+          Wednesday:"OFF", Thursday:"OFF", Friday:"OFF", Saturday:"OFF",
+          ...row.days
+        };
       }
     });
+
+    // Apply all schedule changes at once
+    setSchedule(prev => ({ ...prev, ...newScheduleEntries }));
+
+    // Add new employees if any
+    if (newEmployees.length > 0) {
+      setEmployees(prev => [...prev, ...newEmployees]);
+    }
+
     setShowImport(false);
     setImportPreview([]);
     setImportErrors([]);
+
+    // Confirm to user
+    const updated = importPreview.filter(r => employees.find(e => e.name.toLowerCase().trim()===r.name.toLowerCase().trim())).length;
+    const added   = newEmployees.length;
+    alert(`✅ Import complete!\n${updated} employees updated · ${added} new employees added`);
   }
 
   // ── Download template with two-row header ──
@@ -608,7 +778,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                         boxShadow:"0 8px 24px rgba(0,0,0,0.15)", zIndex:200, padding:10,
                         minWidth:160, textAlign:"left" }}>
                         <div style={{ fontSize:11, fontWeight:700, color:"#0F2744", marginBottom:6 }}>
-                          Filter — {day}
+                          Filter -- {day}
                         </div>
                         {/* Clear */}
                         <button onClick={()=>{ setDayFilters(p=>({...p,[day]:[]})); }}
@@ -664,7 +834,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
           </thead>
           <tbody>
             {employees.map((emp,ri) => {
-              // Apply day filters — hide row if ALL filtered days don't match
+              // Apply day filters -- hide row if ALL filtered days don't match
               const isFiltered = DAYS.some(day => {
                 const f = dayFilters[day]||[];
                 if (f.length===0) return false;
@@ -770,10 +940,10 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
 
       {/* Swap Shift Modal */}
       {showSwap && (
-        <Modal title="🔄 Swap Shift — تبديل الشفتات" onClose={()=>setShowSwap(false)} width={480}>
+        <Modal title="🔄 Swap Shift -- تبديل الشفتات" onClose={()=>setShowSwap(false)} width={480}>
           <div style={{ background:"#F3E8FF", border:"1px solid #C4B5FD", borderRadius:8,
             padding:"10px 14px", marginBottom:14, fontSize:12, color:"#5B21B6" }}>
-            اختر موظفين واليوم المراد تبديل شفتاتهم — سيتم التبديل فوراً وحفظه تلقائياً.
+            اختر موظفين واليوم المراد تبديل شفتاتهم -- سيتم التبديل فوراً وحفظه تلقائياً.
           </div>
 
           <label style={LBL}>اليوم</label>
@@ -787,7 +957,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
               <label style={LBL}>الموظف الأول</label>
               <select value={swapEmp1} onChange={e=>{ setSwapEmp1(e.target.value); setSwapDone(""); }}
                 style={I()}>
-                <option value="">— اختر —</option>
+                <option value="">-- اختر --</option>
                 {employees.map(e => {
                   const sid = (schedule[e.id]||{})[swapDay];
                   const sh = shifts.find(s=>s.id===sid);
@@ -804,7 +974,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
               <label style={LBL}>الموظف الثاني</label>
               <select value={swapEmp2} onChange={e=>{ setSwapEmp2(e.target.value); setSwapDone(""); }}
                 style={I()}>
-                <option value="">— اختر —</option>
+                <option value="">-- اختر --</option>
                 {employees.filter(e=>e.id!==swapEmp1).map(e => {
                   const sid = (schedule[e.id]||{})[swapDay];
                   const sh = shifts.find(s=>s.id===sid);
@@ -826,7 +996,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
             const s2 = shifts.find(s=>s.id===(schedule[swapEmp2]||{})[swapDay]);
             return (
               <div style={{ background:"#F8FAFC", borderRadius:8, padding:"10px 14px", marginBottom:14, fontSize:12 }}>
-                <div style={{ fontWeight:700, color:"#0F2744", marginBottom:6 }}>معاينة التبديل — {swapDay}</div>
+                <div style={{ fontWeight:700, color:"#0F2744", marginBottom:6 }}>معاينة التبديل -- {swapDay}</div>
                 <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
                   <div style={{ background: s1?.color+"20"||"#F1F5F9", border:`1px solid ${s1?.color||"#CBD5E1"}`,
                     borderRadius:6, padding:"4px 10px", fontSize:11, fontWeight:700, color:s1?.color||"#64748B" }}>
@@ -911,7 +1081,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
 
       {/* Import Preview Modal */}
       {showImport && (
-        <Modal title={`📥 Import Preview — ${importPreview.length} employees`} onClose={()=>setShowImport(false)} width={820}>
+        <Modal title={`📥 Import Preview -- ${importPreview.length} employees`} onClose={()=>setShowImport(false)} width={820}>
           {/* Format guide */}
           <div style={{ background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:8, padding:"10px 14px", marginBottom:14, fontSize:12, color:"#1D4ED8" }}>
             <strong>Accepted values per cell:</strong> &nbsp;
@@ -997,10 +1167,10 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
       const start = toMin(sh.start);
       const end   = toMin(sh.end);
       if (end > start) {
-        // Normal shift e.g. 08:00–16:00
+        // Normal shift e.g. 08:00-16:00
         if (nowMin >= start && nowMin < end) return sh.id;
       } else {
-        // Midnight-crossing shift e.g. 20:00–04:00
+        // Midnight-crossing shift e.g. 20:00-04:00
         if (nowMin >= start || nowMin < end) return sh.id;
       }
     }
@@ -1051,7 +1221,7 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
     return diff;
   }
   function fmtDuration(mins) {
-    if (mins === null || mins === undefined) return "—";
+    if (mins === null || mins === undefined) return "--";
     const h = Math.floor(mins/60), m = mins%60;
     return `${h}h ${pad(m)}m`;
   }
@@ -1129,7 +1299,7 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
         ))}
       </div>
 
-      {/* Shift Tabs — active one highlighted automatically */}
+      {/* Shift Tabs -- active one highlighted automatically */}
       <div style={{ display:"flex", gap:6, marginBottom:8, flexWrap:"wrap", alignItems:"center" }}>
         {shifts.map(sh => {
           const isActive = activeShift===sh.id;
@@ -1153,7 +1323,7 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
         {/* Auto-detect indicator */}
         {autoShift && date===todayStr() && (
           <span style={{ fontSize:11, color:"#10B981", fontWeight:600, display:"flex", alignItems:"center", gap:4 }}>
-            🟢 Auto-detected: <strong>{activeShiftObj?.label} ({activeShiftObj?.start}–{activeShiftObj?.end})</strong>
+            🟢 Auto-detected: <strong>{activeShiftObj?.label} ({activeShiftObj?.start}-{activeShiftObj?.end})</strong>
           </span>
         )}
       </div>
@@ -1164,7 +1334,7 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
           borderRadius:8, padding:"8px 16px", marginBottom:12,
           display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
           <span style={{ fontWeight:700, color:activeShiftObj.color, fontSize:13 }}>
-            ⏰ {activeShiftObj.label} · {activeShiftObj.start} – {activeShiftObj.end}
+            ⏰ {activeShiftObj.label} · {activeShiftObj.start} - {activeShiftObj.end}
           </span>
           <span style={{ fontSize:12, color:"#475569" }}>
             {shiftEmployees.length} employees scheduled on <strong>{dayName}</strong>
@@ -1227,18 +1397,18 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
                       style={{ ...I({ width:110, border: isEarlyLeave&&att.checkOut?"2px solid #8B5CF6":"1px solid #CBD5E1" })}}/>
                   </td>
                   <td style={{ padding:"8px", color:att.lateMin>=7?"#EF4444":"#94A3B8", fontWeight:600 }}>
-                    {att.lateMin>0 ? att.lateMin+"m" : "—"}
+                    {att.lateMin>0 ? att.lateMin+"m" : "--"}
                   </td>
                   <td style={{ padding:"8px" }}>
                     <div style={{ fontWeight:700, color: dur!==null&&dur<(activeShiftObj?toMin(activeShiftObj.end)-toMin(activeShiftObj.start):480)?"#F59E0B":"#10B981", fontSize:13 }}>
-                      {dur !== null ? fmtDuration(dur) : "—"}
+                      {dur !== null ? fmtDuration(dur) : "--"}
                     </div>
                     {dur !== null && <div style={{ fontSize:10, color:"#94A3B8" }}>{dur} min</div>}
                   </td>
                   <td style={{ padding:"8px" }}>
                     {isEarlyLeave && dur !== null
                       ? <div style={{ fontWeight:700, color:"#8B5CF6", fontSize:13 }}>{fmtDuration(dur)}<div style={{fontSize:10,color:"#94A3B8"}}>from check-in</div></div>
-                      : <span style={{ color:"#94A3B8" }}>—</span>
+                      : <span style={{ color:"#94A3B8" }}>--</span>
                     }
                   </td>
                   <td style={{ padding:"8px" }}>
@@ -1286,8 +1456,8 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
 
   function getShiftLabel(empId) {
     const sid = (schedule[empId]||{})[dayName];
-    if (!sid||sid==="OFF") return "—";
-    return shifts.find(s=>s.id===sid)?.label||"—";
+    if (!sid||sid==="OFF") return "--";
+    return shifts.find(s=>s.id===sid)?.label||"--";
   }
 
   return (
@@ -1356,7 +1526,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
   );
 }
 
-// ─── HEAT MAP PAGE — reads data from Queue ────────────────────────────────────
+// ─── HEAT MAP PAGE -- reads data from Queue ────────────────────────────────────
 function HeatMapPage({ queueLog }) {
   const [date, setDate] = useState(todayStr());
 
@@ -1422,7 +1592,7 @@ function HeatMapPage({ queueLog }) {
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:16 }}>
         <div style={{ ...CRD(), borderTop:"3px solid #EF4444" }}>
           <div style={LBL}>Peak Hour</div>
-          <div style={{ fontSize:22, fontWeight:800, color:"#EF4444" }}>{total>0 ? peakHour : "—"}</div>
+          <div style={{ fontSize:22, fontWeight:800, color:"#EF4444" }}>{total>0 ? peakHour : "--"}</div>
           <div style={{ fontSize:12, color:"#94A3B8" }}>{total>0 ? (hourlyData[peakHour]||0)+" cases" : "No data yet"}</div>
         </div>
         <div style={{ ...CRD(), borderTop:"3px solid #2563EB" }}>
@@ -1432,7 +1602,7 @@ function HeatMapPage({ queueLog }) {
         </div>
         <div style={{ ...CRD(), borderTop:"3px solid #10B981" }}>
           <div style={LBL}>Recommended Breaks</div>
-          <div style={{ fontSize:14, fontWeight:700, color:"#10B981" }}>{breakWindows.filter(h=>(hourlyData[h]||0)===0).slice(0,3).join(", ")||"—"}</div>
+          <div style={{ fontSize:14, fontWeight:700, color:"#10B981" }}>{breakWindows.filter(h=>(hourlyData[h]||0)===0).slice(0,3).join(", ")||"--"}</div>
           <div style={{ fontSize:12, color:"#94A3B8" }}>lowest activity windows</div>
         </div>
       </div>
@@ -1441,7 +1611,7 @@ function HeatMapPage({ queueLog }) {
       <div style={{ ...CRD(), padding:16 }}>
         {total === 0 && (
           <div style={{ textAlign:"center", padding:"24px 0", color:"#94A3B8", fontSize:13 }}>
-            📭 No data yet — enter Queue data and click <strong>احسب</strong> to populate this chart.
+            📭 No data yet -- enter Queue data and click <strong>احسب</strong> to populate this chart.
           </div>
         )}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:8 }}>
@@ -1482,7 +1652,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
     setCalcDone(false);
   }
 
-  // Queue categories — grouped
+  // Queue categories -- grouped
   const KSA_FIELDS = [
     { key:"tga",    label:"TGA",   color:"#6366F1", flag:"🇸🇦" },
     { key:"ob",     label:"OB",    color:"#0EA5E9", flag:"🇸🇦" },
@@ -1528,7 +1698,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
     return `${Math.floor(d/60)}h ${d%60}m`;
   }
 
-  // ── احسب — calculate & push snapshot to heatmap ──
+  // ── احسب -- calculate & push snapshot to heatmap ──
   function calculate() {
     if (!data.updTime) { alert("Please enter an Update Time first."); return; }
     // Save snapshot total to heatmap
@@ -1575,7 +1745,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
         <button onClick={calculate}
           style={{ ...PBT(calcDone?"#10B981":"#2563EB", { padding:"8px 24px", fontSize:14, marginLeft:"auto",
             boxShadow: calcDone?"none":"0 0 0 3px #2563EB30", transition:"all 0.2s" }) }}>
-          {calcDone ? "✅ محسوب — Heat Map Updated" : "🧮 احسب"}
+          {calcDone ? "✅ محسوب -- Heat Map Updated" : "🧮 احسب"}
         </button>
       </div>
 
@@ -1590,7 +1760,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
         ))}
       </div>
 
-      {/* Queue tables — KSA then GCC */}
+      {/* Queue tables -- KSA then GCC */}
       {[
         { title:"🇸🇦 KSA Queue", fields: KSA_FIELDS, accent:"#2563EB" },
         { title:"🌍 GCC Queue",  fields: GCC_FIELDS,  accent:"#10B981" },
@@ -1983,7 +2153,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                     </div>
                   </td>
                   <td style={{ padding:"8px 10px", fontWeight:700, color:"#475569" }}>
-                    {endStr || "—"}
+                    {endStr || "--"}
                   </td>
                   <td style={{ padding:"8px 10px" }}>
                     <span style={{ background:statusColor+"18", color:statusColor,
@@ -2005,7 +2175,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                     ) : entry.overMin > 0 ? (
                       <span style={{ fontSize:12, color:"#EF4444", fontWeight:700 }}>+{entry.overMin}m recorded</span>
                     ) : (
-                      <span style={{ color:"#CBD5E1", fontSize:12 }}>—</span>
+                      <span style={{ color:"#CBD5E1", fontSize:12 }}>--</span>
                     )}
                   </td>
                 </tr>
@@ -2064,12 +2234,12 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
 // ─── LIVE FLOOR PAGE ──────────────────────────────────────────────────────────
 function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance, breakSchedule, setBreakSchedule }) {
   const [now, setNow] = useState(new Date());
-  const [shortBreaks, setShortBreaks] = useState({}); // empId → [{start, durationMin}] — Short Breaks
+  const [shortBreaks, setShortBreaks] = useState({}); // empId → [{start, durationMin}] -- Short Breaks
   const [showShortModal, setShowShortModal] = useState(null);
   const [shortStart, setShortStart]   = useState("");
   const [shortDur, setShortDur]       = useState(15);
 
-  // Live clock — updates every minute
+  // Live clock -- updates every minute
   useState(()=>{ const t=setInterval(()=>setNow(new Date()),60000); return()=>clearInterval(t); });
 
   const nowMin  = now.getHours()*60 + now.getMinutes();
@@ -2109,7 +2279,7 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
     setShortStart(""); setShortDur(15); setShowShortModal(null);
   }
 
-  // Per-employee status — fully automatic from breakSchedule
+  // Per-employee status -- fully automatic from breakSchedule
   function getEmpStatus(emp) {
     const entry = getScheduledBreak(emp);
     if (!entry) return { status:"Online", elapsed:0, over:0, isOvertime:false };
@@ -2170,8 +2340,8 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
   const total        = workingNow.length;
   const pressureRatio = total>0 ? onlineCount/total : 1;
   const pressure = pressureRatio>=0.8 ? {label:"✅ Staffing Sufficient", color:"#10B981", bg:"#F0FDF4"}
-                 : pressureRatio>=0.6 ? {label:"⚠️ Staffing Low — Monitor", color:"#F59E0B", bg:"#FEF9C3"}
-                 : {label:"🚨 Critical Shortage — Immediate Action Required", color:"#EF4444", bg:"#FEF2F2"};
+                 : pressureRatio>=0.6 ? {label:"⚠️ Staffing Low -- Monitor", color:"#F59E0B", bg:"#FEF9C3"}
+                 : {label:"🚨 Critical Shortage -- Immediate Action Required", color:"#EF4444", bg:"#FEF2F2"};
 
   return (
     <div>
@@ -2207,7 +2377,7 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
       {workingNow.length > 0 && workingNow.every(e=>!getScheduledBreak(e)) && (
         <div style={{ background:"#FEF9C3", border:"1px solid #F59E0B", borderRadius:8,
           padding:"10px 16px", marginBottom:16, fontSize:13, color:"#92400E", display:"flex", gap:10, alignItems:"center" }}>
-          ⚠️ No break schedule found for today. Go to the <strong>Break</strong> page to schedule breaks — they will appear here automatically.
+          ⚠️ No break schedule found for today. Go to the <strong>Break</strong> page to schedule breaks -- they will appear here automatically.
         </div>
       )}
 
@@ -2299,7 +2469,7 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
                 </div>
               )}
 
-              {/* Overtime input — shown when on break and over time */}
+              {/* Overtime input -- shown when on break and over time */}
               {es.status==="Break" && es.isOvertime && (
                 <div style={{ marginBottom:10, display:"flex", alignItems:"center", gap:8 }}>
                   <span style={{ fontSize:12, color:"#EF4444", fontWeight:600 }}>Record overtime:</span>
@@ -2338,7 +2508,7 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
 
       {/* Short Break Modal */}
       {showShortModal && (
-        <Modal title={`⚡ Short Break — ${employees.find(e=>e.id===showShortModal)?.name}`}
+        <Modal title={`⚡ Short Break -- ${employees.find(e=>e.id===showShortModal)?.name}`}
           onClose={()=>setShowShortModal(null)} width={380}>
           <label style={LBL}>وقت البداية</label>
           <input type="time" value={shortStart} onChange={e=>setShortStart(e.target.value)} style={{ ...I(), marginBottom:12 }}/>
@@ -2459,7 +2629,7 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
       {/* Shift header + KPI strip */}
       {sh && (
         <div style={{ background: sh.color+"18", border:`1.5px solid ${sh.color}40`, borderRadius:10, padding:"12px 18px", marginBottom:14, display:"flex", alignItems:"center", gap:20, flexWrap:"wrap" }}>
-          <div style={{ fontWeight:800, color:sh.color, fontSize:15 }}>⏰ {sh.label} &nbsp; {sh.start} – {sh.end}</div>
+          <div style={{ fontWeight:800, color:sh.color, fontSize:15 }}>⏰ {sh.label} &nbsp; {sh.start} - {sh.end}</div>
           <div style={{ fontWeight:700, fontSize:13, color:"#0F2744" }}>{shiftEmployees.length} scheduled</div>
           {Object.entries(roleGroups).map(([role,count]) => (
             <span key={role} style={{ fontSize:12, background:"#fff", border:`1px solid ${sh.color}60`, borderRadius:10, padding:"3px 10px", color:"#475569", fontWeight:600 }}>
@@ -2524,11 +2694,11 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
         <span>🗑️ Delete permanently</span>
       </div>
 
-      {/* Add Modal — assigns to current shift+day automatically */}
+      {/* Add Modal -- assigns to current shift+day automatically */}
       {showAdd && (
         <Modal title={`Add Employee to ${sh?.label||""} · ${dayName}`} onClose={()=>setShowAdd(false)}>
           <div style={{ background:"#EFF6FF", borderRadius:6, padding:"8px 12px", marginBottom:14, fontSize:12, color:"#1D4ED8" }}>
-            سيتم تعيين الموظف تلقائياً على شفت <strong>{sh?.label} ({sh?.start}–{sh?.end})</strong> يوم <strong>{dayName}</strong>
+            سيتم تعيين الموظف تلقائياً على شفت <strong>{sh?.label} ({sh?.start}-{sh?.end})</strong> يوم <strong>{dayName}</strong>
           </div>
           <label style={LBL}>Name</label>
           <input style={{ ...I(), marginBottom:12 }} value={newEmp.name} onChange={e=>setNewEmp(p=>({...p,name:e.target.value}))} placeholder="Full name" autoFocus/>
@@ -2598,7 +2768,7 @@ function ShiftsPage({ shifts, setShifts }) {
             <div style={{ background:sh.color, padding:"14px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div>
                 <div style={{ color:"#fff", fontWeight:800, fontSize:16 }}>{sh.label}</div>
-                <div style={{ color:"rgba(255,255,255,0.85)", fontSize:13 }}>{sh.start} – {sh.end}</div>
+                <div style={{ color:"rgba(255,255,255,0.85)", fontSize:13 }}>{sh.start} - {sh.end}</div>
               </div>
               <div style={{ display:"flex", gap:6 }}>
                 <button onClick={()=>{setEditId(sh.id);setEditData({...sh});}}
@@ -2864,7 +3034,7 @@ Generated: ${new Date().toLocaleString()}`;
     const top3   = scorecard.slice(0,3);
     const bottom = scorecard.filter(s=>s.score<60);
 
-    return `📅 MONTHLY OPERATIONS REPORT — ${monthStr} [${shiftLabel}]
+    return `📅 MONTHLY OPERATIONS REPORT -- ${monthStr} [${shiftLabel}]
 ${"=".repeat(60)}
 
 📊 EXECUTIVE SUMMARY
@@ -2875,15 +3045,15 @@ Total Late Time: ${totalLateMin} minutes
 
 🏆 TOP PERFORMERS
 ──────────────────
-${top3.map((s,i)=>`${["🥇","🥈","🥉"][i]} ${s.emp.name} — Score: ${s.score} | Att: ${s.attRate}% | Avg Work: ${s.avgWorkHFmt}`).join("\n")}
+${top3.map((s,i)=>`${["🥇","🥈","🥉"][i]} ${s.emp.name} -- Score: ${s.score} | Att: ${s.attRate}% | Avg Work: ${s.avgWorkHFmt}`).join("\n")}
 
 ⚠️ NEEDS ATTENTION
 ────────────────────
-${bottom.length>0 ? bottom.map(s=>`• ${s.emp.name} — Score: ${s.score} | Abs: ${s.s.abs} | Late: ${s.s.lateCount}x`).join("\n") : "All employees performing well"}
+${bottom.length>0 ? bottom.map(s=>`• ${s.emp.name} -- Score: ${s.score} | Abs: ${s.s.abs} | Late: ${s.s.lateCount}x`).join("\n") : "All employees performing well"}
 
 📋 FULL ATTENDANCE AUDIT
 ─────────────────────────
-${employees.map(e=>{const s=stats[e.id]; return `${e.name}: WorkDays=${s.workDays} | Abs=${s.abs} | Late=${s.lateCount}x (${s.lateMin}m) | AvgWork=${s.workDays>0?Math.floor(s.totalWorkMin/s.workDays/60)+"h":"—"}`;}).join("\n")}
+${employees.map(e=>{const s=stats[e.id]; return `${e.name}: WorkDays=${s.workDays} | Abs=${s.abs} | Late=${s.lateCount}x (${s.lateMin}m) | AvgWork=${s.workDays>0?Math.floor(s.totalWorkMin/s.workDays/60)+"h":"--"}`;}).join("\n")}
 
 🎯 BALANCED SCORECARD
 ──────────────────────
@@ -2946,7 +3116,7 @@ Generated: ${new Date().toLocaleString()}`;
               <select value={opsStatus} onChange={e=>setOpsStatus(e.target.value)} style={{ ...I(), marginBottom:8 }}>
                 <option>🔴 CRITICAL BUT HIGHLY ACTIVE</option>
                 <option>🔴 CRITICAL</option>
-                <option>🟡 WARNING — MONITOR CLOSELY</option>
+                <option>🟡 WARNING -- MONITOR CLOSELY</option>
                 <option>🟢 STABLE</option>
                 <option>🟢 STABLE & IMPROVING</option>
               </select>
@@ -2976,7 +3146,7 @@ Generated: ${new Date().toLocaleString()}`;
                       <input type="number" min="0" value={curr} onChange={e=>setCurr(e.target.value)} style={I()} placeholder="0"/></div>
                     <div style={{ paddingTop:18, fontWeight:800, fontSize:13,
                       color: resolved(base,inflow,curr)>0?"#10B981":"#EF4444" }}>
-                      {n(base)||n(inflow)||n(curr) ? `✅ ${resolved(base,inflow,curr)}` : "—"}
+                      {n(base)||n(inflow)||n(curr) ? `✅ ${resolved(base,inflow,curr)}` : "--"}
                     </div>
                   </div>
                 </div>
@@ -3001,7 +3171,7 @@ Generated: ${new Date().toLocaleString()}`;
                       <input type="number" min="0" value={curr} onChange={e=>setCurr(e.target.value)} style={I()} placeholder="0"/></div>
                     <div style={{ paddingTop:18, fontWeight:800, fontSize:13,
                       color: resolved(base,inflow,curr)>0?"#10B981":"#EF4444" }}>
-                      {n(base)||n(inflow)||n(curr) ? `✅ ${resolved(base,inflow,curr)}` : "—"}
+                      {n(base)||n(inflow)||n(curr) ? `✅ ${resolved(base,inflow,curr)}` : "--"}
                     </div>
                   </div>
                 </div>
@@ -3299,7 +3469,7 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
                             {new Date(lastEdit.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})} {new Date(lastEdit.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}
                           </div>
                         </div>
-                      : <span style={{ color:"#CBD5E1" }}>—</span>
+                      : <span style={{ color:"#CBD5E1" }}>--</span>
                     }
                   </td>
                   <td style={{ padding:"10px 12px" }}>
@@ -3314,7 +3484,7 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
       </div>
 
       {editEmp && (
-        <Modal title={`Edit Tasks — ${editEmp.name}`} onClose={()=>setEditEmp(null)} width={560}>
+        <Modal title={`Edit Tasks -- ${editEmp.name}`} onClose={()=>setEditEmp(null)} width={560}>
           <div style={{ marginBottom:10, fontSize:12, color:"#64748B" }}>
             Select tasks assigned to <strong>{editEmp.name}</strong>. Changes will be logged with your name.
           </div>
@@ -3432,7 +3602,7 @@ function AuditLogPage({ auditLog, session }) {
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
             <span style={{ fontSize:16 }}>🔒</span>
             <span style={{ fontWeight:800, fontSize:14, color:"#0F2744" }}>Data Edit History</span>
-            <span style={{ fontSize:12, color:"#64748B" }}>— جميع التعديلات على البيانات مسجّلة · لا يمكن حذفها</span>
+            <span style={{ fontSize:12, color:"#64748B" }}>-- جميع التعديلات على البيانات مسجّلة · لا يمكن حذفها</span>
           </div>
 
           {/* Edit counts per user */}
@@ -3504,7 +3674,7 @@ function AuditLogPage({ auditLog, session }) {
         <div style={{ marginBottom:20 }}>
           <div style={{ fontWeight:700, fontSize:14, color:"#0F2744", marginBottom:10, display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
             👥 User Activity Overview
-            <span style={{ fontSize:11, fontWeight:400, color:"#94A3B8" }}>— based on last recorded action per user</span>
+            <span style={{ fontSize:11, fontWeight:400, color:"#94A3B8" }}>-- based on last recorded action per user</span>
             <select value={activityFilter} onChange={e=>setActivityFilter(e.target.value)}
               style={{ ...I({ width:140, marginBottom:0 }) }}>
               <option value="All">All Users</option>
@@ -3661,7 +3831,7 @@ function waitForXLSX() {
 const SUPABASE_URL = "https://ohbgpdsuaointhidnmps.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oYmdwZHN1YW9pbnRoaWRubXBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzI3MjMsImV4cCI6MjA4OTQ0ODcyM30.pEIUTSpOnMIFCJLWT07nk-8nDVZmepw6vaDEkzKQ-I0";
 
-// Light Supabase client — no npm needed
+// Light Supabase client -- no npm needed
 const sb = {
   async from(table) {
     const base = `${SUPABASE_URL}/rest/v1/${table}`;
@@ -3723,7 +3893,7 @@ function useSupabaseState(key, defaultVal, loader, saver) {
       }
       setLoaded(true);
     }).catch(() => setLoaded(true));
-  }, [])(); // IIFE pattern — runs once
+  }, [])(); // IIFE pattern -- runs once
 
   const set = useCallback((val) => {
     setState(prev => {
@@ -3788,21 +3958,47 @@ const ROLE_CAN_EDIT = {
   "Agent":        false,
 };
 const ROLE_COLORS = {
-  "Team Lead":    "#2563EB",
+  "Team Lead":    "#3B82F6",
   "Shift Leader": "#8B5CF6",
   "SME":          "#10B981",
   "Agent":        "#64748B",
 };
 const ROLE_ICONS = { "Team Lead":"👑", "Shift Leader":"🛡️", "SME":"🧠", "Agent":"👤" };
-const ROLE_DESC  = {
-  "Team Lead":    "Full access · Can edit everything",
-  "Shift Leader": "Full access · Can edit everything",
-  "SME":          "Full access · Can edit everything",
-  "Agent":        "View only · Cannot make changes",
+const ROLE_DESC_EN = {
+  "Team Lead":    "Full access · Password required",
+  "Shift Leader": "Full access · Password required",
+  "SME":          "Full access · Password required",
+  "Agent":        "View only · No password",
+};
+const ROLE_DESC_AR = {
+  "Team Lead":    "وصول كامل · يلزم كلمة مرور",
+  "Shift Leader": "وصول كامل · يلزم كلمة مرور",
+  "SME":          "وصول كامل · يلزم كلمة مرور",
+  "Agent":        "عرض فقط · لا يلزم رقم سري",
 };
 
+// ─── DAILY TIPS ───────────────────────────────────────────────────────────────
+const DAILY_TIPS_EN = [
+  "💡 Start each shift with a quick team check-in to align priorities.",
+  "📊 Document escalations immediately — details fade fast.",
+  "☕ A proactive break schedule reduces errors by up to 30%.",
+  "🎯 Clear queue data = better staffing decisions tomorrow.",
+  "⭐ Recognition boosts productivity — acknowledge good work daily.",
+  "🔄 Review yesterday's performance before today's planning.",
+  "📱 Keep the team informed — communication prevents most issues.",
+];
+const DAILY_TIPS_AR = [
+  "💡 ابدأ كل شفت بفحص سريع للفريق لمواءمة الأولويات.",
+  "📊 وثّق التصعيدات فوراً — التفاصيل تُنسى بسرعة.",
+  "☕ جدولة الاستراحات بشكل استباقي تقلل الأخطاء بنسبة 30%.",
+  "🎯 بيانات قائمة الانتظار الواضحة = قرارات توظيف أفضل غداً.",
+  "⭐ التقدير يرفع الإنتاجية — اعترف بالعمل الجيد يومياً.",
+  "🔄 راجع أداء الأمس قبل تخطيط اليوم.",
+  "📱 أبقِ الفريق على اطلاع — التواصل يمنع معظم المشاكل.",
+];
+
 // ─── LOGIN SCREEN ─────────────────────────────────────────────────────────────
-function LoginScreen({ onLogin, employees }) {
+function LoginScreen({ onLogin, employees, lang, setLang }) {
   const [selectedRole, setSelectedRole] = useState("Team Lead");
   const [selectedName, setSelectedName] = useState("");
   const [password, setPassword]         = useState("");
@@ -3812,187 +4008,229 @@ function LoginScreen({ onLogin, employees }) {
   const [showPw, setShowPw]             = useState(false);
   const [step, setStep]                 = useState("login");
 
-  const isAgent       = selectedRole === "Agent";
-  const roleColor     = ROLE_COLORS[selectedRole];
+  const isRTL = lang === "ar";
+  const tr = (key) => T[lang]?.[key] || T.en[key] || key;
+  const isAgent = selectedRole === "Agent";
+  const roleColor = ROLE_COLORS[selectedRole];
   const roleEmployees = employees.filter(e => e.role === selectedRole);
 
   function handleNameChange(name) {
-    setSelectedName(name);
-    setError("");
-    setPassword("");
-    if (name && !isAgent) {
-      setStep(getUserPw(name) ? "login" : "setup");
-    } else {
-      setStep("login");
-    }
+    setSelectedName(name); setError(""); setPassword("");
+    if (name && !isAgent) setStep(getUserPw(name) ? "login" : "setup");
+    else setStep("login");
   }
 
   function tryLogin() {
-    // Agent: select name → sign in directly, no password
     if (isAgent) {
-      if (!selectedName) { setError("Please select your name."); return; }
-      onLogin({ role: "Agent", name: selectedName });
+      if (!selectedName) { setError(tr("selectYourName")); return; }
+      onLogin({ role:"Agent", name:selectedName });
       return;
     }
-    if (!selectedName) { setError("Please select your name."); return; }
+    if (!selectedName) { setError(tr("selectYourName")); return; }
     const existing = getUserPw(selectedName);
     if (!existing) { setStep("setup"); return; }
-    if (!password) { setError("Please enter your password."); return; }
-    if (password !== existing) {
-      setError("Incorrect password. Please try again.");
-      setPassword(""); return;
-    }
-    setError("");
-    onLogin({ role: selectedRole, name: selectedName });
+    if (!password) { setError(tr("password") + "..."); return; }
+    if (password !== existing) { setError(tr("incorrectPassword")); setPassword(""); return; }
+    onLogin({ role:selectedRole, name:selectedName });
   }
 
   function setupPassword() {
-    if (!newPw1 || newPw1.length < 4) { setError("Password must be at least 4 characters."); return; }
-    if (newPw1 !== newPw2) { setError("Passwords do not match."); return; }
+    if (!newPw1 || newPw1.length < 4) { setError("4+ characters required"); return; }
+    if (newPw1 !== newPw2) { setError("Passwords do not match"); return; }
     setUserPw(selectedName, newPw1);
-    setError("");
-    onLogin({ role: selectedRole, name: selectedName });
+    onLogin({ role:selectedRole, name:selectedName });
   }
 
-  return (
-    <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0F2744 0%,#1E3A5F 50%,#0F2744 100%)",
-      display:"flex", alignItems:"center", justifyContent:"center",
-      fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", padding:16 }}>
-      <div style={{ width:"100%", maxWidth:460, background:"#fff", borderRadius:16,
-        overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.4)" }}>
+  const dayTip = (lang === "ar" ? DAILY_TIPS_AR : DAILY_TIPS_EN)[new Date().getDay() % DAILY_TIPS_EN.length];
 
-        {/* Header */}
-        <div style={{ background:"#0F2744", padding:"28px 32px 24px", textAlign:"center" }}>
-          <div style={{ fontSize:36, marginBottom:8 }}>🎯</div>
-          <div style={{ color:"#fff", fontWeight:800, fontSize:22 }}>CS Operations</div>
-          <div style={{ color:"rgba(255,255,255,0.5)", fontSize:13, marginTop:4 }}>Management System</div>
-          <div style={{ marginTop:10, display:"inline-flex", background:"#10B981", borderRadius:20, padding:"3px 12px" }}>
-            <span style={{ fontSize:10, color:"#fff", fontWeight:700 }}>💾 Auto-saved · Secure Login</span>
+  return (
+    <div dir={isRTL?"rtl":"ltr"} style={{
+      minHeight:"100vh", minHeight:"100dvh",
+      background:"linear-gradient(135deg,#0A0F1E 0%,#0F2744 50%,#0A0F1E 100%)",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", padding:16,
+      position:"relative", overflow:"hidden"
+    }}>
+      {/* Background decoration */}
+      <div style={{ position:"absolute", inset:0, overflow:"hidden", pointerEvents:"none" }}>
+        <div style={{ position:"absolute", top:"-20%", right:"-10%", width:400, height:400,
+          borderRadius:"50%", background:"radial-gradient(circle,#3B82F620 0%,transparent 70%)" }}/>
+        <div style={{ position:"absolute", bottom:"-10%", left:"-10%", width:300, height:300,
+          borderRadius:"50%", background:"radial-gradient(circle,#8B5CF620 0%,transparent 70%)" }}/>
+      </div>
+
+      {/* Lang toggle top */}
+      <div style={{ position:"absolute", top:20, right:20 }}>
+        <button onClick={()=>setLang(lang==="en"?"ar":"en")}
+          style={{ background:"rgba(59,130,246,0.2)", border:"1px solid #3B82F640",
+            color:"#93C5FD", borderRadius:20, padding:"6px 16px", cursor:"pointer",
+            fontSize:13, fontWeight:700, backdropFilter:"blur(4px)" }}>
+          {lang==="en"?"🌐 العربية":"🌐 English"}
+        </button>
+      </div>
+
+      <div style={{ width:"100%", maxWidth:460, zIndex:1 }}>
+        {/* Header card */}
+        <div style={{ background:"linear-gradient(135deg,#1F2937,#111827)",
+          border:"1px solid #374151", borderRadius:"16px 16px 0 0",
+          padding:"32px 32px 24px", textAlign:"center",
+          boxShadow:"0 4px 24px rgba(0,0,0,0.5)" }}>
+          <div style={{ fontSize:48, marginBottom:8 }}>🎯</div>
+          <div style={{ color:"#F9FAFB", fontWeight:800, fontSize:24, letterSpacing:-0.5 }}>
+            {tr("appName")}
+          </div>
+          <div style={{ color:"#9CA3AF", fontSize:13, marginTop:4 }}>{tr("appSub")}</div>
+          <div style={{ marginTop:12, display:"inline-flex", alignItems:"center", gap:6,
+            background:"rgba(16,185,129,0.15)", border:"1px solid rgba(16,185,129,0.3)",
+            borderRadius:20, padding:"4px 14px" }}>
+            <div style={{ width:6, height:6, borderRadius:"50%", background:"#10B981" }}/>
+            <span style={{ fontSize:11, color:"#10B981", fontWeight:700 }}>
+              💾 {tr("autoSaved")} · Secure
+            </span>
+          </div>
+          {/* Daily tip */}
+          <div style={{ marginTop:14, background:"rgba(59,130,246,0.1)", border:"1px solid #3B82F630",
+            borderRadius:8, padding:"8px 12px", fontSize:12, color:"#93C5FD",
+            textAlign: isRTL ? "right" : "left" }}>
+            {dayTip}
           </div>
         </div>
 
-        <div style={{ padding:"24px 32px 28px" }}>
+        {/* Form card */}
+        <div style={{ background:"#111827", border:"1px solid #374151",
+          borderTop:"none", borderRadius:"0 0 16px 16px",
+          padding:"24px 28px 28px", boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }}>
+
           {/* Role picker */}
-          <label style={LBL}>Select Your Role</label>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:16 }}>
-            {Object.keys(ROLE_CAN_EDIT).map(role => (
-              <button key={role} onClick={()=>{ setSelectedRole(role); setSelectedName(""); setError(""); setPassword(""); setStep("login"); }}
-                style={{ border:`2px solid ${selectedRole===role ? ROLE_COLORS[role] : "#E2E8F0"}`,
-                  borderRadius:10, padding:"10px", cursor:"pointer", textAlign:"left", transition:"all 0.15s",
-                  background: selectedRole===role ? ROLE_COLORS[role]+"12" : "#fff",
-                  display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ fontSize:20 }}>{ROLE_ICONS[role]}</span>
-                <div>
-                  <div style={{ fontSize:12, fontWeight:700, color: selectedRole===role ? ROLE_COLORS[role] : "#1E293B" }}>{role}</div>
-                  <div style={{ fontSize:10, color:"#94A3B8" }}>
-                    {role==="Agent" ? "الاسم فقط · قراءة فقط" : "Personal password"}
+          <div style={{ marginBottom:16 }}>
+            <label style={{ ...LBL, color:"#9CA3AF" }}>{tr("selectRole")}</label>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+              {Object.keys(ROLE_CAN_EDIT).map(role => (
+                <button key={role} onClick={()=>{ setSelectedRole(role); setSelectedName(""); setError(""); setPassword(""); setStep("login"); }}
+                  style={{ border:`2px solid ${selectedRole===role ? ROLE_COLORS[role] : "#374151"}`,
+                    borderRadius:10, padding:"10px 12px", cursor:"pointer",
+                    textAlign: isRTL ? "right" : "left", transition:"all 0.15s",
+                    background: selectedRole===role ? ROLE_COLORS[role]+"18" : "#1F2937",
+                    display:"flex", alignItems:"center", gap:8 }}>
+                  <span style={{ fontSize:18 }}>{ROLE_ICONS[role]}</span>
+                  <div>
+                    <div style={{ fontSize:12, fontWeight:700,
+                      color: selectedRole===role ? ROLE_COLORS[role] : "#F9FAFB" }}>{role}</div>
+                    <div style={{ fontSize:10, color:"#6B7280" }}>
+                      {lang==="ar" ? ROLE_DESC_AR[role] : ROLE_DESC_EN[role]}
+                    </div>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Name selector — ALL roles including Agent */}
+          {/* Name selector */}
           <div style={{ marginBottom:14 }}>
-            <label style={LBL}>
-              {isAgent ? "👤 اختر اسمك" : "Your Name"}
+            <label style={{ ...LBL, color:"#9CA3AF" }}>
+              {isAgent ? tr("agentNameLabel") : tr("yourName")}
             </label>
-            {roleEmployees.length > 0 ? (
-              <select value={selectedName} onChange={e=>handleNameChange(e.target.value)}
-                style={{ ...I({ border: error&&!selectedName?"2px solid #EF4444":"1px solid #CBD5E1",
-                  fontSize:14, padding:"10px 12px" }) }}>
-                <option value="">— {isAgent ? "اختر اسمك من القائمة" : "Select your name"} —</option>
-                {roleEmployees.map(e=><option key={e.id} value={e.name}>{e.name}</option>)}
-              </select>
-            ) : (
-              <input value={selectedName} onChange={e=>handleNameChange(e.target.value)}
-                style={{ ...I({ border: error&&!selectedName?"2px solid #EF4444":"1px solid #CBD5E1" }) }}
-                placeholder="Type your name..."/>
-            )}
+            <select value={selectedName} onChange={e=>handleNameChange(e.target.value)}
+              style={{ background:"#1F2937", border:`1px solid ${error&&!selectedName?"#EF4444":"#374151"}`,
+                borderRadius:8, padding:"10px 14px", fontSize:14, color:"#F9FAFB",
+                outline:"none", width:"100%", cursor:"pointer" }}>
+              <option value="">-- {tr("selectName")} --</option>
+              {roleEmployees.map(e=><option key={e.id} value={e.name}>{e.name}</option>)}
+            </select>
           </div>
 
-          {/* Agent info box */}
-          {isAgent && selectedName && (
-            <div style={{ background:"#F0FDF4", border:"1px solid #86EFAC", borderRadius:8,
-              padding:"10px 14px", marginBottom:14, fontSize:12, color:"#166534" }}>
-              👤 <strong>{selectedName}</strong> — صلاحية قراءة فقط، لا يلزم رقم سري.
-            </div>
-          )}
-          {isAgent && !selectedName && (
-            <div style={{ background:"#F8FAFC", border:"1px solid #E2E8F0", borderRadius:8,
-              padding:"10px 14px", marginBottom:14, fontSize:12, color:"#475569", textAlign:"center" }}>
-              👁️ اختر اسمك للدخول — عرض البيانات فقط بدون تعديل
+          {/* Agent hint */}
+          {isAgent && (
+            <div style={{ background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.3)",
+              borderRadius:8, padding:"10px 14px", marginBottom:14,
+              fontSize:12, color:"#6EE7B7", textAlign:isRTL?"right":"left" }}>
+              {selectedName
+                ? `👤 ${selectedName} — ${tr("agentHint")}`
+                : `👁️ ${tr("agentHint")}`}
             </div>
           )}
 
-          {/* Password — first time setup */}
+          {/* Password setup */}
           {!isAgent && selectedName && step==="setup" && (
-            <div style={{ background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:8, padding:"14px", marginBottom:14 }}>
-              <div style={{ fontWeight:700, color:"#1D4ED8", fontSize:13, marginBottom:10 }}>🔐 Set Your Personal Password</div>
-              <div style={{ fontSize:12, color:"#3B82F6", marginBottom:12 }}>
-                First time login — please create a personal password for <strong>{selectedName}</strong>.
+            <div style={{ background:"rgba(59,130,246,0.08)", border:"1px solid #3B82F630",
+              borderRadius:10, padding:"16px", marginBottom:14 }}>
+              <div style={{ fontWeight:700, color:"#60A5FA", fontSize:13, marginBottom:8 }}>
+                🔐 {tr("setPassword")}
               </div>
-              <label style={LBL}>New Password (min. 4 characters)</label>
+              <div style={{ fontSize:12, color:"#6B7280", marginBottom:12 }}>
+                {tr("firstLogin")} — <strong style={{color:"#93C5FD"}}>{selectedName}</strong>
+              </div>
+              <label style={{ ...LBL, color:"#9CA3AF" }}>{tr("newPassword")}</label>
               <div style={{ position:"relative", marginBottom:10 }}>
                 <input type={showPw?"text":"password"} value={newPw1}
                   onChange={e=>{setNewPw1(e.target.value);setError("");}}
                   onKeyDown={e=>e.key==="Enter"&&setupPassword()}
-                  style={{ ...I({ paddingRight:42, border: error?"2px solid #EF4444":"1px solid #CBD5E1" })}}
-                  placeholder="Enter new password..." autoFocus/>
+                  style={{ background:"#1F2937", border:`1px solid ${error?"#EF4444":"#374151"}`,
+                    borderRadius:8, padding:"10px 42px 10px 14px", fontSize:14, color:"#F9FAFB",
+                    outline:"none", width:"100%", boxSizing:"border-box" }}
+                  placeholder="••••••••" autoFocus/>
                 <button onClick={()=>setShowPw(p=>!p)}
-                  style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)",
-                    background:"none", border:"none", cursor:"pointer", fontSize:15, color:"#94A3B8" }}>
+                  style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
+                    background:"none", border:"none", cursor:"pointer", fontSize:15, color:"#6B7280" }}>
                   {showPw?"🙈":"👁️"}
                 </button>
               </div>
-              <label style={LBL}>Confirm Password</label>
+              <label style={{ ...LBL, color:"#9CA3AF" }}>{tr("confirmPassword")}</label>
               <input type={showPw?"text":"password"} value={newPw2}
                 onChange={e=>{setNewPw2(e.target.value);setError("");}}
                 onKeyDown={e=>e.key==="Enter"&&setupPassword()}
-                style={{ ...I({ marginBottom:10, border: error?"2px solid #EF4444":"1px solid #CBD5E1" })}}
-                placeholder="Repeat password..."/>
-              {error && <div style={{ color:"#EF4444", fontSize:12, marginBottom:8, fontWeight:600 }}>⚠️ {error}</div>}
+                style={{ background:"#1F2937", border:`1px solid ${error?"#EF4444":"#374151"}`,
+                  borderRadius:8, padding:"10px 14px", fontSize:14, color:"#F9FAFB",
+                  outline:"none", width:"100%", boxSizing:"border-box", marginBottom:10 }}
+                placeholder="••••••••"/>
+              {error && <div style={{ color:"#FCA5A5", fontSize:12, marginBottom:8 }}>⚠️ {error}</div>}
               <button onClick={setupPassword}
-                style={PBT("#2563EB",{ width:"100%", padding:"10px", fontSize:13, borderRadius:8 })}>
-                🔐 Set Password & Sign In
+                style={{ background:"#3B82F6", color:"#fff", border:"none", borderRadius:8,
+                  padding:"11px", fontSize:14, cursor:"pointer", fontWeight:700, width:"100%" }}>
+                🔐 {tr("setAndSignIn")}
               </button>
             </div>
           )}
 
-          {/* Password — existing user login */}
+          {/* Password login */}
           {!isAgent && selectedName && step==="login" && (
             <div style={{ marginBottom:16 }}>
-              <label style={LBL}>Password</label>
+              <label style={{ ...LBL, color:"#9CA3AF" }}>{tr("password")}</label>
               <div style={{ position:"relative" }}>
                 <input type={showPw?"text":"password"} value={password}
                   onChange={e=>{setPassword(e.target.value);setError("");}}
                   onKeyDown={e=>e.key==="Enter"&&tryLogin()}
-                  style={{ ...I({ paddingRight:42, border: error?"2px solid #EF4444":"1px solid #CBD5E1" })}}
-                  placeholder="Your personal password..." autoFocus/>
+                  style={{ background:"#1F2937", border:`1px solid ${error?"#EF4444":"#374151"}`,
+                    borderRadius:8, padding:"10px 42px 10px 14px", fontSize:14, color:"#F9FAFB",
+                    outline:"none", width:"100%", boxSizing:"border-box" }}
+                  placeholder="••••••••" autoFocus/>
                 <button onClick={()=>setShowPw(p=>!p)}
-                  style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)",
-                    background:"none", border:"none", cursor:"pointer", fontSize:15, color:"#94A3B8" }}>
+                  style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
+                    background:"none", border:"none", cursor:"pointer", fontSize:15, color:"#6B7280" }}>
                   {showPw?"🙈":"👁️"}
                 </button>
               </div>
-              {error && <div style={{ color:"#EF4444", fontSize:12, marginTop:6, fontWeight:600 }}>⚠️ {error}</div>}
+              {error && <div style={{ color:"#FCA5A5", fontSize:12, marginTop:6 }}>⚠️ {error}</div>}
             </div>
           )}
 
           {error && !selectedName && (
-            <div style={{ color:"#EF4444", fontSize:12, marginBottom:8, fontWeight:600 }}>⚠️ {error}</div>
+            <div style={{ color:"#FCA5A5", fontSize:12, marginBottom:8 }}>⚠️ {error}</div>
           )}
 
-          {/* Sign In button — shown when name is selected */}
+          {/* Sign in button */}
           {selectedName && (isAgent || step==="login") && (
             <button onClick={tryLogin}
-              style={{ ...PBT(roleColor, { width:"100%", padding:"12px", fontSize:14, borderRadius:10 }) }}>
-              {ROLE_ICONS[selectedRole]} {isAgent ? `دخول كـ ${selectedName.split(" ")[0]}` : `Sign In as ${selectedName.split(" ")[0]}`}
+              style={{ background:`linear-gradient(135deg,${roleColor},${roleColor}CC)`,
+                color:"#fff", border:"none", borderRadius:10, padding:"13px",
+                fontSize:15, cursor:"pointer", fontWeight:700, width:"100%",
+                boxShadow:`0 4px 20px ${roleColor}40`, marginBottom:8 }}>
+              {ROLE_ICONS[selectedRole]} {isAgent ? `${tr("enterAs")} ${selectedName.split(" ")[0]}` : `${tr("signInAs")} ${selectedName.split(" ")[0]}`}
             </button>
           )}
 
-          <div style={{ marginTop:12, textAlign:"center", fontSize:11, color:"#94A3B8" }}>
-            Data is saved locally on this device · Never leaves your browser
+          <div style={{ textAlign:"center", fontSize:11, color:"#4B5563", marginTop:8 }}>
+            🔒 Secured by Supabase · Data saved automatically
           </div>
         </div>
       </div>
@@ -4066,7 +4304,7 @@ function ReadOnlyBanner({ userName }) {
       padding:"10px 16px", marginBottom:16, display:"flex", alignItems:"center", gap:10 }}>
       <span style={{ fontSize:18 }}>👁️</span>
       <div style={{ fontSize:13, color:"#78350F" }}>
-        <strong>View Only Mode</strong> — Logged in as <strong>{userName||"Agent"}</strong>. You can browse all data but cannot make changes.
+        <strong>View Only Mode</strong> -- Logged in as <strong>{userName||"Agent"}</strong>. You can browse all data but cannot make changes.
       </div>
     </div>
   );
@@ -4080,7 +4318,39 @@ export default function App() {
   const [showResetPw, setShowResetPw] = useState(false);
   const [loading, setLoading]         = useState(true);
 
-  // ── Session (localStorage only — per device) ──────────────────────────────
+  // ── Theme + Lang + Zoom ───────────────────────────────────────────────────
+  const [themeKey, setThemeKey] = useState(() => {
+    try { return localStorage.getItem("csops_theme") || "dark"; } catch { return "dark"; }
+  });
+  const [lang, setLang] = useState(() => {
+    try { return localStorage.getItem("csops_lang") || "en"; } catch { return "en"; }
+  });
+  const [zoom, setZoom] = useState(() => {
+    try { return Number(localStorage.getItem("csops_zoom")) || 100; } catch { return 100; }
+  });
+  const [showTip, setShowTip] = useState(false);
+
+  const theme = THEMES[themeKey] || THEMES.dark;
+  setGlobalTheme(theme);
+  setGlobalLang(lang);
+  const isRTL = lang === "ar";
+  const tr = (key) => T[lang]?.[key] || T.en[key] || key;
+
+  function changeTheme(key) {
+    setThemeKey(key);
+    try { localStorage.setItem("csops_theme", key); } catch {}
+  }
+  function changeLang(l) {
+    setLang(l);
+    try { localStorage.setItem("csops_lang", l); } catch {}
+  }
+  function changeZoom(z) {
+    const clamped = Math.min(200, Math.max(50, z));
+    setZoom(clamped);
+    try { localStorage.setItem("csops_zoom", clamped); } catch {}
+  }
+
+  // ── Session ────────────────────────────────────────────────────────────────
   const [session, _setSession] = useState(() => {
     try { const r = localStorage.getItem("csops_session"); return r ? JSON.parse(r) : null; }
     catch { return null; }
@@ -4110,13 +4380,12 @@ export default function App() {
         const empT = await sb.from("employees");
         const empRows = await empT.select();
         if (empRows?.length) {
-          const emps = empRows.map(r => ({ id:r.id, name:r.name, role:r.role, tasks:r.tasks||[] }));
+          const emps = empRows.map(r => ({ id:r.id, name:r.name, role:r.role, tasks:r.tasks||[], gender:r.gender||"M" }));
           setEmployeesRaw(emps);
           localStorage.setItem("csops_employees", JSON.stringify(emps));
         } else {
-          // First time — seed with defaults
           const empT2 = await sb.from("employees");
-          await empT2.upsert(DEFAULT_EMPLOYEES.map(e=>({id:e.id,name:e.name,role:e.role,tasks:e.tasks})));
+          await empT2.upsert(DEFAULT_EMPLOYEES.map(e=>({id:e.id,name:e.name,role:e.role,tasks:e.tasks,gender:e.gender||"M"})));
           setEmployeesRaw(DEFAULT_EMPLOYEES);
         }
 
@@ -4345,7 +4614,7 @@ export default function App() {
 
   // Not logged in → show login
   if (!session) {
-    return <LoginScreen employees={employees} onLogin={sess => {
+    return <LoginScreen employees={employees} lang={lang} setLang={changeLang} onLogin={sess => {
       const entry = {
         id: "al"+Date.now()+Math.random(),
         ts: new Date().toISOString(),
@@ -4355,6 +4624,7 @@ export default function App() {
       };
       setAuditLog(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
       setSession(sess);
+      setShowTip(true);
       try { const lp = localStorage.getItem("csops_lastPage"); if(lp) setPage(lp); } catch {}
     }}/>;
   }
@@ -4363,6 +4633,11 @@ export default function App() {
   const currentName = session.name;
   const canEdit     = ROLE_CAN_EDIT[currentRole];
   const roleColor   = ROLE_COLORS[currentRole];
+  const isSuperAdmin = currentName === SUPER_ADMIN;
+  const isAgent = currentRole === "Agent";
+
+  // Pages visible to this user
+  const visiblePages = isAgent ? AGENT_PAGES : (isSuperAdmin ? [...PAGES, "Owner Analytics"] : PAGES);
 
   function navigate(p) {
     setPage(p);
@@ -4417,7 +4692,7 @@ export default function App() {
     setTimeout(() => setSession(null), 50);
   }
 
-  // After session confirmed — override navigate to log page visits
+  // After session confirmed -- override navigate to log page visits
   function navigateLogged(p) {
     setPage(p);
     try { localStorage.setItem("csops_lastPage", p); } catch {}
@@ -4439,157 +4714,236 @@ export default function App() {
     Reports:       <ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog}/>,
   };
 
-  // Page icons for mobile bottom nav
+  // Page icons
   const PAGE_ICONS = {
     "Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
     "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍","Notes":"📝",
-    "Shifts":"⏰","Performance":"⚡","Reports":"📑"
+    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️"
   };
 
-  return (
-    <div style={{ minHeight:"100vh", minHeight:"100dvh", background:"#EFF3F8",
-      fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif" }}>
+  const PAGE_LABELS = {
+    "Schedule": tr("schedule"), "Attendance": tr("attendance"),
+    "Queue": tr("queue"), "Daily Tasks": tr("dailyTasks"),
+    "Live Floor": tr("liveFloor"), "Break": tr("breakPage"),
+    "Heat Map": tr("heatMap"), "Audit Log": tr("auditLog"),
+    "Notes": tr("notes"), "Shifts": tr("shifts"),
+    "Performance": tr("performance"), "Reports": tr("reports"),
+    "Owner Analytics": tr("ownerAnalytics")
+  };
 
-      {/* ── TOP HEADER (visible on all devices) ── */}
-      <div style={{ background:"#0F2744", position:"sticky", top:0, zIndex:100,
-        boxShadow:"0 2px 12px rgba(0,0,0,0.25)" }}>
+  const safeCurrentPage = visiblePages.includes(page) ? page : visiblePages[0];
+
+  return (
+    <div dir={isRTL?"rtl":"ltr"} style={{
+      minHeight:"100vh", minHeight:"100dvh", background:theme.bg,
+      fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif",
+      color:theme.text
+    }}>
+
+      {/* Daily Tip Popup */}
+      {showTip && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)",
+          zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div style={{ background:theme.card, border:`1px solid ${theme.primary}40`,
+            borderRadius:16, padding:"28px 32px", maxWidth:420, width:"100%",
+            boxShadow:"0 20px 60px rgba(0,0,0,0.5)", textAlign:"center" }}>
+            <div style={{ fontSize:40, marginBottom:12 }}>💡</div>
+            <div style={{ fontWeight:800, fontSize:18, color:theme.primary, marginBottom:12 }}>
+              {tr("dailyTipTitle")}
+            </div>
+            <div style={{ fontSize:14, color:theme.textSub, lineHeight:1.7, marginBottom:20 }}>
+              {(lang==="ar" ? DAILY_TIPS_AR : DAILY_TIPS_EN)[new Date().getDay() % 7]}
+            </div>
+            <button onClick={()=>setShowTip(false)}
+              style={{ background:theme.primary, color:"#fff", border:"none", borderRadius:10,
+                padding:"10px 32px", fontSize:14, cursor:"pointer", fontWeight:700 }}>
+              {lang==="ar" ? "ابدأ العمل 🚀" : "Let's Go 🚀"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @media (max-width: 768px) { .desktop-nav { display: none !important; } }
+        @media (min-width: 769px) { .mobile-bottom-nav { display: none !important; } }
+        .desktop-nav::-webkit-scrollbar { display: none; }
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+      `}</style>
+
+      {/* Top Header */}
+      <div style={{ background:theme.header, position:"sticky", top:0, zIndex:100,
+        borderBottom:`1px solid ${theme.cardBorder}`,
+        boxShadow:theme.isDark?"0 2px 20px rgba(0,0,0,0.5)":"0 2px 8px rgba(0,0,0,0.1)" }}>
         <div style={{ maxWidth:1400, margin:"0 auto", padding:"0 12px" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 0" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 0" }}>
 
             {/* Brand */}
-            <div style={{ color:"#fff", fontWeight:800, fontSize:15, whiteSpace:"nowrap",
-              marginRight:8, paddingRight:8, borderRight:"1px solid rgba(255,255,255,0.15)",
-              display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-              🎯 CS Ops
-              <span style={{ fontSize:10, background:"#10B981", color:"#fff",
-                borderRadius:10, padding:"2px 6px", fontWeight:600 }}>💾</span>
+            <div style={{ color:theme.text, fontWeight:800, fontSize:15, whiteSpace:"nowrap",
+              display:"flex", alignItems:"center", gap:6, flexShrink:0,
+              marginRight:8, paddingRight:8, borderRight:`1px solid ${theme.cardBorder}` }}>
+              🎯 <span style={{color:theme.primary}}>CS</span> Ops
+              <span style={{ fontSize:9, background:theme.success, color:"#fff",
+                borderRadius:10, padding:"2px 6px", fontWeight:700, animation:"pulse 2s infinite" }}>LIVE</span>
             </div>
 
-            {/* Desktop nav — hidden on mobile */}
-            <div style={{ display:"flex", gap:4, overflowX:"auto", flex:1,
-              scrollbarWidth:"none", msOverflowStyle:"none" }}
-              className="desktop-nav">
-              <style>{`
-                @media (max-width: 768px) { .desktop-nav { display: none !important; } }
-                @media (min-width: 769px) { .mobile-bottom-nav { display: none !important; } }
-                .desktop-nav::-webkit-scrollbar { display: none; }
-              `}</style>
-              {PAGES.map(p => (
+            {/* Desktop nav */}
+            <div className="desktop-nav" style={{ display:"flex", gap:3, overflowX:"auto",
+              flex:1, scrollbarWidth:"none" }}>
+              {visiblePages.map(p => (
                 <button key={p} onClick={()=>navigateLogged(p)}
-                  style={{ background: page===p ? "#2563EB" : "rgba(255,255,255,0.1)",
-                    color:"#fff", border:"none", borderRadius:6, padding:"6px 11px",
-                    fontSize:11, cursor:"pointer", fontWeight:600, whiteSpace:"nowrap",
-                    transition:"background 0.15s", flexShrink:0 }}>
-                  {p}
+                  style={{ background: safeCurrentPage===p ? theme.primary : "transparent",
+                    color: safeCurrentPage===p ? "#fff" : theme.textSub,
+                    border:`1px solid ${safeCurrentPage===p ? theme.primary : "transparent"}`,
+                    borderRadius:7, padding:"5px 10px", fontSize:11,
+                    cursor:"pointer", fontWeight:600, whiteSpace:"nowrap",
+                    transition:"all 0.15s", flexShrink:0 }}>
+                  {PAGE_ICONS[p]} {PAGE_LABELS[p]||p}
                 </button>
               ))}
             </div>
 
             {/* Right controls */}
-            <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+            <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
+
+              {/* Zoom */}
+              <div className="desktop-nav" style={{ display:"flex", alignItems:"center", gap:1,
+                background:theme.surface, border:`1px solid ${theme.cardBorder}`,
+                borderRadius:8, padding:"2px 4px" }}>
+                <button onClick={()=>changeZoom(zoom-10)} style={{ background:"none", border:"none",
+                  color:theme.textSub, cursor:"pointer", fontSize:13, padding:"2px 5px" }}>−</button>
+                <span style={{ fontSize:10, color:theme.textMuted, minWidth:30, textAlign:"center" }}>{zoom}%</span>
+                <button onClick={()=>changeZoom(zoom+10)} style={{ background:"none", border:"none",
+                  color:theme.textSub, cursor:"pointer", fontSize:13, padding:"2px 5px" }}>+</button>
+              </div>
+
+              {/* Lang */}
+              <button onClick={()=>changeLang(lang==="en"?"ar":"en")}
+                style={{ background:theme.surface, border:`1px solid ${theme.cardBorder}`,
+                  color:theme.textSub, borderRadius:7, padding:"5px 9px",
+                  fontSize:11, cursor:"pointer", fontWeight:700 }}>
+                {lang==="en"?"🌐 AR":"🌐 EN"}
+              </button>
+
+              {/* Theme */}
+              <select value={themeKey} onChange={e=>changeTheme(e.target.value)}
+                className="desktop-nav"
+                style={{ background:theme.surface, border:`1px solid ${theme.cardBorder}`,
+                  color:theme.textSub, borderRadius:7, padding:"5px 7px", fontSize:11, cursor:"pointer" }}>
+                {Object.entries(THEMES).map(([k,v])=>(
+                  <option key={k} value={k}>{lang==="ar"?v.nameAr:v.name}</option>
+                ))}
+              </select>
+
               {/* Auto-save */}
               <div style={{ display:"flex", alignItems:"center", gap:3,
-                background:"rgba(16,185,129,0.15)", border:"1px solid rgba(16,185,129,0.3)",
-                borderRadius:20, padding:"3px 8px" }}>
-                <div style={{ width:5, height:5, borderRadius:"50%", background:"#10B981" }}/>
-                <span style={{ fontSize:9, color:"#10B981", fontWeight:700 }}>Saved</span>
+                background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.2)",
+                borderRadius:20, padding:"3px 7px" }}>
+                <div style={{ width:5, height:5, borderRadius:"50%", background:"#10B981",
+                  animation:"pulse 2s infinite" }}/>
+                <span style={{ fontSize:9, color:"#10B981", fontWeight:700 }}>{tr("saved")}</span>
               </div>
 
               {/* User badge */}
-              <div style={{ background: roleColor+"30", border:`1px solid ${roleColor}60`,
-                borderRadius:20, padding:"4px 10px", display:"flex", alignItems:"center", gap:6 }}>
+              <div style={{ background:roleColor+"20", border:`1px solid ${roleColor}40`,
+                borderRadius:20, padding:"4px 10px", display:"flex", alignItems:"center", gap:5 }}>
                 <span style={{ fontSize:13 }}>{ROLE_ICONS[currentRole]}</span>
                 <div>
                   <div style={{ fontSize:11, fontWeight:800, color:roleColor, lineHeight:1.2 }}>
                     {currentName.split(" ")[0]}
                   </div>
-                  <div style={{ fontSize:9, color:"rgba(255,255,255,0.45)", lineHeight:1.2 }}>
+                  <div style={{ fontSize:9, color:theme.textMuted, lineHeight:1.2 }}>
                     {currentRole}{!canEdit && " · 👁️"}
                   </div>
                 </div>
               </div>
 
-              {/* Sign out */}
-              <button onClick={logout}
-                style={{ background:"rgba(239,68,68,0.15)", color:"#FCA5A5",
-                  border:"1px solid rgba(239,68,68,0.3)", borderRadius:6,
-                  padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>
-                ⏏️
-              </button>
+              <button onClick={logout} style={{ background:"rgba(239,68,68,0.1)", color:"#FCA5A5",
+                border:"1px solid rgba(239,68,68,0.2)", borderRadius:7,
+                padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>⏏️</button>
 
               {canResetPasswords(currentRole, currentName) && (
                 <button onClick={()=>setShowResetPw(true)}
-                  style={{ background:"rgba(245,158,11,0.15)", color:"#FCD34D",
-                    border:"1px solid rgba(245,158,11,0.3)", borderRadius:6,
-                    padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>
-                  🔑
-                </button>
+                  style={{ background:"rgba(245,158,11,0.1)", color:"#FCD34D",
+                    border:"1px solid rgba(245,158,11,0.2)", borderRadius:7,
+                    padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>🔑</button>
               )}
 
-              {(currentRole==="Team Lead" || currentRole==="Shift Leader" || currentName==="Mohammed Nasser Althurwi") && (
+              {(currentRole==="Team Lead"||currentRole==="Shift Leader"||currentName===SUPER_ADMIN) && (
                 <button onClick={()=>navigateLogged("Audit Log")}
-                  style={{ background:"rgba(99,102,241,0.15)", color:"#A5B4FC",
-                    border:"1px solid rgba(99,102,241,0.3)", borderRadius:6,
-                    padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>
-                  🕐
-                </button>
+                  style={{ background:"rgba(99,102,241,0.1)", color:"#A5B4FC",
+                    border:"1px solid rgba(99,102,241,0.2)", borderRadius:7,
+                    padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>🕐</button>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── PAGE CONTENT ── */}
-      <div style={{ maxWidth:1400, margin:"0 auto", padding:"16px 12px 90px" }}>
-        <div style={{ marginBottom:12, display:"flex", alignItems:"center",
+      {/* Page Content */}
+      <div style={{ maxWidth:1400, margin:"0 auto", padding:"16px 12px 100px" }}>
+        <div style={{ marginBottom:14, display:"flex", alignItems:"center",
           justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
           <div>
-            <h1 style={{ fontSize:18, fontWeight:800, color:"#0F2744", margin:0 }}>
-              {PAGE_ICONS[page]} {page}
+            <h1 style={{ fontSize:20, fontWeight:800, color:theme.text, margin:0 }}>
+              {PAGE_ICONS[safeCurrentPage]} {PAGE_LABELS[safeCurrentPage]||safeCurrentPage}
             </h1>
-            <div style={{ fontSize:11, color:"#94A3B8", marginTop:2 }}>
-              {new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}
+            <div style={{ fontSize:11, color:theme.textMuted, marginTop:2 }}>
+              {new Date().toLocaleDateString(lang==="ar"?"ar-SA":"en-US",
+                {weekday:"long",year:"numeric",month:"long",day:"numeric"})}
             </div>
           </div>
-          <div style={{ background:"#fff", border:"1px solid #E2E8F0", borderRadius:20,
-            padding:"5px 12px", display:"flex", alignItems:"center", gap:6,
-            fontSize:11, color:"#475569" }}>
+          <div style={{ background:theme.card, border:`1px solid ${theme.cardBorder}`,
+            borderRadius:20, padding:"5px 12px", display:"flex", alignItems:"center",
+            gap:6, fontSize:11, color:theme.textSub }}>
             <span>{ROLE_ICONS[currentRole]}</span>
-            <span><strong style={{ color:roleColor }}>{currentName.split(" ")[0]}</strong></span>
-            <span style={{ color:"#CBD5E1" }}>·</span>
-            <span style={{ color:"#94A3B8" }}>
-              {new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}
-            </span>
+            <strong style={{ color:roleColor }}>{currentName.split(" ")[0]}</strong>
+            <span style={{ color:theme.textMuted }}>·</span>
+            <span>{new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}</span>
           </div>
         </div>
-        {!canEdit && <ReadOnlyBanner userName={currentName}/>}
-        {pageComponents[page]}
+
+        {!canEdit && (
+          <div style={{ background:"rgba(245,158,11,0.08)", border:"1.5px solid rgba(245,158,11,0.3)",
+            borderRadius:10, padding:"10px 16px", marginBottom:16,
+            display:"flex", alignItems:"center", gap:10 }}>
+            <span style={{ fontSize:18 }}>👁️</span>
+            <div style={{ fontSize:13, color:"#FCD34D" }}>
+              <strong>{tr("readOnlyMode")}</strong> — {tr("readOnlyDesc")}
+            </div>
+          </div>
+        )}
+
+        {pageComponents[safeCurrentPage]}
       </div>
 
-      {/* ── MOBILE BOTTOM TAB BAR ── */}
+      {/* Mobile Bottom Nav */}
       <div className="mobile-bottom-nav"
         style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:200,
-          background:"#0F2744", borderTop:"1px solid rgba(255,255,255,0.1)",
+          background:theme.header, borderTop:`1px solid ${theme.cardBorder}`,
           paddingBottom:"env(safe-area-inset-bottom, 0px)" }}>
-        {/* Two rows of pages: first 6 then last 5 */}
-        {[PAGES.slice(0,6), PAGES.slice(6)].map((group, gi) => (
-          <div key={gi} style={{ display:"flex", justifyContent:"space-around",
-            padding: gi===0 ? "6px 4px 2px" : "2px 4px 6px" }}>
-            {group.map(p => (
-              <button key={p} onClick={()=>navigateLogged(p)}
-                style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:1,
-                  background:"none", border:"none", cursor:"pointer", padding:"4px 6px",
-                  borderRadius:8, minWidth:48, transition:"background 0.15s",
-                  background: page===p ? "rgba(37,99,235,0.3)" : "transparent" }}>
-                <span style={{ fontSize:18 }}>{PAGE_ICONS[p]}</span>
-                <span style={{ fontSize:8, color: page===p ? "#60A5FA" : "rgba(255,255,255,0.5)",
-                  fontWeight: page===p ? 700 : 400, whiteSpace:"nowrap" }}>
-                  {p.length > 7 ? p.slice(0,6)+"…" : p}
-                </span>
-              </button>
-            ))}
-          </div>
-        ))}
+        <div style={{ display:"flex", justifyContent:"space-around", overflowX:"auto",
+          padding:"5px 2px 7px" }}>
+          {visiblePages.map(p => (
+            <button key={p} onClick={()=>navigateLogged(p)}
+              style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:1,
+                background: safeCurrentPage===p ? theme.primary+"30" : "transparent",
+                border:"none", cursor:"pointer", padding:"4px 6px",
+                borderRadius:8, minWidth:42, transition:"background 0.15s", flexShrink:0 }}>
+              <span style={{ fontSize:18 }}>{PAGE_ICONS[p]}</span>
+              <span style={{ fontSize:8, color: safeCurrentPage===p ? theme.primary : theme.textMuted,
+                fontWeight: safeCurrentPage===p ? 700 : 400, whiteSpace:"nowrap" }}>
+                {(PAGE_LABELS[p]||p).length > 7 ? (PAGE_LABELS[p]||p).slice(0,6)+"..." : (PAGE_LABELS[p]||p)}
+              </span>
+            </button>
+          ))}
+          <button onClick={()=>changeLang(lang==="en"?"ar":"en")}
+            style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:1,
+              background:"transparent", border:"none", cursor:"pointer", padding:"4px 6px",
+              borderRadius:8, minWidth:42, flexShrink:0 }}>
+            <span style={{ fontSize:18 }}>🌐</span>
+            <span style={{ fontSize:8, color:theme.textMuted }}>{lang==="en"?"AR":"EN"}</span>
+          </button>
+        </div>
       </div>
 
       {showResetPw && (
