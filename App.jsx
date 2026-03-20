@@ -121,6 +121,7 @@ const THEMES = {
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const TASK_LIST = ["KFOOD","KEEMRT"];
+const TASK_LIST_ASSIGN = ["KFOOD","KEEMRT"];
 const TASK_COLORS = ["#10B981","#3B82F6","#6366F1","#0EA5E9","#F59E0B","#10B981","#EF4444","#8B5CF6","#EC4899","#14B8A6","#F97316","#06B6D4","#84CC16","#A855F7","#E11D48"];
 const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Day Off"];
 const ALL_PAGES = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard"];
@@ -324,9 +325,9 @@ function TaskPicker({ selected=[], onChange }) {
 // ─── MODAL ────────────────────────────────────────────────────────────────────
 function Modal({ title, onClose, children, width=480 }) {
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
-      <div style={{ background:"#fff", borderRadius:12, width:"100%", maxWidth:width, maxHeight:"90vh", overflow:"auto", boxShadow:"0 20px 60px rgba(0,0,0,0.2)" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"16px 20px", borderBottom:`1px solid ${_theme.cardBorder}`, position:"sticky", top:0, background:"#fff", zIndex:1 }}>
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:5000, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
+      <div style={{ background:_theme.card, borderRadius:12, width:"100%", maxWidth:width, maxHeight:"90vh", overflow:"auto", boxShadow:"0 20px 60px rgba(0,0,0,0.4)", border:`1px solid ${_theme.cardBorder}` }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"16px 20px", borderBottom:`1px solid ${_theme.cardBorder}`, position:"sticky", top:0, background:_theme.card, zIndex:1 }}>
           <span style={{ fontWeight:700, fontSize:16, color:_theme.text }}>{title}</span>
           <button onClick={onClose} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:_theme.textMuted }}>×</button>
         </div>
@@ -1575,7 +1576,7 @@ function HeatMapPage({ queueLog }) {
       times.forEach(t => {
         const hr = t.slice(0,2)+":00";
         // Sum all queue fields as inflow indicator
-        const fields = ["tga","gccT2","kwtT2","qatT2","bahT2","uaeT2",
+        const fields = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2",
                         "someKwt","someQat","someBah","someUae"];
         const total = fields.reduce((s,f)=>s+Number(data[f+"Curr"]||0),0);
         map[hr] = (map[hr]||0) + total;
@@ -2579,7 +2580,7 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
   const [shortDur, setShortDur]       = useState(15);
 
   // Live clock -- updates every minute
-  useState(()=>{ const t=setInterval(()=>setNow(new Date()),60000); return()=>clearInterval(t); });
+  useEffect(()=>{ const t=setInterval(()=>setNow(new Date()),60000); return()=>clearInterval(t); },[]);
 
   const nowMin  = now.getHours()*60 + now.getMinutes();
   const todayD  = now.toISOString().slice(0,10);
@@ -2596,14 +2597,22 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
     return nowMin>=st || nowMin<en;
   });
 
-  // Get scheduled break from BreakPage
+  // Get scheduled break from BreakPage — entry stores {offsetHours, offsetMins, durationMin}
   function getScheduledBreak(emp) {
     const sid = (schedule[emp.id]||{})[dayName];
     if (!sid) return null;
+    const sh = shifts.find(s=>s.id===sid);
+    if (!sh) return null;
     const key = `${todayD}_${sid}`;
     const entry = ((breakSchedule[key]||{})[emp.id]);
-    if (!entry?.start || !entry?.durationMin) return null;
-    return entry;
+    if (!entry || !entry.durationMin) return null;
+    // Compute break start from shift start + offset
+    const totalOffsetMin = (Number(entry.offsetHours)||0)*60 + (Number(entry.offsetMins)||0);
+    if (totalOffsetMin === 0) return null; // not scheduled yet
+    const shiftStartMin = toMin(sh.start);
+    const breakStartMin = (shiftStartMin + totalOffsetMin) % 1440;
+    const startStr = pad(Math.floor(breakStartMin/60)) + ":" + pad(breakStartMin%60);
+    return { start: startStr, durationMin: entry.durationMin };
   }
 
   // Short Breaks (formerly Extra Break)
@@ -2968,7 +2977,7 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
   const [activeShift, setActiveShift] = useState(shifts[0]?.id||"");
   const [showAdd, setShowAdd] = useState(false);
   const [editEmp, setEditEmp] = useState(null);
-  const [newEmp, setNewEmp] = useState({ name:"", tasks:[], role:"Agent" });
+  const [newEmp, setNewEmp] = useState({ name:"", tasks:[], role:"Agent", gender:"M" });
 
   const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
 
@@ -2988,9 +2997,9 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
     const finalRole = newEmp.role==="Other" ? (newEmp.customRole||"Other") : newEmp.role;
     const defaultSched = { Sunday:"OFF", Monday:"OFF", Tuesday:"OFF", Wednesday:"OFF", Thursday:"OFF", Friday:"OFF", Saturday:"OFF" };
     defaultSched[dayName] = activeShift;
-    setEmployees(prev => [...prev, { id, name:newEmp.name, role:finalRole, tasks:newEmp.tasks }]);
+    setEmployees(prev => [...prev, { id, name:newEmp.name, role:finalRole, tasks:newEmp.tasks, gender:newEmp.gender||"M" }]);
     setSchedule(prev => ({ ...prev, [id]: defaultSched }));
-    setNewEmp({ name:"", tasks:[], role:"Agent", customRole:"" });
+    setNewEmp({ name:"", tasks:[], role:"Agent", gender:"M", customRole:"" });
     setShowAdd(false);
   }
 
@@ -4256,7 +4265,7 @@ function AuditLogPage({ auditLog, session }) {
 
 
 // ─── OWNER ANALYTICS PAGE ────────────────────────────────────────────────────
-function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, attendance, performance, queueLog, alertThresholdCritical, alertThresholdWarning, saveAlertThresholds, notes, setNotes }) {
+function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedule, shifts, attendance, performance, queueLog, alertThresholdCritical, alertThresholdWarning, saveAlertThresholds, notes, setNotes }) {
   const [filterUser, setFilterUser]       = useState("");
   const [filterAction, setFilterAction]   = useState("");
   const [filterDate, setFilterDate]       = useState("");
@@ -4467,6 +4476,96 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
         <div style={{ marginTop:10, fontSize:11, color:_theme.textMuted }}>
           الإعدادات الحالية: Critical عند <strong style={{color:"#EF4444"}}>{alertThresholdCritical}</strong> حالة ·
           Warning عند <strong style={{color:"#F59E0B"}}>{alertThresholdWarning}</strong> حالة
+        </div>
+      </div>
+
+
+      {/* ── Employee Role Management ── */}
+      <div style={{ background:_theme.card, border:`1.5px solid ${_theme.primary}30`,
+        borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, flexWrap:"wrap" }}>
+          <span style={{ fontSize:16 }}>🔑</span>
+          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>إدارة صلاحيات الموظفين</span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>— تغيير الأدوار والصلاحيات لكل موظف</span>
+        </div>
+        <div style={{ overflowX:"auto" }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+            <thead>
+              <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+                {["الموظف","الجنس","الدور الحالي","تغيير الصلاحية","تعديل المهام"].map(h=>(
+                  <th key={h} style={{ padding:"10px 12px", textAlign:"right", fontWeight:700,
+                    color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {employees.map((emp,ri) => (
+                <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
+                  <td style={{ padding:"8px 12px", fontWeight:700, color:_theme.text }}>
+                    {emp.name}
+                    <div style={{ fontSize:10, color:_theme.textMuted }}>{emp.id}</div>
+                  </td>
+                  <td style={{ padding:"8px 12px", textAlign:"center" }}>
+                    <span style={{ fontSize:11, fontWeight:800, padding:"2px 6px", borderRadius:4,
+                      background:emp.gender==="F"?"#FCE7F3":"#EFF6FF",
+                      color:emp.gender==="F"?"#BE185D":"#1D4ED8",
+                      border:emp.gender==="F"?"1px solid #F9A8D4":"1px solid #BFDBFE" }}>
+                      {emp.gender||"M"}
+                    </span>
+                  </td>
+                  <td style={{ padding:"8px 12px" }}>
+                    <span style={{ background:(ROLE_COLORS[emp.role]||"#64748B")+"22",
+                      color:ROLE_COLORS[emp.role]||"#64748B",
+                      border:`1px solid ${(ROLE_COLORS[emp.role]||"#64748B")}40`,
+                      borderRadius:6, padding:"3px 10px", fontSize:12, fontWeight:700 }}>
+                      {ROLE_ICONS[emp.role]||"👤"} {emp.role}
+                    </span>
+                  </td>
+                  <td style={{ padding:"8px 12px" }}>
+                    <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
+                      {Object.keys(ROLE_CAN_EDIT).map(role => (
+                        <button key={role}
+                          onClick={()=>{
+                            if (emp.name===session?.name) { alert("لا يمكنك تغيير صلاحيتك الخاصة."); return; }
+                            if (!window.confirm(`تغيير صلاحية ${emp.name} من "${emp.role}" إلى "${role}"؟`)) return;
+                            setEmployees(prev => prev.map(e => e.id===emp.id ? {...e, role} : e));
+                          }}
+                          style={{ border:`1.5px solid ${emp.role===role?(ROLE_COLORS[role]||"#64748B"):"#CBD5E1"}`,
+                            borderRadius:6, padding:"3px 10px", fontSize:11, cursor:"pointer", fontWeight:700,
+                            background:emp.role===role?(ROLE_COLORS[role]||"#64748B")+"22":"transparent",
+                            color:emp.role===role?(ROLE_COLORS[role]||"#64748B"):"#94A3B8",
+                            transition:"all 0.12s" }}>
+                          {role}
+                        </button>
+                      ))}
+                    </div>
+                  </td>
+                  <td style={{ padding:"8px 12px" }}>
+                    <div style={{ display:"flex", gap:4 }}>
+                      {["KFOOD","KEEMRT"].map(task => {
+                        const has = (emp.tasks||[]).includes(task);
+                        const color = task==="KFOOD"?"#10B981":"#3B82F6";
+                        return (
+                          <button key={task}
+                            onClick={()=>{
+                              const cur = emp.tasks||[];
+                              const next = has ? cur.filter(t=>t!==task) : [...cur, task];
+                              setEmployees(prev => prev.map(e => e.id===emp.id ? {...e, tasks:next} : e));
+                            }}
+                            style={{ border:`1.5px solid ${has?color:"#CBD5E1"}`,
+                              borderRadius:6, padding:"3px 8px", fontSize:11, cursor:"pointer", fontWeight:700,
+                              background:has?color+"22":"transparent",
+                              color:has?color:"#94A3B8", transition:"all 0.12s" }}>
+                            {has?"✓":"+"}  {task}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -4819,9 +4918,6 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
 function CriticalAlertPopup({ onDismiss, alerts }) {
   if (!alerts || !alerts.length) return null;
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:9999,
-      background:"rgba(0,0,0,0.75)", display:"flex",
-      alignItems:"center", justifyContent:"center", padding:20 }}>
       <div style={{ background:_theme.card, borderRadius:16, maxWidth:460, width:"100%",
         border:"2px solid #EF4444", boxShadow:"0 0 40px rgba(239,68,68,0.4)",
         overflow:"hidden" }}>
@@ -4872,7 +4968,6 @@ function CriticalAlertPopup({ onDismiss, alerts }) {
           </button>
         </div>
       </div>
-    </div>
   );
 }
 
@@ -4907,7 +5002,7 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, can
   const allNotes = Array.isArray(notes) ? notes : [];
   const managerMessages = allNotes
     .filter(n => n.tag === "Manager Message" &&
-      (n.target === "all" || n.target === session?.name))
+      (!n.target || n.target === "all" || n.target === session?.name))
     .sort((a,b) => b.ts.localeCompare(a.ts))
     .slice(0, 5); // show latest 5
 
@@ -5801,7 +5896,7 @@ export default function App() {
   async function saveEmployees(emps) {
     try {
       const t = await sb.from("employees");
-      await t.upsert(emps.map(e=>({id:e.id,name:e.name,role:e.role,tasks:e.tasks||[]})));
+      await t.upsert(emps.map(e=>({id:e.id,name:e.name,role:e.role,tasks:e.tasks||[],gender:e.gender||"M"})));
     } catch {}
     localStorage.setItem("csops_employees", JSON.stringify(emps));
   }
@@ -5912,6 +6007,7 @@ export default function App() {
 
   const [criticalAlerts, setCriticalAlerts]   = useState([]);
   const [alertDismissed, setAlertDismissed]   = useState(false);
+  const [dismissedQueueTotal, setDismissedQueueTotal] = useState(0); // track what was dismissed
   const [lastAlertCheck, setLastAlertCheck]   = useState(0);
   const [alertThresholdCritical, setAlertThresholdCritical] = useState(() => {
     try { return Number(localStorage.getItem("csops_alertCritical")) || 400; } catch { return 400; }
@@ -5924,46 +6020,8 @@ export default function App() {
 
   useEffect(() => {
     if (!session || session.role === "Agent") return; // agents never see alert
-    const interval = setInterval(() => {
-      const now = Date.now();
-      if (now - lastAlertCheck < 55000) return; // debounce
-      setLastAlertCheck(now);
 
-      const alerts = [];
-      const todayD = new Date().toISOString().slice(0,10);
-      const QUEUE_KEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
-
-      // Check all today's queue entries
-      const todayEntries = Object.entries(queueLog||{})
-        .filter(([k])=>k.startsWith(todayD))
-        .map(([,v])=>v);
-
-      if (todayEntries.length) {
-        const latest = todayEntries.reduce((best,e)=>(e.updTime||"")>(best.updTime||"")?e:best, todayEntries[0]);
-        const totalCurr = QUEUE_KEYS.reduce((s,k)=>s+Number(latest[k+"Curr"]||0),0);
-        if (totalCurr > alertThresholdCritical) {
-          alerts.push({
-            icon:"🚨",
-            title:`Queue Critical — ${totalCurr} cases`,
-            detail:`إجمالي الحالات تجاوز الحد الحرج (${alertThresholdCritical}+). يتطلب تدخلاً فورياً وإعادة توزيع الطاقم.`
-          });
-        } else if (totalCurr > alertThresholdWarning) {
-          alerts.push({
-            icon:"⚠️",
-            title:`Queue Warning — ${totalCurr} cases`,
-            detail:`إجمالي الحالات في منطقة التحذير (${alertThresholdWarning}+). راقب الوضع عن كثب.`
-          });
-        }
-      }
-
-      if (alerts.length > 0) {
-        setCriticalAlerts(alerts);
-        setAlertDismissed(false);
-      }
-    }, 60000);
-
-    // Also run once on mount after 3s delay
-    const initial = setTimeout(() => {
+    function checkQueue(isDismissedRef, dismissedTotalRef) {
       const todayD = new Date().toISOString().slice(0,10);
       const QUEUE_KEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
       const todayEntries = Object.entries(queueLog||{})
@@ -5971,20 +6029,38 @@ export default function App() {
       if (!todayEntries.length) return;
       const latest = todayEntries.reduce((best,e)=>(e.updTime||"")>(best.updTime||"")?e:best, todayEntries[0]);
       const totalCurr = QUEUE_KEYS.reduce((s,k)=>s+Number(latest[k+"Curr"]||0),0);
+
+      // Only show if NOT dismissed, or if queue has grown significantly (50+) since last dismiss
+      const shouldShow = !isDismissedRef || (totalCurr > dismissedTotalRef + 50);
+      if (!shouldShow) return;
+
       if (totalCurr > alertThresholdCritical) {
-        setCriticalAlerts([{
-          icon:"🚨",
-          title:`Queue Critical — ${totalCurr} cases`,
-          detail:`إجمالي الحالات تجاوز الحد الحرج (${alertThresholdCritical}+). يتطلب تدخلاً فورياً.`
-        }]);
+        setCriticalAlerts([{ icon:"🚨", title:`Queue Critical — ${totalCurr} cases`, detail:`إجمالي الحالات تجاوز الحد الحرج (${alertThresholdCritical}+). يتطلب تدخلاً فورياً وإعادة توزيع الطاقم.`, total:totalCurr }]);
+        setAlertDismissed(false);
       } else if (totalCurr > alertThresholdWarning) {
-        setCriticalAlerts([{
-          icon:"⚠️",
-          title:`Queue Warning — ${totalCurr} cases`,
-          detail:`إجمالي الحالات في منطقة التحذير (${alertThresholdWarning}+). راقب الوضع.`
-        }]);
+        setCriticalAlerts([{ icon:"⚠️", title:`Queue Warning — ${totalCurr} cases`, detail:`إجمالي الحالات في منطقة التحذير (${alertThresholdWarning}+). راقب الوضع عن كثب.`, total:totalCurr }]);
+        setAlertDismissed(false);
       }
+    }
+
+    // Run once on mount after 3s — read current dismissed state
+    const initial = setTimeout(() => {
+      setAlertDismissed(cur => {
+        setDismissedQueueTotal(tot => { checkQueue(cur, tot); return tot; });
+        return cur;
+      });
     }, 3000);
+
+    const interval = setInterval(() => {
+      // Read current dismissed state via functional setter trick
+      setAlertDismissed(currentDismissed => {
+        setDismissedQueueTotal(currentTotal => {
+          checkQueue(currentDismissed, currentTotal);
+          return currentTotal;
+        });
+        return currentDismissed;
+      });
+    }, 60000);
 
     return () => { clearInterval(interval); clearTimeout(initial); };
   }, [session, queueLog, alertThresholdCritical, alertThresholdWarning]);
@@ -6126,7 +6202,7 @@ export default function App() {
     Shifts:        <ShiftsPage shifts={shifts} setShifts={SH}/>,
     Performance:   <PerformancePage employees={employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF}/>,
     Reports:       <ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog}/>,
-    "Owner Analytics": <OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>,
+    "Owner Analytics": <OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} setEmployees={setEmployees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>,
     Leaderboard:   <LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} canEdit={canEdit}/>,
   };
 
@@ -6157,36 +6233,7 @@ export default function App() {
       color:theme.text
     }}>
 
-      {/* Critical Alert Popup — supervisors only, auto-triggered by queue */}
-      {showCriticalAlert && (
-        <CriticalAlertPopup
-          alerts={criticalAlerts}
-          onDismiss={()=>{ setAlertDismissed(true); setCriticalAlerts([]); }}
-        />
-      )}
 
-      {/* Daily Tip Popup */}
-      {showTip && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)",
-          zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
-          <div style={{ background:theme.card, border:`1px solid ${theme.primary}40`,
-            borderRadius:16, padding:"28px 32px", maxWidth:420, width:"100%",
-            boxShadow:"0 20px 60px rgba(0,0,0,0.5)", textAlign:"center" }}>
-            <div style={{ fontSize:40, marginBottom:12 }}>💡</div>
-            <div style={{ fontWeight:800, fontSize:18, color:theme.primary, marginBottom:12 }}>
-              {tr("dailyTipTitle")}
-            </div>
-            <div style={{ fontSize:14, color:theme.textSub, lineHeight:1.7, marginBottom:20 }}>
-              {(lang==="ar" ? DAILY_TIPS_AR : DAILY_TIPS_EN)[new Date().getDay() % 7]}
-            </div>
-            <button onClick={()=>setShowTip(false)}
-              style={{ background:theme.primary, color:"#fff", border:"none", borderRadius:10,
-                padding:"10px 32px", fontSize:14, cursor:"pointer", fontWeight:700 }}>
-              {lang==="ar" ? "ابدأ العمل 🚀" : "Let's Go 🚀"}
-            </button>
-          </div>
-        </div>
-      )}
 
       <style>{`
         @media (max-width: 768px) { .desktop-nav { display: none !important; } }
@@ -6392,6 +6439,46 @@ export default function App() {
 
       {showResetPw && (
         <PasswordResetModal employees={employees} session={session} onClose={()=>setShowResetPw(false)}/>
+      )}
+
+      {/* ── POPUPS: rendered at root level, unaffected by transform:scale on content ── */}
+      {showCriticalAlert && (
+        <div style={{ position:"fixed", inset:0, zIndex:10000, background:"rgba(0,0,0,0.75)",
+          display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <CriticalAlertPopup
+            alerts={criticalAlerts}
+            onDismiss={()=>{
+              // Save current total so alert only re-shows if queue grows by 50+
+              const total = criticalAlerts[0]?.total || 0;
+              setDismissedQueueTotal(total);
+              setAlertDismissed(true);
+              setCriticalAlerts([]);
+            }}
+          />
+        </div>
+      )}
+
+      {showTip && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)",
+          zIndex:10001, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div style={{ background:theme.card, border:`1px solid ${theme.primary}40`,
+            borderRadius:16, padding:"28px 32px", maxWidth:440, width:"100%",
+            boxShadow:"0 20px 60px rgba(0,0,0,0.6)", textAlign:"center" }}>
+            <div style={{ fontSize:48, marginBottom:14 }}>💡</div>
+            <div style={{ fontWeight:800, fontSize:20, color:theme.primary, marginBottom:14 }}>
+              {tr("dailyTipTitle")}
+            </div>
+            <div style={{ fontSize:15, color:theme.textSub, lineHeight:1.8, marginBottom:24 }}>
+              {(lang==="ar" ? DAILY_TIPS_AR : DAILY_TIPS_EN)[new Date().getDay() % 7]}
+            </div>
+            <button onClick={()=>setShowTip(false)}
+              style={{ background:theme.primary, color:"#fff", border:"none", borderRadius:10,
+                padding:"12px 40px", fontSize:15, cursor:"pointer", fontWeight:700,
+                boxShadow:`0 4px 16px ${theme.primary}60` }}>
+              {lang==="ar" ? "ابدأ العمل 🚀" : "Let's Go 🚀"}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
