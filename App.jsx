@@ -3,7 +3,7 @@ import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 // ─── i18n TRANSLATIONS ────────────────────────────────────────────────────────
 const T = {
   en: {
-    appName: "عمليات CS", appSub: "Management System",
+    appName: "CS Operations", appSub: "Management System",
     selectRole: "Select Your Role", yourName: "Your Name",
     selectName: "Select your name", agentNameLabel: "Select Your Name",
     agentHint: "View only — no password required",
@@ -5909,6 +5909,7 @@ export default function App() {
   // Loading screen
 
   // Not logged in → show login
+
   const [criticalAlerts, setCriticalAlerts]   = useState([]);
   const [alertDismissed, setAlertDismissed]   = useState(false);
   const [lastAlertCheck, setLastAlertCheck]   = useState(0);
@@ -5918,6 +5919,7 @@ export default function App() {
   const [alertThresholdWarning, setAlertThresholdWarning] = useState(() => {
     try { return Number(localStorage.getItem("csops_alertWarning")) || 200; } catch { return 200; }
   });
+
 
 
   useEffect(() => {
@@ -5985,7 +5987,7 @@ export default function App() {
     }, 3000);
 
     return () => { clearInterval(interval); clearTimeout(initial); };
-  }, [isAgent, queueLog, alertThresholdCritical, alertThresholdWarning]);
+  }, [session, queueLog, alertThresholdCritical, alertThresholdWarning]);
 
 
   if (loading) {
@@ -6394,6 +6396,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
