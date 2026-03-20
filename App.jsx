@@ -36,36 +36,36 @@ const T = {
     ]
   },
   ar: {
-    appName: "العمليات CS", appSub: "نظام إدارة العمليات",
-    selectRole: "اختر دورك", yourName: "اسمك",
+    appName: "عمليات خدمة العملاء", appSub: "نظام إدارة العمليات",
+    selectRole: "حدد صلاحيتك", yourName: "اسمك",
     selectName: "اختر اسمك", agentNameLabel: "اختر اسمك",
-    agentHint: "عرض فقط — لا يلزم رقم سري",
-    password: "كلمة المرور", signIn: "تسجيل الدخول", signInAs: "دخول كـ",
+    agentHint: "صلاحية عرض فقط — لا تحتاج إلى كلمة مرور",
+    password: "كلمة المرور", signIn: "تسجيل الدخول", signInAs: "دخول بصفة",
     enterAs: "دخول كـ",
-    setPassword: "إنشاء كلمة مرور شخصية", firstLogin: "تسجيل دخول أول مرة",
-    newPassword: "كلمة مرور جديدة (4 أحرف على الأقل)", confirmPassword: "تأكيد كلمة المرور",
+    setPassword: "إنشاء كلمة مرور شخصية", firstLogin: "أول تسجيل دخول",
+    newPassword: "كلمة المرور الجديدة (4 أحرف على الأقل)", confirmPassword: "تأكيد كلمة المرور",
     setAndSignIn: "حفظ كلمة المرور والدخول",
-    incorrectPassword: "كلمة المرور غير صحيحة. حاول مرة أخرى.",
-    selectYourName: "الرجاء اختيار اسمك.",
+    incorrectPassword: "كلمة المرور غير صحيحة. يُرجى المحاولة مجدداً.",
+    selectYourName: "يُرجى اختيار اسمك أولاً.",
     personalPassword: "كلمة مرور شخصية", viewOnly: "عرض فقط",
-    autoSaved: "محفوظ تلقائياً", saved: "محفوظ",
+    autoSaved: "تم الحفظ تلقائياً", saved: "محفوظ",
     signOut: "تسجيل الخروج", history: "السجل",
     readOnlyMode: "وضع العرض فقط",
-    readOnlyDesc: "يمكنك تصفح البيانات لكن لا يمكن إجراء تعديلات.",
-    schedule: "الجدول", attendance: "الحضور", queue: "قائمة الانتظار",
+    readOnlyDesc: "يمكنك استعراض البيانات دون إجراء أي تعديلات.",
+    schedule: "الجدول الزمني", attendance: "الحضور والانصراف", queue: "قائمة الانتظار",
     dailyTasks: "المهام اليومية", liveFloor: "الطابق المباشر", breakPage: "الاستراحات",
-    heatMap: "خريطة الحرارة", auditLog: "سجل التدقيق", notes: "الملاحظات",
+    heatMap: "خريطة التحميل", auditLog: "سجل العمليات", notes: "الملاحظات",
     shifts: "الشفتات", performance: "الأداء", reports: "التقارير",
-    ownerAnalytics: "تحليلات المالك",
-    today: "اليوم", employee: "الموظف", role: "الدور",
+    ownerAnalytics: "تحليلات المشرف العام",
+    today: "اليوم", employee: "الموظف", role: "الصلاحية",
     theme: "المظهر", language: "اللغة",
     dailyTipTitle: "نصيحة اليوم",
     tips: [
-      "ابدأ كل شفت بفحص سريع للفريق لمواءمة الأولويات.",
-      "وثّق التصعيدات فوراً — التفاصيل تُنسى بسرعة.",
-      "جدولة الاستراحات بشكل استباقي تقلل الأخطاء بنسبة 30%.",
-      "بيانات قائمة الانتظار الواضحة = قرارات توظيف أفضل غداً.",
-      "التقدير يرفع الإنتاجية — اعترف بالعمل الجيد يومياً."
+      "ابدأ كل شفت بجلسة توافق سريعة مع الفريق لتوحيد الأولويات.",
+      "وثّق التصعيدات فور حدوثها — التفاصيل تُنسى بسرعة.",
+      "جدولة الاستراحات بشكل استباقي تُقلل الأخطاء التشغيلية بنسبة 30%.",
+      "بيانات قائمة الانتظار الدقيقة = قرارات توظيف أفضل للغد.",
+      "التقدير والاعتراف يرفعان الإنتاجية — احتفل بالإنجازات يومياً."
     ]
   }
 };
@@ -74,46 +74,46 @@ const T = {
 const THEMES = {
   dark: {
     name: "Dark Pro", nameAr: "داكن احترافي",
-    bg: "#0A0F1E", surface: "#111827", card: "#1F2937",
-    cardBorder: "#374151", header: "#060B14",
-    text: "#F9FAFB", textSub: "#9CA3AF", textMuted: "#6B7280",
-    primary: "#3B82F6", primaryHover: "#2563EB",
-    success: "#10B981", warning: "#F59E0B", danger: "#EF4444",
-    accent: "#8B5CF6", accentGold: "#F59E0B",
-    input: "#1F2937", inputBorder: "#374151", inputText: "#F9FAFB",
+    bg: "#0D1117", surface: "#161B22", card: "#1C2333",
+    cardBorder: "#30363D", header: "#090D15",
+    text: "#E6EDF3", textSub: "#8B949E", textMuted: "#6E7681",
+    primary: "#58A6FF", primaryHover: "#388BFD",
+    success: "#3FB950", warning: "#D29922", danger: "#F85149",
+    accent: "#BC8CFF", accentGold: "#E3B341",
+    input: "#0D1117", inputBorder: "#30363D", inputText: "#E6EDF3",
     isDark: true
   },
   navy: {
     name: "Navy & Gold", nameAr: "بحري وذهبي",
-    bg: "#0F2744", surface: "#1a3a5c", card: "#1E4976",
-    cardBorder: "#2563EB40", header: "#0A1E36",
-    text: "#FFFFFF", textSub: "#93C5FD", textMuted: "#60A5FA",
-    primary: "#F59E0B", primaryHover: "#D97706",
-    success: "#10B981", warning: "#F59E0B", danger: "#EF4444",
-    accent: "#F59E0B", accentGold: "#F59E0B",
-    input: "#1a3a5c", inputBorder: "#2563EB60", inputText: "#FFFFFF",
+    bg: "#0B1A2E", surface: "#112240", card: "#172A46",
+    cardBorder: "#1E3A5F", header: "#071222",
+    text: "#CDD9E5", textSub: "#7EB4E2", textMuted: "#5899C8",
+    primary: "#E3B341", primaryHover: "#C69B2A",
+    success: "#3FB950", warning: "#E3B341", danger: "#F85149",
+    accent: "#E3B341", accentGold: "#E3B341",
+    input: "#0B1A2E", inputBorder: "#1E3A5F", inputText: "#CDD9E5",
     isDark: true
   },
   light: {
     name: "Clean Light", nameAr: "فاتح نظيف",
-    bg: "#F8FAFC", surface: "#F1F5F9", card: "#FFFFFF",
-    cardBorder: "#E2E8F0", header: "#0F2744",
-    text: "#0F172A", textSub: "#475569", textMuted: "#94A3B8",
-    primary: "#2563EB", primaryHover: "#1D4ED8",
-    success: "#10B981", warning: "#F59E0B", danger: "#EF4444",
-    accent: "#8B5CF6", accentGold: "#F59E0B",
-    input: "#FFFFFF", inputBorder: "#CBD5E1", inputText: "#0F172A",
+    bg: "#F3F6FA", surface: "#E8EDF5", card: "#FFFFFF",
+    cardBorder: "#D0D7DE", header: "#0F2744",
+    text: "#1C2128", textSub: "#424A53", textMuted: "#6E7781",
+    primary: "#0969DA", primaryHover: "#0550AE",
+    success: "#1A7F37", warning: "#9A6700", danger: "#CF222E",
+    accent: "#8250DF", accentGold: "#9A6700",
+    input: "#FFFFFF", inputBorder: "#D0D7DE", inputText: "#1C2128",
     isDark: false
   },
   purple: {
     name: "Midnight Purple", nameAr: "بنفسجي غامق",
-    bg: "#0D0D1A", surface: "#13132B", card: "#1A1A35",
-    cardBorder: "#7C3AED40", header: "#080812",
-    text: "#F5F3FF", textSub: "#C4B5FD", textMuted: "#8B5CF6",
-    primary: "#7C3AED", primaryHover: "#6D28D9",
-    success: "#10B981", warning: "#F59E0B", danger: "#EF4444",
-    accent: "#EC4899", accentGold: "#F59E0B",
-    input: "#1A1A35", inputBorder: "#7C3AED60", inputText: "#F5F3FF",
+    bg: "#0E0B1A", surface: "#16112B", card: "#1E1838",
+    cardBorder: "#2D2455", header: "#080614",
+    text: "#DDD8F0", textSub: "#A89BD4", textMuted: "#7B6EA8",
+    primary: "#A78BFA", primaryHover: "#8B5CF6",
+    success: "#4ADE80", warning: "#FBBF24", danger: "#F87171",
+    accent: "#F472B6", accentGold: "#FBBF24",
+    input: "#0E0B1A", inputBorder: "#2D2455", inputText: "#DDD8F0",
     isDark: true
   }
 };
@@ -121,11 +121,12 @@ const THEMES = {
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const TASK_LIST = ["KFOOD","KEEMRT","TGA","Social Group","KSA OT","GCC T2 Cases","KWT T2 Cases","KSA SOME Cases","KWT SOME Cases","GCC SOME Cases","180","OSLO","Keemart Online","Survey","Failed Refund Sheet"];
+const TASK_LIST_ASSIGN = ["KFOOD","KEEMRT"]; // Only these two shown in Edit Employee dropdown
 const TASK_COLORS = ["#10B981","#3B82F6","#6366F1","#0EA5E9","#F59E0B","#10B981","#EF4444","#8B5CF6","#EC4899","#14B8A6","#F97316","#06B6D4","#84CC16","#A855F7","#E11D48"];
 const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Day Off"];
 const ALL_PAGES = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics"];
 const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics");
-const AGENT_PAGES = ["Schedule","Live Floor","Performance","Queue"];
+const AGENT_PAGES = ["Schedule","Live Floor","Performance","Queue","Leaderboard"];
 
 // Super Admin
 const SUPER_ADMIN = "Mohammed Nasser Althurwi";
@@ -145,7 +146,7 @@ const I = (extra={}) => ({
 });
 const CRD = (extra={}) => ({
   background: _theme.card, borderRadius:12, padding:"16px 20px",
-  boxShadow: _theme.isDark ? "0 4px 20px rgba(0,0,0,0.4)" : "0 1px 4px rgba(0,0,0,0.08)",
+  boxShadow: _theme.isDark ? "0 2px 12px rgba(0,0,0,0.5)" : "0 1px 4px rgba(0,0,0,0.07)",
   border: `1px solid ${_theme.cardBorder}`, ...extra
 });
 const SBR = (extra={}) => ({
@@ -287,21 +288,28 @@ function monthDates(y,m) {
 }
 function taskColor(t) { const i=TASK_LIST.indexOf(t); return TASK_COLORS[i%TASK_COLORS.length]; }
 
-// ─── TASK PICKER ──────────────────────────────────────────────────────────────
+// ─── TASK PICKER — Edit Employee: dropdown KFOOD / KEEMRT only ────────────────
 function TaskPicker({ selected=[], onChange }) {
   return (
-    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-      {TASK_LIST.map(t => {
-        const on = selected.includes(t);
-        const c = taskColor(t);
-        return (
-          <button key={t} onClick={()=>onChange(on ? selected.filter(x=>x!==t) : [...selected,t])}
-            style={{ border:`2px solid ${c}`, borderRadius:20, padding:"3px 10px", fontSize:12, cursor:"pointer", fontWeight:600,
-              background: on ? c : "transparent", color: on ? "#fff" : c, transition:"all 0.15s" }}>
-            {on && <span style={{marginRight:4}}>✕</span>}{t}
-          </button>
-        );
-      })}
+    <div>
+      <div style={{ display:"flex", gap:8, marginBottom:8 }}>
+        {TASK_LIST_ASSIGN.map(t => {
+          const on = selected.includes(t);
+          const c  = taskColor(t);
+          return (
+            <button key={t} onClick={()=>onChange(on ? selected.filter(x=>x!==t) : [...selected,t])}
+              style={{ border:`2px solid ${c}`, borderRadius:8, padding:"8px 20px",
+                fontSize:13, cursor:"pointer", fontWeight:700, flex:1,
+                background: on ? c : "transparent", color: on ? "#fff" : c,
+                transition:"all 0.15s", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+              {on ? "✓" : "+"} {t}
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ fontSize:11, color:_theme.textMuted, marginTop:4 }}>
+        المهام المتاحة للتعيين: KFOOD · KEEMRT
+      </div>
     </div>
   );
 }
@@ -311,9 +319,9 @@ function Modal({ title, onClose, children, width=480 }) {
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
       <div style={{ background:"#fff", borderRadius:12, width:"100%", maxWidth:width, maxHeight:"90vh", overflow:"auto", boxShadow:"0 20px 60px rgba(0,0,0,0.2)" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"16px 20px", borderBottom:"1px solid #E2E8F0", position:"sticky", top:0, background:"#fff", zIndex:1 }}>
-          <span style={{ fontWeight:700, fontSize:16, color:"#0F2744" }}>{title}</span>
-          <button onClick={onClose} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:"#64748B" }}>×</button>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"16px 20px", borderBottom:`1px solid ${_theme.cardBorder}`, position:"sticky", top:0, background:"#fff", zIndex:1 }}>
+          <span style={{ fontWeight:700, fontSize:16, color:_theme.text }}>{title}</span>
+          <button onClick={onClose} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:_theme.textMuted }}>×</button>
         </div>
         <div style={{ padding:20 }}>{children}</div>
       </div>
@@ -726,7 +734,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
     <div>
       {/* ── Toolbar ── */}
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744", flex:1 }}>📅 Weekly Schedule</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text, flex:1 }}>📅 Weekly Schedule</span>
         <button style={PBT("#2563EB")} onClick={()=>setShowAdd(true)}>+ Add</button>
         <button style={PBT("#475569")} onClick={()=>fileRef.current.click()}>📥 Import</button>
         <div style={{ display:"flex", gap:4 }}>
@@ -743,9 +751,9 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
       <div style={{ ...CRD(), overflowX:"auto", marginBottom:20 }}>
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
-            <tr style={{ background:"#F8FAFC" }}>
-              <th style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:"#0F2744",
-                borderBottom:"2px solid #E2E8F0", minWidth:180 }}>Employee</th>
+            <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+              <th style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:_theme.text,
+                borderBottom:`2px solid ${_theme.cardBorder}`, minWidth:180 }}>Employee</th>
               {DAYS.map((day, di) => {
                 const now2   = new Date();
                 const diff   = di - now2.getDay();
@@ -755,13 +763,13 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                 const hasFilter = activeFilters.length > 0;
                 return (
                   <th key={day} style={{ padding:"8px 6px", textAlign:"center", fontWeight:700,
-                    color: di===today?"#2563EB":"#0F2744",
-                    borderBottom:"2px solid #E2E8F0",
-                    background: di===today?"#EFF6FF":"transparent", minWidth:110, position:"relative" }}>
+                    color: di===today?_theme.primary:_theme.text,
+                    borderBottom:`2px solid ${_theme.cardBorder}`,
+                    background: di===today?_theme.primary+"18":"transparent", minWidth:110, position:"relative" }}>
                     {/* Day name + date */}
                     <div>{day.slice(0,3)}</div>
-                    <div style={{ fontSize:10, color:di===today?"#2563EB":"#94A3B8", fontWeight:600 }}>{dateStr}</div>
-                    {di===today && <div style={{ fontSize:9, color:"#2563EB", fontWeight:700 }}>TODAY</div>}
+                    <div style={{ fontSize:10, color:di===today?_theme.primary:_theme.textMuted, fontWeight:600 }}>{dateStr}</div>
+                    {di===today && <div style={{ fontSize:9, color:_theme.primary, fontWeight:700 }}>TODAY</div>}
                     {/* Filter button */}
                     <button onClick={()=>setFilterPopup(filterPopup===day?null:day)}
                       title="Filter by shift"
@@ -777,7 +785,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                         background:"#fff", border:"1px solid #E2E8F0", borderRadius:10,
                         boxShadow:"0 8px 24px rgba(0,0,0,0.15)", zIndex:200, padding:10,
                         minWidth:160, textAlign:"left" }}>
-                        <div style={{ fontSize:11, fontWeight:700, color:"#0F2744", marginBottom:6 }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:_theme.text, marginBottom:6 }}>
                           Filter -- {day}
                         </div>
                         {/* Clear */}
@@ -799,7 +807,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                               background:sel?s.color+"18":"transparent",
                               border:sel?`1px solid ${s.color}40`:"1px solid transparent" }}>
                               <div style={{ width:10, height:10, borderRadius:3, background:s.color, flexShrink:0 }}/>
-                              <span style={{ fontSize:11, fontWeight:sel?700:400, color:sel?s.color:"#475569" }}>
+                              <span style={{ fontSize:11, fontWeight:sel?700:400, color:sel?s.color:_theme.textSub }}>
                                 {s.label}
                               </span>
                               {sel && <span style={{ marginLeft:"auto", fontSize:10, color:s.color }}>✓</span>}
@@ -829,7 +837,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                   </th>
                 );
               })}
-              <th style={{ padding:"10px 8px", borderBottom:"2px solid #E2E8F0" }}></th>
+              <th style={{ padding:"10px 8px", borderBottom:`2px solid ${_theme.cardBorder}` }}></th>
             </tr>
           </thead>
           <tbody>
@@ -850,8 +858,8 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
               });
               if (!passesFilter) return null;
               return (
-              <tr key={emp.id} style={{ background: ri%2===0?"#fff":"#F8FAFC" }}>
-                <td style={{ padding:"8px 12px", fontWeight:600, color:"#1E293B" }}>
+              <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
+                <td style={{ padding:"8px 12px", fontWeight:600, color:_theme.text }}>
                   <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                     <span>{emp.name}</span>
                     <span style={{ fontSize:9, fontWeight:800, padding:"1px 5px", borderRadius:4,
@@ -861,7 +869,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                       {emp.gender||"M"}
                     </span>
                   </div>
-                  <div style={{ fontSize:11, color:"#94A3B8" }}>{emp.role}</div>
+                  <div style={{ fontSize:11, color:_theme.textMuted }}>{emp.role}</div>
                 </td>
                 {DAYS.map((day,di) => {
                   const val = (schedule[emp.id]||{})[day]||"OFF";
@@ -870,13 +878,13 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                   const dimmed  = activeF.length>0 && !activeF.includes(val);
                   return (
                     <td key={day} style={{ padding:"6px", textAlign:"center",
-                      background: di===today?"#EFF6FF":"transparent",
+                      background: di===today?_theme.primary+"18":"transparent",
                       opacity: dimmed ? 0.25 : 1 }}>
                       <select value={val} onChange={e=>setShift(emp.id,day,e.target.value)}
                         style={{ ...I(), padding:"4px 6px", fontSize:11,
                           border:`2px solid ${val==="LEAVE"?"#F59E0B":val==="PH"?"#8B5CF6":sh?sh.color:"#CBD5E1"}`,
                           background:val==="LEAVE"?"#FEF3C7":val==="PH"?"#F3E8FF":sh?sh.color+"18":"#fff",
-                          color:val==="LEAVE"?"#92400E":val==="PH"?"#6D28D9":sh?sh.color:"#64748B",
+                          color:val==="LEAVE"?"#92400E":val==="PH"?"#6D28D9":sh?sh.color:_theme.textMuted,
                           fontWeight:600, cursor:"pointer" }}>
                         <option value="OFF">🔘 Day Off</option>
                         <option value="LEAVE">🏖️ Leave</option>
@@ -905,13 +913,13 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
       )}
 
       {/* Week Preview Cards */}
-      <div style={{ marginBottom:8, fontWeight:700, fontSize:14, color:"#0F2744" }}>📋 Week Preview</div>
+      <div style={{ marginBottom:8, fontWeight:700, fontSize:14, color:_theme.text }}>📋 Week Preview</div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:10 }}>
         {weekCards.map(({day,di,groups}) => (
-          <div key={day} style={{ ...CRD({ padding:12 }), border: di===today ? "2px solid #2563EB" : "1px solid #E2E8F0" }}>
-            <div style={{ fontWeight:700, fontSize:12, color: di===today?"#2563EB":"#475569", marginBottom:8 }}>{day.slice(0,3)}</div>
+          <div key={day} style={{ ...CRD({ padding:12 }), border: di===today ? `2px solid ${_theme.primary}` : `1px solid ${_theme.cardBorder}` }}>
+            <div style={{ fontWeight:700, fontSize:12, color: di===today?_theme.primary:_theme.textSub, marginBottom:8 }}>{day.slice(0,3)}</div>
             {Object.keys(groups).length===0
-              ? <div style={{ fontSize:11, color:"#94A3B8" }}>All Off</div>
+              ? <div style={{ fontSize:11, color:_theme.textMuted }}>All Off</div>
               : Object.entries(groups).map(([sid,names]) => {
                   if (sid==="LEAVE") return (
                     <div key="LEAVE" style={{ marginBottom:6 }}>
@@ -929,7 +937,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                   return (
                     <div key={sid} style={{ marginBottom:6 }}>
                       <div style={{ fontSize:10, fontWeight:700, color:sh?.color||"#888", marginBottom:2 }}>{sh?.label} {sh?.start}</div>
-                      {names.map(n => <div key={n} style={{ fontSize:11, color:"#334155", padding:"1px 0" }}>• {n.split(" ")[0]}</div>)}
+                      {names.map(n => <div key={n} style={{ fontSize:11, color:_theme.textSub, padding:"1px 0" }}>• {n.split(" ")[0]}</div>)}
                     </div>
                   );
                 })
@@ -995,8 +1003,8 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
             const s1 = shifts.find(s=>s.id===(schedule[swapEmp1]||{})[swapDay]);
             const s2 = shifts.find(s=>s.id===(schedule[swapEmp2]||{})[swapDay]);
             return (
-              <div style={{ background:"#F8FAFC", borderRadius:8, padding:"10px 14px", marginBottom:14, fontSize:12 }}>
-                <div style={{ fontWeight:700, color:"#0F2744", marginBottom:6 }}>معاينة التبديل -- {swapDay}</div>
+              <div style={{ background:_theme.isDark?"#0D1117":"#F8FAFC", borderRadius:8, padding:"10px 14px", marginBottom:14, fontSize:12 }}>
+                <div style={{ fontWeight:700, color:_theme.text, marginBottom:6 }}>معاينة التبديل -- {swapDay}</div>
                 <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
                   <div style={{ background: s1?.color+"20"||"#F1F5F9", border:`1px solid ${s1?.color||"#CBD5E1"}`,
                     borderRadius:6, padding:"4px 10px", fontSize:11, fontWeight:700, color:s1?.color||"#64748B" }}>
@@ -1100,11 +1108,11 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
           <div style={{ overflowX:"auto", maxHeight:380, overflowY:"auto", marginBottom:14 }}>
             <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
               <thead>
-                <tr style={{ background:"#F8FAFC", position:"sticky", top:0 }}>
-                  <th style={{ padding:"8px 10px", textAlign:"left", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0", minWidth:160 }}>Name</th>
-                  <th style={{ padding:"8px 6px", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0" }}>Role</th>
+                <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC", position:"sticky", top:0 }}>
+                  <th style={{ padding:"8px 10px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, minWidth:160 }}>Name</th>
+                  <th style={{ padding:"8px 6px", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>Role</th>
                   {DAYS.map(d=>(
-                    <th key={d} style={{ padding:"8px 6px", textAlign:"center", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0", minWidth:80 }}>{d.slice(0,3)}</th>
+                    <th key={d} style={{ padding:"8px 6px", textAlign:"center", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, minWidth:80 }}>{d.slice(0,3)}</th>
                   ))}
                 </tr>
               </thead>
@@ -1113,12 +1121,12 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                   const existing = employees.find(e=>e.name.toLowerCase()===row.name.toLowerCase());
                   return (
                     <tr key={i} style={{ background: existing ? "#F0FDF4" : i%2===0?"#fff":"#F8FAFC" }}>
-                      <td style={{ padding:"6px 10px", fontWeight:600, color:"#1E293B" }}>
+                      <td style={{ padding:"6px 10px", fontWeight:600, color:_theme.text }}>
                         {row.name}
                         {existing && <span style={{ marginLeft:6, fontSize:10, background:"#10B981", color:"#fff", borderRadius:8, padding:"1px 6px" }}>update</span>}
                         {!existing && <span style={{ marginLeft:6, fontSize:10, background:"#2563EB", color:"#fff", borderRadius:8, padding:"1px 6px" }}>new</span>}
                       </td>
-                      <td style={{ padding:"6px", color:"#475569", textAlign:"center" }}>{row.role}</td>
+                      <td style={{ padding:"6px", color:_theme.textSub, textAlign:"center" }}>{row.role}</td>
                       {DAYS.map(d=>{
                         const sid = row.days[d];
                         const sh = shifts.find(s=>s.id===sid);
@@ -1129,7 +1137,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                                   borderRadius:6, padding:"2px 6px", fontSize:11, fontWeight:700, whiteSpace:"nowrap" }}>
                                   {sh.label}<br/><span style={{fontSize:10}}>{sh.start}</span>
                                 </span>
-                              : <span style={{ color:"#94A3B8", fontSize:11 }}>OFF</span>
+                              : <span style={{ color:_theme.textMuted, fontSize:11 }}>OFF</span>
                             }
                           </td>
                         );
@@ -1282,9 +1290,9 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
     <div>
       {/* Toolbar */}
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>📋 Attendance Log</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>📋 Attendance Log</span>
         <input type="date" value={date} onChange={e=>handleDateChange(e.target.value)} style={{ ...I(), width:150 }}/>
-        <span style={{ fontSize:12, color:"#94A3B8" }}>Auto-calc late · 🔴 = ≥7 min late</span>
+        <span style={{ fontSize:12, color:_theme.textMuted }}>Auto-calc late · 🔴 = ≥7 min late</span>
       </div>
 
       {/* KPI Cards */}
@@ -1293,7 +1301,7 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
           ["Absent",kpis.absent,"#EF4444"],["Late",kpis.late,"#F59E0B"],
           ["Early Leave",kpis.early,"#8B5CF6"],["Late Time",kpis.totalLate+"m","#EC4899"]].map(([l,v,c])=>(
           <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
-            <div style={{ fontSize:11, color:"#64748B", fontWeight:600 }}>{l}</div>
+            <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>{l}</div>
             <div style={{ fontSize:24, fontWeight:800, color:c }}>{v}</div>
           </div>
         ))}
@@ -1336,7 +1344,7 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
           <span style={{ fontWeight:700, color:activeShiftObj.color, fontSize:13 }}>
             ⏰ {activeShiftObj.label} · {activeShiftObj.start} - {activeShiftObj.end}
           </span>
-          <span style={{ fontSize:12, color:"#475569" }}>
+          <span style={{ fontSize:12, color:_theme.textSub }}>
             {shiftEmployees.length} employees scheduled on <strong>{dayName}</strong>
           </span>
           <div style={{ display:"flex", gap:8, marginLeft:"auto" }}>
@@ -1350,10 +1358,10 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
       <div style={{ ...CRD(), overflowX:"auto" }}>
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
-            <tr style={{ background:"#F8FAFC" }}>
+            <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
               {["#","Employee","Status","Check-in","Check-out","Late","Work Duration","Early Leave","Notes"].map(h=>(
                 <th key={h} style={{ padding:"10px 8px", textAlign:"left", fontWeight:700,
-                  color:"#0F2744", borderBottom:"2px solid #E2E8F0", whiteSpace:"nowrap" }}>{h}</th>
+                  color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -1365,11 +1373,11 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
               const dur = att.workDuration !== "" && att.workDuration !== undefined ? att.workDuration : calcWorkDuration(att.checkIn, att.checkOut);
               const isEarlyLeave = att.status === "Early Leave";
               return (
-                <tr key={emp.id} style={{ background: ri%2===0?"#fff":"#F8FAFC" }}>
-                  <td style={{ padding:"8px", color:"#94A3B8", fontWeight:600 }}>{ri+1}</td>
-                  <td style={{ padding:"8px", fontWeight:600, color:"#1E293B" }}>
+                <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
+                  <td style={{ padding:"8px", color:_theme.textMuted, fontWeight:600 }}>{ri+1}</td>
+                  <td style={{ padding:"8px", fontWeight:600, color:_theme.text }}>
                     {emp.name}
-                    <div style={{ fontSize:11, color:"#94A3B8" }}>{emp.role}</div>
+                    <div style={{ fontSize:11, color:_theme.textMuted }}>{emp.role}</div>
                   </td>
                   <td style={{ padding:"8px" }}>
                     <select value={att.status} onChange={e=>setAtt(emp.id,"status",e.target.value)}
@@ -1403,12 +1411,12 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
                     <div style={{ fontWeight:700, color: dur!==null&&dur<(activeShiftObj?toMin(activeShiftObj.end)-toMin(activeShiftObj.start):480)?"#F59E0B":"#10B981", fontSize:13 }}>
                       {dur !== null ? fmtDuration(dur) : "--"}
                     </div>
-                    {dur !== null && <div style={{ fontSize:10, color:"#94A3B8" }}>{dur} min</div>}
+                    {dur !== null && <div style={{ fontSize:10, color:_theme.textMuted }}>{dur} min</div>}
                   </td>
                   <td style={{ padding:"8px" }}>
                     {isEarlyLeave && dur !== null
-                      ? <div style={{ fontWeight:700, color:"#8B5CF6", fontSize:13 }}>{fmtDuration(dur)}<div style={{fontSize:10,color:"#94A3B8"}}>from check-in</div></div>
-                      : <span style={{ color:"#94A3B8" }}>--</span>
+                      ? <div style={{ fontWeight:700, color:"#8B5CF6", fontSize:13 }}>{fmtDuration(dur)}<div style={{fontSize:10,color:_theme.textMuted}}>from check-in</div></div>
+                      : <span style={{ color:_theme.textMuted }}>--</span>
                     }
                   </td>
                   <td style={{ padding:"8px" }}>
@@ -1419,7 +1427,7 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
               );
             })}
             {shiftEmployees.length===0 && (
-              <tr><td colSpan={9} style={{ padding:32, textAlign:"center", color:"#94A3B8" }}>
+              <tr><td colSpan={9} style={{ padding:32, textAlign:"center", color:_theme.textMuted }}>
                 No employees scheduled for <strong>{activeShiftObj?.label}</strong> on <strong>{dayName}</strong>
               </td></tr>
             )}
@@ -1463,9 +1471,9 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
   return (
     <div>
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>⚡ Performance Tracker</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>⚡ Performance Tracker</span>
         <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
-        <label style={{ display:"flex", alignItems:"center", gap:6, fontSize:13, cursor:"pointer", color:"#475569" }}>
+        <label style={{ display:"flex", alignItems:"center", gap:6, fontSize:13, cursor:"pointer", color:_theme.textSub }}>
           <input type="checkbox" checked={showQuality} onChange={e=>setShowQuality(e.target.checked)}/> Show Quality %
         </label>
       </div>
@@ -1474,7 +1482,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
       <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:10, marginBottom:16 }}>
         {[["Total Closed",totalClosed,"#10B981"],["Escalations",totalEsc,"#F59E0B"]].map(([l,v,c])=>(
           <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
-            <div style={{ fontSize:11, color:"#64748B", fontWeight:600 }}>{l}</div>
+            <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>{l}</div>
             <div style={{ fontSize:28, fontWeight:800, color:c }}>{v}</div>
           </div>
         ))}
@@ -1484,16 +1492,16 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
       <div style={{ ...CRD(), overflowX:"auto" }}>
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
-            <tr style={{ background:"#F8FAFC" }}>
+            <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
               {["Rank","Employee","Tasks","Shift","Closed","Escalations",...(showQuality?["Quality %"]:[])]
-                .map(h=><th key={h} style={{ padding:"10px 8px", textAlign:"left", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0", whiteSpace:"nowrap" }}>{h}</th>)}
+                .map(h=><th key={h} style={{ padding:"10px 8px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>)}
             </tr>
           </thead>
           <tbody>
             {sorted.map((emp,ri) => {
               const p = getPerf(emp.id);
               return (
-                <tr key={emp.id} style={{ background: ri%2===0?"#fff":"#F8FAFC" }}>
+                <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
                   <td style={{ padding:"8px", fontSize:18, textAlign:"center" }}>{medals[ri]||ri+1}</td>
                   <td style={{ padding:"8px", fontWeight:600 }}>{emp.name}</td>
                   <td style={{ padding:"8px" }}>
@@ -1501,7 +1509,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
                       {emp.tasks.map(t=><span key={t} style={{ background:taskColor(t), color:"#fff", borderRadius:10, padding:"2px 6px", fontSize:10, fontWeight:600 }}>{t}</span>)}
                     </div>
                   </td>
-                  <td style={{ padding:"8px", color:"#475569" }}>{getShiftLabel(emp.id)}</td>
+                  <td style={{ padding:"8px", color:_theme.textSub }}>{getShiftLabel(emp.id)}</td>
                   <td style={{ padding:"8px" }}>
                     <input type="number" min="0" value={p.closed||""} onChange={e=>setPerf(emp.id,"closed",Number(e.target.value))}
                       style={{ ...I({ width:70, border: p.closed>0?"2px solid #10B981":"1px solid #CBD5E1" })}} placeholder="0"/>
@@ -1583,7 +1591,7 @@ function HeatMapPage({ queueLog }) {
   return (
     <div>
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>🌡️ Hourly Heat Map</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🌡️ Hourly Heat Map</span>
         <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
         <span style={{ fontSize:12, color:"#10B981", fontWeight:600 }}>📊 Auto-populated from Queue data</span>
       </div>
@@ -1593,24 +1601,24 @@ function HeatMapPage({ queueLog }) {
         <div style={{ ...CRD(), borderTop:"3px solid #EF4444" }}>
           <div style={LBL}>Peak Hour</div>
           <div style={{ fontSize:22, fontWeight:800, color:"#EF4444" }}>{total>0 ? peakHour : "--"}</div>
-          <div style={{ fontSize:12, color:"#94A3B8" }}>{total>0 ? (hourlyData[peakHour]||0)+" cases" : "No data yet"}</div>
+          <div style={{ fontSize:12, color:_theme.textMuted }}>{total>0 ? (hourlyData[peakHour]||0)+" cases" : "No data yet"}</div>
         </div>
         <div style={{ ...CRD(), borderTop:"3px solid #2563EB" }}>
           <div style={LBL}>Total Queue Load</div>
           <div style={{ fontSize:22, fontWeight:800, color:"#2563EB" }}>{total}</div>
-          <div style={{ fontSize:12, color:"#94A3B8" }}>across all recorded hours</div>
+          <div style={{ fontSize:12, color:_theme.textMuted }}>across all recorded hours</div>
         </div>
         <div style={{ ...CRD(), borderTop:"3px solid #10B981" }}>
           <div style={LBL}>Recommended Breaks</div>
           <div style={{ fontSize:14, fontWeight:700, color:"#10B981" }}>{breakWindows.filter(h=>(hourlyData[h]||0)===0).slice(0,3).join(", ")||"--"}</div>
-          <div style={{ fontSize:12, color:"#94A3B8" }}>lowest activity windows</div>
+          <div style={{ fontSize:12, color:_theme.textMuted }}>lowest activity windows</div>
         </div>
       </div>
 
       {/* Grid */}
       <div style={{ ...CRD(), padding:16 }}>
         {total === 0 && (
-          <div style={{ textAlign:"center", padding:"24px 0", color:"#94A3B8", fontSize:13 }}>
+          <div style={{ textAlign:"center", padding:"24px 0", color:_theme.textMuted, fontSize:13 }}>
             📭 No data yet -- enter Queue data and click <strong>احسب</strong> to populate this chart.
           </div>
         )}
@@ -1619,9 +1627,9 @@ function HeatMapPage({ queueLog }) {
             const count = hourlyData[h]||0;
             return (
               <div key={h} style={{ background:cellBg(count), border:`1.5px solid ${cellBorder(count)}`, borderRadius:8, padding:"10px 8px", textAlign:"center" }}>
-                <div style={{ fontSize:11, fontWeight:700, color:"#64748B", marginBottom:4 }}>{h}</div>
+                <div style={{ fontSize:11, fontWeight:700, color:_theme.textMuted, marginBottom:4 }}>{h}</div>
                 <div style={{ fontWeight:800, fontSize:18, color: count>0 ? cellBorder(count) : "#CBD5E1" }}>{count||0}</div>
-                {count>0 && <div style={{ fontSize:10, color:"#94A3B8" }}>{Math.round(count/maxCount*100)}%</div>}
+                {count>0 && <div style={{ fontSize:10, color:_theme.textMuted }}>{Math.round(count/maxCount*100)}%</div>}
               </div>
             );
           })}
@@ -1630,7 +1638,7 @@ function HeatMapPage({ queueLog }) {
           {[["#FEE2E2","#EF4444",">80% peak"],["#FEF9C3","#F59E0B",">50% peak"],["#DCFCE7","#10B981",">20% peak"],["#F1F5F9","#94A3B8","No data"]].map(([bg,border,label])=>(
             <div key={label} style={{ display:"flex", alignItems:"center", gap:6 }}>
               <div style={{ width:16, height:16, background:bg, border:`1.5px solid ${border}`, borderRadius:3 }}/>
-              <span style={{ fontSize:12, color:"#64748B" }}>{label}</span>
+              <span style={{ fontSize:12, color:_theme.textMuted }}>{label}</span>
             </div>
           ))}
         </div>
@@ -1641,23 +1649,75 @@ function HeatMapPage({ queueLog }) {
 
 // ─── QUEUE PAGE ───────────────────────────────────────────────────────────────
 function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
-  const [date, setDate] = useState(todayStr());
-  const [shiftId, setShiftId] = useState(shifts[0]?.id||"");
+  const todayKey = todayStr();
+
+  // ── Auto-detect current shift from system clock ──────────────────────────────
+  function detectShiftNow() {
+    if (!shifts.length) return "";
+    const nowMin = new Date().getHours()*60 + new Date().getMinutes();
+    for (const sh of shifts) {
+      const st=toMin(sh.start), en=toMin(sh.end);
+      if (en>st){ if(nowMin>=st&&nowMin<en) return sh.id; }
+      else       { if(nowMin>=st||nowMin<en) return sh.id; }
+    }
+    let best=shifts[0], minD=Infinity;
+    shifts.forEach(sh=>{ let d=nowMin-toMin(sh.start); if(d<0)d+=1440; if(d<minD){minD=d;best=sh;} });
+    return best.id;
+  }
+
+  // Auto baseline = shift start time; auto update = right now
+  function autoBase(sid) {
+    const sh = shifts.find(s=>s.id===sid);
+    return sh ? sh.start : pad(new Date().getHours())+":"+pad(new Date().getMinutes());
+  }
+  function autoNow() { return pad(new Date().getHours())+":"+pad(new Date().getMinutes()); }
+
+  // ── Default mode: auto shift + auto times ────────────────────────────────────
+  const [autoShiftId]   = useState(() => detectShiftNow());
   const [calcDone, setCalcDone] = useState(false);
 
-  const key = `${date}_${shiftId}`;
+  // ── Sidebar: shift-specific mode ─────────────────────────────────────────────
+  const [sbMode,     setSbMode]     = useState("single");   // "single"|"multi"
+  const [sbSelected, setSbSelected] = useState([]);         // selected shift ids
+  const [sbApplied,  setSbApplied]  = useState(false);      // true when user pressed Calculate
+  const [sbShifts,   setSbShifts]   = useState([]);         // applied shifts snapshot
+
+  // Active data key — uses sidebar shifts when applied, else auto-detected shift
+  const activeShiftId = sbApplied && sbShifts.length ? sbShifts[0] : autoShiftId;
+  const key = `${todayKey}_${activeShiftId}`;
   const data = queueLog[key] || {};
+
+  // Resolved times: prefer stored, fall back to auto
+  const baseTimeVal = data.baseTime !== undefined ? data.baseTime : autoBase(activeShiftId);
+  const updTimeVal  = data.updTime  !== undefined ? data.updTime  : autoNow();
+
+  // Write auto-values to store on first access so editing works immediately
+  const [seeded, setSeeded] = useState(false);
+  useEffect(() => {
+    if (!seeded && !data.baseTime && !data.updTime) {
+      setQueueLog(prev => ({
+        ...prev,
+        [key]: {
+          ...(prev[key]||{}),
+          baseTime: autoBase(activeShiftId),
+          updTime:  autoNow(),
+        }
+      }));
+      setSeeded(true);
+    }
+  }, [key, seeded]);
+
   function setQ(field, val) {
     setQueueLog(prev => ({ ...prev, [key]: { ...(prev[key]||{}), [field]: val } }));
     setCalcDone(false);
   }
 
-  // Queue categories -- grouped
+  // ── Queue field definitions ──────────────────────────────────────────────────
   const KSA_FIELDS = [
-    { key:"tga",    label:"TGA",   color:"#6366F1", flag:"🇸🇦" },
-    { key:"ob",     label:"OB",    color:"#0EA5E9", flag:"🇸🇦" },
-    { key:"oslo",   label:"OSLO",  color:"#8B5CF6", flag:"🇸🇦" },
-    { key:"some",   label:"SOME",  color:"#EC4899", flag:"🇸🇦" },
+    { key:"tga",  label:"TGA",  color:"#6366F1", flag:"🇸🇦" },
+    { key:"ob",   label:"OB",   color:"#0EA5E9", flag:"🇸🇦" },
+    { key:"oslo", label:"OSLO", color:"#8B5CF6", flag:"🇸🇦" },
+    { key:"some", label:"SOME", color:"#EC4899", flag:"🇸🇦" },
   ];
   const GCC_FIELDS = [
     { key:"kwtT2",   label:"KWT T2 Cases",   color:"#10B981", flag:"🇰🇼" },
@@ -1671,189 +1731,398 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
   ];
   const QUEUE_FIELDS = [...KSA_FIELDS, ...GCC_FIELDS];
 
-  // Per-field calcs: baseline + inflow - current = resolved
-  const calcs = QUEUE_FIELDS.map(f => {
-    const base    = Number(data[f.key+"Base"]||0);
-    const inflow  = Number(data[f.key+"Inflow"]||0);
-    const curr    = Number(data[f.key+"Curr"]||0);
-    const resolved = base + inflow - curr;
-    const change   = curr - base; // positive = grew, negative = reduced
-    return { ...f, base, inflow, curr, resolved, change };
-  });
+  // ── Calcs — when multi-shift applied, combine all selected shifts ─────────────
+  const calcs = useMemo(() => {
+    if (sbApplied && sbShifts.length > 1) {
+      // Combine data from all selected shifts
+      return QUEUE_FIELDS.map(f => {
+        let base=0, inflow=0, curr=0;
+        sbShifts.forEach(sid => {
+          const d2 = queueLog[`${todayKey}_${sid}`] || {};
+          base   += Number(d2[f.key+"Base"]  ||0);
+          inflow += Number(d2[f.key+"Inflow"]||0);
+          curr   += Number(d2[f.key+"Curr"]  ||0);
+        });
+        const resolved = base+inflow-curr;
+        return { ...f, base, inflow, curr, resolved, change: curr-base };
+      });
+    }
+    // Default: single key
+    return QUEUE_FIELDS.map(f => {
+      const base    = Number(data[f.key+"Base"]  ||0);
+      const inflow  = Number(data[f.key+"Inflow"]||0);
+      const curr    = Number(data[f.key+"Curr"]  ||0);
+      return { ...f, base, inflow, curr, resolved:base+inflow-curr, change:curr-base };
+    });
+  }, [data, sbApplied, sbShifts, queueLog, todayKey]);
 
   const totalBase     = calcs.reduce((s,c)=>s+c.base,0);
   const totalCurr     = calcs.reduce((s,c)=>s+c.curr,0);
   const totalResolved = calcs.reduce((s,c)=>s+c.resolved,0);
   const totalInflow   = calcs.reduce((s,c)=>s+c.inflow,0);
 
-  // Status
-  const status = totalCurr>400 ? "🚨 CRITICAL" : totalCurr>200 ? "⚠️ WARNING" : "✅ NORMAL";
+  const status      = totalCurr>400?"🚨 CRITICAL":totalCurr>200?"⚠️ WARNING":"✅ NORMAL";
   const statusColor = status.includes("CRITICAL")?"#EF4444":status.includes("WARNING")?"#F59E0B":"#10B981";
 
-  // Duration between baseline and update time
   function timeDiff() {
-    if (!data.baseTime || !data.updTime) return null;
-    const diff = toMin(data.updTime) - toMin(data.baseTime);
-    const d = diff < 0 ? diff + 1440 : diff;
-    return `${Math.floor(d/60)}h ${d%60}m`;
+    const bt = baseTimeVal, ut = updTimeVal;
+    if (!bt||!ut) return null;
+    const d = toMin(ut)-toMin(bt);
+    const dd = d<0?d+1440:d;
+    return `${Math.floor(dd/60)}h ${dd%60}m`;
   }
 
-  // ── احسب -- calculate & push snapshot to heatmap ──
   function calculate() {
-    if (!data.updTime) { alert("Please enter an Update Time first."); return; }
-    // Save snapshot total to heatmap
-    const hr = data.updTime.slice(0,2)+":00";
-    setHeatmap(prev => ({
-      ...prev,
-      [date]: { ...(prev[date]||{}), [hr]: totalCurr }
-    }));
-    // Save snapshot in queue entry for reference
-    setQueueLog(prev => ({
-      ...prev,
-      [key]: { ...(prev[key]||{}), calcSnapshot: totalCurr, calcTime: data.updTime }
-    }));
+    const ut = updTimeVal;
+    if (!ut) return;
+    const hr = ut.slice(0,2)+":00";
+    setHeatmap(prev=>({ ...prev, [todayKey]:{ ...(prev[todayKey]||{}), [hr]:totalCurr } }));
+    setQueueLog(prev=>({ ...prev, [key]:{ ...(prev[key]||{}), calcSnapshot:totalCurr, calcTime:ut } }));
     setCalcDone(true);
   }
 
+  // Sidebar helpers
+  function toggleSbShift(sid) {
+    if (sbMode==="single") { setSbSelected([sid]); }
+    else { setSbSelected(prev=>prev.includes(sid)?prev.filter(x=>x!==sid):[...prev,sid]); }
+  }
+  function applyShifts() {
+    if (!sbSelected.length) return;
+    setSbShifts(sbSelected);
+    setSbApplied(true);
+    setCalcDone(false);
+  }
+  function resetToAuto() {
+    setSbApplied(false); setSbShifts([]); setSbSelected([]); setCalcDone(false);
+  }
+
+  const currentShift = shifts.find(s=>s.id===activeShiftId);
+
+  // ── Input border helper for numeric fields ────────────────────────────────────
+  function inflowBorder(val) {
+    return Number(val||0)>0?`2px solid ${_theme.primary}`:`1px solid ${_theme.inputBorder}`;
+  }
+  function currBorder(val) {
+    const n=Number(val||0);
+    return n>200?`2px solid #EF4444`:n>100?`2px solid #F59E0B`:`1px solid ${_theme.inputBorder}`;
+  }
+
   return (
-    <div>
-      {/* Toolbar */}
-      <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>📊 Queue Data</span>
-        <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
-        <select value={shiftId} onChange={e=>setShiftId(e.target.value)} style={{ ...I(), width:160 }}>
-          {shifts.map(s=><option key={s.id} value={s.id}>{s.label} ({s.start})</option>)}
-        </select>
-        <div style={{ fontWeight:700, fontSize:13, color:statusColor, background:statusColor+"18",
-          borderRadius:6, padding:"6px 14px", border:`1px solid ${statusColor}40` }}>{status}</div>
-      </div>
+    <div style={{ display:"flex", gap:16, alignItems:"flex-start" }}>
 
-      {/* Time bar */}
-      <div style={{ ...CRD({ padding:"12px 16px" }), marginBottom:16, display:"flex", gap:16, alignItems:"center", flexWrap:"wrap" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <label style={{ ...LBL, marginBottom:0, whiteSpace:"nowrap" }}>⏱ Baseline Time</label>
-          <input type="time" value={data.baseTime||""} onChange={e=>setQ("baseTime",e.target.value)} style={{ ...I({ width:120 })}}/>
-        </div>
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <label style={{ ...LBL, marginBottom:0, whiteSpace:"nowrap" }}>🔄 Update Time</label>
-          <input type="time" value={data.updTime||""} onChange={e=>setQ("updTime",e.target.value)} style={{ ...I({ width:120 })}}/>
-        </div>
-        {timeDiff() && (
-          <div style={{ fontSize:13, color:"#475569", fontWeight:600 }}>⏳ Duration: <strong>{timeDiff()}</strong></div>
-        )}
-        {/* احسب button */}
-        <button onClick={calculate}
-          style={{ ...PBT(calcDone?"#10B981":"#2563EB", { padding:"8px 24px", fontSize:14, marginLeft:"auto",
-            boxShadow: calcDone?"none":"0 0 0 3px #2563EB30", transition:"all 0.2s" }) }}>
-          {calcDone ? "✅ محسوب -- Heat Map Updated" : "🧮 احسب"}
-        </button>
-      </div>
+      {/* ══════════════════════ SIDEBAR ══════════════════════════════════════ */}
+      <div style={{ width:230, flexShrink:0, display:"flex", flexDirection:"column", gap:12 }}>
 
-      {/* Summary KPIs */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:16 }}>
-        {[["Total Baseline",totalBase,"#475569"],["New Inflow",totalInflow,"#2563EB"],
-          ["Current Live",totalCurr,"#EF4444"],["Resolved",totalResolved,"#10B981"]].map(([l,v,c])=>(
-          <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
-            <div style={{ fontSize:11, color:"#64748B", fontWeight:600 }}>{l}</div>
-            <div style={{ fontSize:28, fontWeight:800, color:c }}>{v}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Queue tables -- KSA then GCC */}
-      {[
-        { title:"🇸🇦 KSA Queue", fields: KSA_FIELDS, accent:"#2563EB" },
-        { title:"🌍 GCC Queue",  fields: GCC_FIELDS,  accent:"#10B981" },
-      ].map(({ title, fields, accent }) => {
-        const groupCalcs = calcs.filter(c => fields.some(f=>f.key===c.key));
-        const gTotal = groupCalcs.reduce((s,c)=>s+c.curr,0);
-        const gResolved = groupCalcs.reduce((s,c)=>s+c.resolved,0);
-        return (
-          <div key={title} style={{ ...CRD(), overflowX:"auto", marginBottom:16 }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-              <div style={{ fontWeight:800, color:accent, fontSize:15 }}>{title}</div>
-              <div style={{ display:"flex", gap:16, fontSize:12, color:"#64748B" }}>
-                <span>Current: <strong style={{color:"#EF4444"}}>{gTotal}</strong></span>
-                <span>Resolved: <strong style={{color:"#10B981"}}>{gResolved>0?"+":""}{gResolved}</strong></span>
+        {/* Active context info */}
+        <div style={{ ...CRD({ padding:"14px 16px" }),
+          borderLeft:`3px solid ${currentShift?.color||_theme.primary}` }}>
+          <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:700,
+            letterSpacing:"0.05em", marginBottom:8 }}>ACTIVE DATA SOURCE</div>
+          {sbApplied && sbShifts.length ? (
+            <div>
+              <div style={{ fontSize:12, fontWeight:700, color:_theme.primary, marginBottom:4 }}>
+                {sbShifts.length>1?`📊 ${sbShifts.length} Shifts Combined`:"📊 Single Shift (Manual)"}
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:3, marginBottom:10 }}>
+                {sbShifts.map(sid=>{
+                  const sh=shifts.find(s=>s.id===sid);
+                  return sh ? (
+                    <div key={sid} style={{ fontSize:11, color:sh.color, fontWeight:600,
+                      background:sh.color+"15", borderRadius:5, padding:"2px 7px" }}>
+                      ⏰ {sh.label}
+                    </div>
+                  ) : null;
+                })}
+              </div>
+              <button onClick={resetToAuto}
+                style={{ background:"none", border:`1px solid ${_theme.cardBorder}`,
+                  color:_theme.textMuted, borderRadius:6, padding:"4px 10px",
+                  fontSize:11, cursor:"pointer", width:"100%" }}>
+                ↩ Reset to Auto
+              </button>
+            </div>
+          ) : (
+            <div>
+              <div style={{ fontSize:11, fontWeight:700, color:_theme.success, marginBottom:4 }}>
+                🟢 Auto — Current Time
+              </div>
+              {currentShift && (
+                <div style={{ fontSize:11, color:currentShift.color, fontWeight:600,
+                  background:currentShift.color+"15", borderRadius:5, padding:"2px 7px",
+                  marginBottom:4, display:"inline-block" }}>
+                  ⏰ {currentShift.label}
+                </div>
+              )}
+              <div style={{ fontSize:10, color:_theme.textMuted, marginTop:4 }}>
+                Shift auto-detected from system clock
               </div>
             </div>
-            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-              <thead>
-                <tr style={{ background:"#F8FAFC" }}>
-                  {["Queue","","Baseline","New Inflow","Current","Resolved","Trend"].map(h=>(
-                    <th key={h} style={{ padding:"8px 10px", textAlign:"left", fontWeight:700, color:"#0F2744",
-                      borderBottom:`2px solid ${accent}40`, whiteSpace:"nowrap" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {groupCalcs.map((c,ri) => (
-                  <tr key={c.key} style={{ background: ri%2===0?"#fff":"#F8FAFC" }}>
-                    <td style={{ padding:"8px 10px", fontWeight:700, color:c.color }}>{c.label}</td>
-                    <td style={{ padding:"8px 6px", fontSize:16 }}>{c.flag}</td>
-                    <td style={{ padding:"8px 10px" }}>
-                      <input type="number" min="0" value={data[c.key+"Base"]||""}
-                        onChange={e=>setQ(c.key+"Base",e.target.value)}
-                        style={{ ...I({ width:75 })}} placeholder="0"/>
-                    </td>
-                    <td style={{ padding:"8px 10px" }}>
-                      <input type="number" min="0" value={data[c.key+"Inflow"]||""}
-                        onChange={e=>setQ(c.key+"Inflow",e.target.value)}
-                        style={{ ...I({ width:75, border: Number(data[c.key+"Inflow"]||0)>0?"2px solid #2563EB":"1px solid #CBD5E1" })}} placeholder="0"/>
-                    </td>
-                    <td style={{ padding:"8px 10px" }}>
-                      <input type="number" min="0" value={data[c.key+"Curr"]||""}
-                        onChange={e=>setQ(c.key+"Curr",e.target.value)}
-                        style={{ ...I({ width:75, border: Number(data[c.key+"Curr"]||0)>200?"2px solid #EF4444":Number(data[c.key+"Curr"]||0)>100?"2px solid #F59E0B":"1px solid #CBD5E1" })}} placeholder="0"/>
-                    </td>
-                    <td style={{ padding:"8px 10px", fontWeight:700,
-                      color: c.resolved>0?"#10B981":c.resolved<0?"#EF4444":"#94A3B8" }}>
-                      {c.resolved>0?"+":""}{c.resolved}
-                    </td>
-                    <td style={{ padding:"8px 10px", fontSize:16 }}>
-                      {c.change>0?"📈":c.change<0?"📉":"➡️"}
-                      <span style={{ fontSize:11, color:"#94A3B8", marginLeft:4 }}>{c.change>0?"+":""}{c.change||0}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        );
-      })}
+          )}
+        </div>
 
-      {/* Comparison: Baseline vs Update */}
-      {data.baseTime && data.updTime && (
-        <div style={{ ...CRD(), marginBottom:16 }}>
-          <div style={{ fontWeight:700, color:"#0F2744", marginBottom:12, fontSize:14 }}>
-            📊 Comparison: {data.baseTime} → {data.updTime} ({timeDiff()})
+        {/* ── Calculate Queue for Specific Shift(s) ── */}
+        <div style={{ ...CRD({ padding:"14px 16px" }),
+          border:`1.5px solid ${_theme.primary}30` }}>
+          <div style={{ fontSize:11, fontWeight:800, color:_theme.primary,
+            marginBottom:12, display:"flex", alignItems:"center", gap:6 }}>
+            🎯 Calculate Queue for Specific Shift(s)
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8 }}>
-            {calcs.filter(c=>c.base>0||c.curr>0).map(c=>(
-              <div key={c.key} style={{ background:c.color+"10", border:`1.5px solid ${c.color}30`,
-                borderRadius:8, padding:"10px 12px", textAlign:"center" }}>
-                <div style={{ fontSize:11, fontWeight:700, color:c.color, marginBottom:4 }}>{c.flag} {c.label}</div>
-                <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:8, fontSize:13 }}>
-                  <span style={{ color:"#64748B" }}>{c.base}</span>
-                  <span style={{ color:"#94A3B8" }}>→</span>
-                  <span style={{ fontWeight:800, color:c.curr>c.base?"#EF4444":c.curr<c.base?"#10B981":"#475569", fontSize:16 }}>{c.curr}</span>
-                </div>
-                <div style={{ fontSize:11, marginTop:4, fontWeight:600,
-                  color:c.resolved>0?"#10B981":c.resolved<0?"#EF4444":"#94A3B8" }}>
-                  Resolved: {c.resolved>0?"+":""}{c.resolved}
-                </div>
-              </div>
+
+          {/* Mode toggle */}
+          <div style={{ display:"flex", gap:4, marginBottom:10 }}>
+            {[["single","Single"],["multi","Multiple"]].map(([m,l])=>(
+              <button key={m} onClick={()=>{ setSbMode(m); setSbSelected([]); }}
+                style={{ flex:1, border:`1.5px solid ${sbMode===m?_theme.primary:_theme.cardBorder}`,
+                  borderRadius:6, padding:"4px 6px", fontSize:11, cursor:"pointer", fontWeight:700,
+                  background: sbMode===m?_theme.primary+"22":"transparent",
+                  color: sbMode===m?_theme.primary:_theme.textMuted }}>
+                {l}
+              </button>
             ))}
           </div>
-        </div>
-      )}
 
-      {/* SME Insights */}
-      <div style={CRD()}>
-        <label style={LBL}>💡 SME Insights (Problem → Action → Result)</label>
-        <textarea value={data.insight||""} onChange={e=>setQ("insight",e.target.value)} rows={3}
-          style={{ ...I(), resize:"vertical" }} placeholder="Problem → Action → Result"/>
+          {/* Shift list */}
+          <div style={{ display:"flex", flexDirection:"column", gap:5, marginBottom:10,
+            maxHeight:200, overflowY:"auto" }}>
+            {shifts.map(sh => {
+              const sel = sbSelected.includes(sh.id);
+              return (
+                <div key={sh.id} onClick={()=>toggleSbShift(sh.id)}
+                  style={{ display:"flex", alignItems:"center", gap:8, padding:"7px 10px",
+                    borderRadius:7, cursor:"pointer", userSelect:"none",
+                    border:`1.5px solid ${sel?sh.color:_theme.cardBorder}`,
+                    background: sel?sh.color+"18":_theme.surface,
+                    transition:"all 0.12s" }}>
+                  <div style={{ width:10, height:10, borderRadius:3,
+                    background:sh.color, flexShrink:0 }}/>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:11, fontWeight:700,
+                      color:sel?sh.color:_theme.text, whiteSpace:"nowrap",
+                      overflow:"hidden", textOverflow:"ellipsis" }}>{sh.label}</div>
+                    <div style={{ fontSize:9, color:_theme.textMuted }}>{sh.start} – {sh.end}</div>
+                  </div>
+                  {sel && <span style={{ fontSize:12, color:sh.color, fontWeight:800 }}>✓</span>}
+                </div>
+              );
+            })}
+          </div>
+
+          {sbSelected.length > 0 && (
+            <div style={{ fontSize:11, color:_theme.textMuted, marginBottom:8, textAlign:"center" }}>
+              {sbSelected.length} shift{sbSelected.length>1?"s":""} selected
+            </div>
+          )}
+
+          <button onClick={applyShifts} disabled={!sbSelected.length}
+            style={{ width:"100%", background:sbSelected.length?_theme.primary:"#374151",
+              color:"#fff", border:"none", borderRadius:7, padding:"9px",
+              fontSize:12, cursor:sbSelected.length?"pointer":"default",
+              fontWeight:700, opacity:sbSelected.length?1:0.5,
+              transition:"all 0.15s" }}>
+            ⚡ Calculate / Apply
+          </button>
+        </div>
+
+        {/* Today info */}
+        <div style={{ ...CRD({ padding:"12px 14px" }) }}>
+          <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:700,
+            letterSpacing:"0.05em", marginBottom:6 }}>TODAY</div>
+          <div style={{ fontSize:12, fontWeight:700, color:_theme.text }}>
+            {new Date().toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})}
+          </div>
+          <div style={{ fontSize:11, color:_theme.primary, fontWeight:600, marginTop:2 }}>
+            🕐 {autoNow()}
+          </div>
+        </div>
+
       </div>
+      {/* ═══════════════════════ END SIDEBAR ═══════════════════════════════════ */}
+
+      {/* ══════════════════════ MAIN CONTENT ═════════════════════════════════ */}
+      <div style={{ flex:1, minWidth:0 }}>
+
+        {/* ── Top bar: Title + Status badge only ─────────────────────────────── */}
+        <div style={{ ...SBR({ marginBottom:14 }), alignItems:"center" }}>
+          <span style={{ fontWeight:800, fontSize:16, color:_theme.text }}>📊 Queue Data</span>
+          {sbApplied && sbShifts.length>1 && (
+            <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>
+              Combined: {sbShifts.map(sid=>shifts.find(s=>s.id===sid)?.label).join(" + ")}
+            </span>
+          )}
+          <div style={{ marginLeft:"auto", fontWeight:700, fontSize:13,
+            color:statusColor, background:statusColor+"18",
+            borderRadius:6, padding:"6px 14px",
+            border:`1px solid ${statusColor}40` }}>
+            {status}
+          </div>
+        </div>
+
+        {/* ── Time bar: Baseline + Update + Duration + احسب ──────────────────── */}
+        <div style={{ ...CRD({ padding:"12px 16px" }), marginBottom:16,
+          display:"flex", gap:16, alignItems:"center", flexWrap:"wrap" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:13, color:_theme.textMuted, whiteSpace:"nowrap" }}>⏱ Baseline</span>
+            <input type="time" value={baseTimeVal}
+              onChange={e=>setQ("baseTime",e.target.value)}
+              style={{ ...I({ width:115 })}}/>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:13, color:_theme.textMuted, whiteSpace:"nowrap" }}>🔄 Update</span>
+            <input type="time" value={updTimeVal}
+              onChange={e=>setQ("updTime",e.target.value)}
+              style={{ ...I({ width:115 })}}/>
+          </div>
+          {timeDiff() && (
+            <div style={{ fontSize:13, color:_theme.textSub, fontWeight:600 }}>
+              ⏳ <strong>{timeDiff()}</strong>
+            </div>
+          )}
+          <button onClick={calculate}
+            style={{ ...PBT(calcDone?"#10B981":_theme.primary,
+              { padding:"8px 22px", fontSize:13, marginLeft:"auto",
+                boxShadow:calcDone?"none":`0 0 0 3px ${_theme.primary}30`,
+                transition:"all 0.2s" }) }}>
+            {calcDone ? "✅ Saved to Heat Map" : "🧮 احسب"}
+          </button>
+        </div>
+
+        {/* ── Summary KPIs ────────────────────────────────────────────────────── */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:16 }}>
+          {[
+            ["Total Baseline", totalBase,     "#6B7280"],
+            ["New Inflow",     totalInflow,   _theme.primary],
+            ["Current Live",   totalCurr,     "#EF4444"],
+            ["Resolved",       totalResolved, "#10B981"],
+          ].map(([l,v,c])=>(
+            <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
+              <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>{l}</div>
+              <div style={{ fontSize:28, fontWeight:800, color:c }}>{v}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Queue Tables ─────────────────────────────────────────────────────── */}
+        {[
+          { title:"🇸🇦 KSA Queue", fields:KSA_FIELDS, accent:"#6366F1" },
+          { title:"🌍 GCC Queue",  fields:GCC_FIELDS,  accent:"#10B981" },
+        ].map(({ title, fields, accent }) => {
+          const groupCalcs  = calcs.filter(c=>fields.some(f=>f.key===c.key));
+          const gTotal      = groupCalcs.reduce((s,c)=>s+c.curr,0);
+          const gResolved   = groupCalcs.reduce((s,c)=>s+c.resolved,0);
+          // In multi-shift mode, data writes go to first selected shift
+          const isMulti = sbApplied && sbShifts.length > 1;
+          return (
+            <div key={title} style={{ ...CRD(), overflowX:"auto", marginBottom:16 }}>
+              <div style={{ display:"flex", alignItems:"center",
+                justifyContent:"space-between", marginBottom:12 }}>
+                <div style={{ fontWeight:800, color:accent, fontSize:15 }}>{title}</div>
+                <div style={{ display:"flex", gap:14, fontSize:12, color:_theme.textMuted }}>
+                  <span>Current: <strong style={{color:"#EF4444"}}>{gTotal}</strong></span>
+                  <span>Resolved: <strong style={{color:"#10B981"}}>{gResolved>0?"+":""}{gResolved}</strong></span>
+                </div>
+              </div>
+              {isMulti && (
+                <div style={{ fontSize:11, color:_theme.textMuted, background:_theme.surface,
+                  borderRadius:6, padding:"5px 10px", marginBottom:8 }}>
+                  ℹ️ Combined view — edit individual shifts to update values
+                </div>
+              )}
+              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+                <thead>
+                  <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+                    {["Queue","","Baseline","New Inflow","Current","Resolved","Trend"].map(h=>(
+                      <th key={h} style={{ padding:"8px 10px", textAlign:"left",
+                        fontWeight:700, color:_theme.text,
+                        borderBottom:`2px solid ${accent}40`, whiteSpace:"nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {groupCalcs.map((c,ri)=>(
+                    <tr key={c.key} style={{ background:ri%2===0?_theme.card:_theme.surface }}>
+                      <td style={{ padding:"8px 10px", fontWeight:700, color:c.color }}>{c.label}</td>
+                      <td style={{ padding:"8px 6px", fontSize:16 }}>{c.flag}</td>
+                      <td style={{ padding:"8px 10px" }}>
+                        <input type="number" min="0" disabled={isMulti}
+                          value={isMulti?c.base:(data[c.key+"Base"]||"")}
+                          onChange={e=>setQ(c.key+"Base",e.target.value)}
+                          style={{ ...I({ width:72, opacity:isMulti?.7:1 })}} placeholder="0"/>
+                      </td>
+                      <td style={{ padding:"8px 10px" }}>
+                        <input type="number" min="0" disabled={isMulti}
+                          value={isMulti?c.inflow:(data[c.key+"Inflow"]||"")}
+                          onChange={e=>setQ(c.key+"Inflow",e.target.value)}
+                          style={{ ...I({ width:72, border:isMulti?`1px solid ${_theme.inputBorder}`:inflowBorder(data[c.key+"Inflow"]),
+                            opacity:isMulti?.7:1 })}} placeholder="0"/>
+                      </td>
+                      <td style={{ padding:"8px 10px" }}>
+                        <input type="number" min="0" disabled={isMulti}
+                          value={isMulti?c.curr:(data[c.key+"Curr"]||"")}
+                          onChange={e=>setQ(c.key+"Curr",e.target.value)}
+                          style={{ ...I({ width:72, border:isMulti?`1px solid ${_theme.inputBorder}`:currBorder(data[c.key+"Curr"]),
+                            opacity:isMulti?.7:1 })}} placeholder="0"/>
+                      </td>
+                      <td style={{ padding:"8px 10px", fontWeight:700,
+                        color:c.resolved>0?"#10B981":c.resolved<0?"#EF4444":_theme.textMuted }}>
+                        {c.resolved>0?"+":""}{c.resolved}
+                      </td>
+                      <td style={{ padding:"8px 10px", fontSize:16 }}>
+                        {c.change>0?"📈":c.change<0?"📉":"➡️"}
+                        <span style={{ fontSize:11, color:_theme.textMuted, marginLeft:4 }}>
+                          {c.change>0?"+":""}{c.change||0}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })}
+
+        {/* ── Comparison panel ────────────────────────────────────────────────── */}
+        {(baseTimeVal && updTimeVal) && (
+          <div style={{ ...CRD(), marginBottom:16 }}>
+            <div style={{ fontWeight:700, color:_theme.text, marginBottom:12, fontSize:14 }}>
+              📊 Comparison: {baseTimeVal} → {updTimeVal}
+              {timeDiff() && <span style={{ color:_theme.textMuted, fontWeight:400, marginLeft:8 }}>({timeDiff()})</span>}
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(110px,1fr))", gap:8 }}>
+              {calcs.filter(c=>c.base>0||c.curr>0).map(c=>(
+                <div key={c.key} style={{ background:c.color+"12",
+                  border:`1.5px solid ${c.color}30`, borderRadius:8,
+                  padding:"10px 12px", textAlign:"center" }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:c.color,
+                    marginBottom:4 }}>{c.flag} {c.label}</div>
+                  <div style={{ display:"flex", justifyContent:"center",
+                    alignItems:"center", gap:6, fontSize:13 }}>
+                    <span style={{ color:_theme.textMuted }}>{c.base}</span>
+                    <span style={{ color:_theme.textMuted }}>→</span>
+                    <span style={{ fontWeight:800, fontSize:16,
+                      color:c.curr>c.base?"#EF4444":c.curr<c.base?"#10B981":_theme.textSub }}>
+                      {c.curr}
+                    </span>
+                  </div>
+                  <div style={{ fontSize:11, marginTop:4, fontWeight:600,
+                    color:c.resolved>0?"#10B981":c.resolved<0?"#EF4444":_theme.textMuted }}>
+                    {c.resolved>0?"+":""}{c.resolved}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── SME Insights ─────────────────────────────────────────────────────── */}
+        <div style={CRD()}>
+          <label style={{ ...LBL, color:_theme.text }}>💡 SME Insights (Problem → Action → Result)</label>
+          <textarea value={data.insight||""} onChange={e=>setQ("insight",e.target.value)} rows={3}
+            style={{ ...I(), resize:"vertical" }} placeholder="Problem → Action → Result"/>
+        </div>
+
+      </div>
+      {/* ═══════════════════════ END MAIN CONTENT ═══════════════════════════════ */}
+
     </div>
   );
 }
@@ -1881,11 +2150,11 @@ function NotesPage({ notes, setNotes }) {
   return (
     <div>
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>📝 Notes & Exceptional Events</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>📝 Notes & Exceptional Events</span>
         <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
       </div>
       <div style={{ ...CRD(), marginBottom:16 }}>
-        <div style={{ fontWeight:700, color:"#0F2744", marginBottom:12 }}>Add Note</div>
+        <div style={{ fontWeight:700, color:_theme.text, marginBottom:12 }}>Add Note</div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr auto", gap:10, marginBottom:10 }}>
           <div><label style={LBL}>Date</label><input type="date" value={date} onChange={e=>setDate(e.target.value)} style={I()}/></div>
           <div><label style={LBL}>Time</label><input type="time" value={time} onChange={e=>setTime(e.target.value)} style={I()}/></div>
@@ -1901,17 +2170,17 @@ function NotesPage({ notes, setNotes }) {
         <button style={PBT("#2563EB",{padding:"8px 20px"})} onClick={addNote}>+ Save Note</button>
       </div>
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-        {allNotes.length===0 && <div style={{ ...CRD(), textAlign:"center", padding:32, color:"#94A3B8" }}>📭 No notes yet</div>}
+        {allNotes.length===0 && <div style={{ ...CRD(), textAlign:"center", padding:32, color:_theme.textMuted }}>📭 No notes yet</div>}
         {allNotes.map(n=>(
           <div key={n.id} style={{ ...CRD(), borderLeft:`4px solid ${TAG_COLORS[n.tag]||"#64748B"}` }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
               <span style={{ background:TAG_COLORS[n.tag]+"20", color:TAG_COLORS[n.tag], border:`1px solid ${TAG_COLORS[n.tag]}40`,
                 borderRadius:6, padding:"2px 10px", fontSize:11, fontWeight:700 }}>{n.tag}</span>
-              <span style={{ fontSize:12, color:"#64748B" }}>📅 {n.date} · 🕐 {n.time}</span>
+              <span style={{ fontSize:12, color:_theme.textMuted }}>📅 {n.date} · 🕐 {n.time}</span>
               <button onClick={()=>deleteNote(n.id)} style={{ marginLeft:"auto", background:"none", border:"1px solid #FCA5A5",
                 color:"#EF4444", borderRadius:4, padding:"2px 8px", cursor:"pointer", fontSize:11 }}>✕</button>
             </div>
-            <div style={{ fontSize:13, color:"#1E293B", lineHeight:1.6, whiteSpace:"pre-wrap" }}>{n.text}</div>
+            <div style={{ fontSize:13, color:_theme.text, lineHeight:1.6, whiteSpace:"pre-wrap" }}>{n.text}</div>
           </div>
         ))}
       </div>
@@ -1926,7 +2195,7 @@ function getDefaultBreakDuration(dateStr) {
   const d = dateStr ? new Date(dateStr+"T00:00:00") : new Date();
   return d >= cutoff ? 60 : 30;
 }
-function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedule, canEdit }) {
+function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedule, canEdit, addAudit, session }) {
   const [date, setDate]         = useState(todayStr());
   const [shiftId, setShiftId]   = useState(shifts[0]?.id||"");
   const [templates, setTemplates]   = useState(() => {
@@ -1953,6 +2222,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
 
   function setEntry(empId, field, val) {
     if (!canEdit) return;
+    const emp = employees.find(e=>e.id===empId);
     setBreakSchedule(prev => ({
       ...prev,
       [key]: {
@@ -1960,6 +2230,34 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
         [empId]: { ...getEntry(empId), [field]: val }
       }
     }));
+    // Audit log for break time changes
+    if (field === "start" && addAudit) {
+      addAudit("Break Updated", emp?.name||empId, `Break start set to ${val} on ${date} (${shiftId})`);
+    }
+  }
+
+  // ── Compute break start from offset (hours from shift start) ──────────────
+  function offsetToTime(sid, offsetHours) {
+    const sh = shifts.find(s=>s.id===sid);
+    if (!sh) return "";
+    const shStartMin = toMin(sh.start);
+    const breakMin   = (shStartMin + Math.round(offsetHours * 60)) % 1440;
+    return pad(Math.floor(breakMin/60))+":"+pad(breakMin%60);
+  }
+
+  function timeToOffset(sid, timeStr) {
+    if (!timeStr) return "";
+    const sh = shifts.find(s=>s.id===sid);
+    if (!sh) return "";
+    let diff = toMin(timeStr) - toMin(sh.start);
+    if (diff < 0) diff += 1440;
+    return (diff / 60).toFixed(1);
+  }
+
+  function setEntryByOffset(empId, offsetHours) {
+    const sid = (schedule[empId]||{})[dayName];
+    const newStart = offsetToTime(sid, offsetHours);
+    setEntry(empId, "start", newStart);
   }
 
   // Auto-calc end time
@@ -1993,26 +2291,81 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
     return { status:"pending" };
   }
 
-  // Bulk fill: distribute breaks evenly across the shift
+  // ── Auto Distribute with custom formula ──────────────────────────────────
+  const [showFormulaModal, setShowFormulaModal] = useState(false);
+  const [formulaExpr, setFormulaExpr] = useState(() => {
+    try { return localStorage.getItem("csops_breakFormula") || "shiftStart + (shiftLen * 0.2) + i * (shiftLen * 0.6 / count)"; } catch { return "shiftStart + (shiftLen * 0.2) + i * (shiftLen * 0.6 / count)"; }
+  });
+  const [formulaError, setFormulaError] = useState("");
+  const [formulaDur, setFormulaDur] = useState(() => {
+    try { return Number(localStorage.getItem("csops_breakFormulaDur")) || 0; } catch { return 0; }
+  });
+
+  function evalFormula(expr, vars) {
+    // Safe eval: replace variable names then compute
+    const { shiftStart, shiftLen, count, i, breakDur } = vars;
+    try {
+      // Replace variable names
+      let e = expr
+        .replace(/shiftStart/g, shiftStart)
+        .replace(/shiftLen/g, shiftLen)
+        .replace(/count/g, count)
+        .replace(/\bi\b/g, i)
+        .replace(/breakDur/g, breakDur);
+      // eslint-disable-next-line no-new-func
+      const result = new Function(`return (${e})`)();
+      if (typeof result !== "number" || isNaN(result)) throw new Error("Result is not a number");
+      return result;
+    } catch(err) {
+      throw new Error(`Formula error: ${err.message}`);
+    }
+  }
+
+  function previewFormula() {
+    const sh = shifts.find(s=>s.id===shiftId);
+    if (!sh || !shiftEmps.length) return [];
+    const shStart = toMin(sh.start);
+    const shLen   = (() => { let l = toMin(sh.end) - shStart; if(l<=0) l+=1440; return l; })();
+    const dur = formulaDur > 0 ? formulaDur : getDefaultBreakDuration(date);
+    const results = [];
+    for (let i = 0; i < Math.min(shiftEmps.length, 5); i++) {
+      try {
+        const min = Math.round(evalFormula(formulaExpr, { shiftStart: shStart, shiftLen, count: shiftEmps.length, i, breakDur: dur }));
+        const clamped = ((min % 1440) + 1440) % 1440;
+        results.push({ name: shiftEmps[i].name, time: pad(Math.floor(clamped/60))+":"+pad(clamped%60), ok: true });
+      } catch(e) {
+        results.push({ name: shiftEmps[i].name, time: "—", ok: false, err: e.message });
+      }
+    }
+    return results;
+  }
+
   function autoDistribute() {
     if (!canEdit || !shiftEmps.length) return;
+    setShowFormulaModal(true);
+  }
+
+  function applyFormula() {
     const sh = shifts.find(s=>s.id===shiftId);
     if (!sh) return;
     const shStart = toMin(sh.start);
     const shLen   = (() => { let l = toMin(sh.end) - shStart; if(l<=0) l+=1440; return l; })();
-    // Spread breaks evenly in the middle 60% of the shift
-    const window = shLen * 0.6;
-    const wStart = shStart + shLen * 0.2;
-    const interval = window / shiftEmps.length;
-    const defaultDur = getDefaultBreakDuration(date);
+    const dur = formulaDur > 0 ? formulaDur : getDefaultBreakDuration(date);
     const updates = {};
-    shiftEmps.forEach((emp, i) => {
-      const breakStartMin = Math.round(wStart + i * interval);
-      const h = Math.floor((breakStartMin % 1440) / 60);
-      const m = (breakStartMin % 1440) % 60;
-      updates[emp.id] = { start: pad(h)+":"+pad(m), durationMin: defaultDur, overMin: 0 };
-    });
-    setBreakSchedule(prev => ({ ...prev, [key]: { ...(prev[key]||{}), ...updates } }));
+    try {
+      shiftEmps.forEach((emp, i) => {
+        const min = Math.round(evalFormula(formulaExpr, { shiftStart: shStart, shiftLen, count: shiftEmps.length, i, breakDur: dur }));
+        const clamped = ((min % 1440) + 1440) % 1440;
+        updates[emp.id] = { start: pad(Math.floor(clamped/60))+":"+pad(clamped%60), durationMin: dur, overMin: 0 };
+      });
+      setBreakSchedule(prev => ({ ...prev, [key]: { ...(prev[key]||{}), ...updates } }));
+      localStorage.setItem("csops_breakFormula", formulaExpr);
+      localStorage.setItem("csops_breakFormulaDur", String(dur));
+      setFormulaError("");
+      setShowFormulaModal(false);
+    } catch(e) {
+      setFormulaError(e.message);
+    }
   }
 
   // Save template
@@ -2048,7 +2401,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
     <div>
       {/* Toolbar */}
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>☕ Break Schedule</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>☕ Break Schedule</span>
         <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
         <select value={shiftId} onChange={e=>setShiftId(e.target.value)} style={{ ...I(), width:160 }}>
           {shifts.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}
@@ -2077,7 +2430,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
           ["⚠️ Overtime",   overtimeCount, "#EF4444"],
         ].map(([l,v,c])=>(
           <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
-            <div style={{ fontSize:11, color:"#64748B", fontWeight:600 }}>{l}</div>
+            <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>{l}</div>
             <div style={{ fontSize:28, fontWeight:800, color:c }}>{v}</div>
           </div>
         ))}
@@ -2088,38 +2441,50 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
         <div style={{ background:sh.color+"15", border:`1.5px solid ${sh.color}40`, borderRadius:10,
           padding:"10px 16px", marginBottom:14, display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
           <span style={{ fontWeight:800, color:sh.color }}>⏰ {sh.label}</span>
-          <span style={{ fontSize:12, color:"#475569" }}>{shiftEmps.length} employees scheduled</span>
-          <span style={{ fontSize:12, color:"#94A3B8" }}>{dayName} · {date}</span>
+          <span style={{ fontSize:12, color:_theme.textSub }}>{shiftEmps.length} employees scheduled</span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>{dayName} · {date}</span>
         </div>
       )}
 
       {/* Break schedule table */}
       <div style={{ ...CRD(), overflowX:"auto" }}>
+        {/* Legend */}
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:10, flexWrap:"wrap" }}>
+          <div style={{ fontSize:12, color:_theme.textMuted }}>
+            💡 <strong>طريقة الإدخال:</strong> أدخل رقماً يمثل عدد الساعات من بداية الشفت
+            <span style={{ color:_theme.primary, marginLeft:6 }}>مثال: 2 = بعد ساعتين · 2.5 = بعد ساعتين ونص</span>
+          </div>
+        </div>
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
-            <tr style={{ background:"#F8FAFC" }}>
-              {["#","Employee","Break Start","Duration","Break End","Status","Overtime (manual)"].map(h=>(
+            <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+              {["#","الموظف","+ ساعات من الشفت","وقت البريك","المدة","نهاية البريك","الحالة","تجاوز الوقت"].map(h=>(
                 <th key={h} style={{ padding:"10px 10px", textAlign:"left", fontWeight:700,
-                  color:"#0F2744", borderBottom:"2px solid #E2E8F0", whiteSpace:"nowrap" }}>{h}</th>
+                  color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {shiftEmps.map((emp, ri) => {
-              const entry  = getEntry(emp.id);
-              const endStr = calcEnd(entry.start, entry.durationMin);
-              const ls     = getLiveStatus(emp.id);
+              const entry   = getEntry(emp.id);
+              const endStr  = calcEnd(entry.start, entry.durationMin);
+              const ls      = getLiveStatus(emp.id);
+              const empSid  = (schedule[emp.id]||{})[dayName] || shiftId;
+              const empSh   = shifts.find(s=>s.id===empSid);
+              const empShiftLenH = empSh
+                ? (() => { let l = toMin(empSh.end)-toMin(empSh.start); if(l<=0) l+=1440; return Math.round(l/60*2)/2; })()
+                : 12;
+              const offset  = entry.start ? timeToOffset(empSid, entry.start) : "";
               const statusColor = ls.status==="on_break"?(ls.over>0?"#EF4444":"#F59E0B")
-                               : ls.status==="finished"?"#10B981":"#94A3B8";
+                               : ls.status==="finished"?"#10B981":_theme.textMuted;
               const statusLabel = ls.status==="on_break"
-                ? (ls.over>0 ? `⚠️ On Break +${ls.over}m OVER` : `☕ On Break ${ls.elapsed||0}m`)
-                : ls.status==="finished" ? "✅ Done"
-                : "⏳ Pending";
+                ? (ls.over>0 ? `⚠️ +${ls.over}م تجاوز` : `☕ ${ls.elapsed||0}م`)
+                : ls.status==="finished" ? "✅ انتهى" : "⏳ انتظار";
 
               return (
-                <tr key={emp.id} style={{ background: ri%2===0?"#fff":"#F8FAFC" }}>
-                  <td style={{ padding:"8px 10px", color:"#94A3B8", fontWeight:600 }}>{ri+1}</td>
-                  <td style={{ padding:"8px 10px", fontWeight:700, color:"#1E293B" }}>
+                <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
+                  <td style={{ padding:"8px 10px", color:_theme.textMuted, fontWeight:600 }}>{ri+1}</td>
+                  <td style={{ padding:"8px 10px", fontWeight:700, color:_theme.text }}>
                     {emp.name}
                     <span style={{ marginLeft:6, fontSize:9, fontWeight:800, padding:"1px 5px",
                       borderRadius:4, background:emp.gender==="F"?"#FCE7F3":"#EFF6FF",
@@ -2128,31 +2493,73 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                       {emp.gender||"M"}
                     </span>
                   </td>
+
+                  {/* ── Numeric offset input (hours from shift start) ── */}
+                  <td style={{ padding:"8px 10px" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+                      <button disabled={!canEdit}
+                        onClick={()=>{ const v=offset?Math.max(0,parseFloat(offset)-0.5):0; setEntryByOffset(emp.id,v); }}
+                        style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
+                          color:_theme.text, borderRadius:"6px 0 0 6px", padding:"6px 9px",
+                          cursor:canEdit?"pointer":"default", fontSize:14, fontWeight:700, lineHeight:1 }}>−</button>
+                      <input
+                        type="number" min="0" max={empShiftLenH} step="0.5"
+                        value={offset}
+                        disabled={!canEdit}
+                        onChange={e=>{
+                          const v = parseFloat(e.target.value);
+                          if (!isNaN(v) && v >= 0 && v <= empShiftLenH) setEntryByOffset(emp.id, v);
+                          else if (e.target.value==="") setEntry(emp.id,"start","");
+                        }}
+                        style={{ ...I({ width:65, borderRadius:0, textAlign:"center",
+                          fontWeight:700, fontSize:14,
+                          border: offset && parseFloat(offset) >= empShiftLenH
+                            ? "2px solid #EF4444"
+                            : `1px solid ${_theme.inputBorder}`,
+                          background: offset?_theme.primary+"15":_theme.input }) }}
+                        placeholder="h"
+                      />
+                      <button disabled={!canEdit}
+                        onClick={()=>{ const v=offset?Math.min(empShiftLenH,parseFloat(offset)+0.5):0.5; setEntryByOffset(emp.id,v); }}
+                        style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
+                          color:_theme.text, borderRadius:"0 6px 6px 0", padding:"6px 9px",
+                          cursor:canEdit?"pointer":"default", fontSize:14, fontWeight:700, lineHeight:1 }}>+</button>
+                    </div>
+                    <div style={{ fontSize:9, color:_theme.textMuted, marginTop:2, textAlign:"center" }}>
+                      max {empShiftLenH}h
+                    </div>
+                  </td>
+
+                  {/* ── Resolved clock time (auto-computed, also manually editable) ── */}
                   <td style={{ padding:"8px 10px" }}>
                     <input type="time" value={entry.start||""} disabled={!canEdit}
                       onChange={e=>setEntry(emp.id,"start",e.target.value)}
-                      style={{ ...I({ width:110, background:canEdit?"#fff":"#F8FAFC" })}}/>
+                      style={{ ...I({ width:105, fontSize:12,
+                        color: entry.start?_theme.primary:_theme.textMuted }) }}/>
                   </td>
+
+                  {/* ── Duration ── */}
                   <td style={{ padding:"8px 10px" }}>
-                    <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
-                      {[15,20,30,45,60].map(d=>{
+                    <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
+                      {[15,30,45,60].map(d=>{
                         const isDefault = d === getDefaultBreakDuration(date);
-                        const isSelected = entry.durationMin===d;
+                        const isSel     = entry.durationMin===d;
                         return (
-                          <button key={d} disabled={!canEdit}
-                            onClick={()=>setEntry(emp.id,"durationMin",d)}
-                            style={{ border:`1.5px solid ${isSelected?"#F59E0B":isDefault?"#10B981":"#CBD5E1"}`,
-                              borderRadius:6, padding:"3px 8px", fontSize:11, cursor:canEdit?"pointer":"default",
-                              background:isSelected?"#FEF9C3":isDefault?"#F0FDF4":"#fff",
-                              color:isSelected?"#92400E":isDefault?"#166534":"#64748B",
-                              fontWeight:700, position:"relative" }}>
-                            {d}m{isDefault&&!isSelected?" ★":""}
+                          <button key={d} disabled={!canEdit} onClick={()=>setEntry(emp.id,"durationMin",d)}
+                            style={{ border:`1.5px solid ${isSel?"#F59E0B":isDefault?_theme.success:_theme.cardBorder}`,
+                              borderRadius:6, padding:"3px 7px", fontSize:11,
+                              cursor:canEdit?"pointer":"default",
+                              background:isSel?"#FEF9C3":isDefault?_theme.success+"18":_theme.surface,
+                              color:isSel?"#92400E":isDefault?_theme.success:_theme.textMuted,
+                              fontWeight:700 }}>
+                            {d}م{isDefault&&!isSel?"★":""}
                           </button>
                         );
                       })}
                     </div>
                   </td>
-                  <td style={{ padding:"8px 10px", fontWeight:700, color:"#475569" }}>
+
+                  <td style={{ padding:"8px 10px", fontWeight:700, color:_theme.textSub }}>
                     {endStr || "--"}
                   </td>
                   <td style={{ padding:"8px 10px" }}>
@@ -2168,22 +2575,22 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                         <input type="number" min="0" max="120"
                           value={entry.overMin||ls.over||""}
                           onChange={e=>setEntry(emp.id,"overMin",Number(e.target.value))}
-                          style={{ ...I({ width:65, border:"2px solid #EF4444" })}}
-                          placeholder="min"/>
-                        <span style={{ fontSize:11, color:"#EF4444", fontWeight:700 }}>min</span>
+                          style={{ ...I({ width:60, border:"2px solid #EF4444" })}}
+                          placeholder="م"/>
+                        <span style={{ fontSize:11, color:"#EF4444", fontWeight:700 }}>م</span>
                       </div>
                     ) : entry.overMin > 0 ? (
-                      <span style={{ fontSize:12, color:"#EF4444", fontWeight:700 }}>+{entry.overMin}m recorded</span>
+                      <span style={{ fontSize:12, color:"#EF4444", fontWeight:700 }}>+{entry.overMin}م</span>
                     ) : (
-                      <span style={{ color:"#CBD5E1", fontSize:12 }}>--</span>
+                      <span style={{ color:_theme.textMuted, fontSize:12 }}>--</span>
                     )}
                   </td>
                 </tr>
               );
             })}
             {shiftEmps.length===0 && (
-              <tr><td colSpan={7} style={{ padding:32, textAlign:"center", color:"#94A3B8" }}>
-                No employees scheduled for this shift on {dayName}
+              <tr><td colSpan={8} style={{ padding:32, textAlign:"center", color:_theme.textMuted }}>
+                لا يوجد موظفون مجدولون لهذا الشفت في {dayName}
               </td></tr>
             )}
           </tbody>
@@ -2207,12 +2614,12 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
       {showLoadTemplate && (
         <Modal title="📂 Load Template" onClose={()=>setShowLoadTemplate(false)} width={420}>
           {Object.keys(templates).length===0 ? (
-            <div style={{ textAlign:"center", color:"#94A3B8", padding:24 }}>No templates saved yet.</div>
+            <div style={{ textAlign:"center", color:_theme.textMuted, padding:24 }}>No templates saved yet.</div>
           ) : (
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {Object.keys(templates).map(name=>(
                 <div key={name} style={{ display:"flex", alignItems:"center", gap:10,
-                  background:"#F8FAFC", borderRadius:8, padding:"10px 14px" }}>
+                  background:_theme.isDark?"#0D1117":"#F8FAFC", borderRadius:8, padding:"10px 14px" }}>
                   <span style={{ flex:1, fontWeight:600, fontSize:13 }}>📋 {name}</span>
                   <button style={PBT("#2563EB",{padding:"5px 14px",fontSize:12})}
                     onClick={()=>loadTemplate(name)}>Load</button>
@@ -2227,12 +2634,103 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
           )}
         </Modal>
       )}
+
+      {/* ── Auto Distribute Formula Modal ── */}
+      {showFormulaModal && (
+        <Modal title="⚡ Auto Distribute — Custom Formula" onClose={()=>{ setShowFormulaModal(false); setFormulaError(""); }} width={560}>
+          <div style={{ background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:8, padding:"10px 14px", marginBottom:14, fontSize:12, color:"#1D4ED8" }}>
+            <strong>المتغيرات المتاحة في المعادلة:</strong>
+            <div style={{ marginTop:6, display:"grid", gridTemplateColumns:"1fr 1fr", gap:4 }}>
+              {[
+                ["shiftStart","بداية الشفت بالدقائق (e.g. 480 = 08:00)"],
+                ["shiftLen","مدة الشفت الكاملة بالدقائق"],
+                ["count","عدد الموظفين في الشفت"],
+                ["i","رقم الموظف الحالي (يبدأ من 0)"],
+                ["breakDur","مدة الاستراحة المحددة أدناه"],
+              ].map(([v,d])=>(
+                <div key={v} style={{ background:"#fff", borderRadius:4, padding:"3px 8px", fontSize:11 }}>
+                  <code style={{ color:"#2563EB", fontWeight:700 }}>{v}</code>
+                  <span style={{ color:_theme.textMuted, marginLeft:4 }}>— {d}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <label style={{ ...LBL, color:_theme.text }}>📐 معادلة حساب وقت بداية الاستراحة (بالدقائق)</label>
+          <input value={formulaExpr} onChange={e=>{ setFormulaExpr(e.target.value); setFormulaError(""); }}
+            style={{ ...I(), marginBottom:10, fontFamily:"monospace", fontSize:13 }}
+            placeholder="shiftStart + (shiftLen * 0.2) + i * (shiftLen * 0.6 / count)"/>
+
+          <div style={{ marginBottom:14 }}>
+            <label style={{ ...LBL, color:_theme.text }}>⏱ مدة الاستراحة (دقيقة) — اتركه 0 للاستخدام الافتراضي ({getDefaultBreakDuration(date)}m)</label>
+            <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+              {[0,15,20,30,45,60].map(d=>(
+                <button key={d} onClick={()=>setFormulaDur(d)}
+                  style={{ border:`2px solid ${formulaDur===d?"#6366F1":"#CBD5E1"}`, borderRadius:7,
+                    padding:"5px 12px", fontSize:12, cursor:"pointer", fontWeight:700,
+                    background:formulaDur===d?"#EEF2FF":"#fff", color:formulaDur===d?"#4338CA":"#64748B" }}>
+                  {d===0?"افتراضي":d+"m"}
+                </button>
+              ))}
+              <input type="number" min="1" max="120" value={formulaDur||""}
+                onChange={e=>setFormulaDur(Number(e.target.value))}
+                style={{ ...I({ width:80 })}} placeholder="مخصص"/>
+            </div>
+          </div>
+
+          {/* Preview */}
+          {(() => {
+            const sh2 = shifts.find(s=>s.id===shiftId);
+            if (!sh2 || !shiftEmps.length) return null;
+            const preview = previewFormula();
+            const hasError = preview.some(p=>!p.ok);
+            return (
+              <div style={{ background: hasError?"#FEF2F2":"#F0FDF4", border:`1px solid ${hasError?"#FCA5A5":"#86EFAC"}`,
+                borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+                <div style={{ fontWeight:700, fontSize:12, color: hasError?"#B91C1C":"#166534", marginBottom:8 }}>
+                  {hasError?"❌ خطأ في المعادلة":"✅ معاينة (أول 5 موظفين):"}
+                </div>
+                {preview.map((p,idx)=>(
+                  <div key={idx} style={{ fontSize:12, color: p.ok?"#166534":"#B91C1C", marginBottom:2 }}>
+                    {p.ok ? `${idx+1}. ${p.name} → ${p.time}` : `❌ ${p.err}`}
+                  </div>
+                ))}
+                {shiftEmps.length > 5 && !hasError && (
+                  <div style={{ fontSize:11, color:_theme.textMuted, marginTop:4 }}>... و {shiftEmps.length-5} موظف آخرين</div>
+                )}
+              </div>
+            );
+          })()}
+
+          {formulaError && (
+            <div style={{ background:"#FEF2F2", border:"1px solid #FCA5A5", borderRadius:6, padding:"8px 12px", marginBottom:12, fontSize:12, color:"#B91C1C" }}>
+              ❌ {formulaError}
+            </div>
+          )}
+
+          <div style={{ background:"#FFFBEB", border:"1px solid #F59E0B40", borderRadius:6, padding:"8px 12px", marginBottom:14, fontSize:11, color:"#78350F" }}>
+            💡 <strong>أمثلة على المعادلات:</strong><br/>
+            • توزيع منتظم في منتصف الشفت: <code>shiftStart + (shiftLen * 0.2) + i * (shiftLen * 0.6 / count)</code><br/>
+            • بدء من ساعة بعد الشفت: <code>shiftStart + 60 + i * 30</code><br/>
+            • كل موظف بفارق 20 دقيقة: <code>shiftStart + (shiftLen / 2) + i * 20</code>
+          </div>
+
+          <div style={{ display:"flex", gap:8 }}>
+            <button style={{ background:"#6366F1", color:"#fff", border:"none", borderRadius:8, padding:"11px", fontSize:14, cursor:"pointer", fontWeight:700, flex:1 }} onClick={applyFormula}>
+              ⚡ تطبيق المعادلة على {shiftEmps.length} موظف
+            </button>
+            <button style={{ background:"#94A3B8", color:"#fff", border:"none", borderRadius:8, padding:"11px 18px", fontSize:13, cursor:"pointer", fontWeight:600 }} onClick={()=>{ setShowFormulaModal(false); setFormulaError(""); }}>
+              إلغاء
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
 
 // ─── LIVE FLOOR PAGE ──────────────────────────────────────────────────────────
-function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance, breakSchedule, setBreakSchedule }) {
+function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance, breakSchedule, setBreakSchedule, queueLog }) {
   const [now, setNow] = useState(new Date());
   const [shortBreaks, setShortBreaks] = useState({}); // empId → [{start, durationMin}] -- Short Breaks
   const [showShortModal, setShowShortModal] = useState(null);
@@ -2291,7 +2789,6 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
     // Is break scheduled but not started yet?
     const minsUntil = bStart > nowMin ? bStart - nowMin : (bStart + 1440 - nowMin);
     if (minsUntil > 0 && minsUntil <= 1440) {
-      // Check if we're BEFORE the break
       const beforeBreak = (() => {
         if (bEnd > bStart) return nowMin < bStart;
         return nowMin < bStart && nowMin >= bEnd;
@@ -2335,41 +2832,113 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
     }));
   }
 
+  // ── Queue-based Staffing Sufficient (100% accurate from Queue page data) ──────
+  // Find the latest queue snapshot for today across all shifts
+  const todayQueueData = useMemo(() => {
+    const entries = Object.entries(queueLog || {})
+      .filter(([k]) => k.startsWith(todayD))
+      .map(([, v]) => v);
+    if (!entries.length) return null;
+    // Pick the one with the latest updTime
+    return entries.reduce((best, e) => {
+      if (!best) return e;
+      if ((e.updTime||"00:00") > (best.updTime||"00:00")) return e;
+      return best;
+    }, null);
+  }, [queueLog, todayD]);
+
+  // Total current queue load from Queue page
+  const QUEUE_KEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
+  const totalQueueNow = todayQueueData
+    ? QUEUE_KEYS.reduce((s,k) => s + Number(todayQueueData[k+"Curr"]||0), 0)
+    : null;
+  const totalQueueBase = todayQueueData
+    ? QUEUE_KEYS.reduce((s,k) => s + Number(todayQueueData[k+"Base"]||0), 0)
+    : null;
+
   const onlineCount  = workingNow.filter(e=>{ const s=getEmpStatus(e).status; return s==="Online"||s==="Break Soon"||s==="Break Done"; }).length;
   const breakCount   = workingNow.filter(e=>getEmpStatus(e).status==="Break").length;
   const total        = workingNow.length;
-  const pressureRatio = total>0 ? onlineCount/total : 1;
-  const pressure = pressureRatio>=0.8 ? {label:"✅ Staffing Sufficient", color:"#10B981", bg:"#F0FDF4"}
-                 : pressureRatio>=0.6 ? {label:"⚠️ Staffing Low -- Monitor", color:"#F59E0B", bg:"#FEF9C3"}
-                 : {label:"🚨 Critical Shortage -- Immediate Action Required", color:"#EF4444", bg:"#FEF2F2"};
+
+  // ── Staffing Sufficient: uses Queue data when available, else headcount ratio ──
+  let pressure;
+  if (totalQueueNow !== null && total > 0) {
+    // Cases per available agent — queue-driven assessment
+    const agentsAvail = Math.max(1, onlineCount);
+    const caseLoad    = totalQueueNow / agentsAvail;
+    const queueTrend  = totalQueueBase !== null ? totalQueueNow - totalQueueBase : 0;
+
+    if (caseLoad <= 10 && queueTrend <= 0) {
+      pressure = { label:"✅ Staffing Sufficient", color:"#10B981", bg:"rgba(16,185,129,0.08)",
+        sub:`${agentsAvail} agents · ${totalQueueNow} cases · ${caseLoad.toFixed(1)} per agent — Queue Stable`, pct:100 };
+    } else if (caseLoad <= 20 || (caseLoad <= 30 && queueTrend <= 50)) {
+      pressure = { label:"⚠️ Staffing Low — Monitor Queue", color:"#F59E0B", bg:"rgba(245,158,11,0.08)",
+        sub:`${agentsAvail} agents · ${totalQueueNow} cases · ${caseLoad.toFixed(1)} per agent — ${queueTrend>0?"Queue Growing":"Stable"}`, pct:Math.round((10/caseLoad)*100) };
+    } else {
+      pressure = { label:"🚨 Critical Shortage — Immediate Action Required", color:"#EF4444", bg:"rgba(239,68,68,0.08)",
+        sub:`${agentsAvail} agents · ${totalQueueNow} cases · ${caseLoad.toFixed(1)} per agent — Queue Critical`, pct:Math.round((10/caseLoad)*100) };
+    }
+  } else {
+    // Fallback to headcount ratio when no queue data
+    const ratio = total > 0 ? onlineCount/total : 1;
+    if (ratio >= 0.8) {
+      pressure = { label:"✅ Staffing Sufficient", color:"#10B981", bg:"rgba(16,185,129,0.08)",
+        sub:`${onlineCount} of ${total} agents available`, pct:Math.round(ratio*100) };
+    } else if (ratio >= 0.6) {
+      pressure = { label:"⚠️ Staffing Low — Monitor", color:"#F59E0B", bg:"rgba(245,158,11,0.08)",
+        sub:`${onlineCount} of ${total} agents available`, pct:Math.round(ratio*100) };
+    } else {
+      pressure = { label:"🚨 Critical Shortage — Immediate Action Required", color:"#EF4444", bg:"rgba(239,68,68,0.08)",
+        sub:`${onlineCount} of ${total} agents available`, pct:Math.round(ratio*100) };
+    }
+  }
 
   return (
     <div>
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>🏢 Live Floor Monitor</span>
-        <span style={{ fontSize:13, color:"#64748B" }}>🕐 {pad(now.getHours())}:{pad(now.getMinutes())} · {dayName}</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🏢 Live Floor Monitor</span>
+        <span style={{ fontSize:13, color:_theme.textMuted }}>🕐 {pad(now.getHours())}:{pad(now.getMinutes())} · {dayName}</span>
         <div style={{ marginLeft:"auto", display:"flex", gap:10 }}>
           <span style={{ background:"#10B981"+"20", color:"#10B981", borderRadius:20, padding:"4px 14px", fontWeight:700, fontSize:13 }}>🟢 Online: {onlineCount}</span>
           <span style={{ background:"#F59E0B"+"20", color:"#F59E0B", borderRadius:20, padding:"4px 14px", fontWeight:700, fontSize:13 }}>☕ Break: {breakCount}</span>
-          <span style={{ background:"#64748B"+"20", color:"#64748B", borderRadius:20, padding:"4px 14px", fontWeight:700, fontSize:13 }}>👥 Total: {total}</span>
+          <span style={{ background:"#64748B"+"20", color:_theme.textMuted, borderRadius:20, padding:"4px 14px", fontWeight:700, fontSize:13 }}>👥 Total: {total}</span>
         </div>
       </div>
 
       {/* Pressure Indicator */}
       <div style={{ background:pressure.bg, border:`2px solid ${pressure.color}40`, borderRadius:12,
         padding:"18px 24px", marginBottom:20, display:"flex", alignItems:"center", gap:16 }}>
-        <div style={{ fontSize:36 }}>{pressureRatio>=0.8?"✅":pressureRatio>=0.6?"⚠️":"🚨"}</div>
+        <div style={{ fontSize:36 }}>{pressure.pct>=80?"✅":pressure.pct>=50?"⚠️":"🚨"}</div>
         <div style={{ flex:1 }}>
           <div style={{ fontWeight:800, fontSize:18, color:pressure.color }}>{pressure.label}</div>
-          <div style={{ fontSize:13, color:"#475569", marginTop:4 }}>
-            {onlineCount} of {total} agents online · {breakCount} on break
-          </div>
+          <div style={{ fontSize:13, color:_theme.textSub, marginTop:4 }}>{pressure.sub}</div>
+          {totalQueueNow !== null && (
+            <div style={{ marginTop:6, display:"flex", gap:12, flexWrap:"wrap" }}>
+              <span style={{ fontSize:11, background:"rgba(239,68,68,0.1)", color:"#EF4444",
+                border:"1px solid rgba(239,68,68,0.2)", borderRadius:10, padding:"2px 10px", fontWeight:700 }}>
+                📊 Queue Total: {totalQueueNow} cases
+              </span>
+              {totalQueueBase !== null && (
+                <span style={{ fontSize:11, background: totalQueueNow>totalQueueBase?"rgba(239,68,68,0.1)":"rgba(16,185,129,0.1)",
+                  color: totalQueueNow>totalQueueBase?"#EF4444":"#10B981",
+                  border:`1px solid ${totalQueueNow>totalQueueBase?"rgba(239,68,68,0.2)":"rgba(16,185,129,0.2)"}`,
+                  borderRadius:10, padding:"2px 10px", fontWeight:700 }}>
+                  {totalQueueNow>totalQueueBase?`📈 +${totalQueueNow-totalQueueBase} from baseline`:`📉 -${totalQueueBase-totalQueueNow} from baseline`}
+                </span>
+              )}
+              <span style={{ fontSize:11, color:_theme.textMuted }}>
+                🕐 Queue snapshot: {todayQueueData?.updTime || "—"}
+              </span>
+            </div>
+          )}
         </div>
-        <div style={{ textAlign:"center" }}>
+        <div style={{ textAlign:"center", minWidth:64 }}>
           <div style={{ fontSize:32, fontWeight:800, color:pressure.color }}>
-            {total>0?Math.round(pressureRatio*100):0}%
+            {Math.min(100,Math.max(0,pressure.pct))}%
           </div>
-          <div style={{ fontSize:11, color:"#94A3B8" }}>Available</div>
+          <div style={{ fontSize:11, color:_theme.textMuted }}>
+            {totalQueueNow !== null ? "Staffing Score" : "Available"}
+          </div>
         </div>
       </div>
 
@@ -2383,7 +2952,7 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
 
       {/* Employee Cards */}
       {workingNow.length===0 && (
-        <div style={{ ...CRD(), textAlign:"center", padding:40, color:"#94A3B8" }}>
+        <div style={{ ...CRD(), textAlign:"center", padding:40, color:_theme.textMuted }}>
           No employees scheduled for this shift right now.
         </div>
       )}
@@ -2408,7 +2977,7 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
               {/* Header */}
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
                 <div>
-                  <div style={{ fontWeight:800, fontSize:14, color:"#0F2744", display:"flex", alignItems:"center", gap:6 }}>
+                  <div style={{ fontWeight:800, fontSize:14, color:_theme.text, display:"flex", alignItems:"center", gap:6 }}>
                     {emp.name}
                     <span style={{ fontSize:9, fontWeight:800, padding:"1px 5px", borderRadius:4,
                       background:emp.gender==="F"?"#FCE7F3":"#EFF6FF",
@@ -2447,7 +3016,7 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
                   {es.status==="Break" && (
                     <>
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:11,
-                        color:"#64748B", marginBottom:4 }}>
+                        color:_theme.textMuted, marginBottom:4 }}>
                         <span>Elapsed: {es.elapsed}m</span>
                         {es.isOvertime && <span style={{ color:"#EF4444", fontWeight:700 }}>⚠️ +{es.over}m OVER</span>}
                       </div>
@@ -2491,7 +3060,7 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
                 <div style={{ fontSize:11, color:"#8B5CF6", fontWeight:600, marginBottom:8 }}>
                   ⚡ Short Breaks: {shortTotal}m total
                   {getShortBreaks(emp.id).map((sb,i)=>(
-                    <span key={i} style={{ marginLeft:6, color:"#94A3B8" }}>[{sb.start} +{sb.durationMin}m]</span>
+                    <span key={i} style={{ marginLeft:6, color:_theme.textMuted }}>[{sb.start} +{sb.durationMin}m]</span>
                   ))}
                 </div>
               )}
@@ -2609,9 +3178,9 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
     <div>
       {/* Toolbar */}
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>👥 Daily Roster</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>👥 Daily Roster</span>
         <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
-        <span style={{ fontSize:12, color:"#64748B", fontWeight:600 }}>{dayName}</span>
+        <span style={{ fontSize:12, color:_theme.textMuted, fontWeight:600 }}>{dayName}</span>
         <button style={PBT("#2563EB")} onClick={()=>setShowAdd(true)}>+ Add Employee</button>
       </div>
 
@@ -2630,9 +3199,9 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
       {sh && (
         <div style={{ background: sh.color+"18", border:`1.5px solid ${sh.color}40`, borderRadius:10, padding:"12px 18px", marginBottom:14, display:"flex", alignItems:"center", gap:20, flexWrap:"wrap" }}>
           <div style={{ fontWeight:800, color:sh.color, fontSize:15 }}>⏰ {sh.label} &nbsp; {sh.start} - {sh.end}</div>
-          <div style={{ fontWeight:700, fontSize:13, color:"#0F2744" }}>{shiftEmployees.length} scheduled</div>
+          <div style={{ fontWeight:700, fontSize:13, color:_theme.text }}>{shiftEmployees.length} scheduled</div>
           {Object.entries(roleGroups).map(([role,count]) => (
-            <span key={role} style={{ fontSize:12, background:"#fff", border:`1px solid ${sh.color}60`, borderRadius:10, padding:"3px 10px", color:"#475569", fontWeight:600 }}>
+            <span key={role} style={{ fontSize:12, background:"#fff", border:`1px solid ${sh.color}60`, borderRadius:10, padding:"3px 10px", color:_theme.textSub, fontWeight:600 }}>
               {role}: {count}
             </span>
           ))}
@@ -2643,19 +3212,19 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
       <div style={{ ...CRD(), overflowX:"auto" }}>
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
-            <tr style={{ background:"#F8FAFC" }}>
+            <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
               {["#","Name","Role","Tasks","Actions"].map(h=>(
-                <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0" }}>{h}</th>
+                <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {shiftEmployees.map((emp, ri) => (
-              <tr key={emp.id} style={{ background: ri%2===0?"#fff":"#F8FAFC" }}>
-                <td style={{ padding:"10px 12px", color:"#94A3B8", fontWeight:600 }}>{ri+1}</td>
-                <td style={{ padding:"10px 12px", fontWeight:700, color:"#1E293B" }}>{emp.name}</td>
+              <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
+                <td style={{ padding:"10px 12px", color:_theme.textMuted, fontWeight:600 }}>{ri+1}</td>
+                <td style={{ padding:"10px 12px", fontWeight:700, color:_theme.text }}>{emp.name}</td>
                 <td style={{ padding:"10px 12px" }}>
-                  <span style={{ background:"#F1F5F9", borderRadius:6, padding:"3px 9px", fontSize:12, color:"#475569", fontWeight:600 }}>{emp.role}</span>
+                  <span style={{ background:"#F1F5F9", borderRadius:6, padding:"3px 9px", fontSize:12, color:_theme.textSub, fontWeight:600 }}>{emp.role}</span>
                 </td>
                 <td style={{ padding:"10px 12px" }}>
                   <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
@@ -2678,7 +3247,7 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
             ))}
             {shiftEmployees.length===0 && (
               <tr>
-                <td colSpan={5} style={{ padding:32, textAlign:"center", color:"#94A3B8" }}>
+                <td colSpan={5} style={{ padding:32, textAlign:"center", color:_theme.textMuted }}>
                   No employees scheduled for <strong>{sh?.label}</strong> on <strong>{dayName}</strong>
                 </td>
               </tr>
@@ -2688,7 +3257,7 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
       </div>
 
       {/* Legend */}
-      <div style={{ marginTop:10, display:"flex", gap:16, fontSize:11, color:"#94A3B8" }}>
+      <div style={{ marginTop:10, display:"flex", gap:16, fontSize:11, color:_theme.textMuted }}>
         <span>✏️ Edit info</span>
         <span>📅✕ Remove from this shift only</span>
         <span>🗑️ Delete permanently</span>
@@ -2759,7 +3328,7 @@ function ShiftsPage({ shifts, setShifts }) {
   return (
     <div>
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>⏰ Shift Configuration</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>⏰ Shift Configuration</span>
         <button style={PBT("#2563EB")} onClick={()=>setShowAdd(true)}>+ Add Shift</button>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))", gap:12 }}>
@@ -3081,7 +3650,7 @@ Generated: ${new Date().toLocaleString()}`;
   return (
     <div>
       <div style={SBR({ flexWrap:"wrap" })}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>📑 Reports</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>📑 Reports</span>
         <div style={{ display:"flex", gap:6 }}>
           {[["ops","📊 Ops Report"],["monthly","📅 Monthly"],["scorecard","🎯 Scorecard"]].map(([k,l])=>(
             <button key={k} onClick={()=>setReportType(k)}
@@ -3105,7 +3674,7 @@ Generated: ${new Date().toLocaleString()}`;
 
             {/* Report Header */}
             <div style={CRD()}>
-              <div style={{ fontWeight:700, color:"#0F2744", marginBottom:12, fontSize:14 }}>📋 Report Header</div>
+              <div style={{ fontWeight:700, color:_theme.text, marginBottom:12, fontSize:14 }}>📋 Report Header</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
                 <div><label style={LBL}>Baseline Time</label>
                   <input type="time" value={opsBaseTime} onChange={e=>setOpsBaseTime(e.target.value)} style={I()}/></div>
@@ -3136,7 +3705,7 @@ Generated: ${new Date().toLocaleString()}`;
                 ["OSLO",          ksaOsloBase, setKsaOsloBase, ksaOsloIn, setKsaOsloIn, ksaOsloCurr, setKsaOsloCurr],
               ].map(([label, base, setBase, inflow, setInflow, curr, setCurr]) => (
                 <div key={label} style={{ marginBottom:10 }}>
-                  <div style={{ fontSize:12, fontWeight:700, color:"#475569", marginBottom:4 }}>{label}</div>
+                  <div style={{ fontSize:12, fontWeight:700, color:_theme.textSub, marginBottom:4 }}>{label}</div>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr auto", gap:6, alignItems:"center" }}>
                     <div><label style={{ ...LBL, fontSize:10 }}>Baseline</label>
                       <input type="number" min="0" value={base} onChange={e=>setBase(e.target.value)} style={I()} placeholder="0"/></div>
@@ -3161,7 +3730,7 @@ Generated: ${new Date().toLocaleString()}`;
                 ['"Some" Cases',  gccSomeBase, setGccSomeBase, gccSomeIn, setGccSomeIn, gccSomeCurr, setGccSomeCurr],
               ].map(([label, base, setBase, inflow, setInflow, curr, setCurr]) => (
                 <div key={label} style={{ marginBottom:10 }}>
-                  <div style={{ fontSize:12, fontWeight:700, color:"#475569", marginBottom:4 }}>{label}</div>
+                  <div style={{ fontSize:12, fontWeight:700, color:_theme.textSub, marginBottom:4 }}>{label}</div>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr auto", gap:6, alignItems:"center" }}>
                     <div><label style={{ ...LBL, fontSize:10 }}>Baseline</label>
                       <input type="number" min="0" value={base} onChange={e=>setBase(e.target.value)} style={I()} placeholder="0"/></div>
@@ -3182,12 +3751,12 @@ Generated: ${new Date().toLocaleString()}`;
           {/* Right: Workforce Allocation + Executive Note */}
           <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
             <div style={CRD()}>
-              <div style={{ fontWeight:700, color:"#0F2744", marginBottom:12, fontSize:14 }}>👥 Workforce Allocation</div>
-              <div style={{ fontSize:12, color:"#64748B", marginBottom:10 }}>
+              <div style={{ fontWeight:700, color:_theme.text, marginBottom:12, fontSize:14 }}>👥 Workforce Allocation</div>
+              <div style={{ fontSize:12, color:_theme.textMuted, marginBottom:10 }}>
                 أدخل اسم الفريق والموظفين (سطر لكل موظف)
               </div>
               {allocRows.map((row, i) => (
-                <div key={i} style={{ marginBottom:12, background:"#F8FAFC", borderRadius:8, padding:"10px 12px" }}>
+                <div key={i} style={{ marginBottom:12, background:_theme.isDark?"#0D1117":"#F8FAFC", borderRadius:8, padding:"10px 12px" }}>
                   <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:6 }}>
                     <input value={row.team} onChange={e=>updateAllocRow(i,"team",e.target.value)}
                       style={{ ...I({ flex:1 })}} placeholder="اسم الفريق / المهمة"/>
@@ -3204,7 +3773,7 @@ Generated: ${new Date().toLocaleString()}`;
             </div>
 
             <div style={CRD()}>
-              <div style={{ fontWeight:700, color:"#0F2744", marginBottom:8, fontSize:14 }}>📝 Executive Note</div>
+              <div style={{ fontWeight:700, color:_theme.text, marginBottom:8, fontSize:14 }}>📝 Executive Note</div>
               <textarea value={opsExecNote} onChange={e=>setOpsExecNote(e.target.value)} rows={4}
                 style={{ ...I(), resize:"vertical" }}
                 placeholder="The primary focus for the shift will be..."/>
@@ -3212,7 +3781,7 @@ Generated: ${new Date().toLocaleString()}`;
 
             {/* Live preview summary */}
             <div style={{ ...CRD(), background:"#0F172A", color:"#E2E8F0" }}>
-              <div style={{ fontWeight:700, fontSize:12, color:"#94A3B8", marginBottom:8 }}>📊 Quick Summary</div>
+              <div style={{ fontWeight:700, fontSize:12, color:_theme.textMuted, marginBottom:8 }}>📊 Quick Summary</div>
               <div style={{ fontSize:12, lineHeight:1.8 }}>
                 {n(ksaOBBase)>0 && <div>🔴 OB: {ksaOBBase} → {ksaOBCurr} | <span style={{color:"#10B981"}}>✅ {resolved(ksaOBBase,ksaOBIn,ksaOBCurr)} resolved</span></div>}
                 {n(ksaSomeBase)>0 && <div>🔴 SOME: {ksaSomeBase} → {ksaSomeCurr} | <span style={{color:"#10B981"}}>✅ {resolved(ksaSomeBase,ksaSomeIn,ksaSomeCurr)} resolved</span></div>}
@@ -3231,7 +3800,7 @@ Generated: ${new Date().toLocaleString()}`;
       {/* Monthly shift filter */}
       {(reportType==="monthly"||reportType==="scorecard") && (
         <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:14, alignItems:"center" }}>
-          <span style={{ fontSize:12, color:"#64748B", fontWeight:600 }}>Filter by Shift:</span>
+          <span style={{ fontSize:12, color:_theme.textMuted, fontWeight:600 }}>Filter by Shift:</span>
           <button onClick={()=>setSelectedShifts([])}
             style={{ border:`2px solid ${selectedShifts.length===0?"#0F2744":"#CBD5E1"}`, borderRadius:20,
               padding:"3px 12px", fontSize:11, cursor:"pointer", fontWeight:600,
@@ -3242,7 +3811,7 @@ Generated: ${new Date().toLocaleString()}`;
               style={{ border:`2px solid ${selectedShifts.includes(s.id)?s.color:"#CBD5E1"}`, borderRadius:20,
                 padding:"3px 12px", fontSize:11, cursor:"pointer", fontWeight:600,
                 background: selectedShifts.includes(s.id)?s.color+"18":"transparent",
-                color: selectedShifts.includes(s.id)?s.color:"#64748B" }}>
+                color: selectedShifts.includes(s.id)?s.color:_theme.textMuted }}>
               {s.label} {s.start}
             </button>
           ))}
@@ -3253,15 +3822,15 @@ Generated: ${new Date().toLocaleString()}`;
       {reportType==="scorecard" && (
         <div>
           <div style={{ ...CRD(), overflowX:"auto", marginBottom:16 }}>
-            <div style={{ fontWeight:700, color:"#0F2744", marginBottom:4 }}>🎯 Balanced Scorecard</div>
-            <div style={{ fontSize:12, color:"#64748B", marginBottom:12 }}>
+            <div style={{ fontWeight:700, color:_theme.text, marginBottom:4 }}>🎯 Balanced Scorecard</div>
+            <div style={{ fontSize:12, color:_theme.textMuted, marginBottom:12 }}>
               Weights: Attendance 40% · Work Hours 35% · Punctuality 25%
             </div>
             <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
               <thead>
-                <tr style={{ background:"#F8FAFC" }}>
+                <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
                   {["Rank","Employee","Attendance %","Avg Work Hours","Punctuality","Score"].map(h=>(
-                    <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0" }}>{h}</th>
+                    <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -3269,11 +3838,11 @@ Generated: ${new Date().toLocaleString()}`;
                 {scoreData.map((s,ri) => {
                   const scoreColor = s.score>=80?"#10B981":s.score>=60?"#F59E0B":"#EF4444";
                   return (
-                    <tr key={s.emp.id} style={{ background: ri%2===0?"#fff":"#F8FAFC" }}>
+                    <tr key={s.emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
                       <td style={{ padding:"10px 12px", fontSize:16, textAlign:"center" }}>{["🥇","🥈","🥉"][ri]||ri+1}</td>
                       <td style={{ padding:"10px 12px", fontWeight:700 }}>
                         {s.emp.name}
-                        <div style={{ fontSize:11, color:"#94A3B8" }}>{s.emp.role}</div>
+                        <div style={{ fontSize:11, color:_theme.textMuted }}>{s.emp.role}</div>
                       </td>
                       <td style={{ padding:"10px 12px" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -3282,19 +3851,19 @@ Generated: ${new Date().toLocaleString()}`;
                           </div>
                           <span style={{ fontWeight:600 }}>{s.attRate}%</span>
                         </div>
-                        <div style={{ fontSize:11, color:"#94A3B8" }}>Abs: {s.s.abs} · Late: {s.s.lateCount}x</div>
+                        <div style={{ fontSize:11, color:_theme.textMuted }}>Abs: {s.s.abs} · Late: {s.s.lateCount}x</div>
                       </td>
                       <td style={{ padding:"10px 12px" }}>
                         <div style={{ fontWeight:700, color: s.workScore>=80?"#10B981":s.workScore>=60?"#F59E0B":"#EF4444" }}>
                           {s.avgWorkHFmt}
                         </div>
-                        <div style={{ fontSize:11, color:"#94A3B8" }}>Score: {s.workScore}</div>
+                        <div style={{ fontSize:11, color:_theme.textMuted }}>Score: {s.workScore}</div>
                       </td>
                       <td style={{ padding:"10px 12px" }}>
                         <div style={{ fontWeight:700, color: s.punctScore>=90?"#10B981":s.punctScore>=70?"#F59E0B":"#EF4444" }}>
                           {s.punctScore}/100
                         </div>
-                        <div style={{ fontSize:11, color:"#94A3B8" }}>Late {s.s.lateCount}x · {s.s.lateMin}m total</div>
+                        <div style={{ fontSize:11, color:_theme.textMuted }}>Late {s.s.lateCount}x · {s.s.lateMin}m total</div>
                       </td>
                       <td style={{ padding:"10px 12px" }}>
                         <span style={{ background:scoreColor+"20", color:scoreColor, border:`1.5px solid ${scoreColor}`,
@@ -3304,7 +3873,7 @@ Generated: ${new Date().toLocaleString()}`;
                   );
                 })}
                 {scoreData.length===0 && (
-                  <tr><td colSpan={6} style={{ padding:24, textAlign:"center", color:"#94A3B8" }}>No data for selected period/shifts</td></tr>
+                  <tr><td colSpan={6} style={{ padding:24, textAlign:"center", color:_theme.textMuted }}>No data for selected period/shifts</td></tr>
                 )}
               </tbody>
             </table>
@@ -3320,8 +3889,8 @@ Generated: ${new Date().toLocaleString()}`;
             ].map(c=>(
               <div key={c.title} style={{ ...CRD(), borderTop:"3px solid #2563EB" }}>
                 <div style={{ fontSize:24, marginBottom:6 }}>{c.icon}</div>
-                <div style={{ fontWeight:700, color:"#0F2744", marginBottom:6 }}>{c.title}</div>
-                <div style={{ fontSize:12, color:"#64748B" }}>{c.desc}</div>
+                <div style={{ fontWeight:700, color:_theme.text, marginBottom:6 }}>{c.title}</div>
+                <div style={{ fontSize:12, color:_theme.textMuted }}>{c.desc}</div>
               </div>
             ))}
           </div>
@@ -3340,7 +3909,7 @@ Generated: ${new Date().toLocaleString()}`;
       {(reportType==="ops"||reportType==="monthly") && (
         <div>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-            <span style={{ fontSize:13, fontWeight:700, color:"#0F2744" }}>📄 Report Preview</span>
+            <span style={{ fontSize:13, fontWeight:700, color:_theme.text }}>📄 Report Preview</span>
             <button style={PBT(copied?"#10B981":"#2563EB",{padding:"6px 16px",fontSize:12})}
               onClick={copyReport}>{copied?"✅ Copied!":"📋 Copy Report"}</button>
           </div>
@@ -3402,7 +3971,7 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
   return (
     <div>
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>📋 Task Assignments</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>📋 Task Assignments</span>
         <input value={search} onChange={e=>setSearch(e.target.value)} style={{ ...I(), width:200 }} placeholder="🔍 Search employee..."/>
         <select value={filterTask} onChange={e=>setFilterTask(e.target.value)} style={{ ...I(), width:180 }}>
           <option value="">All Tasks</option>
@@ -3429,9 +3998,9 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
       <div style={{ ...CRD(), overflowX:"auto" }}>
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
-            <tr style={{ background:"#F8FAFC" }}>
+            <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
               {["#","Employee","Role","Assigned Tasks","Assigned By","Actions"].map(h=>(
-                <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:"#0F2744", borderBottom:"2px solid #E2E8F0" }}>{h}</th>
+                <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -3440,11 +4009,11 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
               // Find last audit entry for this employee's tasks
               const lastEdit = (auditLog||[]).find(a => a.target===emp.name && a.action==="Task Assignment");
               return (
-                <tr key={emp.id} style={{ background: ri%2===0?"#fff":"#F8FAFC" }}>
-                  <td style={{ padding:"10px 12px", color:"#94A3B8", fontWeight:600 }}>{ri+1}</td>
-                  <td style={{ padding:"10px 12px", fontWeight:700, color:"#1E293B" }}>
+                <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
+                  <td style={{ padding:"10px 12px", color:_theme.textMuted, fontWeight:600 }}>{ri+1}</td>
+                  <td style={{ padding:"10px 12px", fontWeight:700, color:_theme.text }}>
                     {emp.name}
-                    <div style={{ fontSize:11, color:"#94A3B8" }}>{emp.role}</div>
+                    <div style={{ fontSize:11, color:_theme.textMuted }}>{emp.role}</div>
                   </td>
                   <td style={{ padding:"10px 12px" }}>
                     <span style={{ background:ROLE_COLORS[emp.role]||"#64748B", color:"#fff",
@@ -3452,7 +4021,7 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
                   </td>
                   <td style={{ padding:"10px 12px" }}>
                     {(emp.tasks||[]).length === 0
-                      ? <span style={{ color:"#94A3B8", fontSize:12 }}>No tasks assigned</span>
+                      ? <span style={{ color:_theme.textMuted, fontSize:12 }}>No tasks assigned</span>
                       : <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
                           {(emp.tasks||[]).map(t=>(
                             <span key={t} style={{ background:taskColor(t), color:"#fff",
@@ -3461,11 +4030,11 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
                         </div>
                     }
                   </td>
-                  <td style={{ padding:"10px 12px", fontSize:12, color:"#64748B" }}>
+                  <td style={{ padding:"10px 12px", fontSize:12, color:_theme.textMuted }}>
                     {lastEdit
                       ? <div>
-                          <div style={{ fontWeight:600, color:"#1E293B" }}>{lastEdit.by}</div>
-                          <div style={{ fontSize:11, color:"#94A3B8" }}>
+                          <div style={{ fontWeight:600, color:_theme.text }}>{lastEdit.by}</div>
+                          <div style={{ fontSize:11, color:_theme.textMuted }}>
                             {new Date(lastEdit.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})} {new Date(lastEdit.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
                           </div>
                         </div>
@@ -3485,7 +4054,7 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
 
       {editEmp && (
         <Modal title={`Edit Tasks -- ${editEmp.name}`} onClose={()=>setEditEmp(null)} width={560}>
-          <div style={{ marginBottom:10, fontSize:12, color:"#64748B" }}>
+          <div style={{ marginBottom:10, fontSize:12, color:_theme.textMuted }}>
             Select tasks assigned to <strong>{editEmp.name}</strong>. Changes will be logged with your name.
           </div>
           <TaskPicker selected={editEmp.tasks||[]} onChange={tasks=>setEditEmp(p=>({...p,tasks}))}/>
@@ -3602,8 +4171,8 @@ function AuditLogPage({ auditLog, session }) {
         <div style={{ ...CRD(), marginBottom:20, border:"2px solid #6366F130" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
             <span style={{ fontSize:16 }}>🔒</span>
-            <span style={{ fontWeight:800, fontSize:14, color:"#0F2744" }}>Data Edit History</span>
-            <span style={{ fontSize:12, color:"#64748B" }}>-- جميع التعديلات على البيانات مسجّلة · لا يمكن حذفها</span>
+            <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>Data Edit History</span>
+            <span style={{ fontSize:12, color:_theme.textMuted }}>-- جميع التعديلات على البيانات مسجّلة · لا يمكن حذفها</span>
           </div>
 
           {/* Edit counts per user */}
@@ -3612,10 +4181,10 @@ function AuditLogPage({ auditLog, session }) {
               const lastEntry = editHistory.filter(l=>l.by===user).sort((a,b)=>b.ts.localeCompare(a.ts))[0];
               const roleColor2 = ROLE_COLORS[lastEntry?.role]||"#64748B";
               return (
-                <div key={user} style={{ background:"#F8FAFC", borderRadius:8, padding:"10px 12px",
+                <div key={user} style={{ background:_theme.isDark?"#0D1117":"#F8FAFC", borderRadius:8, padding:"10px 12px",
                   border:`1.5px solid ${roleColor2}30`, cursor:"pointer" }}
                   onClick={()=>{ setFilterUser(user); setShowHistoryFor(user); }}>
-                  <div style={{ fontWeight:700, fontSize:13, color:"#0F2744" }}>{user}</div>
+                  <div style={{ fontWeight:700, fontSize:13, color:_theme.text }}>{user}</div>
                   <div style={{ fontSize:11, color:roleColor2, fontWeight:600, marginTop:2 }}>
                     {ROLE_ICONS[lastEntry?.role]||"👤"} {lastEntry?.role}
                   </div>
@@ -3623,7 +4192,7 @@ function AuditLogPage({ auditLog, session }) {
                     {count} edit{count!==1?"s":""}
                   </div>
                   {lastEntry && (
-                    <div style={{ fontSize:10, color:"#94A3B8", marginTop:2 }}>
+                    <div style={{ fontSize:10, color:_theme.textMuted, marginTop:2 }}>
                       Last: {new Date(lastEntry.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})} {new Date(lastEntry.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
                     </div>
                   )}
@@ -3631,7 +4200,7 @@ function AuditLogPage({ auditLog, session }) {
               );
             })}
             {Object.keys(userEditCounts).length === 0 && (
-              <div style={{ color:"#94A3B8", fontSize:13, padding:8 }}>لا توجد تعديلات مسجّلة بعد.</div>
+              <div style={{ color:_theme.textMuted, fontSize:13, padding:8 }}>لا توجد تعديلات مسجّلة بعد.</div>
             )}
           </div>
 
@@ -3644,13 +4213,13 @@ function AuditLogPage({ auditLog, session }) {
                 </span>
                 <button onClick={()=>{ setShowHistoryFor(null); setFilterUser(""); }}
                   style={{ background:"none", border:"1px solid #CBD5E1", borderRadius:6,
-                    padding:"2px 8px", fontSize:12, cursor:"pointer", color:"#64748B" }}>✕ إغلاق</button>
+                    padding:"2px 8px", fontSize:12, cursor:"pointer", color:_theme.textMuted }}>✕ إغلاق</button>
               </div>
               <div style={{ maxHeight:260, overflowY:"auto" }}>
                 {editHistory.filter(l=>l.by===showHistoryFor).map((log,i) => (
                   <div key={log.id||i} style={{ display:"flex", gap:12, padding:"8px 0",
                     borderBottom:"1px solid #F1F5F9", alignItems:"flex-start" }}>
-                    <div style={{ fontSize:10, color:"#94A3B8", whiteSpace:"nowrap", paddingTop:2, minWidth:110 }}>
+                    <div style={{ fontSize:10, color:_theme.textMuted, whiteSpace:"nowrap", paddingTop:2, minWidth:110 }}>
                       {new Date(log.ts).toLocaleDateString("en-US",{month:"short",day:"numeric"})}
                       {" "}{new Date(log.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
                     </div>
@@ -3659,8 +4228,8 @@ function AuditLogPage({ auditLog, session }) {
                         borderRadius:4, padding:"1px 6px", fontSize:11, fontWeight:600, marginRight:6 }}>
                         {log.action}
                       </span>
-                      {log.target && <span style={{ fontSize:12, color:"#1E293B", fontWeight:600 }}>{log.target}</span>}
-                      {log.detail && <div style={{ fontSize:11, color:"#64748B", marginTop:2 }}>{log.detail}</div>}
+                      {log.target && <span style={{ fontSize:12, color:_theme.text, fontWeight:600 }}>{log.target}</span>}
+                      {log.detail && <div style={{ fontSize:11, color:_theme.textMuted, marginTop:2 }}>{log.detail}</div>}
                     </div>
                   </div>
                 ))}
@@ -3673,9 +4242,9 @@ function AuditLogPage({ auditLog, session }) {
       {/* ── Live Activity Panel (Team Lead / Shift Leader / SME only) ── */}
       {canSeeLiveView && (
         <div style={{ marginBottom:20 }}>
-          <div style={{ fontWeight:700, fontSize:14, color:"#0F2744", marginBottom:10, display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+          <div style={{ fontWeight:700, fontSize:14, color:_theme.text, marginBottom:10, display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
             👥 User Activity Overview
-            <span style={{ fontSize:11, fontWeight:400, color:"#94A3B8" }}>-- based on last recorded action per user</span>
+            <span style={{ fontSize:11, fontWeight:400, color:_theme.textMuted }}>-- based on last recorded action per user</span>
             <select value={activityFilter} onChange={e=>setActivityFilter(e.target.value)}
               style={{ ...I({ width:140, marginBottom:0 }) }}>
               <option value="All">All Users</option>
@@ -3684,7 +4253,7 @@ function AuditLogPage({ auditLog, session }) {
             </select>
           </div>
           {lastActivity.length === 0 ? (
-            <div style={{ ...CRD({ padding:"20px", textAlign:"center" }), color:"#94A3B8", fontSize:13 }}>
+            <div style={{ ...CRD({ padding:"20px", textAlign:"center" }), color:_theme.textMuted, fontSize:13 }}>
               No activity recorded yet. Data will populate as users sign in and make changes.
             </div>
           ) : (
@@ -3708,24 +4277,24 @@ function AuditLogPage({ auditLog, session }) {
                       <span style={{ fontSize:10, color:dot.color, fontWeight:700 }}>{dot.label}</span>
                     </div>
                     {/* Name + role */}
-                    <div style={{ fontWeight:800, fontSize:14, color:"#0F2744", marginBottom:2, paddingRight:60 }}>{l.by}</div>
+                    <div style={{ fontWeight:800, fontSize:14, color:_theme.text, marginBottom:2, paddingRight:60 }}>{l.by}</div>
                     <div style={{ fontSize:11, color: ROLE_COLORS[l.role]||"#64748B", fontWeight:600, marginBottom:8 }}>
                       {ROLE_ICONS[l.role]||"👤"} {l.role}
                     </div>
                     {/* Last action */}
-                    <div style={{ fontSize:12, color:"#475569", marginBottom:4 }}>
+                    <div style={{ fontSize:12, color:_theme.textSub, marginBottom:4 }}>
                       <span style={{ background:actionColor(l.action)+"18", color:actionColor(l.action),
                         border:`1px solid ${actionColor(l.action)}30`, borderRadius:4,
                         padding:"1px 6px", fontSize:11, fontWeight:600, marginRight:4 }}>{l.action}</span>
                     </div>
                     {/* Current/last page */}
                     {pg && (
-                      <div style={{ fontSize:11, color:"#64748B", marginBottom:4 }}>
+                      <div style={{ fontSize:11, color:_theme.textMuted, marginBottom:4 }}>
                         📄 Last page: <strong style={{color:"#2563EB"}}>{pg.target}</strong>
                       </div>
                     )}
                     {/* Time */}
-                    <div style={{ fontSize:11, color:"#94A3B8", marginTop:4, display:"flex", alignItems:"center", gap:4 }}>
+                    <div style={{ fontSize:11, color:_theme.textMuted, marginTop:4, display:"flex", alignItems:"center", gap:4 }}>
                       🕐 {timeAgoLabel(l.ts)}
                       <span style={{ color:"#E2E8F0" }}>·</span>
                       <span>{new Date(l.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}</span>
@@ -3740,7 +4309,7 @@ function AuditLogPage({ auditLog, session }) {
 
       {/* ── Filters ── */}
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>🔍 Audit Log & History</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🔍 Audit Log & History</span>
         <select value={filterUser} onChange={e=>setFilterUser(e.target.value)} style={{ ...I(), width:180 }}>
           <option value="">All Users</option>
           {users.map(u=><option key={u}>{u}</option>)}
@@ -3754,16 +4323,16 @@ function AuditLogPage({ auditLog, session }) {
           <button onClick={()=>{setFilterUser("");setFilterAction("");setFilterDate("");}}
             style={PBT("#94A3B8",{padding:"6px 12px",fontSize:12})}>✕ Clear</button>
         )}
-        <label style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, color:"#64748B", cursor:"pointer" }}>
+        <label style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, color:_theme.textMuted, cursor:"pointer" }}>
           <input type="checkbox" checked={hidePageViews} onChange={e=>setHidePageViews(e.target.checked)}/>
           Hide Page Views
         </label>
-        <span style={{ fontSize:12, color:"#94A3B8", marginLeft:"auto" }}>{filtered.length} records</span>
+        <span style={{ fontSize:12, color:_theme.textMuted, marginLeft:"auto" }}>{filtered.length} records</span>
       </div>
 
       {/* ── Log Timeline ── */}
       {filtered.length === 0 ? (
-        <div style={{ ...CRD(), textAlign:"center", padding:"48px 20px", color:"#94A3B8" }}>
+        <div style={{ ...CRD(), textAlign:"center", padding:"48px 20px", color:_theme.textMuted }}>
           <div style={{ fontSize:32, marginBottom:12 }}>📭</div>
           <div style={{ fontWeight:600, fontSize:14 }}>No records match your filters</div>
           <div style={{ fontSize:12, marginTop:6 }}>Activity appears here as users make changes</div>
@@ -3784,16 +4353,16 @@ function AuditLogPage({ auditLog, session }) {
                     <span style={{ background:actionColor(log.action)+"18", color:actionColor(log.action),
                       border:`1px solid ${actionColor(log.action)}40`, borderRadius:6,
                       padding:"2px 8px", fontSize:11, fontWeight:700, whiteSpace:"nowrap" }}>{log.action}</span>
-                    <span style={{ fontWeight:700, fontSize:13, color:"#1E293B" }}>{log.by}</span>
+                    <span style={{ fontWeight:700, fontSize:13, color:_theme.text }}>{log.by}</span>
                     <span style={{ fontSize:11, color: ROLE_COLORS[log.role]||"#94A3B8", fontWeight:600 }}>{ROLE_ICONS[log.role]||""} {log.role}</span>
-                    <span style={{ marginLeft:"auto", fontSize:11, color:"#94A3B8", whiteSpace:"nowrap" }}>
+                    <span style={{ marginLeft:"auto", fontSize:11, color:_theme.textMuted, whiteSpace:"nowrap" }}>
                       {dt.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})} · {dt.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
                     </span>
                   </div>
                   {log.target && log.action!=="Page View" && (
-                    <div style={{ fontSize:12, color:"#475569" }}>👤 <strong>{log.target}</strong></div>
+                    <div style={{ fontSize:12, color:_theme.textSub }}>👤 <strong>{log.target}</strong></div>
                   )}
-                  {log.detail && <div style={{ fontSize:12, color:"#94A3B8", marginTop:1 }}>{log.detail}</div>}
+                  {log.detail && <div style={{ fontSize:12, color:_theme.textMuted, marginTop:1 }}>{log.detail}</div>}
                 </div>
               </div>
             );
@@ -3808,13 +4377,15 @@ function AuditLogPage({ auditLog, session }) {
 
 
 // ─── OWNER ANALYTICS PAGE ────────────────────────────────────────────────────
-function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, attendance, performance, queueLog }) {
+function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, attendance, performance, queueLog, alertThresholdCritical, alertThresholdWarning, saveAlertThresholds }) {
   const [filterUser, setFilterUser]       = useState("");
   const [filterAction, setFilterAction]   = useState("");
   const [filterDate, setFilterDate]       = useState("");
   const [hidePageViews, setHidePageViews] = useState(true);
   const [showHistoryFor, setShowHistoryFor] = useState(null);
   const [activityFilter, setActivityFilter] = useState("All");
+  const [editCritical, setEditCritical]   = useState(alertThresholdCritical);
+  const [editWarning,  setEditWarning]    = useState(alertThresholdWarning);
 
   const logs    = Array.isArray(auditLog) ? auditLog : [];
   const users   = [...new Set(logs.map(l=>l.by))].filter(Boolean).sort();
@@ -3925,6 +4496,62 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
             <div style={{ fontSize:28, fontWeight:800, color:k.color }}>{k.value}</div>
           </div>
         ))}
+      </div>
+
+      {/* ── Alert Threshold Settings ── */}
+      <div style={{ background:_theme.card, border:`1.5px solid #EF444430`,
+        borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
+          <span style={{ fontSize:16 }}>🔔</span>
+          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>إعدادات عتبة التنبيهات</span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>— تخصيص حدود Critical Alert</span>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr auto", gap:12, alignItems:"flex-end" }}>
+          <div>
+            <label style={{ fontSize:11, fontWeight:700, color:"#EF4444", display:"block", marginBottom:6 }}>
+              🚨 حد CRITICAL (افتراضي: 400 حالة)
+            </label>
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <button onClick={()=>setEditCritical(v=>Math.max(editWarning+10, v-10))}
+                style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`, color:_theme.text,
+                  borderRadius:"6px 0 0 6px", padding:"7px 11px", cursor:"pointer", fontWeight:700, fontSize:14 }}>−</button>
+              <input type="number" min={editWarning+1} value={editCritical}
+                onChange={e=>setEditCritical(Math.max(editWarning+1, Number(e.target.value)))}
+                style={{ ...I({ width:80, borderRadius:0, textAlign:"center", fontWeight:700,
+                  border:`2px solid #EF4444`, color:"#EF4444" })}}/>
+              <button onClick={()=>setEditCritical(v=>v+10)}
+                style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`, color:_theme.text,
+                  borderRadius:"0 6px 6px 0", padding:"7px 11px", cursor:"pointer", fontWeight:700, fontSize:14 }}>+</button>
+            </div>
+          </div>
+          <div>
+            <label style={{ fontSize:11, fontWeight:700, color:"#F59E0B", display:"block", marginBottom:6 }}>
+              ⚠️ حد WARNING (افتراضي: 200 حالة)
+            </label>
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <button onClick={()=>setEditWarning(v=>Math.max(10, v-10))}
+                style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`, color:_theme.text,
+                  borderRadius:"6px 0 0 6px", padding:"7px 11px", cursor:"pointer", fontWeight:700, fontSize:14 }}>−</button>
+              <input type="number" min={10} max={editCritical-1} value={editWarning}
+                onChange={e=>setEditWarning(Math.min(editCritical-1, Math.max(10, Number(e.target.value))))}
+                style={{ ...I({ width:80, borderRadius:0, textAlign:"center", fontWeight:700,
+                  border:`2px solid #F59E0B`, color:"#F59E0B" })}}/>
+              <button onClick={()=>setEditWarning(v=>Math.min(editCritical-1, v+10))}
+                style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`, color:_theme.text,
+                  borderRadius:"0 6px 6px 0", padding:"7px 11px", cursor:"pointer", fontWeight:700, fontSize:14 }}>+</button>
+            </div>
+          </div>
+          <button
+            onClick={()=>saveAlertThresholds(editCritical, editWarning)}
+            style={{ background:_theme.primary, color:"#fff", border:"none", borderRadius:8,
+              padding:"9px 20px", fontSize:13, cursor:"pointer", fontWeight:700, whiteSpace:"nowrap" }}>
+            💾 حفظ العتبات
+          </button>
+        </div>
+        <div style={{ marginTop:10, fontSize:11, color:_theme.textMuted }}>
+          الإعدادات الحالية: Critical عند <strong style={{color:"#EF4444"}}>{alertThresholdCritical}</strong> حالة ·
+          Warning عند <strong style={{color:"#F59E0B"}}>{alertThresholdWarning}</strong> حالة
+        </div>
       </div>
 
       {/* ── Data Edit History ── */}
@@ -4141,7 +4768,215 @@ function OwnerAnalyticsPage({ auditLog, session, employees, schedule, shifts, at
 }
 
 
-// ─── LOAD SHEETJS AT TOP LEVEL ────────────────────────────────────────────────
+// ─── CRITICAL ALERT POPUP ─────────────────────────────────────────────────────
+function CriticalAlertPopup({ onDismiss, alerts }) {
+  if (!alerts || !alerts.length) return null;
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:9999,
+      background:"rgba(0,0,0,0.75)", display:"flex",
+      alignItems:"center", justifyContent:"center", padding:20 }}>
+      <div style={{ background:_theme.card, borderRadius:16, maxWidth:460, width:"100%",
+        border:"2px solid #EF4444", boxShadow:"0 0 40px rgba(239,68,68,0.4)",
+        overflow:"hidden" }}>
+        {/* Header */}
+        <div style={{ background:"linear-gradient(135deg,#7F1D1D,#991B1B)",
+          padding:"20px 24px", display:"flex", alignItems:"center", gap:14 }}>
+          <div style={{ fontSize:36, animation:"pulse 1s infinite" }}>🚨</div>
+          <div>
+            <div style={{ color:"#FEF2F2", fontWeight:800, fontSize:18, letterSpacing:-0.3 }}>
+              تنبيه عاجل — Critical Alert
+            </div>
+            <div style={{ color:"#FCA5A5", fontSize:12, marginTop:2 }}>
+              يستلزم تدخلاً فورياً من المشرف
+            </div>
+          </div>
+          <div style={{ marginLeft:"auto", background:"rgba(255,255,255,0.15)",
+            borderRadius:8, padding:"2px 8px", fontSize:11, color:"#FEF2F2", fontWeight:700 }}>
+            {new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})}
+          </div>
+        </div>
+        {/* Alerts list */}
+        <div style={{ padding:"16px 20px", maxHeight:280, overflowY:"auto" }}>
+          {alerts.map((a,i) => (
+            <div key={i} style={{ display:"flex", gap:12, padding:"10px 0",
+              borderBottom: i<alerts.length-1?`1px solid ${_theme.cardBorder}`:"none" }}>
+              <span style={{ fontSize:22, flexShrink:0 }}>{a.icon||"⚠️"}</span>
+              <div>
+                <div style={{ fontWeight:700, fontSize:14, color:_theme.text }}>{a.title}</div>
+                <div style={{ fontSize:12, color:_theme.textSub, marginTop:3 }}>{a.detail}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Action buttons */}
+        <div style={{ padding:"14px 20px", display:"flex", gap:10,
+          borderTop:`1px solid ${_theme.cardBorder}` }}>
+          <button onClick={onDismiss}
+            style={{ flex:1, background:"#EF4444", color:"#fff", border:"none",
+              borderRadius:8, padding:"11px", fontSize:14, cursor:"pointer",
+              fontWeight:700 }}>
+            ✓ تم الاطلاع — Acknowledged
+          </button>
+          <button onClick={onDismiss}
+            style={{ background:_theme.surface, color:_theme.textMuted,
+              border:`1px solid ${_theme.cardBorder}`, borderRadius:8,
+              padding:"11px 16px", fontSize:13, cursor:"pointer" }}>
+            تجاهل
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─── LEADERBOARD PAGE (Agent view) ────────────────────────────────────────────
+function LeaderboardPage({ employees, schedule, performance, session }) {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTick(p => p+1), 60000);
+    return () => clearInterval(t);
+  }, []);
+
+  const todayKey = todayStr();
+  const dayName  = DAYS[new Date().getDay()];
+
+  // Today's scheduled employees
+  const todayEmps = employees.filter(e => {
+    const v = (schedule[e.id]||{})[dayName];
+    return v && v !== "OFF";
+  });
+
+  const sorted = [...todayEmps]
+    .map(e => ({ ...e, perf: (performance[todayKey]||{})[e.id]||{ closed:0, escalations:0 } }))
+    .sort((a,b) => (b.perf.closed||0) - (a.perf.closed||0));
+
+  const totalClosed = sorted.reduce((s,e)=>s+(e.perf.closed||0),0);
+  const myData      = sorted.find(e=>e.name===session?.name);
+  const myRank      = myData ? sorted.indexOf(myData)+1 : null;
+  const medals      = ["🥇","🥈","🥉"];
+
+  return (
+    <div>
+      {/* Header banner */}
+      <div style={{ background:`linear-gradient(135deg,${_theme.primary}22,${_theme.accent}22)`,
+        border:`1.5px solid ${_theme.primary}30`, borderRadius:16,
+        padding:"24px 28px", marginBottom:20, textAlign:"center" }}>
+        <div style={{ fontSize:40, marginBottom:8 }}>🏆</div>
+        <div style={{ fontWeight:800, fontSize:22, color:_theme.text, marginBottom:4 }}>
+          لوحة المتصدرين — Today's Leaderboard
+        </div>
+        <div style={{ fontSize:13, color:_theme.textMuted }}>
+          {new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}
+          &nbsp;·&nbsp; {todayEmps.length} موظف مجدول · {totalClosed} حالة مُغلقة
+        </div>
+        {myRank && (
+          <div style={{ marginTop:12, display:"inline-flex", alignItems:"center", gap:8,
+            background:`${_theme.primary}22`, border:`1px solid ${_theme.primary}40`,
+            borderRadius:20, padding:"6px 18px" }}>
+            <span style={{ fontSize:18 }}>{medals[myRank-1]||"🎯"}</span>
+            <span style={{ fontSize:13, fontWeight:700, color:_theme.primary }}>
+              مرتبتك اليوم: #{myRank}
+            </span>
+            {myData?.perf?.closed > 0 && (
+              <span style={{ fontSize:12, color:_theme.textMuted }}>
+                · {myData.perf.closed} حالة مُغلقة
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Top 3 podium */}
+      {sorted.slice(0,3).some(e=>e.perf.closed>0) && (
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1.2fr 1fr",
+          gap:10, marginBottom:20, alignItems:"flex-end" }}>
+          {[sorted[1], sorted[0], sorted[2]].map((e,pi) => {
+            if (!e) return <div key={pi}/>;
+            const isMe = e.name === session?.name;
+            const podiumH = [100, 130, 80][pi];
+            const podiumC = ["#9CA3AF","#F59E0B","#CD7F32"][pi];
+            const rank    = [2,1,3][pi];
+            return (
+              <div key={e.id} style={{ textAlign:"center" }}>
+                <div style={{ fontSize:isMe?18:14, fontWeight:700,
+                  color: isMe?_theme.primary:_theme.text, marginBottom:4 }}>
+                  {medals[rank-1]} {e.name.split(" ")[0]}
+                  {isMe && <span style={{ fontSize:11, color:_theme.primary }}> (أنت)</span>}
+                </div>
+                <div style={{ fontSize:11, color:_theme.textMuted, marginBottom:6 }}>
+                  {e.perf.closed} حالة
+                </div>
+                <div style={{ height:podiumH, background:`linear-gradient(180deg,${podiumC},${podiumC}88)`,
+                  borderRadius:"8px 8px 0 0", display:"flex", alignItems:"center",
+                  justifyContent:"center", fontSize:28,
+                  border:`2px solid ${isMe?_theme.primary:podiumC}`,
+                  boxShadow: isMe?`0 0 16px ${_theme.primary}40`:"none" }}>
+                  {medals[rank-1]}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Full ranking table */}
+      <div style={CRD()}>
+        <div style={{ fontWeight:700, fontSize:14, color:_theme.text, marginBottom:14 }}>
+          📋 الترتيب الكامل اليوم
+        </div>
+        {sorted.map((e, ri) => {
+          const isMe    = e.name === session?.name;
+          const maxClosed = sorted[0]?.perf?.closed||1;
+          const pct     = maxClosed > 0 ? Math.round((e.perf.closed||0)/maxClosed*100) : 0;
+          return (
+            <div key={e.id} style={{ display:"flex", alignItems:"center", gap:12,
+              padding:"10px 0", borderBottom: ri<sorted.length-1?`1px solid ${_theme.cardBorder}`:"none",
+              background: isMe?`${_theme.primary}08`:"transparent",
+              borderRadius: isMe?8:0, paddingLeft: isMe?10:0, paddingRight: isMe?10:0 }}>
+              <div style={{ fontSize:18, minWidth:30, textAlign:"center" }}>
+                {medals[ri]||<span style={{fontSize:12,color:_theme.textMuted}}>#{ri+1}</span>}
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
+                  <span style={{ fontWeight: isMe?800:600, fontSize:13,
+                    color: isMe?_theme.primary:_theme.text }}>
+                    {e.name}
+                    {isMe && <span style={{ marginLeft:6, fontSize:10,
+                      background:_theme.primary+"22", color:_theme.primary,
+                      borderRadius:8, padding:"1px 6px" }}>أنت</span>}
+                  </span>
+                  <span style={{ fontSize:11, color:ROLE_COLORS[e.role]||_theme.textMuted,
+                    fontWeight:600 }}>{e.role}</span>
+                </div>
+                <div style={{ background:_theme.surface, borderRadius:20, height:6,
+                  overflow:"hidden", maxWidth:200 }}>
+                  <div style={{ width:`${pct}%`, height:"100%",
+                    background: isMe?_theme.primary:"#10B981",
+                    borderRadius:20, transition:"width 0.5s" }}/>
+                </div>
+              </div>
+              <div style={{ textAlign:"right", minWidth:60 }}>
+                <div style={{ fontSize:18, fontWeight:800,
+                  color: e.perf.closed>0?(isMe?_theme.primary:"#10B981"):_theme.textMuted }}>
+                  {e.perf.closed||0}
+                </div>
+                <div style={{ fontSize:10, color:_theme.textMuted }}>حالة</div>
+              </div>
+            </div>
+          );
+        })}
+        {sorted.every(e=>!e.perf.closed) && (
+          <div style={{ textAlign:"center", padding:"32px 20px", color:_theme.textMuted }}>
+            <div style={{ fontSize:32, marginBottom:8 }}>🎯</div>
+            <div style={{ fontWeight:600 }}>لم تُسجَّل حالات مُغلقة بعد لهذا اليوم</div>
+            <div style={{ fontSize:12, marginTop:4 }}>تظهر نتائجك هنا فور إدخالها من قبل المشرف</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 if (typeof window !== "undefined" && !window.XLSX) {
   const _s = document.createElement("script");
   _s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
@@ -4594,7 +5429,7 @@ function PasswordResetModal({ employees, session, onClose }) {
 
   return (
     <Modal title="🔑 Reset User Password" onClose={onClose} width={520}>
-      <div style={{ fontSize:12, color:"#64748B", marginBottom:14 }}>
+      <div style={{ fontSize:12, color:_theme.textMuted, marginBottom:14 }}>
         You can reset passwords for Team Lead, Shift Leader, and SME accounts.
       </div>
       <input value={search} onChange={e=>setSearch(e.target.value)}
@@ -4609,7 +5444,7 @@ function PasswordResetModal({ employees, session, onClose }) {
               <div style={{ fontSize:11, color: ROLE_COLORS[emp.role]||"#64748B" }}>
                 {ROLE_ICONS[emp.role]||"👤"} {emp.role}
               </div>
-              <div style={{ fontSize:11, color:"#94A3B8", marginTop:1 }}>
+              <div style={{ fontSize:11, color:_theme.textMuted, marginTop:1 }}>
                 {getUserPw(emp.name) ? "Has password set" : "⚠️ No password yet"}
               </div>
             </div>
@@ -4629,7 +5464,7 @@ function PasswordResetModal({ employees, session, onClose }) {
             )}
           </div>
         ))}
-        {nonAgents.length === 0 && <div style={{ color:"#94A3B8", textAlign:"center", padding:16 }}>No results</div>}
+        {nonAgents.length === 0 && <div style={{ color:_theme.textMuted, textAlign:"center", padding:16 }}>No results</div>}
       </div>
     </Modal>
   );
@@ -4924,6 +5759,17 @@ export default function App() {
     const n=typeof val==="function"?val(breakSchedule):val;
     setBreakScheduleRaw(n);
     try { localStorage.setItem("csops_breakSchedule", JSON.stringify(n)); } catch {}
+    // Audit trail for break changes
+    const entry = {
+      id: "al"+Date.now()+Math.random(),
+      ts: new Date().toISOString(),
+      by: session?.name || "Unknown",
+      role: session?.role || "",
+      action: "Break Schedule Updated",
+      target: "",
+      detail: "Break schedule modified",
+    };
+    setAuditLogRaw(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
   }
   function setAuditLog(val)   { const n=typeof val==="function"?val(auditLog):val;   setAuditLogRaw(n);   saveAuditLog(n); }
   function setNotes(val)      { const n=typeof val==="function"?val(notes):val;      setNotesRaw(n);      saveNotes(n); }
@@ -4972,6 +5818,93 @@ export default function App() {
   const roleColor   = ROLE_COLORS[currentRole];
   const isSuperAdmin = currentName === SUPER_ADMIN;
   const isAgent = currentRole === "Agent";
+
+  // ── Critical Alert System ──────────────────────────────────────────────────
+  const [criticalAlerts, setCriticalAlerts]   = useState([]);
+  const [alertDismissed, setAlertDismissed]   = useState(false);
+  const [lastAlertCheck, setLastAlertCheck]   = useState(0);
+  const [alertThresholdCritical, setAlertThresholdCritical] = useState(() => {
+    try { return Number(localStorage.getItem("csops_alertCritical")) || 400; } catch { return 400; }
+  });
+  const [alertThresholdWarning, setAlertThresholdWarning] = useState(() => {
+    try { return Number(localStorage.getItem("csops_alertWarning")) || 200; } catch { return 200; }
+  });
+
+  function saveAlertThresholds(c, w) {
+    setAlertThresholdCritical(c);
+    setAlertThresholdWarning(w);
+    try { localStorage.setItem("csops_alertCritical", String(c)); localStorage.setItem("csops_alertWarning", String(w)); } catch {}
+  }
+
+  // Check every 60 seconds for critical conditions (supervisors only)
+  useEffect(() => {
+    if (isAgent) return; // agents never see alert
+    const interval = setInterval(() => {
+      const now = Date.now();
+      if (now - lastAlertCheck < 55000) return; // debounce
+      setLastAlertCheck(now);
+
+      const alerts = [];
+      const todayD = new Date().toISOString().slice(0,10);
+      const QUEUE_KEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
+
+      // Check all today's queue entries
+      const todayEntries = Object.entries(queueLog||{})
+        .filter(([k])=>k.startsWith(todayD))
+        .map(([,v])=>v);
+
+      if (todayEntries.length) {
+        const latest = todayEntries.reduce((best,e)=>(e.updTime||"")>(best.updTime||"")?e:best, todayEntries[0]);
+        const totalCurr = QUEUE_KEYS.reduce((s,k)=>s+Number(latest[k+"Curr"]||0),0);
+        if (totalCurr > alertThresholdCritical) {
+          alerts.push({
+            icon:"🚨",
+            title:`Queue Critical — ${totalCurr} cases`,
+            detail:`إجمالي الحالات تجاوز الحد الحرج (${alertThresholdCritical}+). يتطلب تدخلاً فورياً وإعادة توزيع الطاقم.`
+          });
+        } else if (totalCurr > alertThresholdWarning) {
+          alerts.push({
+            icon:"⚠️",
+            title:`Queue Warning — ${totalCurr} cases`,
+            detail:`إجمالي الحالات في منطقة التحذير (${alertThresholdWarning}+). راقب الوضع عن كثب.`
+          });
+        }
+      }
+
+      if (alerts.length > 0) {
+        setCriticalAlerts(alerts);
+        setAlertDismissed(false);
+      }
+    }, 60000);
+
+    // Also run once on mount after 3s delay
+    const initial = setTimeout(() => {
+      const todayD = new Date().toISOString().slice(0,10);
+      const QUEUE_KEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
+      const todayEntries = Object.entries(queueLog||{})
+        .filter(([k])=>k.startsWith(todayD)).map(([,v])=>v);
+      if (!todayEntries.length) return;
+      const latest = todayEntries.reduce((best,e)=>(e.updTime||"")>(best.updTime||"")?e:best, todayEntries[0]);
+      const totalCurr = QUEUE_KEYS.reduce((s,k)=>s+Number(latest[k+"Curr"]||0),0);
+      if (totalCurr > alertThresholdCritical) {
+        setCriticalAlerts([{
+          icon:"🚨",
+          title:`Queue Critical — ${totalCurr} cases`,
+          detail:`إجمالي الحالات تجاوز الحد الحرج (${alertThresholdCritical}+). يتطلب تدخلاً فورياً.`
+        }]);
+      } else if (totalCurr > alertThresholdWarning) {
+        setCriticalAlerts([{
+          icon:"⚠️",
+          title:`Queue Warning — ${totalCurr} cases`,
+          detail:`إجمالي الحالات في منطقة التحذير (${alertThresholdWarning}+). راقب الوضع.`
+        }]);
+      }
+    }, 3000);
+
+    return () => { clearInterval(interval); clearTimeout(initial); };
+  }, [isAgent, queueLog, alertThresholdCritical, alertThresholdWarning]);
+
+  const showCriticalAlert = !isAgent && !alertDismissed && criticalAlerts.length > 0;
 
   // Pages visible to this user
   // Mohammed Nasser Althurwi (SUPER_ADMIN) always sees Owner Analytics
@@ -5044,22 +5977,23 @@ export default function App() {
     Attendance:    <AttendancePage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT}/>,
     Queue:         <QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL} setHeatmap={HM}/>,
     "Daily Tasks": <DailyTasksPage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} auditLog={auditLog} setAuditLog={AL} session={session}/>,
-    "Live Floor":  <LiveFloorPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule}/>,
-    Break:         <BreakPage employees={employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={canEdit}/>,
+    "Live Floor":  <LiveFloorPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} queueLog={queueLog}/>,
+    Break:         <BreakPage employees={employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={canEdit} addAudit={addAudit} session={session}/>,
     "Heat Map":    <HeatMapPage queueLog={queueLog}/>,
     "Audit Log":   <AuditLogPage auditLog={auditLog} session={session}/>,
     Notes:         <NotesPage notes={notes} setNotes={canEdit?setNotes:noop}/>,
     Shifts:        <ShiftsPage shifts={shifts} setShifts={SH}/>,
     Performance:   <PerformancePage employees={employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF}/>,
     Reports:       <ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog}/>,
-    "Owner Analytics": <OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog}/>,
+    "Owner Analytics": <OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds}/>,
+    Leaderboard:   <LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session}/>,
   };
 
   // Page icons
   const PAGE_ICONS = {
     "Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
     "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍","Notes":"📝",
-    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️"
+    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️","Leaderboard":"🏆"
   };
 
   const PAGE_LABELS = {
@@ -5069,7 +6003,8 @@ export default function App() {
     "Heat Map": tr("heatMap"), "Audit Log": tr("auditLog"),
     "Notes": tr("notes"), "Shifts": tr("shifts"),
     "Performance": tr("performance"), "Reports": tr("reports"),
-    "Owner Analytics": tr("ownerAnalytics")
+    "Owner Analytics": tr("ownerAnalytics"),
+    "Leaderboard": lang==="ar"?"لوحة المتصدرين":"Leaderboard"
   };
 
   const safeCurrentPage = visiblePages.includes(page) ? page : visiblePages[0];
@@ -5078,9 +6013,16 @@ export default function App() {
     <div dir={isRTL?"rtl":"ltr"} style={{
       minHeight:"100vh", minHeight:"100dvh", background:theme.bg,
       fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif",
-      color:theme.text,
-      zoom: zoom/100
+      color:theme.text
     }}>
+
+      {/* Critical Alert Popup — supervisors only, auto-triggered by queue */}
+      {showCriticalAlert && (
+        <CriticalAlertPopup
+          alerts={criticalAlerts}
+          onDismiss={()=>{ setAlertDismissed(true); setCriticalAlerts([]); }}
+        />
+      )}
 
       {/* Daily Tip Popup */}
       {showTip && (
@@ -5110,52 +6052,64 @@ export default function App() {
         @media (min-width: 769px) { .mobile-bottom-nav { display: none !important; } }
         .desktop-nav::-webkit-scrollbar { display: none; }
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        .nav-btn { transition: all 0.15s; }
+        .nav-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+        select option { background: #1C2333; color: #E6EDF3; }
       `}</style>
 
       {/* Top Header */}
       <div style={{ background:theme.header, position:"sticky", top:0, zIndex:100,
         borderBottom:`1px solid ${theme.cardBorder}`,
-        boxShadow:theme.isDark?"0 2px 20px rgba(0,0,0,0.5)":"0 2px 8px rgba(0,0,0,0.1)" }}>
+        boxShadow:theme.isDark?"0 2px 16px rgba(0,0,0,0.6)":"0 2px 8px rgba(0,0,0,0.12)" }}>
         <div style={{ maxWidth:1400, margin:"0 auto", padding:"0 12px" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 0" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:5, padding:"8px 0" }}>
 
             {/* Brand */}
             <div style={{ color:theme.text, fontWeight:800, fontSize:15, whiteSpace:"nowrap",
               display:"flex", alignItems:"center", gap:6, flexShrink:0,
-              marginRight:8, paddingRight:8, borderRight:`1px solid ${theme.cardBorder}` }}>
+              marginRight:6, paddingRight:8, borderRight:`1px solid ${theme.cardBorder}` }}>
               🎯 <span style={{color:theme.primary}}>CS</span> Ops
               <span style={{ fontSize:9, background:theme.success, color:"#fff",
                 borderRadius:10, padding:"2px 6px", fontWeight:700, animation:"pulse 2s infinite" }}>LIVE</span>
             </div>
 
-            {/* Desktop nav */}
-            <div className="desktop-nav" style={{ display:"flex", gap:3, overflowX:"auto",
-              flex:1, scrollbarWidth:"none" }}>
-              {visiblePages.map(p => (
-                <button key={p} onClick={()=>navigateLogged(p)}
-                  style={{ background: safeCurrentPage===p ? theme.primary : "transparent",
-                    color: safeCurrentPage===p ? "#fff" : theme.textSub,
-                    border:`1px solid ${safeCurrentPage===p ? theme.primary : "transparent"}`,
-                    borderRadius:7, padding:"5px 10px", fontSize:11,
-                    cursor:"pointer", fontWeight:600, whiteSpace:"nowrap",
-                    transition:"all 0.15s", flexShrink:0 }}>
-                  {PAGE_ICONS[p]} {PAGE_LABELS[p]||p}
-                </button>
-              ))}
+            {/* Desktop nav — scrollable quick navigation */}
+            <div className="desktop-nav" style={{ display:"flex", gap:2, overflowX:"auto",
+              flex:1, scrollbarWidth:"none", alignItems:"center" }}>
+              {visiblePages.map(p => {
+                const isActive = safeCurrentPage===p;
+                return (
+                  <button key={p} className="nav-btn" onClick={()=>navigateLogged(p)}
+                    style={{ background: isActive ? theme.primary : "transparent",
+                      color: isActive ? "#fff" : theme.textSub,
+                      border:`1px solid ${isActive ? theme.primary : "transparent"}`,
+                      borderRadius:7, padding:"5px 9px", fontSize:11,
+                      cursor:"pointer", fontWeight: isActive ? 700 : 500,
+                      whiteSpace:"nowrap", flexShrink:0,
+                      boxShadow: isActive ? `0 2px 8px ${theme.primary}40` : "none" }}>
+                    {PAGE_ICONS[p]} {PAGE_LABELS[p]||p}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Right controls */}
-            <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
+            <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
 
-              {/* Zoom */}
+              {/* Zoom — fixed to apply to content wrapper only */}
               <div className="desktop-nav" style={{ display:"flex", alignItems:"center", gap:1,
                 background:theme.surface, border:`1px solid ${theme.cardBorder}`,
-                borderRadius:8, padding:"2px 4px" }}>
-                <button onClick={()=>changeZoom(zoom-10)} style={{ background:"none", border:"none",
-                  color:theme.textSub, cursor:"pointer", fontSize:13, padding:"2px 5px" }}>−</button>
-                <span style={{ fontSize:10, color:theme.textMuted, minWidth:30, textAlign:"center" }}>{zoom}%</span>
-                <button onClick={()=>changeZoom(zoom+10)} style={{ background:"none", border:"none",
-                  color:theme.textSub, cursor:"pointer", fontSize:13, padding:"2px 5px" }}>+</button>
+                borderRadius:8, padding:"2px 3px" }}>
+                <button onClick={()=>changeZoom(zoom-10)}
+                  style={{ background:"none", border:"none", color:theme.textSub,
+                    cursor:"pointer", fontSize:14, padding:"1px 6px", lineHeight:1,
+                    borderRadius:4, fontWeight:700 }}>−</button>
+                <span style={{ fontSize:10, color:theme.textMuted, minWidth:32, textAlign:"center",
+                  fontWeight:600 }}>{zoom}%</span>
+                <button onClick={()=>changeZoom(zoom+10)}
+                  style={{ background:"none", border:"none", color:theme.textSub,
+                    cursor:"pointer", fontSize:14, padding:"1px 6px", lineHeight:1,
+                    borderRadius:4, fontWeight:700 }}>+</button>
               </div>
 
               {/* Lang */}
@@ -5170,23 +6124,24 @@ export default function App() {
               <select value={themeKey} onChange={e=>changeTheme(e.target.value)}
                 className="desktop-nav"
                 style={{ background:theme.surface, border:`1px solid ${theme.cardBorder}`,
-                  color:theme.textSub, borderRadius:7, padding:"5px 7px", fontSize:11, cursor:"pointer" }}>
+                  color:theme.textSub, borderRadius:7, padding:"5px 7px",
+                  fontSize:11, cursor:"pointer", outline:"none" }}>
                 {Object.entries(THEMES).map(([k,v])=>(
                   <option key={k} value={k}>{lang==="ar"?v.nameAr:v.name}</option>
                 ))}
               </select>
 
-              {/* Auto-save */}
+              {/* Auto-save indicator */}
               <div style={{ display:"flex", alignItems:"center", gap:3,
-                background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.2)",
+                background:`${theme.success}18`, border:`1px solid ${theme.success}30`,
                 borderRadius:20, padding:"3px 7px" }}>
-                <div style={{ width:5, height:5, borderRadius:"50%", background:"#10B981",
+                <div style={{ width:5, height:5, borderRadius:"50%", background:theme.success,
                   animation:"pulse 2s infinite" }}/>
-                <span style={{ fontSize:9, color:"#10B981", fontWeight:700 }}>{tr("saved")}</span>
+                <span style={{ fontSize:9, color:theme.success, fontWeight:700 }}>{tr("saved")}</span>
               </div>
 
               {/* User badge */}
-              <div style={{ background:roleColor+"20", border:`1px solid ${roleColor}40`,
+              <div style={{ background:`${roleColor}18`, border:`1px solid ${roleColor}40`,
                 borderRadius:20, padding:"4px 10px", display:"flex", alignItems:"center", gap:5 }}>
                 <span style={{ fontSize:13 }}>{ROLE_ICONS[currentRole]}</span>
                 <div>
@@ -5199,21 +6154,25 @@ export default function App() {
                 </div>
               </div>
 
-              <button onClick={logout} style={{ background:"rgba(239,68,68,0.1)", color:"#FCA5A5",
-                border:"1px solid rgba(239,68,68,0.2)", borderRadius:7,
-                padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>⏏️</button>
+              {/* Sign out */}
+              <button onClick={logout}
+                style={{ background:`${theme.danger}18`, color:theme.danger,
+                  border:`1px solid ${theme.danger}30`, borderRadius:7,
+                  padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>⏏️</button>
 
+              {/* Reset passwords */}
               {canResetPasswords(currentRole, currentName) && (
                 <button onClick={()=>setShowResetPw(true)}
-                  style={{ background:"rgba(245,158,11,0.1)", color:"#FCD34D",
-                    border:"1px solid rgba(245,158,11,0.2)", borderRadius:7,
+                  style={{ background:`${theme.warning}18`, color:theme.warning,
+                    border:`1px solid ${theme.warning}30`, borderRadius:7,
                     padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>🔑</button>
               )}
 
+              {/* Audit log quick access */}
               {(currentRole==="Team Lead"||currentRole==="Shift Leader"||currentName===SUPER_ADMIN) && (
                 <button onClick={()=>navigateLogged("Audit Log")}
-                  style={{ background:"rgba(99,102,241,0.1)", color:"#A5B4FC",
-                    border:"1px solid rgba(99,102,241,0.2)", borderRadius:7,
+                  style={{ background:"rgba(99,102,241,0.15)", color:"#818CF8",
+                    border:"1px solid rgba(99,102,241,0.25)", borderRadius:7,
                     padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>🕐</button>
               )}
             </div>
@@ -5222,7 +6181,9 @@ export default function App() {
       </div>
 
       {/* Page Content */}
-      <div style={{ maxWidth:1400, margin:"0 auto", padding:"16px 12px 100px" }}>
+      <div style={{ maxWidth:1400, margin:"0 auto", padding:"16px 12px 100px",
+        transform:`scale(${zoom/100})`, transformOrigin:"top center",
+        transition:"transform 0.15s" }}>
         <div style={{ marginBottom:14, display:"flex", alignItems:"center",
           justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
           <div>
