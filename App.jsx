@@ -5633,12 +5633,24 @@ export default function App() {
 
   // ── Session ────────────────────────────────────────────────────────────────
   const [session, _setSession] = useState(() => {
-    try { const r = localStorage.getItem("csops_session"); return r ? JSON.parse(r) : null; }
-    catch { return null; }
+    try {
+      const r = localStorage.getItem("csops_session");
+      if (!r || r === "null") return null;
+      const parsed = JSON.parse(r);
+      // Validate session has required fields
+      if (!parsed?.name || !parsed?.role) return null;
+      return parsed;
+    } catch { return null; }
   });
   function setSession(val) {
     _setSession(val);
-    try { localStorage.setItem("csops_session", val ? JSON.stringify(val) : "null"); } catch {}
+    try {
+      if (val) {
+        localStorage.setItem("csops_session", JSON.stringify(val));
+      } else {
+        localStorage.removeItem("csops_session");
+      }
+    } catch {}
   }
 
   // ── Supabase-backed state ─────────────────────────────────────────────────
@@ -5654,6 +5666,14 @@ export default function App() {
   const [notes,       setNotesRaw]       = useState([]);
 
   // ── Load ALL data from Supabase on mount ──────────────────────────────────
+  // Safety timeout: if Supabase takes too long, unblock UI
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 8000); // 8 second max wait
+    return () => clearTimeout(timeout);
+  }, []);
+
   useEffect(() => {
     (async () => {
       try {
@@ -5887,22 +5907,6 @@ export default function App() {
   const schedule = scheduleMap;
 
   // Loading screen
-  if (loading) {
-    return (
-      <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0F2744,#1E3A5F)",
-        display:"flex", alignItems:"center", justifyContent:"center",
-        fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", flexDirection:"column", gap:20 }}>
-        <div style={{ fontSize:48 }}>🎯</div>
-        <div style={{ color:"#fff", fontWeight:800, fontSize:20 }}>CS Operations</div>
-        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-          <div style={{ width:8, height:8, borderRadius:"50%", background:"#10B981",
-            animation:"pulse 1s infinite" }}/>
-          <span style={{ color:"rgba(255,255,255,0.7)", fontSize:14 }}>Connecting to database...</span>
-        </div>
-        <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
-      </div>
-    );
-  }
 
   // Not logged in → show login
   const [criticalAlerts, setCriticalAlerts]   = useState([]);
@@ -5983,6 +5987,30 @@ export default function App() {
     return () => { clearInterval(interval); clearTimeout(initial); };
   }, [isAgent, queueLog, alertThresholdCritical, alertThresholdWarning]);
 
+
+  if (loading) {
+    return (
+      <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0F2744,#1E3A5F)",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", flexDirection:"column", gap:20 }}>
+        <div style={{ fontSize:48 }}>🎯</div>
+        <div style={{ color:"#fff", fontWeight:800, fontSize:20 }}>CS Operations</div>
+        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+          <div style={{ width:8, height:8, borderRadius:"50%", background:"#10B981",
+            animation:"pulse 1s infinite" }}/>
+          <span style={{ color:"rgba(255,255,255,0.7)", fontSize:14 }}>Connecting to database...</span>
+        </div>
+        <button onClick={()=>setLoading(false)}
+          style={{ marginTop:24, background:"transparent",
+            border:"1px solid rgba(255,255,255,0.2)",
+            color:"rgba(255,255,255,0.45)", borderRadius:8,
+            padding:"8px 24px", cursor:"pointer", fontSize:12 }}>
+          Taking too long? Click to continue →
+        </button>
+        <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
+      </div>
+    );
+  }
   if (!session) {
     return <LoginScreen employees={employees} lang={lang} setLang={changeLang} onLogin={sess => {
       const entry = {
@@ -6366,5 +6394,6 @@ export default function App() {
     </div>
   );
 }
+
 
 
