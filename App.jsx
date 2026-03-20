@@ -1749,6 +1749,9 @@ function NotesPage({ notes, setNotes }) {
   );
 }
 
+  );
+}
+
 // ─── BREAK DURATION HELPER ────────────────────────────────────────────────────
 // Before 20/03/2026 → 30 min | From 20/03/2026 onwards → 60 min
 function getDefaultBreakDuration(dateStr) {
@@ -2361,6 +2364,240 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
     </div>
   );
 }
+
+  // Live clock
+  useState(()=>{ const t=setInterval(()=>setNow(new Date()),60000); return()=>clearInterval(t); });
+
+  const nowMin  = now.getHours()*60+now.getMinutes();
+  const todayD  = now.toISOString().slice(0,10);
+  const dayName = DAYS[now.getDay()];
+
+  // Employees working right now
+  const workingNow = employees.filter(emp => {
+    const sid = (schedule[emp.id]||{})[dayName];
+    if (!sid||sid==="OFF"||sid==="LEAVE"||sid==="PH") return false;
+    const sh = shifts.find(s=>s.id===sid);
+    if (!sh) return false;
+    const st=toMin(sh.start), en=toMin(sh.end);
+    if (en>st) return nowMin>=st && nowMin<en;
+    return nowMin>=st || nowMin<en;
+  });
+
+  function getBreak(empId) { return breaks[empId]||{start:null,end:null,durationMin:null,extraBreaks:[]}; }
+
+  // Schedule a break with specific start + end time
+  function scheduleBreak(empId) {
+    if (!breakStart || !breakEnd) { alert("Please select break start and end time."); return; }
+    const dur = toMin(breakEnd) - toMin(breakStart);
+    const actualDur = dur < 0 ? dur+1440 : dur;
+    setBreaks(prev=>({...prev,[empId]:{...getBreak(empId), start:breakStart, end:breakEnd, durationMin:actualDur}}));
+    setShowBreakModal(null); setBreakStartTime(""); setBreakEndTime("");
+  }
+
+  function endBreak(empId) {
+    setBreaks(prev=>({...prev,[empId]:{...getBreak(empId), start:null, end:null, durationMin:null}}));
+  }
+
+  function addExtraBreak(empId) {
+    if (!extraStart) return;
+    const b = getBreak(empId);
+    const extra = [...(b.extraBreaks||[]), { start:extraStart, durationMin:Number(extraDur) }];
+    setBreaks(prev=>({...prev,[empId]:{...b,extraBreaks:extra}}));
+    setExtraStart(""); setExtraDur(15); setShowExtraModal(null);
+  }
+
+  // Per-employee status — checks if now is within scheduled break window
+  function getEmpStatus(emp) {
+    const b = getBreak(emp.id);
+    if (b.start && b.end) {
+      const bStart = toMin(b.start);
+      const bEnd   = toMin(b.end);
+      const dur    = b.durationMin||0;
+      // Check if currently in break window
+      let inBreak = false;
+      if (bEnd > bStart) inBreak = nowMin >= bStart && nowMin < bEnd;
+      else inBreak = nowMin >= bStart || nowMin < bEnd; // midnight cross
+      if (inBreak) {
+        const elapsed = nowMin >= bStart ? nowMin-bStart : nowMin+1440-bStart;
+        const over = elapsed - dur;
+        return { status:"Break", elapsed, over, isOvertime: over>0, bStart:b.start, bEnd:b.end, dur };
+      }
+      // Break is scheduled but not yet started
+      if (bStart > nowMin) return { status:"Break Scheduled", elapsed:0, over:0, isOvertime:false, bStart:b.start, bEnd:b.end, dur };
+    }
+    return { status:"Online", elapsed:0, over:0, isOvertime:false };
+  }
+
+  function totalExtraMin(empId) {
+    return (getBreak(empId).extraBreaks||[]).reduce((s,b)=>s+b.durationMin,0);
+  }
+
+  const onlineCount = workingNow.filter(e=>{ const s=getEmpStatus(e).status; return s==="Online"||s==="Break Scheduled"; }).length;
+  const breakCount  = workingNow.filter(e=>getEmpStatus(e).status==="Break").length;
+  const total = workingNow.length;
+  const pressureRatio = total>0 ? onlineCount/total : 1;
+  const pressure = pressureRatio>=0.8 ? {label:"✅ Staffing Sufficient", color:"#10B981", bg:"#F0FDF4"}
+                 : pressureRatio>=0.6 ? {label:"⚠️ Staffing Low — Monitor", color:"#F59E0B", bg:"#FEF9C3"}
+                 : {label:"🚨 Critical Shortage — Immediate Action Required", color:"#EF4444", bg:"#FEF2F2"};
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{ fontWeight:700, fontSize:15, color:"#0F2744" }}>🏢 Live Floor Monitor</span>
+        <span style={{ fontSize:13, color:"#64748B" }}>🕐 {pad(now.getHours())}:{pad(now.getMinutes())} · {dayName}</span>
+        <div style={{ display:"flex", gap:10, marginLeft:"auto" }}>
+          <span style={{ background:"#10B981"+"20", color:"#10B981", borderRadius:20, padding:"4px 14px", fontWeight:700, fontSize:13 }}>🟢 Online: {onlineCount}</span>
+          <span style={{ background:"#F59E0B"+"20", color:"#F59E0B", borderRadius:20, padding:"4px 14px", fontWeight:700, fontSize:13 }}>☕ Break: {breakCount}</span>
+          <span style={{ background:"#64748B"+"20", color:"#64748B", borderRadius:20, padding:"4px 14px", fontWeight:700, fontSize:13 }}>👥 Total: {total}</span>
+        </div>
+      </div>
+
+      {/* Pressure Indicator */}
+      <div style={{ background:pressure.bg, border:`2px solid ${pressure.color}40`, borderRadius:12,
+        padding:"18px 24px", marginBottom:20, display:"flex", alignItems:"center", gap:16 }}>
+        <div style={{ fontSize:36 }}>{pressureRatio>=0.8?"✅":pressureRatio>=0.6?"⚠️":"🚨"}</div>
+        <div style={{ flex:1 }}>
+          <div style={{ fontWeight:800, fontSize:18, color:pressure.color }}>{pressure.label}</div>
+          <div style={{ fontSize:13, color:"#475569", marginTop:4 }}>{onlineCount} of {total} agents online · {breakCount} on break</div>
+        </div>
+        <div style={{ textAlign:"center" }}>
+          <div style={{ fontSize:32, fontWeight:800, color:pressure.color }}>{total>0?Math.round(pressureRatio*100):0}%</div>
+          <div style={{ fontSize:11, color:"#94A3B8" }}>Available</div>
+        </div>
+      </div>
+
+      {/* Employee Cards */}
+      {workingNow.length===0 && (
+        <div style={{ ...CRD(), textAlign:"center", padding:40, color:"#94A3B8" }}>No employees scheduled for this shift right now.</div>
+      )}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:12 }}>
+        {workingNow.map(emp => {
+          const es = getEmpStatus(emp);
+          const b  = getBreak(emp.id);
+          const sid = (schedule[emp.id]||{})[dayName];
+          const sh  = shifts.find(s=>s.id===sid);
+          const extraTotal = totalExtraMin(emp.id);
+          const statusColor = es.status==="Break"?"#F59E0B":es.status==="Break Scheduled"?"#2563EB":"#10B981";
+          const borderColor = es.isOvertime?"#EF4444":statusColor;
+
+          return (
+            <div key={emp.id} style={{ ...CRD({ padding:16 }), border:`2px solid ${borderColor}40`, borderLeft:`4px solid ${borderColor}` }}>
+              {/* Header */}
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
+                <div>
+                  <div style={{ fontWeight:800, fontSize:14, color:"#0F2744" }}>{emp.name}</div>
+                  <div style={{ fontSize:11, color:ROLE_COLORS[emp.role]||"#64748B", fontWeight:600 }}>{emp.role}</div>
+                  {sh && <div style={{ fontSize:11, color:sh.color, marginTop:2 }}>⏰ {sh.label} {sh.start}–{sh.end}</div>}
+                </div>
+                <div style={{ textAlign:"right" }}>
+                  <span style={{ background:statusColor+"20", color:statusColor, borderRadius:20,
+                    padding:"3px 10px", fontSize:12, fontWeight:700,
+                    border: es.isOvertime?"2px solid #EF4444":"none" }}>
+                    {es.status==="Break"?"☕ On Break":es.status==="Break Scheduled"?"🕐 Break Scheduled":"🟢 Online"}
+                  </span>
+                  {es.status==="Break" && (
+                    <div style={{ fontSize:11, marginTop:4, color:es.isOvertime?"#EF4444":"#F59E0B", fontWeight:700 }}>
+                      {es.elapsed}m elapsed {es.isOvertime?`(+${es.over}m OVER)`:""}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Break Schedule Info */}
+              {(es.status==="Break"||es.status==="Break Scheduled") && b.start && b.end && (
+                <div style={{ background:"#FEF9C3", border:"1px solid #F59E0B40", borderRadius:8,
+                  padding:"8px 12px", marginBottom:10, fontSize:12 }}>
+                  <div style={{ fontWeight:700, color:"#92400E", marginBottom:2 }}>☕ Break: {b.start} → {b.end} ({b.durationMin}m)</div>
+                  {es.status==="Break" && (
+                    <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                      <div style={{ background:"#F1F5F9", borderRadius:10, height:6, flex:1, overflow:"hidden" }}>
+                        <div style={{ width:Math.min(100,Math.round(es.elapsed/es.dur*100))+"%", height:"100%",
+                          background:es.isOvertime?"#EF4444":"#F59E0B", borderRadius:10 }}/>
+                      </div>
+                      <span style={{ fontSize:11, color:es.isOvertime?"#EF4444":"#92400E", fontWeight:700, whiteSpace:"nowrap" }}>
+                        {es.elapsed}/{es.dur}m
+                      </span>
+                    </div>
+                  )}
+                  {es.status==="Break Scheduled" && (
+                    <div style={{ fontSize:11, color:"#2563EB", fontWeight:600 }}>Starts at {b.start}</div>
+                  )}
+                </div>
+              )}
+
+              {/* Extra breaks */}
+              {extraTotal>0 && (
+                <div style={{ fontSize:11, color:"#EF4444", fontWeight:600, marginBottom:8 }}>
+                  ⚠️ Extra breaks: {extraTotal}m total
+                  {b.extraBreaks?.map((eb,i)=>(
+                    <span key={i} style={{ marginLeft:6, color:"#94A3B8" }}>[{eb.start} +{eb.durationMin}m]</span>
+                  ))}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                {es.status==="Online" ? (
+                  <button onClick={()=>{
+                    setShowBreakModal(emp.id);
+                    setBreakStartTime(pad(now.getHours())+":"+pad(now.getMinutes()));
+                    setBreakEndTime(pad(now.getHours())+":"+pad((now.getMinutes()+30)%60));
+                  }} style={PBT("#F59E0B",{padding:"5px 12px",fontSize:11})}>☕ Schedule Break</button>
+                ) : (
+                  <button onClick={()=>endBreak(emp.id)}
+                    style={PBT("#10B981",{padding:"5px 12px",fontSize:11})}>✅ End Break</button>
+                )}
+                <button onClick={()=>{setShowExtraModal(emp.id);setExtraStart(pad(now.getHours())+":"+pad(now.getMinutes()));setExtraDur(15);}}
+                  style={PBT("#8B5CF6",{padding:"5px 12px",fontSize:11})}>+ Extra Break</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Schedule Break Modal */}
+      {showBreakModal && (
+        <Modal title={`☕ Schedule Break — ${employees.find(e=>e.id===showBreakModal)?.name}`}
+          onClose={()=>setShowBreakModal(null)} width={380}>
+          <div style={{ background:"#EFF6FF", borderRadius:8, padding:"10px 14px", marginBottom:14, fontSize:12, color:"#1D4ED8" }}>
+            حدد وقت بداية ونهاية البريك — سيتم احتساب المدة تلقائياً
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:12 }}>
+            <div>
+              <label style={LBL}>وقت البداية</label>
+              <input type="time" value={breakStart} onChange={e=>setBreakStartTime(e.target.value)} style={I()}/>
+            </div>
+            <div>
+              <label style={LBL}>وقت النهاية</label>
+              <input type="time" value={breakEnd} onChange={e=>setBreakEndTime(e.target.value)} style={I()}/>
+            </div>
+          </div>
+          {breakStart && breakEnd && (
+            <div style={{ background:"#F0FDF4", border:"1px solid #86EFAC", borderRadius:6, padding:"8px 12px", marginBottom:14, fontSize:13, color:"#166534", fontWeight:600 }}>
+              ⏱ المدة: {(()=>{ const d=toMin(breakEnd)-toMin(breakStart); return (d<0?d+1440:d); })()}م
+            </div>
+          )}
+          <button style={PBT("#F59E0B",{width:"100%",padding:"10px",fontSize:13})} onClick={()=>scheduleBreak(showBreakModal)}>
+            ✅ تأكيد البريك
+          </button>
+        </Modal>
+      )}
+
+      {/* Extra Break Modal */}
+      {showExtraModal && (
+        <Modal title={`+ Extra Break — ${employees.find(e=>e.id===showExtraModal)?.name}`}
+          onClose={()=>setShowExtraModal(null)} width={380}>
+          <label style={LBL}>Break Start Time</label>
+          <input type="time" value={extraStart} onChange={e=>setExtraStart(e.target.value)} style={{ ...I(), marginBottom:12 }}/>
+          <label style={LBL}>Duration (minutes)</label>
+          <input type="number" min="1" max="120" value={extraDur} onChange={e=>setExtraDur(Number(e.target.value))} style={{ ...I(), marginBottom:16 }}/>
+          <button style={PBT("#8B5CF6",{width:"100%",padding:"10px"})} onClick={()=>addExtraBreak(showExtraModal)}>+ Add Extra Break</button>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
 // ─── DAILY TASKS PAGE (merged Roster + Tasks) ─────────────────────────────────
 function DailyTasksPage({ employees, setEmployees, schedule, setSchedule, shifts, auditLog, setAuditLog, session }) {
   const [tab, setTab] = useState("tasks"); // "tasks" | "roster"
