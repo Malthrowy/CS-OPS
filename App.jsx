@@ -5905,30 +5905,6 @@ export default function App() {
   }
 
   // Not logged in → show login
-  if (!session) {
-    return <LoginScreen employees={employees} lang={lang} setLang={changeLang} onLogin={sess => {
-      const entry = {
-        id: "al"+Date.now()+Math.random(),
-        ts: new Date().toISOString(),
-        by: sess.name, role: sess.role,
-        action: "Sign In", target: sess.name,
-        detail: `${sess.role} signed in`,
-      };
-      setAuditLog(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
-      setSession(sess);
-      setShowTip(true);
-      try { const lp = localStorage.getItem("csops_lastPage"); if(lp) setPage(lp); } catch {}
-    }}/>;
-  }
-
-  const currentRole = session.role;
-  const currentName = session.name;
-  const canEdit     = ROLE_CAN_EDIT[currentRole];
-  const roleColor   = ROLE_COLORS[currentRole];
-  const isSuperAdmin = isOwnerUser(session);
-  const isAgent = currentRole === "Agent";
-
-  // ── Critical Alert System ──────────────────────────────────────────────────
   const [criticalAlerts, setCriticalAlerts]   = useState([]);
   const [alertDismissed, setAlertDismissed]   = useState(false);
   const [lastAlertCheck, setLastAlertCheck]   = useState(0);
@@ -5939,15 +5915,9 @@ export default function App() {
     try { return Number(localStorage.getItem("csops_alertWarning")) || 200; } catch { return 200; }
   });
 
-  function saveAlertThresholds(c, w) {
-    setAlertThresholdCritical(c);
-    setAlertThresholdWarning(w);
-    try { localStorage.setItem("csops_alertCritical", String(c)); localStorage.setItem("csops_alertWarning", String(w)); } catch {}
-  }
 
-  // Check every 60 seconds for critical conditions (supervisors only)
   useEffect(() => {
-    if (isAgent) return; // agents never see alert
+    if (!session || session.role === "Agent") return; // agents never see alert
     const interval = setInterval(() => {
       const now = Date.now();
       if (now - lastAlertCheck < 55000) return; // debounce
@@ -6012,6 +5982,38 @@ export default function App() {
 
     return () => { clearInterval(interval); clearTimeout(initial); };
   }, [isAgent, queueLog, alertThresholdCritical, alertThresholdWarning]);
+
+  if (!session) {
+    return <LoginScreen employees={employees} lang={lang} setLang={changeLang} onLogin={sess => {
+      const entry = {
+        id: "al"+Date.now()+Math.random(),
+        ts: new Date().toISOString(),
+        by: sess.name, role: sess.role,
+        action: "Sign In", target: sess.name,
+        detail: `${sess.role} signed in`,
+      };
+      setAuditLog(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
+      setSession(sess);
+      setShowTip(true);
+      try { const lp = localStorage.getItem("csops_lastPage"); if(lp) setPage(lp); } catch {}
+    }}/>;
+  }
+
+  const currentRole = session.role;
+  const currentName = session.name;
+  const canEdit     = ROLE_CAN_EDIT[currentRole];
+  const roleColor   = ROLE_COLORS[currentRole];
+  const isSuperAdmin = isOwnerUser(session);
+  const isAgent = currentRole === "Agent";
+
+  // ── Critical Alert System ──────────────────────────────────────────────────
+  function saveAlertThresholds(c, w) {
+    setAlertThresholdCritical(c);
+    setAlertThresholdWarning(w);
+    try { localStorage.setItem("csops_alertCritical", String(c)); localStorage.setItem("csops_alertWarning", String(w)); } catch {}
+  }
+
+  // Check every 60 seconds for critical conditions (supervisors only)
 
   const showCriticalAlert = !isAgent && !alertDismissed && criticalAlerts.length > 0;
 
@@ -6364,3 +6366,5 @@ export default function App() {
     </div>
   );
 }
+
+
