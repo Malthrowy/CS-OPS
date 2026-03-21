@@ -127,6 +127,33 @@ const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Day Off"];
 const ALL_PAGES = ["Home","Messages","Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard","Attendance History","KPI Dashboard","Surveys","Gamification"];
 const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics"); // Home + Leaderboard visible to all roles
 const AGENT_PAGES = ["Home","Messages","Schedule","Live Floor","Break","Performance","Queue","Leaderboard","Surveys","Gamification"];
+// ─── ROLE CONFIG ──────────────────────────────────────────────────────────────
+const ROLE_CAN_EDIT = {
+  "Team Lead":    true,
+  "Shift Leader": true,
+  "SME":          true,
+  "Agent":        false,
+};
+const ROLE_COLORS = {
+  "Team Lead":    "#3B82F6",
+  "Shift Leader": "#8B5CF6",
+  "SME":          "#10B981",
+  "Agent":        "#64748B",
+};
+const ROLE_ICONS = { "Team Lead":"👑", "Shift Leader":"🛡️", "SME":"🧠", "Agent":"👤" };
+const ROLE_DESC_EN = {
+  "Team Lead":    "Full access · Password required",
+  "Shift Leader": "Full access · Password required",
+  "SME":          "Full access · Password required",
+  "Agent":        "View only · Password on first login",
+};
+const ROLE_DESC_AR = {
+  "Team Lead":    "وصول كامل · يلزم كلمة مرور",
+  "Shift Leader": "وصول كامل · يلزم كلمة مرور",
+  "SME":          "وصول كامل · يلزم كلمة مرور",
+  "Agent":        "عرض فقط · لا يلزم رقم سري",
+};
+
 
 // Super Admin — protected by name AND role
 const SUPER_ADMIN = "Mohammed Nasser Althurwi";
@@ -6876,32 +6903,6 @@ getDB().then(async () => {
   } catch {}
 });
 
-// ─── ROLE CONFIG ──────────────────────────────────────────────────────────────
-const ROLE_CAN_EDIT = {
-  "Team Lead":    true,
-  "Shift Leader": true,
-  "SME":          true,
-  "Agent":        false,
-};
-const ROLE_COLORS = {
-  "Team Lead":    "#3B82F6",
-  "Shift Leader": "#8B5CF6",
-  "SME":          "#10B981",
-  "Agent":        "#64748B",
-};
-const ROLE_ICONS = { "Team Lead":"👑", "Shift Leader":"🛡️", "SME":"🧠", "Agent":"👤" };
-const ROLE_DESC_EN = {
-  "Team Lead":    "Full access · Password required",
-  "Shift Leader": "Full access · Password required",
-  "SME":          "Full access · Password required",
-  "Agent":        "View only · Password on first login",
-};
-const ROLE_DESC_AR = {
-  "Team Lead":    "وصول كامل · يلزم كلمة مرور",
-  "Shift Leader": "وصول كامل · يلزم كلمة مرور",
-  "SME":          "وصول كامل · يلزم كلمة مرور",
-  "Agent":        "عرض فقط · لا يلزم رقم سري",
-};
 
 // ─── DAILY TIPS ───────────────────────────────────────────────────────────────
 const DAILY_TIPS_EN = [
