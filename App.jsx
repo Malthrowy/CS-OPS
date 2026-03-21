@@ -171,12 +171,12 @@ function setGlobalLang(l) { _lang = l; }
 function t(key) { return T[_lang]?.[key] || T.en[key] || key; }
 
 // ─── STYLE HELPERS (theme-aware) ─────────────────────────────────────────────
-const I = (extra={}) => ({
+function I(extra={}) { return ({
   background: _theme.input, border: `1px solid ${_theme.inputBorder}`,
   borderRadius:6, padding:"8px 12px", fontSize:13, color: _theme.inputText,
   outline:"none", width:"100%", boxSizing:"border-box", ...extra
-});
-const CRD = (extra={}) => ({
+}); }
+function CRD(extra={}) { return ({
   background: _theme.card, borderRadius:14, padding:"16px 20px",
   boxShadow: _theme.isDark
     ? "0 4px 20px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.04)"
@@ -184,21 +184,21 @@ const CRD = (extra={}) => ({
   border: `1px solid ${_theme.cardBorder}`,
   transition: "box-shadow 0.2s ease",
   ...extra
-});
-const SBR = (extra={}) => ({
+}); }
+function SBR(extra={}) { return ({
   background: _theme.surface, borderRadius:10, padding:"12px 16px",
   marginBottom:14, display:"flex", alignItems:"center", gap:10, flexWrap:"wrap",
   border: `1px solid ${_theme.cardBorder}`, ...extra
-});
-const PBT = (color="#2563EB", extra={}) => ({
+}); }
+function PBT(color="#2563EB", extra={}) { return ({
   background: `linear-gradient(135deg, ${color}, ${color}DD)`,
   color:"#fff", border:"none", borderRadius:10,
   padding:"9px 18px", fontSize:13, cursor:"pointer", fontWeight:700,
   transition:"all 0.18s cubic-bezier(0.34,1.56,0.64,1)",
   boxShadow: `0 2px 8px ${color}40`,
   letterSpacing:"0.01em", ...extra
-});
-const LBL = { fontSize:12, fontWeight:600, marginBottom:4, display:"block", color:_theme.textSub };
+}); }
+const LBL = { fontSize:12, fontWeight:600, marginBottom:4, display:"block", color:"#8B949E" };
 
 // ─── DEFAULT DATA ─────────────────────────────────────────────────────────────
 const DEFAULT_SHIFTS = [
