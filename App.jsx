@@ -3980,7 +3980,7 @@ function ReportsPage({ employees, schedule, shifts, attendance, performance, hea
 </head>
 <body>
   <h1>🎯 CS Operations — ${title}</h1>
-  <div class="meta">Generated: ${new Date().toLocaleString("en-US",{timeZone:"Asia/Riyadh"})}</div>
+  <div class="meta">Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:false})}</div>
   <pre>${content.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre>
   <script>
     window.onload = function() {
@@ -4198,7 +4198,7 @@ ${allocRows.filter(r=>r.team&&r.agents).map(r=>`• ${r.team}:\n${r.agents.split
 ${opsExecNote ? `\nExecutive Note: ${opsExecNote}` : ""}
 
 ${"═".repeat(65)}
-Generated: ${new Date().toLocaleString()}`;
+Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:false})}`;
   }
 
   function buildMonthlyReport() {
@@ -4240,7 +4240,7 @@ ${employees.map(e=>{const s=stats[e.id]; return `${e.name}: WorkDays=${s.workDay
 ──────────────────────
 ${scorecard.map(s=>`${s.emp.name}: Att=${s.attRate}% | WorkScore=${s.workScore} | Punct=${s.punctScore} | SCORE=${s.score}/100 ${s.score>=80?"🟢":s.score>=60?"🟡":"🔴"}`).join("\n")}
 
-Generated: ${new Date().toLocaleString()}`;
+Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:false})}`;
   }
 
   function getReportText() {
@@ -5107,7 +5107,7 @@ function AuditLogPage({ auditLog, session }) {
         <button onClick={()=>{
           const rows = [["Timestamp","User","Role","Action","Target","Detail"]];
           filtered.forEach(l=>rows.push([
-            new Date(l.ts).toLocaleString("en-US",{timeZone:"Asia/Riyadh"}),
+            new Date(l.ts).toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:false}),
             l.by||"", l.role||"", l.action||"", l.target||"", l.detail||""
           ]));
           const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,"''")}"`)
@@ -7922,8 +7922,7 @@ function SurveyAnswerCard({ survey, session, employees, notes, setNotes }) {
         <div style={{ flex:1 }}>
           <div style={{ fontWeight:800, fontSize:14, color:_theme.text }}>{title}</div>
           <div style={{ fontSize:11, color:_theme.textMuted }}>
-            من {createdBy} · {new Date(survey.ts).toLocaleString("ar-SA",
-              {hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})}
+            من {createdBy} · {new Date(survey.ts).toLocaleString("ar-SA",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
           </div>
         </div>
         <span style={{ background:_theme.primary+"22", color:_theme.primary,
@@ -8509,7 +8508,7 @@ function GamificationPage({ employees, performance, attendance, schedule, notes,
                     <div style={{ fontWeight:800, fontSize:13, color:_theme.text, marginBottom:4 }}>{e.name}</div>
                     <BadgesDisplay badgeIds={e.badges} size="small"/>
                     <div style={{ fontSize:22, fontWeight:900, color:colors[pi], marginTop:6 }}>
-                      {e.pts.toLocaleString()}
+                      {e.pts.toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:false})}
                       <span style={{ fontSize:11, fontWeight:600, color:_theme.textMuted }}> pts</span>
                     </div>
                   </div>
@@ -8564,7 +8563,7 @@ function GamificationPage({ employees, performance, attendance, schedule, notes,
                       <td style={{ padding:"8px 10px", fontWeight:800,
                         color: e.pts>=500?"#F59E0B":e.pts>=200?"#3B82F6":_theme.text,
                         fontSize:14 }}>
-                        {e.pts.toLocaleString()}
+                        {e.pts.toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:false})}
                       </td>
                       <td style={{ padding:"8px 10px", color:"#10B981", fontWeight:700 }}>
                         {e.todayPerf.closed||0}
@@ -8756,7 +8755,7 @@ function AIReportAssistant({ employees, schedule, attendance, performance, queue
 
     return {
       date: new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Riyadh"}),
-      time: new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"}),
+      time: new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"}),
       scheduled: todayEmps.length,
       present, absent, late,
       closed, escalations, escRate,
@@ -9709,7 +9708,7 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
   const todayKey  = todayStr();
   const dayName   = DAYS[new Date().getDay()];
   const now       = new Date();
-  const timeStr   = now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"});
+  const timeStr   = now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"});
   const dateStr   = now.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",timeZone:"Asia/Riyadh"});
 
   const myId      = employees.find(e=>e.name===session?.name)?.id;
@@ -9890,7 +9889,7 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
               {e.target&&<span style={{fontSize:11,color:_theme.textMuted}}> → {e.target}</span>}
             </div>
             <span style={{fontSize:10,color:_theme.textMuted,flexShrink:0}}>
-              {new Date(e.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})}
+              {new Date(e.ts).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
             </span>
           </div>
         ))}
@@ -10742,8 +10741,7 @@ function ShortBreakRequestForm({ session, employees, notes, setNotes,
         type, typeLabel:bt?.label, typeIcon:bt?.icon,
         duration, note: note.trim(),
         status:"pending",
-        requestedAt: new Date().toLocaleTimeString("en-US",{
-          hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"}),
+        requestedAt: new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"}),
       }),
       from: myName||"",
       target: "supervisors",
@@ -10912,7 +10910,7 @@ function SupervisorBreakDashboard({ employees, notes, setNotes, session,
     let d={};
     try{d=JSON.parse(req.text||"{}");} catch{}
     updateReq(req.id,{status:"approved",approvedBy:session?.name,
-      approvedAt:new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})});
+      approvedAt:new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})});
     showToast(`✅ Break approved for ${d.empName}`,"success");
     playSoftDing();
   }
@@ -11192,8 +11190,7 @@ function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose }) {
       if (l.by?.toLowerCase().includes(q) || l.action?.toLowerCase().includes(q) ||
           l.detail?.toLowerCase().includes(q)) {
         out.push({ type:"log", icon:"🔍", label:`${l.action} — ${l.by}`,
-          sub:new Date(l.ts).toLocaleString("en-US",{timeZone:"Asia/Riyadh",
-            month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}),
+          sub:new Date(l.ts).toLocaleString("en-GB",{timeZone:"Asia/Riyadh",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}),
           color:"#64748B", action:"Audit Log" });
       }
     });
@@ -11700,6 +11697,7 @@ export default function App() {
   const [showDM, setShowDM]           = useState(false);
   const [myShiftFilter, setMyShiftFilter] = useState(false); // "My Shift Only" global filter
   const [loading, setLoading]         = useState(true);
+  const [lastSync, setLastSync]       = useState(null); // timestamp of last successful poll
 
   // ── Theme + Lang + Zoom ───────────────────────────────────────────────────
   const [themeKey, setThemeKey] = useState(() => {
@@ -11866,7 +11864,13 @@ export default function App() {
               lsSet("csops_auditLog", next);
               return next;
             });
-          }).subscribe(),
+          }).subscribe(status => {
+            if (status === "SUBSCRIBED") {
+              console.log("✓ Supabase Realtime connected");
+            } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+              console.warn("⚠ Supabase Realtime issue:", status, "- polling fallback active");
+            }
+          }),
 
         // ── notes ── all events
         client.channel("rt-notes")
@@ -11883,11 +11887,16 @@ export default function App() {
                 // Soft ding for new manager messages arriving via Realtime
                 if (payload.eventType === "INSERT" && payload.new?.tag === "Manager Message") {
                   playSoftDing();
+                  const tgt = payload.new?.target;
+                  const myN = session?.name || "";
+                  if (tgt === "all" || !tgt || tgt === myN) {
+                    showToast("📢 رسالة جديدة من المشرف", "info", 5000);
+                  }
                 }
                 // Ding when a Direct Message arrives for me
                 if (payload.eventType === "INSERT" && payload.new?.tag === "Direct Message") {
                   // We know our session name from the outer closure
-                  if (payload.new?.target === (typeof currentName !== "undefined" ? currentName : "")) {
+                  if (payload.new?.target === (session?.name || "")) {
                     playAlertSound("warning");
                     showToast("💬 New direct message received","info",4000);
                   }
@@ -12033,6 +12042,98 @@ export default function App() {
         rtChannelsRef.current = [];
       });
     };
+  }, [loading]);
+
+  // ── Polling fallback: re-fetch key tables every 30s if Realtime misses updates ──
+  useEffect(() => {
+    if (loading) return;
+    let cancelled = false;
+
+    async function pollUpdates() {
+      if (cancelled) return;
+      try {
+        const today = new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Riyadh"});
+        const ago90 = new Date(Date.now()-90*864e5).toISOString().slice(0,10);
+
+        // Poll attendance (today only - most critical)
+        const attT = await sb.from("attendance");
+        const attRows = await attT.select("*", `date=gte.${today}`);
+        if (attRows?.length && !cancelled) {
+          setAttendanceRaw(prev => {
+            const next = { ...(prev||{}) };
+            attRows.forEach(r => {
+              if (!next[r.date]) next[r.date] = {};
+              next[r.date][r.emp_id] = {status:r.status,checkIn:r.check_in||"",checkOut:r.check_out||"",lateMin:r.late_min||0,earlyMin:r.early_min||0,workDuration:r.work_duration||"",note:r.note||""};
+            });
+            return next;
+          });
+        }
+
+        // Poll performance (today only)
+        const pfT = await sb.from("performance");
+        const pfRows = await pfT.select("*", `date=gte.${today}`);
+        if (pfRows?.length && !cancelled) {
+          setPerformanceRaw(prev => {
+            const next = { ...(prev||{}) };
+            pfRows.forEach(r => {
+              if (!next[r.date]) next[r.date] = {};
+              next[r.date][r.emp_id] = {closed:r.closed||0,escalations:r.escalations||0,quality:r.quality||""};
+            });
+            return next;
+          });
+        }
+
+        // Poll schedule
+        const scT = await sb.from("schedule");
+        const scRows = await scT.select();
+        if (scRows?.length && !cancelled) {
+          setScheduleRaw(prev => {
+            const next = { ...(prev||{}) };
+            scRows.forEach(r => { next[r.emp_id] = r.days||{}; });
+            return next;
+          });
+        }
+
+        // Poll break_schedule
+        const bsT = await sb.from("break_schedule");
+        const bsRows = await bsT.select();
+        if (bsRows?.length && !cancelled) {
+          setBreakScheduleRaw(prev => {
+            const next = { ...(prev||{}) };
+            bsRows.forEach(r => { next[r.key] = r.data||{}; });
+            return next;
+          });
+        }
+
+        // Poll notes (last 200)
+        const ntT = await sb.from("notes");
+        const ntRows = await ntT.select("*", "order=ts.desc&limit=200");
+        if (ntRows?.length && !cancelled) {
+          setNotesRaw(ntRows.map(r => ({
+            id:r.id, ts:r.ts, date:r.date, time:r.time,
+            tag:r.tag, text:r.text,
+            from:r.from||"", target:r.target||"", msgType:r.msg_type||r.msgType||""
+          })));
+        }
+
+        // Poll employees
+        const empT = await sb.from("employees");
+        const empRows = await empT.select();
+        if (empRows?.length && !cancelled) {
+          setEmployeesRaw(empRows.map(r => ({
+            id:r.id, name:r.name, role:r.role, tasks:r.tasks||[],
+            gender:r.gender||"M", isAdmin:r.is_admin||false, hiddenPages:r.hidden_pages||[]
+          })));
+        }
+
+        setLastSync(Date.now());
+      } catch (e) {
+        // Polling failed silently - Supabase may be offline
+      }
+    }
+
+    const interval = setInterval(pollUpdates, 30000); // every 30 seconds
+    return () => { cancelled = true; clearInterval(interval); };
   }, [loading]);
 
   useEffect(() => {
@@ -12194,26 +12295,46 @@ export default function App() {
     } catch {}
     localStorage.setItem("csops_schedule", JSON.stringify(sc));
   }
+
+  async function saveSchedulePartial(sc, changedEmpIds) {
+    // Only upsert the changed employees - much faster than full upsert
+    try {
+      const rows = changedEmpIds
+        .filter(id => sc[id])
+        .map(emp_id => ({ emp_id, days: sc[emp_id], updated_at: new Date().toISOString() }));
+      if (rows.length) {
+        const t = await sb.from("schedule");
+        await t.upsert(rows);
+      }
+    } catch {}
+    localStorage.setItem("csops_schedule", JSON.stringify(sc));
+  }
   async function saveAttendance(att) {
     try {
-      const rows = [];
-      Object.entries(att).forEach(([date, emps]) => {
-        Object.entries(emps).forEach(([emp_id, a]) => {
-          rows.push({id:`${date}_${emp_id}`,date,emp_id,status:a.status,check_in:a.checkIn||null,check_out:a.checkOut||null,late_min:a.lateMin||0,early_min:a.earlyMin||0,work_duration:a.workDuration||null,note:a.note||null,updated_at:new Date().toISOString()});
-        });
-      });
+      // Only upsert today's attendance for speed
+      const today = new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Riyadh"});
+      const todayEmps = att[today] || {};
+      const rows = Object.entries(todayEmps).map(([emp_id, a]) => ({
+        id:`${today}_${emp_id}`,date:today,emp_id,
+        status:a.status,check_in:a.checkIn||null,check_out:a.checkOut||null,
+        late_min:a.lateMin||0,early_min:a.earlyMin||0,
+        work_duration:a.workDuration||null,note:a.note||null,
+        updated_at:new Date().toISOString()
+      }));
       if (rows.length) { const t = await sb.from("attendance"); await t.upsert(rows); }
     } catch {}
     localStorage.setItem("csops_attendance", JSON.stringify(att));
   }
   async function savePerformance(pf) {
     try {
-      const rows = [];
-      Object.entries(pf).forEach(([date,emps])=>{
-        Object.entries(emps).forEach(([emp_id,p])=>{
-          rows.push({id:`${date}_${emp_id}`,date,emp_id,closed:p.closed||0,escalations:p.escalations||0,quality:p.quality||null,updated_at:new Date().toISOString()});
-        });
-      });
+      // Only upsert today's data to avoid sending 90 days of rows on every keystroke
+      const today = new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Riyadh"});
+      const todayEmps = pf[today] || {};
+      const rows = Object.entries(todayEmps).map(([emp_id,p]) => ({
+        id:`${today}_${emp_id}`,date:today,emp_id,
+        closed:p.closed||0,escalations:p.escalations||0,
+        quality:p.quality||null,updated_at:new Date().toISOString()
+      }));
       if (rows.length) { const t = await sb.from("performance"); await t.upsert(rows); }
     } catch {}
     localStorage.setItem("csops_performance", JSON.stringify(pf));
@@ -12262,10 +12383,23 @@ export default function App() {
     localStorage.setItem("csops_notes", JSON.stringify(nt));
   }
 
+  async function deleteNote(id) {
+    // Delete from Supabase so all clients get the realtime DELETE event
+    try {
+      const t = await sb.from("notes");
+      await t.delete(`id=eq.${id}`);
+    } catch {}
+  }
+
   // ── Wrapped setters that save to Supabase ─────────────────────────────────
   function setEmployees(val)  { const n=typeof val==="function"?val(employees):val;  setEmployeesRaw(n);  saveEmployees(n); }
   function setShifts(val)     { const n=typeof val==="function"?val(shifts):val;     setShiftsRaw(n);     saveShifts(n); }
-  function setSchedule(val)   { const n=typeof val==="function"?val(scheduleMap):val; setScheduleRaw(n);  saveSchedule(n); }
+  function setSchedule(val) {
+    const n = typeof val === "function" ? val(scheduleMap) : val;
+    setScheduleRaw(n);
+    // Always save ALL rows - avoids stale closure missing changes
+    saveSchedule(n);
+  }
   function setAttendance(val) { const n=typeof val==="function"?val(attendance):val; setAttendanceRaw(n); saveAttendance(n); }
   function setPerformance(val){ const n=typeof val==="function"?val(performance):val;setPerformanceRaw(n);savePerformance(n); }
   function setHeatmap(val)    { const n=typeof val==="function"?val(heatmap):val;    setHeatmapRaw(n);    saveHeatmap(n); }
@@ -12297,7 +12431,17 @@ export default function App() {
     setAuditLogRaw(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
   }
   function setAuditLog(val)   { const n=typeof val==="function"?val(auditLog):val;   setAuditLogRaw(n);   saveAuditLog(n); }
-  function setNotes(val)      { const n=typeof val==="function"?val(notes):val;      setNotesRaw(n);      saveNotes(n); }
+  function setNotes(val) {
+    const prev = notes;
+    const n = typeof val === "function" ? val(notes) : val;
+    setNotesRaw(n);
+    saveNotes(n);
+    // Detect deletions and remove from Supabase
+    if (Array.isArray(prev) && Array.isArray(n) && n.length < prev.length) {
+      const newIds = new Set(n.map(x => x.id));
+      prev.forEach(x => { if (!newIds.has(x.id)) deleteNote(x.id); });
+    }
+  }
 
   // Use scheduleMap as schedule
   const schedule = scheduleMap;
@@ -12394,15 +12538,15 @@ export default function App() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  // ── Heartbeat: log activity every 10 min (realtime handles the rest) ──
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // ── Heartbeat: log activity every 10 min ──
   useEffect(() => {
     if (!session) return;
     const hb = setInterval(() => {
-      addAudit("Page View", safeCurrentPage||page, `Active on ${safeCurrentPage||page}`);
+      // Use page directly since safeCurrentPage may not be in scope yet
+      addAudit("Page View", page, `Active on ${page}`);
     }, 10 * 60 * 1000); // every 10 minutes
     return () => clearInterval(hb);
-  }, [session]);
+  }, [session, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (
@@ -12967,6 +13111,11 @@ export default function App() {
             <strong style={{ color:roleColor }}>{currentName.split(" ")[0]}</strong>
             <span style={{ color:theme.textMuted }}>·</span>
             <span>{new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}</span>
+              <span title={lastSync ? `Last sync: ${new Date(lastSync).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}` : "Syncing..."}
+                style={{width:7,height:7,borderRadius:"50%",display:"inline-block",
+                  background: lastSync && (Date.now()-lastSync)<60000 ? "#10B981" : "#F59E0B",
+                  boxShadow: lastSync && (Date.now()-lastSync)<60000 ? "0 0 4px #10B981" : "none",
+                  cursor:"help"}}/>
           </div>
         </div>
 
