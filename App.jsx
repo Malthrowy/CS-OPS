@@ -166,9 +166,9 @@ function isOwnerUser(session) {
 // ─── THEME CONTEXT (global) ───────────────────────────────────────────────────
 let _theme = THEMES.dark;
 let _lang = "en";
-function setGlobalTheme(t) { _theme = t; }
+function setGlobalTheme(th) { _theme = th; }
 function setGlobalLang(l) { _lang = l; }
-function t(key) { return T[_lang]?.[key] || T.en[key] || key; }
+function _tr(key) { return T[_lang]?.[key] || T.en[key] || key; }
 
 // ─── STYLE HELPERS (theme-aware) ─────────────────────────────────────────────
 function I(extra={}) { return ({
@@ -6605,11 +6605,16 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
     </div>
   );
 }
-if (typeof window !== "undefined" && !window.XLSX) {
-  const _s = document.createElement("script");
-  _s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
-  _s.async = true;
-  document.head.appendChild(_s);
+// Deferred XLSX load to avoid TDZ issues during module initialization
+if (typeof window !== "undefined") {
+  window.addEventListener("load", () => {
+    if (!window.XLSX) {
+      const _s = document.createElement("script");
+      _s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+      _s.async = true;
+      document.head.appendChild(_s);
+    }
+  });
 }
 
 // Helper: wait for XLSX to be ready (max 5 seconds)
