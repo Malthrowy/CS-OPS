@@ -11067,10 +11067,8 @@ Respond with: "✅ Recommend APPROVE" or "❌ Recommend DECLINE" followed by one
                   borderRadius:20,padding:"2px 10px",fontSize:10,fontWeight:800}}>
                   {d.status==="approved"?"✅ Approved":d.status==="rejected"?"❌ Declined":"—"}
                 </span>
-                {canEdit&&(
-                  <button onClick={()=>setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==req.id))}
-                    style={{background:"none",border:"none",color:_theme.textMuted,cursor:"pointer",fontSize:14}}>✕</button>
-                )}
+                <button onClick={()=>setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==req.id))}
+                  style={{background:"none",border:"none",color:_theme.textMuted,cursor:"pointer",fontSize:14}}>✕</button>
               </div>
             );
           })}
@@ -12524,16 +12522,16 @@ export default function App() {
     "Messages":    wrap(<DirectMessagesPanel employees={employees} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
     "Home":        wrap(<HomeDashboard session={session} employees={employees} schedule={schedule} attendance={attendance} performance={performance} queueLog={queueLog} notes={notes} breakSchedule={breakSchedule} shifts={shifts} auditLog={auditLog} canEdit={canEdit} isSuperAdmin={isSuperAdmin} onNavigate={navigateLogged}/>),
     Schedule:      wrap(<SchedulePage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} canEdit={canEdit} notes={notes} setNotes={setNotes} session={session}/>),
-    Attendance:    wrap(<AttendancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} setSchedule={SC} shifts={shifts} attendance={attendance} setAttendance={AT} notes={notes} setNotes={setNotes} session={session} myShiftFilter={myShiftFilter}/>),
+    Attendance:    wrap(<AttendancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} setSchedule={SC} shifts={shifts} attendance={attendance} setAttendance={AT} notes={notes} setNotes={setNotes} session={session} myShiftFilter={myShiftOnly}/>),
     Queue:         wrap(<QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL} setHeatmap={HM} canEdit={canEdit} session={session}/>),
     "Daily Tasks": wrap(<DailyTasksPage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} auditLog={auditLog} setAuditLog={AL} session={session}/>),
     "Live Floor":  wrap(<LiveFloorPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} queueLog={queueLog} canEdit={canEdit} session={session}/>),
-    Break:         wrap(<BreakPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={canEdit} addAudit={addAudit} session={session} notes={notes} setNotes={setNotes} myShiftFilter={myShiftFilter} queueLog={queueLog}/>),
+    Break:         wrap(<BreakPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={canEdit} addAudit={addAudit} session={session} notes={notes} setNotes={setNotes} myShiftFilter={myShiftOnly} queueLog={queueLog}/>),
     "Heat Map":    wrap(<HeatMapPage queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning}/>),
     "Audit Log":   wrap(<AuditLogPage auditLog={auditLog} session={session}/>),
     Notes:         wrap(<NotesPage notes={notes} setNotes={canEdit?setNotes:noop}/>),
     Shifts:        wrap(<ShiftsPage shifts={shifts} setShifts={SH}/>),
-    Performance:   wrap(<PerformancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF} myShiftFilter={myShiftFilter} session={session}/>),
+    Performance:   wrap(<PerformancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF} myShiftFilter={myShiftOnly} session={session}/>),
     Reports:       wrap(<ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog} session={session} canEdit={canEdit}/>),
     "Owner Analytics": wrap(<OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} setEmployees={setEmployees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>),
     Leaderboard:   wrap(<LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} setNotes={setNotes} canEdit={canEdit}/>),
