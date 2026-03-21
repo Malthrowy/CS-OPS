@@ -3226,7 +3226,6 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
             schedule={schedule}
           />
         </div>
-      )}
       ))} {/* end request tab */}
     </div>
   );
