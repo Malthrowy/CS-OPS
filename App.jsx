@@ -12379,29 +12379,6 @@ export default function App() {
   }, [session, queueLog, alertThresholdCritical, alertThresholdWarning]);
 
 
-  if (loading) {
-    return (
-      <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0F2744,#1E3A5F)",
-        display:"flex", alignItems:"center", justifyContent:"center",
-        fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", flexDirection:"column", gap:20 }}>
-        <div style={{ fontSize:48 }}>🎯</div>
-        <div style={{ color:"#fff", fontWeight:800, fontSize:20 }}>CS Operations</div>
-        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-          <div style={{ width:8, height:8, borderRadius:"50%", background:"#10B981",
-            animation:"pulse 1s infinite" }}/>
-          <span style={{ color:"rgba(255,255,255,0.7)", fontSize:14 }}>Connecting to database...</span>
-        </div>
-        <button onClick={()=>setLoading(false)}
-          style={{ marginTop:24, background:"transparent",
-            border:"1px solid rgba(255,255,255,0.2)",
-            color:"rgba(255,255,255,0.45)", borderRadius:8,
-            padding:"8px 24px", cursor:"pointer", fontSize:12 }}>
-          Taking too long? Click to continue →
-        </button>
-        <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
-      </div>
-    );
-  }
   // ── Global search keyboard shortcut: Ctrl+K ──────────────────────────────────
   useEffect(() => {
     const handler = (e) => {
@@ -12426,6 +12403,30 @@ export default function App() {
     }, 10 * 60 * 1000); // every 10 minutes
     return () => clearInterval(hb);
   }, [session]);
+
+  if (loading) {
+    return (
+      <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0F2744,#1E3A5F)",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", flexDirection:"column", gap:20 }}>
+        <div style={{ fontSize:48 }}>🎯</div>
+        <div style={{ color:"#fff", fontWeight:800, fontSize:20 }}>CS Operations</div>
+        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+          <div style={{ width:8, height:8, borderRadius:"50%", background:"#10B981",
+            animation:"pulse 1s infinite" }}/>
+          <span style={{ color:"rgba(255,255,255,0.7)", fontSize:14 }}>Connecting to database...</span>
+        </div>
+        <button onClick={()=>setLoading(false)}
+          style={{ marginTop:24, background:"transparent",
+            border:"1px solid rgba(255,255,255,0.2)",
+            color:"rgba(255,255,255,0.45)", borderRadius:8,
+            padding:"8px 24px", cursor:"pointer", fontSize:12 }}>
+          Taking too long? Click to continue →
+        </button>
+        <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
+      </div>
+    );
+  }
 
 
   if (!session) {
