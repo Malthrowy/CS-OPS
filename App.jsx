@@ -6733,7 +6733,7 @@ function playSoftDing() {
 // Realtime subscriptions are set up separately in the App component.
 // ═══════════════════════════════════════════════════════════════════════════
 const SUPABASE_URL  = "https://ohbgpdsuaointhidnmps.supabase.co";
-const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oYmdwZHN1YW9pbnRoaWRubXBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzI3MjMsImV4cCI6MjA4OTQ0ODcyM30.pEIUTSpOnMIFCJLWT07nk-8nDVZmepow6vaDEkzKQ-I0";
+const SUPABASE_KEY  = "sb_publishable_0CLCyh1yv2I6RcHkSRs1EQ_D3ucGkhH";
 
 // ── Singleton client ─────────────────────────────────────────────────────────
 let _supabase = null;
