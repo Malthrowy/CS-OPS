@@ -5084,8 +5084,7 @@ function AuditLogPage({ auditLog, session }) {
             l.by||"", l.role||"", l.action||"", l.target||"", l.detail||""
           ]));
           const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,"''")}"`)
-            .join(",")).join("
-");
+            .join(",")).join("\n");
           const blob = new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8;"});
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
@@ -13401,11 +13400,9 @@ export default function App() {
                   title={Notification.permission==="granted"?"إشعارات Push مفعّلة — اضغط للمعلومات":"تفعيل إشعارات Push"}
                   onClick={async()=>{
                     if (Notification.permission==="granted") {
-                      alert("✅ إشعارات Push مفعّلة
-ستصلك تنبيهات Queue حتى لو التطبيق مغلق.");
+                      alert("✅ إشعارات Push مفعّلة\nستصلك تنبيهات Queue حتى لو التطبيق مغلق.");
                     } else if (Notification.permission==="denied") {
-                      alert("🚫 الإشعارات محجوبة من إعدادات المتصفح.
-افتح إعدادات المتصفح وأعد السماح للموقع.");
+                      alert("🚫 الإشعارات محجوبة من إعدادات المتصفح.\nافتح إعدادات المتصفح وأعد السماح للموقع.");
                     } else {
                       const res = await askPushPermission();
                       if (res==="granted") alert("✅ تم تفعيل إشعارات Push بنجاح!");
