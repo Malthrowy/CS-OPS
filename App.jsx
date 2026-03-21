@@ -6,7 +6,7 @@ const T = {
     appName: "CS Operations", appSub: "Management System",
     selectRole: "Select Your Role", yourName: "Your Name",
     selectName: "Select your name", agentNameLabel: "Select Your Name",
-    agentHint: "View only — no password required",
+    agentHint: "View only — password required on first login",
     password: "Password", signIn: "Sign In", signInAs: "Sign In as",
     enterAs: "Enter as",
     setPassword: "Set Your Personal Password", firstLogin: "First time login",
@@ -39,7 +39,7 @@ const T = {
     appName: "عمليات خدمة العملاء", appSub: "نظام إدارة العمليات",
     selectRole: "حدد صلاحيتك", yourName: "اسمك",
     selectName: "اختر اسمك", agentNameLabel: "اختر اسمك",
-    agentHint: "صلاحية عرض فقط — لا تحتاج إلى كلمة مرور",
+    agentHint: "صلاحية عرض فقط — تحتاج كلمة مرور عند أول دخول",
     password: "كلمة المرور", signIn: "تسجيل الدخول", signInAs: "دخول بصفة",
     enterAs: "دخول كـ",
     setPassword: "إنشاء كلمة مرور شخصية", firstLogin: "أول تسجيل دخول",
@@ -124,9 +124,9 @@ const TASK_LIST = ["KFOOD","KEEMRT"];
 const TASK_LIST_ASSIGN = ["KFOOD","KEEMRT"];
 const TASK_COLORS = ["#10B981","#3B82F6","#6366F1","#0EA5E9","#F59E0B","#10B981","#EF4444","#8B5CF6","#EC4899","#14B8A6","#F97316","#06B6D4","#84CC16","#A855F7","#E11D48"];
 const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Day Off"];
-const ALL_PAGES = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard","Attendance History","KPI Dashboard","Surveys"];
-const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics" && p !== "Leaderboard");
-const AGENT_PAGES = ["Schedule","Live Floor","Performance","Queue","Leaderboard","Surveys"];
+const ALL_PAGES = ["Home","Messages","Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard","Attendance History","KPI Dashboard","Surveys","Gamification"];
+const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics"); // Home + Leaderboard visible to all roles
+const AGENT_PAGES = ["Home","Messages","Schedule","Live Floor","Break","Performance","Queue","Leaderboard","Surveys","Gamification"];
 
 // Super Admin — protected by name AND role
 const SUPER_ADMIN = "Mohammed Nasser Althurwi";
@@ -150,9 +150,13 @@ const I = (extra={}) => ({
   outline:"none", width:"100%", boxSizing:"border-box", ...extra
 });
 const CRD = (extra={}) => ({
-  background: _theme.card, borderRadius:12, padding:"16px 20px",
-  boxShadow: _theme.isDark ? "0 2px 12px rgba(0,0,0,0.5)" : "0 1px 4px rgba(0,0,0,0.07)",
-  border: `1px solid ${_theme.cardBorder}`, ...extra
+  background: _theme.card, borderRadius:14, padding:"16px 20px",
+  boxShadow: _theme.isDark
+    ? "0 4px 20px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.04)"
+    : "0 2px 12px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
+  border: `1px solid ${_theme.cardBorder}`,
+  transition: "box-shadow 0.2s ease",
+  ...extra
 });
 const SBR = (extra={}) => ({
   background: _theme.surface, borderRadius:10, padding:"12px 16px",
@@ -160,9 +164,12 @@ const SBR = (extra={}) => ({
   border: `1px solid ${_theme.cardBorder}`, ...extra
 });
 const PBT = (color="#2563EB", extra={}) => ({
-  background:color, color:"#fff", border:"none", borderRadius:8,
-  padding:"8px 16px", fontSize:13, cursor:"pointer", fontWeight:600,
-  transition:"opacity 0.15s", ...extra
+  background: `linear-gradient(135deg, ${color}, ${color}DD)`,
+  color:"#fff", border:"none", borderRadius:10,
+  padding:"9px 18px", fontSize:13, cursor:"pointer", fontWeight:700,
+  transition:"all 0.18s cubic-bezier(0.34,1.56,0.64,1)",
+  boxShadow: `0 2px 8px ${color}40`,
+  letterSpacing:"0.01em", ...extra
 });
 const LBL = { fontSize:12, fontWeight:600, marginBottom:4, display:"block", color:_theme.textSub };
 
@@ -179,91 +186,91 @@ const DEFAULT_SHIFTS = [
 ];
 
 const DEFAULT_EMPLOYEES = [
-  { id:"e1",  name:"Ahmed Mohammed Ali",          tasks:[], role:"Team Lead",    gender:"M" },
-  { id:"e2",  name:"Mohammed Almutairi",           tasks:[], role:"Shift Leader", gender:"M" },
-  { id:"e3",  name:"Manar Alturaiki",              tasks:[], role:"Shift Leader", gender:"F" },
-  { id:"e4",  name:"Abdulaziz Alrusayni",          tasks:[], role:"Shift Leader", gender:"M" },
-  { id:"e5",  name:"Yazeed Saad",                  tasks:[], role:"Shift Leader", gender:"M" },
-  { id:"e6",  name:"Sultan Ahmed",                 tasks:[], role:"Shift Leader", gender:"M" },
-  { id:"e7",  name:"Amar Saleh",                   tasks:[], role:"SME",          gender:"M" },
-  { id:"e8",  name:"Amer Alanzi",                  tasks:[], role:"SME",          gender:"M" },
-  { id:"e9",  name:"Abdulelah Fawaz Alanazi",      tasks:[], role:"SME",          gender:"M" },
-  { id:"e10", name:"Abdulrahman Alghamdi",         tasks:[], role:"SME",          gender:"M" },
-  { id:"e11", name:"Emad Alzahrani",               tasks:[], role:"SME",          gender:"M" },
-  { id:"e12", name:"Mohammed Nasser Althurwi",     tasks:[], role:"SME",          gender:"M" },
-  { id:"e13", name:"Ghazi Alruways",               tasks:[], role:"Agent",        gender:"M" },
-  { id:"e14", name:"Mohammed Alharthi",            tasks:[], role:"Agent",        gender:"M" },
-  { id:"e15", name:"Shaima Alyami",                tasks:[], role:"Agent",        gender:"F" },
-  { id:"e16", name:"Raed Abdullah Allehaidan",     tasks:[], role:"Agent",        gender:"M" },
-  { id:"e17", name:"Ali Mohammed Khuzaee",         tasks:[], role:"Agent",        gender:"M" },
-  { id:"e18", name:"Ali Haqawi",                   tasks:[], role:"Agent",        gender:"M" },
-  { id:"e19", name:"Nejoud Aljheimi",              tasks:[], role:"Agent",        gender:"F" },
-  { id:"e20", name:"Abdullah Alzain",              tasks:[], role:"Agent",        gender:"M" },
-  { id:"e21", name:"Abdulaziz Muqbil",             tasks:[], role:"Agent",        gender:"M" },
-  { id:"e22", name:"Fahad Sager",                  tasks:[], role:"Agent",        gender:"M" },
-  { id:"e23", name:"Rayan Almaziad",               tasks:[], role:"Agent",        gender:"M" },
-  { id:"e24", name:"Abdulmajeed Mohammed",         tasks:[], role:"Agent",        gender:"M" },
-  { id:"e25", name:"Saad Aldahus",                 tasks:[], role:"Agent",        gender:"M" },
-  { id:"e26", name:"Khalid Alkhaldi",              tasks:[], role:"Agent",        gender:"M" },
-  { id:"e27", name:"Talal Sagga",                  tasks:[], role:"Agent",        gender:"M" },
-  { id:"e28", name:"Rashed Aljaloud",              tasks:[], role:"Agent",        gender:"M" },
-  { id:"e29", name:"Abdulkarem Alansari",          tasks:[], role:"Agent",        gender:"M" },
-  { id:"e30", name:"Mohannad Alamri",              tasks:[], role:"Agent",        gender:"M" },
-  { id:"e31", name:"Ahmed Awaji",                  tasks:[], role:"Agent",        gender:"M" },
-  { id:"e32", name:"Abdulelah Saud",               tasks:[], role:"Agent",        gender:"M" },
-  { id:"e33", name:"Khalid Saeed",                 tasks:[], role:"Agent",        gender:"M" },
-  { id:"e34", name:"Nourah Alowayyid",             tasks:[], role:"Agent",        gender:"F" },
-  { id:"e35", name:"Lujain Metwalli",              tasks:[], role:"Agent",        gender:"F" },
-  { id:"e36", name:"Nasser Alhowimel",             tasks:[], role:"Agent",        gender:"M" },
-  { id:"e37", name:"Majed Mohammed",               tasks:[], role:"Agent",        gender:"M" },
-  { id:"e38", name:"Ahmed Alshehri",               tasks:[], role:"Agent",        gender:"M" },
-  { id:"e39", name:"Faris Rashed",                 tasks:[], role:"Agent",        gender:"M" },
-  { id:"e40", name:"Abdullah Alharbi",             tasks:[], role:"Agent",        gender:"M" },
-  { id:"e41", name:"Yousef Alrsheedi",             tasks:[], role:"Agent",        gender:"M" },
-  { id:"e42", name:"Khaled Almarhom",              tasks:[], role:"Agent",        gender:"M" },
-  { id:"e43", name:"Faez Almindah",                tasks:[], role:"Agent",        gender:"M" },
-  { id:"e44", name:"Mohammed Jaseem",              tasks:[], role:"Agent",        gender:"M" },
-  { id:"e45", name:"Mohammed Alnakhli",            tasks:[], role:"Agent",        gender:"M" },
-  { id:"e46", name:"Saud Ali",                     tasks:[], role:"Agent",        gender:"M" },
-  { id:"e47", name:"Mohammed Alsahli",             tasks:[], role:"Agent",        gender:"M" },
-  { id:"e48", name:"Yasir Seif",                   tasks:[], role:"Agent",        gender:"M" },
-  { id:"e49", name:"Sultan Alhamoudi",             tasks:[], role:"Agent",        gender:"M" },
-  { id:"e50", name:"Mohammed Alobaid",             tasks:[], role:"Agent",        gender:"M" },
-  { id:"e51", name:"Ramiz Ghashem",                tasks:[], role:"Agent",        gender:"M" },
-  { id:"e52", name:"Khalid Mnsour",                tasks:[], role:"Agent",        gender:"M" },
-  { id:"e53", name:"Khalid Mutlaq",                tasks:[], role:"Agent",        gender:"M" },
-  { id:"e54", name:"Ali Harfash",                  tasks:[], role:"Agent",        gender:"M" },
-  { id:"e55", name:"Talal Alfaraj",                tasks:[], role:"Agent",        gender:"M" },
-  { id:"e56", name:"Bader Alotaibi",               tasks:[], role:"Agent",        gender:"M" },
-  { id:"e57", name:"Bandar Almalki",               tasks:[], role:"Agent",        gender:"M" },
-  { id:"e58", name:"Ahmad Alharbi",                tasks:[], role:"Agent",        gender:"M" },
-  { id:"e59", name:"Mohammed Alshehri",            tasks:[], role:"Agent",        gender:"M" },
-  { id:"e60", name:"Abdulelah Alshehri",           tasks:[], role:"Agent",        gender:"M" },
-  { id:"e61", name:"Saud Alzahrani",               tasks:[], role:"Agent",        gender:"M" },
-  { id:"e62", name:"Faisal Saraan",                tasks:[], role:"Agent",        gender:"M" },
-  { id:"e63", name:"Manal Aldosry",                tasks:[], role:"Agent",        gender:"F" },
-  { id:"e64", name:"Hajer Alshreif",               tasks:[], role:"Agent",        gender:"F" },
-  { id:"e65", name:"Mohammed Alabdullah",          tasks:[], role:"Agent",        gender:"M" },
-  { id:"e66", name:"Abdulaziz Alsukait",           tasks:[], role:"Agent",        gender:"M" },
-  { id:"e67", name:"Abdulkareem Mokhtar",          tasks:[], role:"Agent",        gender:"M" },
-  { id:"e68", name:"Saad Alsaiqer",                tasks:[], role:"Agent",        gender:"M" },
-  { id:"e69", name:"Yasser Alghamdi",              tasks:[], role:"Agent",        gender:"M" },
-  { id:"e70", name:"Nasser Saad",                  tasks:[], role:"Agent",        gender:"M" },
-  { id:"e71", name:"Tariq Alhalmani",              tasks:[], role:"Agent",        gender:"M" },
-  { id:"e72", name:"Saad Altukhayfi",              tasks:[], role:"Agent",        gender:"M" },
-  { id:"e73", name:"Abdulaziz Massad Alanazi",     tasks:[], role:"Agent",        gender:"M" },
-  { id:"e74", name:"Raneem Albaqami",              tasks:[], role:"Agent",        gender:"F" },
-  { id:"e75", name:"Sarah Almihbash",              tasks:[], role:"Agent",        gender:"F" },
-  { id:"e76", name:"Ahmed Khalid",                 tasks:[], role:"Agent",        gender:"M" },
-  { id:"e77", name:"Muath Ahmed",                  tasks:[], role:"Agent",        gender:"M" },
-  { id:"e78", name:"Mohamed Aljhani",              tasks:[], role:"Agent",        gender:"M" },
-  { id:"e79", name:"Ziyad Ahmed",                  tasks:[], role:"Agent",        gender:"M" },
-  { id:"e80", name:"Faisal Alowis",                tasks:[], role:"Agent",        gender:"M" },
-  { id:"e81", name:"Abdulaziz Alghamdi",           tasks:[], role:"Agent",        gender:"M" },
-  { id:"e82", name:"Salma Aldossarie",             tasks:[], role:"Agent",        gender:"F" },
-  { id:"e83", name:"Faisal Abdulrhman",            tasks:[], role:"Agent",        gender:"M" },
-  { id:"e84", name:"Bader Alnaafisah",             tasks:[], role:"Agent",        gender:"M" },
-  { id:"e85", name:"Faisal Baothman",              tasks:[], role:"Agent",        gender:"M" },
+  { id:"e1", name:"Ahmed Mohammed Ali", tasks:[], role:"Team Lead", gender:"M" },
+  { id:"e2", name:"Mohammed Almutairi", tasks:[], role:"Shift Leader", gender:"M" },
+  { id:"e3", name:"Manar Alturaiki", tasks:[], role:"Shift Leader", gender:"F" },
+  { id:"e4", name:"Abdulaziz Alrusayni", tasks:[], role:"Shift Leader", gender:"M" },
+  { id:"e5", name:"Yazeed Saad", tasks:[], role:"Shift Leader", gender:"M" },
+  { id:"e6", name:"Sultan Ahmed", tasks:[], role:"Shift Leader", gender:"M" },
+  { id:"e7", name:"Amar Saleh", tasks:[], role:"SME", gender:"M" },
+  { id:"e8", name:"Amer Alanzi", tasks:[], role:"SME", gender:"M" },
+  { id:"e9", name:"abdulelah fawaz alanazi", tasks:[], role:"SME", gender:"M" },
+  { id:"e10", name:"Abdulrahman Alghamdi", tasks:[], role:"SME", gender:"M" },
+  { id:"e11", name:"Emad Alzahrani", tasks:[], role:"SME", gender:"M" },
+  { id:"e12", name:"Mohammed Nasser Althurwi", tasks:[], role:"SME", gender:"M" },
+  { id:"e13", name:"Ghazi Alruways", tasks:[], role:"Agent", gender:"M" },
+  { id:"e14", name:"Mohammed Alharthi", tasks:[], role:"Agent", gender:"M" },
+  { id:"e15", name:"Shaima Alyami", tasks:[], role:"Agent", gender:"F" },
+  { id:"e16", name:"Raed abdullah Allehaidan", tasks:[], role:"Agent", gender:"M" },
+  { id:"e17", name:"Ali mohammed Khuzaee", tasks:[], role:"Agent", gender:"M" },
+  { id:"e18", name:"Ali Haqawi", tasks:[], role:"Agent", gender:"M" },
+  { id:"e19", name:"Nejoud Aljheimi", tasks:[], role:"Agent", gender:"F" },
+  { id:"e20", name:"Abdullah Alzain", tasks:[], role:"Agent", gender:"M" },
+  { id:"e21", name:"Abdulaziz Muqbil", tasks:[], role:"Agent", gender:"M" },
+  { id:"e22", name:"Fahad Sager", tasks:[], role:"Agent", gender:"M" },
+  { id:"e23", name:"Rayan Almaziad", tasks:[], role:"Agent", gender:"M" },
+  { id:"e24", name:"Abdulmajeed Mohammed", tasks:[], role:"Agent", gender:"M" },
+  { id:"e25", name:"Saad Aldahus", tasks:[], role:"Agent", gender:"M" },
+  { id:"e26", name:"Khalid Alkhaldi", tasks:[], role:"Agent", gender:"M" },
+  { id:"e27", name:"Talal Sagga", tasks:[], role:"Agent", gender:"M" },
+  { id:"e28", name:"Rashed Aljaloud", tasks:[], role:"Agent", gender:"M" },
+  { id:"e29", name:"Abdulkarem Alansari", tasks:[], role:"Agent", gender:"M" },
+  { id:"e30", name:"Mohannad Alamri", tasks:[], role:"Agent", gender:"M" },
+  { id:"e31", name:"Ahmed Awaji", tasks:[], role:"Agent", gender:"M" },
+  { id:"e32", name:"Abdulelah Saud", tasks:[], role:"Agent", gender:"M" },
+  { id:"e33", name:"Khalid Saeed", tasks:[], role:"Agent", gender:"M" },
+  { id:"e34", name:"Nourah Alowayyid", tasks:[], role:"Agent", gender:"F" },
+  { id:"e35", name:"Lujain Metwalli", tasks:[], role:"Agent", gender:"F" },
+  { id:"e36", name:"Nasser Alhowimel", tasks:[], role:"Agent", gender:"M" },
+  { id:"e37", name:"Majed Mohammed", tasks:[], role:"Agent", gender:"M" },
+  { id:"e38", name:"Ahmed Alshehri", tasks:[], role:"Agent", gender:"M" },
+  { id:"e39", name:"Faris Rashed", tasks:[], role:"Agent", gender:"M" },
+  { id:"e40", name:"Abdullah Alharbi", tasks:[], role:"Agent", gender:"M" },
+  { id:"e41", name:"Yousef Alrsheedi", tasks:[], role:"Agent", gender:"M" },
+  { id:"e42", name:"Khaled Almarhom", tasks:[], role:"Agent", gender:"M" },
+  { id:"e43", name:"Faez Almindah", tasks:[], role:"Agent", gender:"M" },
+  { id:"e44", name:"Mohammed Jaseem", tasks:[], role:"Agent", gender:"M" },
+  { id:"e45", name:"Mohammed Alnakhli", tasks:[], role:"Agent", gender:"M" },
+  { id:"e46", name:"Saud Ali", tasks:[], role:"Agent", gender:"M" },
+  { id:"e47", name:"Mohammed Alsahli", tasks:[], role:"Agent", gender:"M" },
+  { id:"e48", name:"Yasir Seif", tasks:[], role:"Agent", gender:"M" },
+  { id:"e49", name:"Sultan Alhamoudi", tasks:[], role:"Agent", gender:"M" },
+  { id:"e50", name:"Mohammed Alobaid", tasks:[], role:"Agent", gender:"M" },
+  { id:"e51", name:"Ramiz Ghashem", tasks:[], role:"Agent", gender:"M" },
+  { id:"e52", name:"Khalid Mnsour", tasks:[], role:"Agent", gender:"M" },
+  { id:"e53", name:"Khalid Mutlaq", tasks:[], role:"Agent", gender:"M" },
+  { id:"e54", name:"Ali Harfash", tasks:[], role:"Agent", gender:"M" },
+  { id:"e55", name:"Talal Alfaraj", tasks:[], role:"Agent", gender:"M" },
+  { id:"e56", name:"Bader Alotaibi", tasks:[], role:"Agent", gender:"M" },
+  { id:"e57", name:"Bandar Almalki", tasks:[], role:"Agent", gender:"M" },
+  { id:"e58", name:"Ahmad Alharbi", tasks:[], role:"Agent", gender:"M" },
+  { id:"e59", name:"Mohammed Alshehri", tasks:[], role:"Agent", gender:"M" },
+  { id:"e60", name:"Abdulelah Alshehri", tasks:[], role:"Agent", gender:"M" },
+  { id:"e61", name:"Saud Alzahrani", tasks:[], role:"Agent", gender:"M" },
+  { id:"e62", name:"Faisal Saraan", tasks:[], role:"Agent", gender:"M" },
+  { id:"e63", name:"Manal Aldosry", tasks:[], role:"Agent", gender:"F" },
+  { id:"e64", name:"Hajer Alshreif", tasks:[], role:"Agent", gender:"F" },
+  { id:"e65", name:"Mohammed Alabdullah", tasks:[], role:"Agent", gender:"M" },
+  { id:"e66", name:"Abdulaziz Alsukait", tasks:[], role:"Agent", gender:"M" },
+  { id:"e67", name:"Abdulkareem Mokhtar", tasks:[], role:"Agent", gender:"M" },
+  { id:"e68", name:"Saad Alsaiqer", tasks:[], role:"Agent", gender:"M" },
+  { id:"e69", name:"Yasser Alghamdi", tasks:[], role:"Agent", gender:"M" },
+  { id:"e70", name:"Nasser Saad", tasks:[], role:"Agent", gender:"M" },
+  { id:"e71", name:"Tariq Alhalmani", tasks:[], role:"Agent", gender:"M" },
+  { id:"e72", name:"Saad Altukhayfi", tasks:[], role:"Agent", gender:"M" },
+  { id:"e73", name:"Abdulaziz Massad Alanazi", tasks:[], role:"Agent", gender:"M" },
+  { id:"e74", name:"Raneem Albaqami", tasks:[], role:"Agent", gender:"F" },
+  { id:"e75", name:"Sarah Almihbash", tasks:[], role:"Agent", gender:"F" },
+  { id:"e76", name:"Ahmed Khalid", tasks:[], role:"Agent", gender:"M" },
+  { id:"e77", name:"Muath Ahmed", tasks:[], role:"Agent", gender:"M" },
+  { id:"e78", name:"Mohamed Aljhani", tasks:[], role:"Agent", gender:"M" },
+  { id:"e79", name:"Ziyad Ahmed", tasks:[], role:"Agent", gender:"M" },
+  { id:"e80", name:"Faisal Alowis", tasks:[], role:"Agent", gender:"M" },
+  { id:"e81", name:"Abdulaziz Alghamdi", tasks:[], role:"Agent", gender:"M" },
+  { id:"e82", name:"Salma Aldossarie", tasks:[], role:"Agent", gender:"F" },
+  { id:"e83", name:"Faisal Abdulrhman", tasks:[], role:"Agent", gender:"M" },
+  { id:"e84", name:"Bader Alnaafisah", tasks:[], role:"Agent", gender:"M" },
+  { id:"e85", name:"Faisal Baothman", tasks:[], role:"Agent", gender:"M" }
 ];
 
 function buildDefaultSchedule(employees) {
@@ -338,7 +345,7 @@ function Modal({ title, onClose, children, width=480 }) {
 }
 
 // ─── SCHEDULE PAGE ────────────────────────────────────────────────────────────
-function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, canEdit }) {
+function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, canEdit, notes, setNotes, session }) {
   const [showAdd, setShowAdd]       = useState(false);
   const [editEmp, setEditEmp]       = useState(null);
   const [newEmp, setNewEmp]         = useState({ name:"", tasks:[], role:"Agent", gender:"M" });
@@ -369,7 +376,12 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
   const [copyDone, setCopyDone]         = useState("");
   // Drag & Drop order — stored as array of employee IDs
   const [empOrder, setEmpOrder] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("csops_empOrder")||"null"); } catch { return null; }
+    try {
+      const saved = JSON.parse(localStorage.getItem("csops_empOrder")||"null");
+      if (saved) return saved;
+      // Default order from employee list (matches Excel sheet order)
+      return null; // will use DEFAULT_EMPLOYEES order
+    } catch { return null; }
   });
   const dragItem  = useRef(null);
   const dragOver  = useRef(null);
@@ -1233,6 +1245,18 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
       </div>
       )} {/* end week view */}
 
+      {/* ── Smart Shift Swap Panel ── */}
+      <ShiftSwapPanel
+        employees={employees}
+        schedule={schedule}
+        setSchedule={setSchedule}
+        shifts={shifts}
+        notes={typeof notes !== "undefined" ? notes : []}
+        setNotes={typeof setNotes !== "undefined" ? setNotes : (v=>v)}
+        session={typeof session !== "undefined" ? session : null}
+        canEdit={canEdit}
+      />
+
       {/* Close filter popup when clicking outside */}
       {filterPopup && (
         <div style={{ position:"fixed", inset:0, zIndex:199 }}
@@ -1508,9 +1532,13 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
 }
 
 // ─── ATTENDANCE PAGE ──────────────────────────────────────────────────────────
-function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, setAttendance, notes, setNotes, session }) {
+function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, setAttendance, notes, setNotes, session, myShiftFilter }) {
   const noop = ()=>{}; // fallback if setSchedule not passed
   const [date, setDate] = useState(todayStr());
+
+  // myShiftFilter: only show employees on my shift
+  const _attMyEmp   = employees.find(e => e.name === session?.name);
+  const _attMyShift = _attMyEmp ? (schedule[_attMyEmp.id]||{})[DAYS[new Date().getDay()]] : null;
 
   // ── Auto-detect active shift based on current time ──
   function detectActiveShift() {
@@ -1812,7 +1840,7 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
 }
 
 // ─── PERFORMANCE PAGE ─────────────────────────────────────────────────────────
-function PerformancePage({ employees, schedule, shifts, performance, setPerformance }) {
+function PerformancePage({ employees, schedule, shifts, performance, setPerformance, myShiftFilter, session }) {
   const [date, setDate] = useState(todayStr());
   const [showQuality, setShowQuality] = useState(false);
   const [dailyTarget, setDailyTarget] = useState(() => {
@@ -1822,7 +1850,17 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
   const ESC_WARN_PCT = 20; // % escalation rate warning
   const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
 
-  const dayEmps = employees.filter(emp => { const v=(schedule[emp.id]||{})[dayName]; return v && v!=="OFF" && v!=="LEAVE" && v!=="PH"; });
+  // myShiftFilter: show only my shift's employees
+  const myShiftId = session && myShiftFilter ? (()=>{
+    const myEmpX = employees.find(e=>e.name===session?.name);
+    return myEmpX ? (schedule[myEmpX.id]||{})[dayName] : null;
+  })() : null;
+  const dayEmps = employees.filter(emp => {
+    const v=(schedule[emp.id]||{})[dayName];
+    if (!v || v==="OFF" || v==="LEAVE" || v==="PH") return false;
+    if (myShiftFilter && myShiftId && v !== myShiftId) return false;
+    return true;
+  });
 
   function getPerf(empId) {
     return ((performance[date]||{})[empId]) || { closed:0, reopened:0, escalations:0, quality:"" };
@@ -1978,8 +2016,18 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
 }
 
 // ─── HEAT MAP PAGE -- reads data from Queue ────────────────────────────────────
-function HeatMapPage({ queueLog }) {
-  const [date, setDate] = useState(todayStr());
+function HeatMapPage({ queueLog, alertThresholdCritical, alertThresholdWarning }) {
+  const [date, setDate]       = useState(todayStr());
+  const [threshold, setThreshold] = useState(300); // custom threshold for live alert
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [tick, setTick]         = useState(0);
+
+  // Auto-refresh every 2 minutes when on today's date
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const t = setInterval(() => setTick(p=>p+1), 2*60*1000);
+    return () => clearInterval(t);
+  }, [autoRefresh]);
 
   // Collect all queue entries for this date across all shifts
   // Build hourly map from baseTime and updTime entries
@@ -2034,10 +2082,40 @@ function HeatMapPage({ queueLog }) {
   return (
     <div>
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🌡️ Hourly Heat Map</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🌡️ Live Heat Map</span>
         <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
-        <span style={{ fontSize:12, color:"#10B981", fontWeight:600 }}>📊 Auto-populated from Queue data</span>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <label style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>Alert at:</label>
+          <input type="number" value={threshold} onChange={e=>setThreshold(Number(e.target.value))}
+            style={{ ...I({width:70}) }} min="50" max="2000"/>
+          <button onClick={()=>setAutoRefresh(a=>!a)}
+            style={{ border:`1.5px solid ${autoRefresh?"#10B981":"#CBD5E1"}`,
+              borderRadius:20, padding:"3px 10px", fontSize:11, cursor:"pointer",
+              background:autoRefresh?"#F0FDF4":"transparent",
+              color:autoRefresh?"#10B981":_theme.textMuted, fontWeight:700 }}>
+            {autoRefresh?"🔄 Live ON":"🔄 Live OFF"}
+          </button>
+        </div>
       </div>
+
+      {/* Live threshold alert */}
+      {total > threshold && date === todayStr() && (
+        <div style={{ background:"#FEF2F2", border:"2px solid #EF4444",
+          borderRadius:10, padding:"10px 16px", marginBottom:14,
+          display:"flex", alignItems:"center", gap:10,
+          animation:"pulse 1s infinite" }}>
+          <span style={{ fontSize:20 }}>🚨</span>
+          <div>
+            <div style={{ fontWeight:800, color:"#EF4444", fontSize:13 }}>
+              Live Alert — Queue Load Exceeds Threshold
+            </div>
+            <div style={{ fontSize:12, color:"#991B1B" }}>
+              Current load: <strong>{total}</strong> cases · Threshold: <strong>{threshold}</strong> ·
+              Peak hour: <strong>{peakHour}</strong>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Summary */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:16 }}>
@@ -2091,7 +2169,7 @@ function HeatMapPage({ queueLog }) {
 }
 
 // ─── QUEUE PAGE ───────────────────────────────────────────────────────────────
-function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap }) {
+function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session }) {
   const todayKey = todayStr();
 
   // ── Auto-detect current shift from system clock ──────────────────────────────
@@ -2703,9 +2781,16 @@ function getDefaultBreakDuration(dateStr) {
 }
 
 // ─── BREAK PAGE ── نظام الإدخال الرقمي (ساعات من بداية الشفت) ────────────────
-function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedule, canEdit, addAudit, session }) {
+function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedule, canEdit, addAudit, session, notes, setNotes, myShiftFilter }) {
   const [date, setDate]     = useState(todayStr());
-  const [shiftId, setShiftId] = useState(shifts[0]?.id||"");
+  // If myShiftFilter is on, auto-select my shift
+  const _myShiftEmp = session ? employees.find(e=>e.name===session.name) : null;
+  const _myShiftDayName = DAYS[new Date().getDay()];
+  const _myShiftId = _myShiftEmp ? (schedule[_myShiftEmp.id]||{})[_myShiftDayName] : null;
+  const [shiftId, setShiftId] = useState(() => {
+    if (myShiftFilter && _myShiftId) return _myShiftId;
+    return shifts[0]?.id||"";
+  });
   const isOwner = session && isOwnerUser(session);
 
   const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
@@ -2802,8 +2887,51 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
 
   const defaultDur = getDefaultBreakDuration(date);
 
+  const [bTab, setBTab] = useState("schedule");
+
   return (
     <div>
+      {/* Break Page Tab Bar */}
+      <div style={{ display:"flex", gap:6, marginBottom:14, flexWrap:"wrap" }}>
+        {[
+          ["schedule","☕ Break Schedule"],
+          ["swap",    "🔄 Swap Requests"],
+          ["request", canEdit?"📥 Break Requests":"☕ Request Break"],
+        ].map(([k,l])=>(
+          <button key={k} onClick={()=>setBTab(k)}
+            style={{ border:`2px solid ${bTab===k?_theme.primary:"#CBD5E1"}`,
+              borderRadius:20, padding:"6px 16px", fontSize:12,
+              cursor:"pointer", fontWeight:700,
+              background:bTab===k?_theme.primary:"transparent",
+              color:bTab===k?"#fff":_theme.textSub,
+              display:"flex", alignItems:"center", gap:6 }}>
+            {l}
+            {k==="swap" && (() => {
+              const cnt=(Array.isArray(notes)?notes:[]).filter(n=>{
+                if(n.tag!=="Break Swap Request") return false;
+                try{const d=JSON.parse(n.text||"{}");
+                  return d.status==="pending_b"||d.status==="pending_supervisor";}catch{return false;}
+              }).length;
+              return cnt>0?<span style={{background:"#EF4444",color:"#fff",borderRadius:"50%",
+                width:16,height:16,fontSize:9,fontWeight:800,
+                display:"flex",alignItems:"center",justifyContent:"center"}}>{cnt}</span>:null;
+            })()}
+            {k==="request" && !canEdit && (() => {
+              const mine=(Array.isArray(notes)?notes:[]).find(n=>{
+                if(n.tag!=="Short Break Request") return false;
+                try{const d=JSON.parse(n.text||"{}");
+                  return d.empName===session?.name&&d.status==="pending";}catch{return false;}
+              });
+              return mine?<span style={{background:"#F59E0B",color:"#fff",borderRadius:"50%",
+                width:16,height:16,fontSize:9,fontWeight:800,
+                display:"flex",alignItems:"center",justifyContent:"center"}}>!</span>:null;
+            })()}
+          </button>
+        ))}
+      </div>
+
+      {/* Schedule Tab */}
+      {bTab==="schedule" && <div>
       {/* Toolbar */}
       <div style={SBR()}>
         <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>☕ Break Schedule</span>
@@ -3047,6 +3175,59 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
           </div>
         </div>
       )}
+
+      </div>} {/* end schedule tab */}
+
+      {/* Swap Tab */}
+      {bTab==="swap" && (
+      <BreakSwapPanel
+        employees={employees}
+        schedule={schedule}
+        shifts={shifts}
+        breakSchedule={breakSchedule}
+        setBreakSchedule={setBreakSchedule}
+        notes={typeof notes !== "undefined" ? notes : []}
+        setNotes={typeof setNotes !== "undefined" ? setNotes : (v=>v)}
+        session={session}
+        canEdit={canEdit}
+      />
+
+      )} {/* end swap tab */}
+
+      {/* Request Tab */}
+      {bTab==="request" && (canEdit ? (
+        <div style={{ marginTop:16 }}>
+          <div style={{ fontWeight:800, fontSize:14, color:_theme.text, marginBottom:12 }}>
+            ☕ Short Break Requests
+          </div>
+          <SupervisorBreakDashboard
+            employees={employees}
+            notes={typeof notes !== "undefined" ? notes : []}
+            setNotes={typeof setNotes !== "undefined" ? setNotes : (v=>v)}
+            session={session}
+            breakSchedule={breakSchedule}
+            shifts={shifts}
+            schedule={schedule}
+            queueLog={typeof queueLog !== "undefined" ? queueLog : {}}
+          />
+        </div>
+      ) : (
+        <div style={{ marginTop:16 }}>
+          <div style={{ fontWeight:800, fontSize:14, color:_theme.text, marginBottom:12 }}>
+            ☕ My Break Request
+          </div>
+          <ShortBreakRequestForm
+            session={session}
+            employees={employees}
+            notes={typeof notes !== "undefined" ? notes : []}
+            setNotes={typeof setNotes !== "undefined" ? setNotes : (v=>v)}
+            breakSchedule={breakSchedule}
+            shifts={shifts}
+            schedule={schedule}
+          />
+        </div>
+      )}
+      ))} {/* end request tab */}
     </div>
   );
 }
@@ -3099,6 +3280,7 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
   function getShortBreaks(empId) { return shortBreaks[empId]||[]; }
 
   function addShortBreak(empId) {
+    if (!canEdit) { setShowShortModal(null); return; } // double-lock
     if (!shortStart) return;
     setShortBreaks(prev=>({
       ...prev,
@@ -3408,7 +3590,7 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
       </div>
 
       {/* Short Break Modal */}
-      {showShortModal && (
+      {showShortModal && canEdit && (
         <Modal title={`⚡ Short Break -- ${employees.find(e=>e.id===showShortModal)?.name}`}
           onClose={()=>setShowShortModal(null)} width={380}>
           <label style={LBL}>وقت البداية</label>
@@ -3735,7 +3917,7 @@ function ShiftsPage({ shifts, setShifts }) {
 }
 
 // ─── REPORTS PAGE ─────────────────────────────────────────────────────────────
-function ReportsPage({ employees, schedule, shifts, attendance, performance, heatmap, kg, queueLog }) {
+function ReportsPage({ employees, schedule, shifts, attendance, performance, heatmap, kg, queueLog, session, canEdit }) {
   const [reportType, setReportType]   = useState("ops");
   const [date, setDate]               = useState(todayStr());
   const [month, setMonth]             = useState(new Date().toISOString().slice(0,7));
@@ -3907,7 +4089,17 @@ function ReportsPage({ employees, schedule, shifts, attendance, performance, hea
 
   function buildOpsReport() {
     const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
-    const dayEmps = employees.filter(emp => { const v=(schedule[emp.id]||{})[dayName]; return v && v!=="OFF" && v!=="LEAVE" && v!=="PH"; });
+    // myShiftFilter: show only my shift's employees
+  const myShiftId = session && myShiftFilter ? (()=>{
+    const myEmpX = employees.find(e=>e.name===session?.name);
+    return myEmpX ? (schedule[myEmpX.id]||{})[dayName] : null;
+  })() : null;
+  const dayEmps = employees.filter(emp => {
+    const v=(schedule[emp.id]||{})[dayName];
+    if (!v || v==="OFF" || v==="LEAVE" || v==="PH") return false;
+    if (myShiftFilter && myShiftId && v !== myShiftId) return false;
+    return true;
+  });
     const attMap  = attendance[date]||{};
     const present = dayEmps.filter(e=>(attMap[e.id]?.status||"Present")==="Present").length;
     const absent  = dayEmps.filter(e=>attMap[e.id]?.status==="Absent");
@@ -4050,6 +4242,16 @@ Generated: ${new Date().toLocaleString()}`;
 
   return (
     <div>
+      {/* AI Report Assistant */}
+      <AIReportAssistant
+        employees={employees}
+        schedule={schedule}
+        attendance={attendance}
+        performance={performance}
+        queueLog={queueLog}
+        shifts={shifts}
+      />
+
       <div style={SBR({ flexWrap:"wrap" })}>
         <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>📑 Reports</span>
         <div style={{ display:"flex", gap:6 }}>
@@ -4953,7 +5155,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
     "Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Leaderboard"];
 
   const PAGE_ICONS_MAP = {
-    "Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
+    "Home":"🏠","Messages":"💬","Home":"🏠","Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
     "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍",
     "Notes":"📝","Shifts":"⏰","Performance":"⚡","Reports":"📑","Leaderboard":"🏆"
   };
@@ -6104,7 +6306,7 @@ function CriticalAlertPopup({ onDismiss, alerts }) {
 
 
 // ─── LEADERBOARD PAGE (Agent view) ────────────────────────────────────────────
-function LeaderboardPage({ employees, schedule, performance, session, notes, canEdit }) {
+function LeaderboardPage({ employees, schedule, performance, session, notes, setNotes, canEdit }) {
   const [tick, setTick]       = useState(0);
   const [lbPeriod, setLbPeriod] = useState("today"); // "today"|"week"|"month"
   useEffect(() => {
@@ -6145,11 +6347,19 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, can
 
   // Manager messages — show all + ones targeting this employee
   const allNotes = Array.isArray(notes) ? notes : [];
+  // Manager messages filter:
+  // - "all" messages → visible to everyone
+  // - targeted messages → visible ONLY to the target person (or sender/supervisors)
   const managerMessages = allNotes
-    .filter(n => n.tag === "Manager Message" &&
-      (!n.target || n.target === "all" || n.target === session?.name))
+    .filter(n => {
+      if (n.tag !== "Manager Message") return false;
+      const isAll      = !n.target || n.target === "all";
+      const isForMe    = n.target === session?.name;
+      const isSentByMe = n.from === session?.name;
+      return isAll || isForMe || isSentByMe;
+    })
     .sort((a,b) => b.ts.localeCompare(a.ts))
-    .slice(0, 5); // show latest 5
+    .slice(0, 10);
 
   const typeConfig = (t) => ({
     shoutout:   { icon:"🌟", color:"#F59E0B", label:"تقدير" },
@@ -6242,6 +6452,18 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, can
                     {m.text}
                   </div>
                 </div>
+                {/* Delete button — only for sender or canEdit */}
+                {(canEdit || m.from === session?.name) && setNotes && (
+                  <button
+                    onClick={()=>{
+                      if (!window.confirm("حذف هذه الرسالة؟")) return;
+                      setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==m.id));
+                    }}
+                    title="حذف الرسالة"
+                    style={{ background:"none", border:"none", color:"#94A3B8",
+                      cursor:"pointer", fontSize:16, padding:"4px", flexShrink:0,
+                      alignSelf:"flex-start" }}>🗑️</button>
+                )}
               </div>
             );
           })}
@@ -6310,17 +6532,26 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, can
                 {medals[ri]||<span style={{fontSize:12,color:_theme.textMuted}}>#{ri+1}</span>}
               </div>
               <div style={{ flex:1 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4, flexWrap:"wrap" }}>
                   <span style={{ fontWeight: isMe?800:600, fontSize:13,
                     color: isMe?_theme.primary:_theme.text }}>
                     {e.name}
                     {isMe && <span style={{ marginLeft:6, fontSize:10,
                       background:_theme.primary+"22", color:_theme.primary,
-                      borderRadius:8, padding:"1px 6px" }}>أنت</span>}
+                      borderRadius:8, padding:"1px 6px" }}>You</span>}
                   </span>
                   <span style={{ fontSize:11, color:ROLE_COLORS[e.role]||_theme.textMuted,
                     fontWeight:600 }}>{e.role}</span>
                 </div>
+                {(() => {
+                  const autoBadges = detectBadges(e.id, performance, {}, employees, []);
+                  const manualBadges = (Array.isArray(notes)?notes:[])
+                    .filter(n=>n.tag==="Badge Award")
+                    .map(n=>{try{const d=JSON.parse(n.text||"{}");return d.empId===e.id?d.badgeId:null;}catch{return null;}})
+                    .filter(Boolean);
+                  const all=[...new Set([...autoBadges,...manualBadges])];
+                  return all.length>0?<BadgesDisplay badgeIds={all} size="small"/>:null;
+                })()}
                 <div style={{ background:_theme.surface, borderRadius:20, height:6,
                   overflow:"hidden", maxWidth:200 }}>
                   <div style={{ width:`${pct}%`, height:"100%",
@@ -6586,7 +6817,7 @@ const sb = {
 // (useSupabaseState removed — state is managed directly in App with Realtime subscriptions)
 
 // ─── PASSWORD SYSTEM (Supabase-backed) ───────────────────────────────────────
-const RESET_ADMINS = ["Team Lead", "Shift Leader", "Mohammed Nasser Althurwi"];
+const RESET_ADMINS = ["Team Lead", "Shift Leader", "SME", "Mohammed Nasser Althurwi"];
 function canResetPasswords(role, name) {
   return RESET_ADMINS.includes(role) || RESET_ADMINS.includes(name);
 }
@@ -6665,7 +6896,7 @@ const ROLE_DESC_EN = {
   "Team Lead":    "Full access · Password required",
   "Shift Leader": "Full access · Password required",
   "SME":          "Full access · Password required",
-  "Agent":        "View only · No password",
+  "Agent":        "View only · Password on first login",
 };
 const ROLE_DESC_AR = {
   "Team Lead":    "وصول كامل · يلزم كلمة مرور",
@@ -6899,22 +7130,33 @@ function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, 
   const [reason, setReason]       = useState("");
   const [saved, setSaved]         = useState("");
 
+  // Who can submit leave requests: Team Lead + Shift Leader + Owner only
+  // Agent and SME cannot submit leave requests
+  const myRole = session?.role;
+  const canSubmitLeave = myRole === "Team Lead" || myRole === "Shift Leader" ||
+                         (session && isOwnerUser(session));
+
   // Leave requests stored as notes with tag "Leave Request"
   const allRequests = (Array.isArray(notes)?notes:[])
     .filter(n => n.tag === "Leave Request")
     .sort((a,b) => b.ts.localeCompare(a.ts));
 
-  // Employee sees only their own; supervisors see all
+  // Supervisors see all; others see only their own
   const myName = session?.name;
   const visibleRequests = canEdit
     ? allRequests
     : allRequests.filter(r => r.from === myName);
 
+  // If user cannot submit and has no requests to show — hide panel entirely
+  if (!canSubmitLeave && !canEdit && visibleRequests.length === 0) return null;
+
   const pending  = visibleRequests.filter(r => r.leaveStatus === "pending");
   const approved = visibleRequests.filter(r => r.leaveStatus === "approved");
   const rejected = visibleRequests.filter(r => r.leaveStatus === "rejected");
 
+  // Only canSubmitLeave users can submit
   function submitRequest() {
+    if (!canSubmitLeave) return;
     if (!startDate || !endDate || !reason.trim()) { setSaved("❌ أدخل التاريخ والسبب"); return; }
     if (endDate < startDate) { setSaved("❌ تاريخ الانتهاء قبل البداية"); return; }
     const req = {
@@ -6988,7 +7230,7 @@ function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, 
           </span>
         )}
         <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
-          {!canEdit && (
+          {canSubmitLeave && (
             <button onClick={()=>setShowForm(s=>!s)}
               style={{ ...PBT("#10B981",{padding:"6px 14px",fontSize:12}) }}>
               {showForm ? "✕ إغلاق" : "+ طلب إجازة جديد"}
@@ -8042,6 +8284,3368 @@ function SurveysPage({ employees, notes, setNotes, session, canEdit }) {
     </div>
   );
 }
+
+// ─── GAMIFICATION — BADGES & POINTS SYSTEM ───────────────────────────────────
+
+const BADGES = [
+  { id:"quality_champion",  icon:"🏆", name:"Quality Champion",   desc:"Quality score ≥ 90% for 5+ days",      color:"#F59E0B", rarity:"gold"   },
+  { id:"shift_savior",      icon:"🦸", name:"Shift Savior",        desc:"Closed 50+ cases in a single shift",   color:"#3B82F6", rarity:"blue"   },
+  { id:"fastest_response",  icon:"⚡", name:"Fastest Response",    desc:"0 escalations for 7 consecutive days", color:"#10B981", rarity:"green"  },
+  { id:"attendance_star",   icon:"⭐", name:"Attendance Star",     desc:"Perfect attendance for a full month",  color:"#8B5CF6", rarity:"purple" },
+  { id:"top_closer",        icon:"🎯", name:"Top Closer",          desc:"#1 in closed cases for the week",      color:"#EF4444", rarity:"red"    },
+  { id:"team_player",       icon:"🤝", name:"Team Player",         desc:"Highest peer recognition votes",       color:"#EC4899", rarity:"pink"   },
+  { id:"consistency_king",  icon:"👑", name:"Consistency King",    desc:"Above-average performance for 30 days",color:"#F59E0B", rarity:"gold"   },
+  { id:"zero_escalation",   icon:"🛡️", name:"Zero Escalation",    desc:"Zero escalations for 14 days",         color:"#10B981", rarity:"green"  },
+  { id:"early_bird",        icon:"🌅", name:"Early Bird",          desc:"On-time arrival for 20 consecutive days",color:"#0EA5E9",rarity:"blue"  },
+  { id:"century_club",      icon:"💯", name:"Century Club",        desc:"100+ cases closed in a single week",   color:"#6366F1", rarity:"purple" },
+];
+
+const RARITY_COLORS = {
+  gold:   { bg:"#FEF9C3", border:"#F59E0B", text:"#92400E" },
+  blue:   { bg:"#EFF6FF", border:"#3B82F6", text:"#1E40AF" },
+  green:  { bg:"#F0FDF4", border:"#10B981", text:"#065F46" },
+  purple: { bg:"#F5F3FF", border:"#8B5CF6", text:"#4C1D95" },
+  red:    { bg:"#FEF2F2", border:"#EF4444", text:"#991B1B" },
+  pink:   { bg:"#FDF2F8", border:"#EC4899", text:"#831843" },
+};
+
+// Calculate points for an employee from performance data
+function calcEmployeePoints(empId, performance, attendance) {
+  let pts = 0;
+  const perfDates = Object.keys(performance||{});
+  perfDates.forEach(date => {
+    const p = (performance[date]||{})[empId];
+    if (!p) return;
+    pts += (p.closed||0) * 10;                          // 10 pts per closed case
+    pts += (p.quality||0) >= 90 ? 50 : (p.quality||0) >= 75 ? 20 : 0; // quality bonus
+    pts -= (p.escalations||0) * 5;                      // -5 per escalation
+  });
+  const attDates = Object.keys(attendance||{});
+  attDates.forEach(date => {
+    const a = (attendance[date]||{})[empId];
+    if (!a) return;
+    if (a.status === "Present") pts += 5;               // 5 pts presence
+    if (a.lateMin === 0 && a.status === "Present") pts += 3; // bonus on-time
+    if (a.status === "Absent") pts -= 10;               // -10 absent
+  });
+  return Math.max(0, pts);
+}
+
+// Auto-detect earned badges
+function detectBadges(empId, performance, attendance, employees, notes) {
+  const earned = [];
+  const perfDates = Object.keys(performance||{}).sort();
+  const allPerf   = perfDates.map(d => (performance[d]||{})[empId]).filter(Boolean);
+  const allAtt    = Object.values(attendance||{}).map(d => d[empId]).filter(Boolean);
+
+  // Quality Champion: quality ≥ 90 for 5+ days
+  const highQualDays = allPerf.filter(p => (p.quality||0) >= 90).length;
+  if (highQualDays >= 5) earned.push("quality_champion");
+
+  // Shift Savior: 50+ cases in a single day
+  if (allPerf.some(p => (p.closed||0) >= 50)) earned.push("shift_savior");
+
+  // Zero Escalation: 0 escalations for 14 consecutive days
+  let zeroStreak = 0, maxZero = 0;
+  allPerf.forEach(p => { if ((p.escalations||0) === 0) { zeroStreak++; maxZero = Math.max(maxZero, zeroStreak); } else zeroStreak = 0; });
+  if (maxZero >= 14) earned.push("zero_escalation");
+  if (maxZero >= 7)  earned.push("fastest_response");
+
+  // Attendance Star: present every working day in a month (≥20 present)
+  const presentDays = allAtt.filter(a => a.status==="Present" || a.status==="Late").length;
+  const absentDays  = allAtt.filter(a => a.status==="Absent").length;
+  if (presentDays >= 20 && absentDays === 0) earned.push("attendance_star");
+
+  // Early Bird: 20 consecutive on-time arrivals
+  let onTimeStreak = 0, maxOnTime = 0;
+  allAtt.forEach(a => { if (a.status==="Present" && a.lateMin===0) { onTimeStreak++; maxOnTime=Math.max(maxOnTime,onTimeStreak); } else onTimeStreak=0; });
+  if (maxOnTime >= 20) earned.push("early_bird");
+
+  // Century Club: 100+ cases in a week
+  for (let i = 0; i <= perfDates.length - 7; i++) {
+    const weekTotal = perfDates.slice(i, i+7).reduce((s,d)=>s+((performance[d]||{})[empId]?.closed||0),0);
+    if (weekTotal >= 100) { earned.push("century_club"); break; }
+  }
+
+  // Consistency King: above-average for 30 days
+  if (allPerf.length >= 30) {
+    const avg = allPerf.reduce((s,p)=>s+(p.closed||0),0) / allPerf.length;
+    const aboveAvg = allPerf.filter(p=>(p.closed||0) >= avg).length;
+    if (aboveAvg >= 25) earned.push("consistency_king");
+  }
+
+  return [...new Set(earned)];
+}
+
+// ── Badges Display Component ───────────────────────────────────────────────────
+function BadgesDisplay({ badgeIds, size="normal" }) {
+  if (!badgeIds || badgeIds.length === 0) return null;
+  const sm = size === "small";
+  return (
+    <div style={{ display:"flex", gap:sm?3:5, flexWrap:"wrap" }}>
+      {badgeIds.map(bid => {
+        const b = BADGES.find(x=>x.id===bid);
+        if (!b) return null;
+        const rc = RARITY_COLORS[b.rarity];
+        return (
+          <div key={bid} title={`${b.name}: ${b.desc}`}
+            style={{ display:"flex", alignItems:"center", gap:sm?2:4,
+              background:rc.bg, border:`1px solid ${rc.border}`,
+              borderRadius:sm?4:6, padding:sm?"1px 5px":"3px 8px",
+              fontSize:sm?10:11, fontWeight:700, color:rc.text,
+              cursor:"default" }}>
+            <span style={{ fontSize:sm?11:13 }}>{b.icon}</span>
+            {!sm && <span>{b.name}</span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Gamification Page ──────────────────────────────────────────────────────────
+function GamificationPage({ employees, performance, attendance, schedule, notes, setNotes, session, canEdit }) {
+  const [tab, setTab]           = useState("leaderboard"); // leaderboard | badges | award
+  const [awardEmp, setAwardEmp] = useState("");
+  const [awardBadge, setAwardBadge] = useState("");
+  const [awardNote, setAwardNote]   = useState("");
+  const [awardDone, setAwardDone]   = useState("");
+  const [search, setSearch]     = useState("");
+
+  const todayKey = todayStr();
+
+  // Manual badge awards stored in notes (tag: "Badge Award")
+  const manualAwards = (Array.isArray(notes)?notes:[])
+    .filter(n => n.tag === "Badge Award");
+
+  // Build per-employee data
+  const empData = useMemo(() => {
+    return employees.map(emp => {
+      const pts     = calcEmployeePoints(emp.id, performance, attendance);
+      const autoBadges = detectBadges(emp.id, performance, attendance, employees, notes);
+      const manualBadges = manualAwards
+        .filter(n => { try { return JSON.parse(n.text||"{}").empId === emp.id; } catch { return false; } })
+        .map(n => { try { return JSON.parse(n.text||"{}").badgeId; } catch { return null; } })
+        .filter(Boolean);
+      const allBadges = [...new Set([...autoBadges, ...manualBadges])];
+      // Today's perf
+      const todayPerf = (performance[todayKey]||{})[emp.id] || { closed:0, escalations:0 };
+      return { ...emp, pts, badges:allBadges, todayPerf };
+    }).sort((a,b) => b.pts - a.pts);
+  }, [employees, performance, attendance, notes, manualAwards]);
+
+  const filtered = empData.filter(e =>
+    e.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  function awardBadgeManually() {
+    if (!awardEmp || !awardBadge) { setAwardDone("❌ Select employee and badge"); return; }
+    const badge = BADGES.find(b=>b.id===awardBadge);
+    const emp   = employees.find(e=>e.id===awardEmp);
+    const award = {
+      id: "ba"+Date.now(),
+      ts: new Date().toISOString(),
+      date: todayStr(),
+      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag: "Badge Award",
+      text: JSON.stringify({ empId:awardEmp, badgeId:awardBadge, note:awardNote, awardedBy:session?.name }),
+      from: session?.name||"",
+      target: awardEmp,
+      msgType: "badge",
+    };
+    setNotes(prev=>[award,...(Array.isArray(prev)?prev:[])]);
+    setAwardDone(`✅ "${badge?.name}" awarded to ${emp?.name}!`);
+    setAwardEmp(""); setAwardBadge(""); setAwardNote("");
+    setTimeout(()=>setAwardDone(""),4000);
+  }
+
+  const topEmp = empData[0];
+  const maxPts = topEmp?.pts || 1;
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={SBR()}>
+        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>🏅 Gamification — Badges & Points</span>
+        <input value={search} onChange={e=>setSearch(e.target.value)}
+          style={{ ...I({width:180}) }} placeholder="🔍 Search employee..."/>
+        <div style={{ display:"flex", gap:6 }}>
+          {[["leaderboard","🏆 Leaderboard"],["badges","🎖️ All Badges"],canEdit?["award","🎁 Award Badge"]:null]
+            .filter(Boolean).map(([k,l])=>(
+            <button key={k} onClick={()=>setTab(k)}
+              style={{ border:`2px solid ${tab===k?_theme.primary:"#CBD5E1"}`,
+                borderRadius:20, padding:"5px 14px", fontSize:12, cursor:"pointer",
+                fontWeight:700, background:tab===k?_theme.primary:"transparent",
+                color:tab===k?"#fff":_theme.textSub }}>{l}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Leaderboard Tab ── */}
+      {tab==="leaderboard" && (
+        <div>
+          {/* Top 3 podium */}
+          {empData.slice(0,3).some(e=>e.pts>0) && (
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1.2fr 1fr", gap:10, marginBottom:20, alignItems:"flex-end" }}>
+              {[empData[1], empData[0], empData[2]].map((e,pi) => {
+                if (!e) return <div key={pi}/>;
+                const podiumH = [100, 130, 85][pi];
+                const medals  = ["🥈","🥇","🥉"];
+                const colors  = ["#94A3B8","#F59E0B","#CD7F32"];
+                return (
+                  <div key={e.id} style={{ ...CRD({padding:"14px 10px"}), textAlign:"center",
+                    borderTop:`4px solid ${colors[pi]}`,
+                    background:`linear-gradient(180deg,${colors[pi]}15,${_theme.card})` }}>
+                    <div style={{ fontSize:28, marginBottom:4 }}>{medals[pi]}</div>
+                    <div style={{ fontWeight:800, fontSize:13, color:_theme.text, marginBottom:4 }}>{e.name}</div>
+                    <BadgesDisplay badgeIds={e.badges} size="small"/>
+                    <div style={{ fontSize:22, fontWeight:900, color:colors[pi], marginTop:6 }}>
+                      {e.pts.toLocaleString()}
+                      <span style={{ fontSize:11, fontWeight:600, color:_theme.textMuted }}> pts</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Full ranking table */}
+          <div style={{ ...CRD({padding:0}), overflowX:"auto" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+              <thead>
+                <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+                  {["Rank","Employee","Role","Badges","Total Points","Today's Cases","Bar"].map(h=>(
+                    <th key={h} style={{ padding:"10px 10px", textAlign:"left", fontWeight:700,
+                      color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`,
+                      whiteSpace:"nowrap" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((e,ri) => {
+                  const pct = maxPts > 0 ? (e.pts/maxPts)*100 : 0;
+                  const isMe = e.name === session?.name;
+                  return (
+                    <tr key={e.id} style={{
+                      background: isMe ? _theme.primary+"12" : ri%2===0?_theme.card:_theme.surface,
+                      borderLeft: isMe?`3px solid ${_theme.primary}`:"3px solid transparent"
+                    }}>
+                      <td style={{ padding:"8px 10px", fontWeight:800, fontSize:14,
+                        color:ri===0?"#F59E0B":ri===1?"#94A3B8":ri===2?"#CD7F32":_theme.textMuted }}>
+                        {ri===0?"🥇":ri===1?"🥈":ri===2?"🥉":`#${ri+1}`}
+                      </td>
+                      <td style={{ padding:"8px 10px", fontWeight:600, color:_theme.text }}>
+                        {e.name}
+                        {isMe && <span style={{ fontSize:10, color:_theme.primary,
+                          background:_theme.primary+"18", borderRadius:10,
+                          padding:"1px 6px", marginLeft:5 }}>You</span>}
+                      </td>
+                      <td style={{ padding:"8px 10px" }}>
+                        <span style={{ fontSize:10, fontWeight:700,
+                          color:ROLE_COLORS[e.role]||"#64748B",
+                          background:(ROLE_COLORS[e.role]||"#64748B")+"18",
+                          borderRadius:4, padding:"1px 5px" }}>
+                          {ROLE_ICONS[e.role]} {e.role}
+                        </span>
+                      </td>
+                      <td style={{ padding:"8px 10px" }}>
+                        <BadgesDisplay badgeIds={e.badges} size="small"/>
+                        {e.badges.length===0 && <span style={{ fontSize:11, color:_theme.textMuted }}>—</span>}
+                      </td>
+                      <td style={{ padding:"8px 10px", fontWeight:800,
+                        color: e.pts>=500?"#F59E0B":e.pts>=200?"#3B82F6":_theme.text,
+                        fontSize:14 }}>
+                        {e.pts.toLocaleString()}
+                      </td>
+                      <td style={{ padding:"8px 10px", color:"#10B981", fontWeight:700 }}>
+                        {e.todayPerf.closed||0}
+                      </td>
+                      <td style={{ padding:"8px 20px 8px 10px", minWidth:120 }}>
+                        <div style={{ background:_theme.surface, borderRadius:20, height:8, overflow:"hidden" }}>
+                          <div style={{ height:"100%", borderRadius:20,
+                            width:`${pct}%`, transition:"width 0.5s",
+                            background: pct>80?"#F59E0B":pct>50?"#3B82F6":"#10B981" }}/>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Points key */}
+          <div style={{ ...CRD({padding:"10px 14px"}), marginTop:10, fontSize:11,
+            color:_theme.textMuted, display:"flex", gap:16, flexWrap:"wrap" }}>
+            <span style={{ fontWeight:700, color:_theme.text }}>Points Key:</span>
+            <span>✅ Closed case = <strong>+10pts</strong></span>
+            <span>🎯 Quality ≥90% = <strong>+50pts</strong></span>
+            <span>🎯 Quality ≥75% = <strong>+20pts</strong></span>
+            <span>📅 Present = <strong>+5pts</strong></span>
+            <span>⏰ On-time = <strong>+3pts</strong></span>
+            <span>⚠️ Escalation = <strong>−5pts</strong></span>
+            <span>❌ Absent = <strong>−10pts</strong></span>
+          </div>
+        </div>
+      )}
+
+      {/* ── All Badges Tab ── */}
+      {tab==="badges" && (
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:12 }}>
+          {BADGES.map(b => {
+            const rc = RARITY_COLORS[b.rarity];
+            const holders = empData.filter(e=>e.badges.includes(b.id));
+            return (
+              <div key={b.id} style={{ ...CRD({padding:"14px 16px"}),
+                border:`2px solid ${rc.border}`, background:rc.bg }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
+                  <span style={{ fontSize:28 }}>{b.icon}</span>
+                  <div>
+                    <div style={{ fontWeight:800, fontSize:13, color:rc.text }}>{b.name}</div>
+                    <div style={{ fontSize:10, fontWeight:700, color:rc.border,
+                      textTransform:"uppercase" }}>{b.rarity}</div>
+                  </div>
+                </div>
+                <div style={{ fontSize:12, color:_theme.textSub, marginBottom:8 }}>{b.desc}</div>
+                {holders.length > 0 ? (
+                  <div>
+                    <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600, marginBottom:4 }}>
+                      Earned by ({holders.length}):
+                    </div>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
+                      {holders.map(e=>(
+                        <span key={e.id} style={{ fontSize:10, background:rc.border+"22",
+                          color:rc.text, borderRadius:10, padding:"1px 6px",
+                          fontWeight:600 }}>{e.name}</span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize:11, color:_theme.textMuted, fontStyle:"italic" }}>
+                    Not yet earned by anyone
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Award Badge Tab (supervisors only) ── */}
+      {tab==="award" && canEdit && (
+        <div style={{ maxWidth:500 }}>
+          <div style={{ ...CRD({padding:"16px 18px"}), marginBottom:16,
+            background:"rgba(99,102,241,0.05)", border:"1px solid #6366F140" }}>
+            <div style={{ fontWeight:700, fontSize:13, color:_theme.text, marginBottom:14 }}>
+              🎁 Manually Award a Badge
+            </div>
+            <div style={{ marginBottom:12 }}>
+              <label style={LBL}>Select Employee</label>
+              <select value={awardEmp} onChange={e=>setAwardEmp(e.target.value)} style={{ ...I({width:"100%"}) }}>
+                <option value="">— Choose employee —</option>
+                {employees.map(e=><option key={e.id} value={e.id}>{e.name} ({e.role})</option>)}
+              </select>
+            </div>
+            <div style={{ marginBottom:12 }}>
+              <label style={LBL}>Select Badge</label>
+              <select value={awardBadge} onChange={e=>setAwardBadge(e.target.value)} style={{ ...I({width:"100%"}) }}>
+                <option value="">— Choose badge —</option>
+                {BADGES.map(b=><option key={b.id} value={b.id}>{b.icon} {b.name}</option>)}
+              </select>
+            </div>
+            {awardBadge && (
+              <div style={{ ...CRD({padding:"10px 12px"}), marginBottom:12,
+                border:`1px solid ${RARITY_COLORS[BADGES.find(b=>b.id===awardBadge)?.rarity||"blue"].border}` }}>
+                <div style={{ fontSize:11, color:_theme.textMuted }}>
+                  {BADGES.find(b=>b.id===awardBadge)?.desc}
+                </div>
+              </div>
+            )}
+            <div style={{ marginBottom:12 }}>
+              <label style={LBL}>Note (optional)</label>
+              <input value={awardNote} onChange={e=>setAwardNote(e.target.value)}
+                style={{ ...I({width:"100%"}) }} placeholder="Why are you awarding this badge?"/>
+            </div>
+            {awardDone && (
+              <div style={{ padding:"10px 12px", borderRadius:8, marginBottom:10,
+                background:awardDone.startsWith("✅")?"#F0FDF4":"#FEF2F2",
+                color:awardDone.startsWith("✅")?"#166534":"#EF4444",
+                fontWeight:600, fontSize:13 }}>{awardDone}</div>
+            )}
+            <button onClick={awardBadgeManually}
+              style={{ ...PBT("#6366F1",{width:"100%",padding:"11px"}) }}>
+              🎁 Award Badge
+            </button>
+          </div>
+          <div style={{ ...CRD({padding:"12px 14px"}), fontSize:11, color:_theme.textMuted }}>
+            <div style={{ fontWeight:700, color:_theme.text, marginBottom:6 }}>Auto-awarded badges:</div>
+            Some badges are automatically detected from performance data.
+            Manual awards let you recognize exceptional moments that numbers don't capture.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── AI REPORT ASSISTANT ─────────────────────────────────────────────────────
+// Uses Anthropic claude-sonnet-4-20250514 to generate professional reports
+// from current operations data
+
+function AIReportAssistant({ employees, schedule, attendance, performance, queueLog, shifts }) {
+  const [loading, setLoading]   = useState(false);
+  const [result, setResult]     = useState("");
+  const [reportType, setReportType] = useState("daily_ops");
+  const [bullets, setBullets]   = useState("");
+  const [error, setError]       = useState("");
+  const [copied, setCopied]     = useState(false);
+
+  const REPORT_TYPES = [
+    { k:"daily_ops",    icon:"📊", label:"Daily Ops Report",      desc:"Full operations summary for today" },
+    { k:"shift_handover",icon:"🔄",label:"Shift Handover",        desc:"End-of-shift handover briefing" },
+    { k:"performance",  icon:"⚡", label:"Performance Summary",   desc:"Team performance analysis" },
+    { k:"incident",     icon:"🚨", label:"Incident Report",       desc:"Escalation / incident documentation" },
+    { k:"weekly_recap", icon:"📅", label:"Weekly Recap",          desc:"Weekly team performance recap" },
+  ];
+
+  // Build context from current data
+  function buildContext() {
+    const todayKey  = todayStr();
+    const dayName   = DAYS[new Date().getDay()];
+    const todayEmps = employees.filter(e => {
+      const v = (schedule[e.id]||{})[dayName];
+      return v && v !== "OFF";
+    });
+    const todayAtt  = attendance[todayKey] || {};
+    const todayPerf = performance[todayKey] || {};
+
+    const present  = Object.values(todayAtt).filter(a=>a.status==="Present"||a.status==="Late").length;
+    const absent   = Object.values(todayAtt).filter(a=>a.status==="Absent").length;
+    const late     = Object.values(todayAtt).filter(a=>a.lateMin>=7).length;
+    const closed   = Object.values(todayPerf).reduce((s,p)=>s+(p.closed||0),0);
+    const escalations = Object.values(todayPerf).reduce((s,p)=>s+(p.escalations||0),0);
+    const escRate  = closed > 0 ? ((escalations/closed)*100).toFixed(1) : 0;
+
+    // Queue data
+    const QUEUE_KEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2"];
+    const todayQueueEntries = Object.entries(queueLog||{})
+      .filter(([k])=>k.startsWith(todayKey)).map(([,v])=>v);
+    const latestQueue = todayQueueEntries.length > 0
+      ? todayQueueEntries.reduce((best,e)=>(e.updTime||"")>(best.updTime||"")?e:best, todayQueueEntries[0])
+      : null;
+    const totalQueue = latestQueue
+      ? QUEUE_KEYS.reduce((s,k)=>s+Number(latestQueue[k+"Curr"]||0),0)
+      : 0;
+
+    // Top performers
+    const topPerformers = todayEmps
+      .map(e=>({ name:e.name, closed:(todayPerf[e.id]?.closed||0) }))
+      .filter(e=>e.closed>0)
+      .sort((a,b)=>b.closed-a.closed)
+      .slice(0,3)
+      .map(e=>`${e.name} (${e.closed} cases)`).join(", ");
+
+    return {
+      date: new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Riyadh"}),
+      time: new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"}),
+      scheduled: todayEmps.length,
+      present, absent, late,
+      closed, escalations, escRate,
+      totalQueue,
+      topPerformers: topPerformers || "No data yet",
+      shifts: shifts.map(s=>s.label).join(", "),
+    };
+  }
+
+  async function generateReport() {
+    setLoading(true); setError(""); setResult("");
+    try {
+      const ctx = buildContext();
+      const typeLabel = REPORT_TYPES.find(t=>t.k===reportType)?.label || reportType;
+
+      const systemPrompt = `You are a professional Customer Service Operations Manager. 
+Write concise, formal, data-driven operational reports.
+Use clear English. Structure with sections. Be specific with numbers.
+Do not add fictional data — only use the data provided.`;
+
+      const dataBlock = `
+DATE: ${ctx.date} at ${ctx.time}
+TEAM: ${ctx.scheduled} scheduled | ${ctx.present} present | ${ctx.absent} absent | ${ctx.late} late arrivals
+CASES: ${ctx.closed} closed | ${ctx.escalations} escalations | ${ctx.escRate}% escalation rate
+QUEUE: ${ctx.totalQueue} active cases
+TOP PERFORMERS: ${ctx.topPerformers}
+ACTIVE SHIFTS: ${ctx.shifts}
+${bullets.trim() ? `
+ADDITIONAL NOTES FROM MANAGER:
+${bullets}` : ""}`;
+
+      const userPrompt = reportType === "daily_ops" ? `Write a Daily Operations Report using this data:
+${dataBlock}` :
+        reportType === "shift_handover" ? `Write a professional Shift Handover briefing using this data:
+${dataBlock}` :
+        reportType === "performance" ? `Write a Team Performance Summary using this data:
+${dataBlock}` :
+        reportType === "incident" ? `Write a formal Incident/Escalation Report. The manager notes: "${bullets||"High escalation rate observed"}"
+Context:
+${dataBlock}` :
+        `Write a Weekly Performance Recap. Use the following as today's snapshot:
+${dataBlock}`;
+
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: [{ role:"user", content: userPrompt }],
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+      const text = (data.content||[]).map(c=>c.text||"").join("").trim();
+      setResult(text);
+    } catch(e) {
+      setError("Failed to generate report: " + e.message);
+    }
+    setLoading(false);
+  }
+
+  return (
+    <div style={{ ...CRD({padding:"16px 18px"}), marginBottom:20 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
+        <span style={{ fontSize:18 }}>🤖</span>
+        <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>AI Report Assistant</span>
+        <span style={{ fontSize:11, color:_theme.textMuted }}>
+          — Generates professional reports from live data
+        </span>
+        <span style={{ fontSize:10, background:"#FEF3C7", color:"#92400E",
+          border:"1px solid #FCD34D", borderRadius:20, padding:"2px 8px", fontWeight:700 }}>
+          ⚠️ Requires Anthropic API access
+        </span>
+      </div>
+
+      {/* Report type selector */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:6, marginBottom:14 }}>
+        {REPORT_TYPES.map(t=>(
+          <button key={t.k} onClick={()=>setReportType(t.k)}
+            style={{ border:`2px solid ${reportType===t.k?_theme.primary:"#CBD5E1"}`,
+              borderRadius:8, padding:"8px 10px", cursor:"pointer", textAlign:"left",
+              background:reportType===t.k?_theme.primary+"18":"transparent" }}>
+            <div style={{ fontSize:15, marginBottom:2 }}>{t.icon}</div>
+            <div style={{ fontSize:11, fontWeight:700,
+              color:reportType===t.k?_theme.primary:_theme.text }}>{t.label}</div>
+            <div style={{ fontSize:10, color:_theme.textMuted }}>{t.desc}</div>
+          </button>
+        ))}
+      </div>
+
+      {/* Optional notes */}
+      <div style={{ marginBottom:12 }}>
+        <label style={LBL}>Key points / notes to include (optional)</label>
+        <textarea value={bullets} onChange={e=>setBullets(e.target.value)} rows={2}
+          style={{ ...I({resize:"vertical",width:"100%"}) }}
+          placeholder="e.g. System outage at 14:00, staffing issue resolved at 15:30..."/>
+      </div>
+
+      <button onClick={generateReport} disabled={loading}
+        style={{ ...PBT(_theme.primary,{padding:"10px 24px",marginBottom:14,
+          opacity:loading?0.7:1 }) }}>
+        {loading ? "⏳ Generating..." : "🤖 Generate Report"}
+      </button>
+
+      {error && (
+        <div style={{ padding:"10px 14px", borderRadius:8, marginBottom:12,
+          background:"#FEF2F2", color:"#EF4444", fontSize:12, fontWeight:600 }}>
+          ⚠️ {error}
+        </div>
+      )}
+
+      {result && (
+        <div>
+          <div style={{ display:"flex", justifyContent:"space-between",
+            alignItems:"center", marginBottom:8 }}>
+            <span style={{ fontSize:12, fontWeight:700, color:_theme.text }}>Generated Report:</span>
+            <div style={{ display:"flex", gap:6 }}>
+              <button onClick={()=>{
+                navigator.clipboard.writeText(result);
+                setCopied(true); setTimeout(()=>setCopied(false),2000);
+              }} style={{ ...PBT(copied?"#10B981":"#6366F1",{fontSize:11,padding:"5px 12px"}) }}>
+                {copied?"✅ Copied!":"📋 Copy"}
+              </button>
+              <button onClick={()=>{
+                const win=window.open("","_blank","width=700,height=600");
+                win.document.write(`<html><body style="font-family:Arial;padding:32px;white-space:pre-wrap">${result}</body></html>`);
+                win.document.close(); win.print();
+              }} style={{ ...PBT("#7C3AED",{fontSize:11,padding:"5px 12px"}) }}>🖨️ Print</button>
+            </div>
+          </div>
+          <div style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
+            borderRadius:10, padding:"14px 16px", fontSize:13, color:_theme.text,
+            lineHeight:1.8, whiteSpace:"pre-wrap", maxHeight:400, overflowY:"auto",
+            fontFamily:"'Courier New', monospace" }}>
+            {result}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SMART SHIFT SWAP SYSTEM ─────────────────────────────────────────────────
+// Employees request swaps, supervisors approve/reject
+// Approved swaps auto-update schedule in Supabase
+
+function ShiftSwapPanel({ employees, schedule, setSchedule, shifts, notes, setNotes, session, canEdit }) {
+  const [showForm, setShowForm]     = useState(false);
+  const [swapDay, setSwapDay]       = useState(DAYS[new Date().getDay()]);
+  const [withEmp, setWithEmp]       = useState("");
+  const [reason, setReason]         = useState("");
+  const [saved, setSaved]           = useState("");
+
+  const myName = session?.name;
+  const myId   = employees.find(e=>e.name===myName)?.id;
+
+  // Swap requests stored as notes with tag "Swap Request"
+  const allRequests = (Array.isArray(notes)?notes:[])
+    .filter(n=>n.tag==="Swap Request")
+    .sort((a,b)=>b.ts.localeCompare(a.ts));
+
+  // What I see: my own + all if canEdit
+  const visibleReqs = canEdit ? allRequests : allRequests.filter(r=>{
+    try { const d=JSON.parse(r.text||"{}"); return d.fromId===myId||d.toId===myId; } catch { return false; }
+  });
+
+  const pending  = visibleReqs.filter(r=>{ try{return JSON.parse(r.text||"{}").status==="pending";}catch{return false;} });
+  const history  = visibleReqs.filter(r=>{ try{const d=JSON.parse(r.text||"{}");return d.status!=="pending";}catch{return false;} });
+
+  // Get my shift for a day
+  function getMyShift(day) {
+    if (!myId) return null;
+    const sid = (schedule[myId]||{})[day];
+    return shifts.find(s=>s.id===sid);
+  }
+
+  // Get target shift for a day
+  function getTargetShift(empId, day) {
+    const sid = (schedule[empId]||{})[day];
+    return shifts.find(s=>s.id===sid);
+  }
+
+  function submitSwapRequest() {
+    if (!withEmp || !swapDay) { setSaved("❌ Select employee and day"); return; }
+    const toEmp = employees.find(e=>e.id===withEmp);
+    if (!toEmp) return;
+    const myShift  = getMyShift(swapDay);
+    const hisShift = getTargetShift(withEmp, swapDay);
+    if (!myShift || !hisShift) { setSaved("❌ One of you is off that day"); return; }
+    if (myShift.id === hisShift.id) { setSaved("❌ You both have the same shift"); return; }
+
+    const req = {
+      id: "sw"+Date.now(),
+      ts: new Date().toISOString(),
+      date: todayStr(),
+      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag: "Swap Request",
+      text: JSON.stringify({
+        fromId:myId, fromName:myName,
+        toId:withEmp, toName:toEmp.name,
+        day:swapDay,
+        fromShiftId:myShift.id, fromShiftLabel:myShift.label,
+        toShiftId:hisShift.id, toShiftLabel:hisShift.label,
+        reason, status:"pending"
+      }),
+      from: myName||"",
+      target: toEmp.name,
+      msgType: "swap_request",
+    };
+    setNotes(prev=>[req,...(Array.isArray(prev)?prev:[])]);
+    setSaved(`✅ Swap request sent to ${toEmp.name} for ${swapDay}`);
+    setReason(""); setWithEmp(""); setShowForm(false);
+    setTimeout(()=>setSaved(""),4000);
+  }
+
+  function approveSwap(req) {
+    try {
+      const d = JSON.parse(req.text||"{}");
+      if (!window.confirm(`Approve swap on ${d.day}?
+${d.fromName}: ${d.fromShiftLabel} ↔ ${d.toShiftLabel}
+${d.toName}: ${d.toShiftLabel} ↔ ${d.fromShiftLabel}`)) return;
+      // Apply to schedule
+      setSchedule(prev=>({
+        ...prev,
+        [d.fromId]: { ...(prev[d.fromId]||{}), [d.day]: d.toShiftId },
+        [d.toId]:   { ...(prev[d.toId]||{}),   [d.day]: d.fromShiftId },
+      }));
+      // Mark approved
+      setNotes(prev=>(Array.isArray(prev)?prev:[]).map(n=>
+        n.id===req.id ? {...n, text:JSON.stringify({...d, status:"approved", approvedBy:myName})} : n
+      ));
+    } catch {}
+  }
+
+  function rejectSwap(req) {
+    try {
+      const d = JSON.parse(req.text||"{}");
+      if (!window.confirm(`Reject this swap request from ${d.fromName}?`)) return;
+      setNotes(prev=>(Array.isArray(prev)?prev:[]).map(n=>
+        n.id===req.id ? {...n, text:JSON.stringify({...d, status:"rejected", rejectedBy:myName})} : n
+      ));
+    } catch {}
+  }
+
+  function deleteSwap(id) {
+    setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==id));
+  }
+
+  function statusBadge(status) {
+    const map = {
+      pending:  { bg:"#FEF9C3", color:"#B45309", label:"⏳ Pending" },
+      approved: { bg:"#F0FDF4", color:"#166534", label:"✅ Approved" },
+      rejected: { bg:"#FEF2F2", color:"#991B1B", label:"❌ Rejected" },
+    };
+    const c = map[status]||map.pending;
+    return <span style={{ background:c.bg, color:c.color, borderRadius:20,
+      padding:"2px 10px", fontSize:10, fontWeight:700 }}>{c.label}</span>;
+  }
+
+  return (
+    <div style={{ ...CRD({padding:"14px 18px"}), marginBottom:20 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
+        <span style={{ fontSize:16 }}>🔄</span>
+        <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>Smart Shift Swap</span>
+        {pending.length > 0 && (
+          <span style={{ background:"#FEF3C7", color:"#B45309",
+            border:"1px solid #FCD34D", borderRadius:20,
+            padding:"2px 10px", fontSize:11, fontWeight:700 }}>
+            {pending.length} pending
+          </span>
+        )}
+        <div style={{ marginLeft:"auto", display:"flex", gap:6 }}>
+          {!canEdit && (
+            <button onClick={()=>setShowForm(s=>!s)}
+              style={{ ...PBT("#3B82F6",{fontSize:12,padding:"6px 14px"}) }}>
+              {showForm?"✕ Cancel":"🔄 Request Swap"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Request form for employees */}
+      {showForm && !canEdit && (
+        <div style={{ background:_theme.surface, borderRadius:10, padding:"14px 16px",
+          marginBottom:14, border:`1px solid ${_theme.cardBorder}` }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+            <div>
+              <label style={LBL}>Swap Day</label>
+              <select value={swapDay} onChange={e=>setSwapDay(e.target.value)} style={{ ...I({width:"100%"}) }}>
+                {DAYS.map(d=>{
+                  const myS = getMyShift(d);
+                  return <option key={d} value={d}>{d} {myS?`(${myS.label})`:"(Off)"}</option>;
+                })}
+              </select>
+            </div>
+            <div>
+              <label style={LBL}>Swap With</label>
+              <select value={withEmp} onChange={e=>setWithEmp(e.target.value)} style={{ ...I({width:"100%"}) }}>
+                <option value="">— Select colleague —</option>
+                {employees.filter(e=>e.id!==myId&&e.name!==myName).map(e=>{
+                  const sh = getTargetShift(e.id, swapDay);
+                  return <option key={e.id} value={e.id}>{e.name} {sh?`(${sh.label})`:"(Off)"}</option>;
+                })}
+              </select>
+            </div>
+          </div>
+          {withEmp && swapDay && (() => {
+            const myS  = getMyShift(swapDay);
+            const hisS = getTargetShift(withEmp, swapDay);
+            const him  = employees.find(e=>e.id===withEmp);
+            if (!myS||!hisS) return <div style={{ fontSize:12,color:"#EF4444",marginBottom:8 }}>One party is off that day</div>;
+            return (
+              <div style={{ background:_theme.primary+"12", border:`1px solid ${_theme.primary}30`,
+                borderRadius:8, padding:"8px 12px", marginBottom:10, fontSize:12 }}>
+                <strong>{myName}</strong>: {myS.label} ↔ {hisS.label} :<strong>{him?.name}</strong>
+              </div>
+            );
+          })()}
+          <label style={LBL}>Reason (optional)</label>
+          <input value={reason} onChange={e=>setReason(e.target.value)}
+            style={{ ...I({width:"100%",marginBottom:10}) }} placeholder="Why are you requesting this swap?"/>
+          <button onClick={submitSwapRequest}
+            style={{ ...PBT("#3B82F6",{width:"100%"}) }}>📤 Submit Swap Request</button>
+          {saved && <div style={{ marginTop:8,fontSize:12,
+            color:saved.startsWith("✅")?"#10B981":"#EF4444",fontWeight:600 }}>{saved}</div>}
+        </div>
+      )}
+
+      {/* Pending requests */}
+      {pending.length > 0 && (
+        <div style={{ marginBottom:14 }}>
+          <div style={{ fontSize:12, fontWeight:700, color:"#B45309", marginBottom:8 }}>
+            ⏳ Pending Requests ({pending.length})
+          </div>
+          {pending.map(req => {
+            let d = {};
+            try { d = JSON.parse(req.text||"{}"); } catch {}
+            return (
+              <div key={req.id} style={{ background:"#FFFBEB", border:"1px solid #FCD34D",
+                borderRadius:10, padding:"12px 14px", marginBottom:8 }}>
+                <div style={{ display:"flex", gap:10, flexWrap:"wrap", alignItems:"flex-start" }}>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontWeight:700, fontSize:13, color:_theme.text }}>
+                      {d.fromName} → {d.toName}
+                    </div>
+                    <div style={{ fontSize:11, color:_theme.textMuted, marginTop:3 }}>
+                      📅 {d.day} · {d.fromShiftLabel} ↔ {d.toShiftLabel}
+                    </div>
+                    {d.reason && <div style={{ fontSize:12, color:_theme.textSub, marginTop:4 }}>
+                      "{d.reason}"
+                    </div>}
+                  </div>
+                  <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                    {canEdit && <>
+                      <button onClick={()=>approveSwap(req)}
+                        style={{ ...PBT("#10B981",{fontSize:12,padding:"5px 12px"}) }}>✅ Approve</button>
+                      <button onClick={()=>rejectSwap(req)}
+                        style={{ ...PBT("#EF4444",{fontSize:12,padding:"5px 12px"}) }}>❌ Reject</button>
+                    </>}
+                    {(canEdit || d.fromId===myId) && (
+                      <button onClick={()=>deleteSwap(req.id)}
+                        style={{ background:"none", border:`1px solid ${_theme.cardBorder}`,
+                          color:_theme.textMuted, borderRadius:6, padding:"5px 8px",
+                          cursor:"pointer", fontSize:12 }}>✕</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* History */}
+      {history.length > 0 && (
+        <div>
+          <div style={{ fontSize:12, fontWeight:700, color:_theme.textMuted, marginBottom:8 }}>
+            History ({history.length})
+          </div>
+          {history.slice(0,5).map(req=>{
+            let d={};
+            try{d=JSON.parse(req.text||"{}");}catch{}
+            return (
+              <div key={req.id} style={{ display:"flex", alignItems:"center", gap:8,
+                padding:"8px 0", borderBottom:`1px solid ${_theme.cardBorder}20` }}>
+                <div style={{ flex:1, fontSize:12 }}>
+                  <span style={{ fontWeight:600 }}>{d.fromName}</span> ↔{" "}
+                  <span style={{ fontWeight:600 }}>{d.toName}</span>
+                  <span style={{ color:_theme.textMuted }}> · {d.day} · {d.fromShiftLabel}↔{d.toShiftLabel}</span>
+                </div>
+                {statusBadge(d.status)}
+                {canEdit && (
+                  <button onClick={()=>deleteSwap(req.id)}
+                    style={{ background:"none", border:"none", color:_theme.textMuted,
+                      cursor:"pointer", fontSize:14 }}>✕</button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {visibleReqs.length===0 && (
+        <div style={{ textAlign:"center", padding:"20px", color:_theme.textMuted, fontSize:13 }}>
+          <div style={{ fontSize:32, marginBottom:6 }}>🔄</div>
+          No swap requests — {canEdit?"employees can request swaps from this panel":"click 'Request Swap' to get started"}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── BREAK SWAP REQUEST SYSTEM ───────────────────────────────────────────────
+// Three-stage approval: A requests → B approves → Supervisor final approval
+// Stored in notes (tag: "Break Swap Request") — uses existing Realtime channel
+//
+// Status flow:
+//   pending_b        → B must respond
+//   rejected_b       → B rejected — done
+//   pending_supervisor → B approved — supervisor must respond
+//   rejected_supervisor → Supervisor rejected — done
+//   approved         → Swap applied to breakSchedule
+//   cancelled        → A cancelled before final approval
+
+function BreakSwapPanel({ employees, schedule, shifts, breakSchedule, setBreakSchedule,
+                          notes, setNotes, session, canEdit }) {
+  const [showForm, setShowForm] = useState(false);
+  const [selDate, setSelDate]   = useState(todayStr());
+  const [withEmp, setWithEmp]   = useState("");
+  const [reason, setReason]     = useState("");
+  const [msg, setMsg]           = useState("");
+
+  const myName = session?.name;
+  const myId   = employees.find(e => e.name === myName)?.id;
+  const myRole = session?.role;
+
+  const isSupervisor = canEdit; // Team Lead / Shift Leader / SME
+
+  // All break swap requests
+  const allSwaps = (Array.isArray(notes) ? notes : [])
+    .filter(n => n.tag === "Break Swap Request")
+    .sort((a, b) => b.ts.localeCompare(a.ts));
+
+  // What this user sees
+  const mySwaps = allSwaps.filter(r => {
+    try {
+      const d = JSON.parse(r.text || "{}");
+      if (isSupervisor) return true;           // supervisors see all
+      return d.fromId === myId || d.toId === myId; // employees see theirs
+    } catch { return false; }
+  });
+
+  const pendingMyAction = mySwaps.filter(r => {
+    try {
+      const d = JSON.parse(r.text || "{}");
+      if (d.status === "pending_b" && d.toId === myId) return true;
+      if (d.status === "pending_supervisor" && isSupervisor) return true;
+      return false;
+    } catch { return false; }
+  });
+
+  // Get break info for an employee on a date
+  function getBreakInfo(empId, date) {
+    const dayName = DAYS[new Date(date + "T12:00:00").getDay()];
+    const sid     = (schedule[empId] || {})[dayName];
+    if (!sid || sid === "OFF" || sid === "LEAVE") return null;
+    const sh      = shifts.find(s => s.id === sid);
+    if (!sh) return null;
+    // Find break schedule key — try each shift
+    const key   = `${date}_${sid}`;
+    const entry = (breakSchedule[key] || {})[empId];
+    if (!entry) return { sh, key, empId, date, hasBreak: false };
+    const shiftStartMin  = toMin(sh.start);
+    const totalOffsetMin = (Number(entry.offsetHours) || 0) * 60 + (Number(entry.offsetMins) || 0);
+    const breakStartMin  = (shiftStartMin + totalOffsetMin) % 1440;
+    const breakStart     = pad(Math.floor(breakStartMin / 60)) + ":" + pad(breakStartMin % 60);
+    const breakEndMin    = (breakStartMin + Number(entry.durationMin)) % 1440;
+    const breakEnd       = pad(Math.floor(breakEndMin / 60)) + ":" + pad(breakEndMin % 60);
+    return {
+      sh, key, empId, date, hasBreak: true,
+      offsetHours: entry.offsetHours || 0,
+      offsetMins:  entry.offsetMins  || 0,
+      durationMin: entry.durationMin,
+      breakStart, breakEnd,
+      display: `${breakStart} – ${breakEnd} (${entry.durationMin}m)`
+    };
+  }
+
+  const myBreak     = myId ? getBreakInfo(myId, selDate) : null;
+  const targetBreak = withEmp ? getBreakInfo(withEmp, selDate) : null;
+  const canRequest  = myBreak?.hasBreak && targetBreak?.hasBreak &&
+                      myBreak.sh.id === targetBreak.sh.id; // same shift required
+
+  function submitRequest() {
+    if (!canRequest) { setMsg("❌ Cannot swap — check both employees are on the same shift with breaks scheduled"); return; }
+    // Check no pending request already exists
+    const hasPending = allSwaps.some(r => {
+      try {
+        const d = JSON.parse(r.text || "{}");
+        return (d.fromId === myId || d.toId === myId) &&
+               (d.status === "pending_b" || d.status === "pending_supervisor");
+      } catch { return false; }
+    });
+    if (hasPending) { setMsg("❌ You already have a pending swap request"); return; }
+
+    const toEmp = employees.find(e => e.id === withEmp);
+    const req   = {
+      id:      "bsr" + Date.now(),
+      ts:      new Date().toISOString(),
+      date:    todayStr(),
+      time:    pad(new Date().getHours()) + ":" + pad(new Date().getMinutes()),
+      tag:     "Break Swap Request",
+      text:    JSON.stringify({
+        fromId:      myId,   fromName: myName,
+        toId:        withEmp, toName:  toEmp?.name,
+        swapDate:    selDate,
+        shiftId:     myBreak.sh.id,
+        shiftLabel:  myBreak.sh.label,
+        // A's break offset
+        fromOffsetH: myBreak.offsetHours,    fromOffsetM: myBreak.offsetMins,
+        fromDur:     myBreak.durationMin,    fromDisplay: myBreak.display,
+        // B's break offset
+        toOffsetH:   targetBreak.offsetHours, toOffsetM:  targetBreak.offsetMins,
+        toDur:       targetBreak.durationMin, toDisplay:  targetBreak.display,
+        reason,
+        status: "pending_b",
+        history: [{ action:"requested", by:myName, ts:new Date().toISOString() }]
+      }),
+      from:    myName || "",
+      target:  toEmp?.name || "",
+      msgType: "break_swap",
+    };
+    setNotes(prev => [req, ...(Array.isArray(prev) ? prev : [])]);
+    setMsg(`✅ Break swap request sent to ${toEmp?.name}. Waiting for their approval.`);
+    setReason(""); setWithEmp(""); setShowForm(false);
+    setTimeout(() => setMsg(""), 5000);
+  }
+
+  function updateStatus(reqId, newStatus, extraData = {}) {
+    setNotes(prev => (Array.isArray(prev) ? prev : []).map(n => {
+      if (n.id !== reqId) return n;
+      try {
+        const d = JSON.parse(n.text || "{}");
+        const histEntry = { action: newStatus, by: myName, ts: new Date().toISOString() };
+        return {
+          ...n,
+          text: JSON.stringify({ ...d, ...extraData, status: newStatus,
+            history: [...(d.history || []), histEntry] })
+        };
+      } catch { return n; }
+    }));
+  }
+
+  function approveAsB(req) {
+    try {
+      const d = JSON.parse(req.text || "{}");
+      if (!window.confirm(
+        `Approve break swap request from ${d.fromName}?
+
+` +
+        `Your break (${d.toDisplay}) ↔ Their break (${d.fromDisplay})
+` +
+        `Date: ${d.swapDate}
+
+This will go to a supervisor for final approval.`
+      )) return;
+      updateStatus(req.id, "pending_supervisor");
+    } catch {}
+  }
+
+  function rejectAsB(req) {
+    try {
+      const d = JSON.parse(req.text || "{}");
+      if (!window.confirm(`Reject break swap request from ${d.fromName}?`)) return;
+      updateStatus(req.id, "rejected_b");
+    } catch {}
+  }
+
+  function approveFinal(req) {
+    try {
+      const d = JSON.parse(req.text || "{}");
+      if (!window.confirm(
+        `Final approval: swap breaks between ${d.fromName} and ${d.toName}?
+
+` +
+        `${d.fromName}: ${d.fromDisplay} → ${d.toDisplay}
+` +
+        `${d.toName}: ${d.toDisplay} → ${d.fromDisplay}
+
+` +
+        `Date: ${d.swapDate} · Shift: ${d.shiftLabel}`
+      )) return;
+
+      // Apply the swap to breakSchedule
+      const bsKey = `${d.swapDate}_${d.shiftId}`;
+      setBreakSchedule(prev => {
+        const cur = { ...(prev[bsKey] || {}) };
+        // A gets B's offset, B gets A's offset
+        cur[d.fromId] = { ...(cur[d.fromId] || {}),
+          offsetHours: d.toOffsetH,  offsetMins: d.toOffsetM,  durationMin: d.toDur };
+        cur[d.toId]   = { ...(cur[d.toId]   || {}),
+          offsetHours: d.fromOffsetH, offsetMins: d.fromOffsetM, durationMin: d.fromDur };
+        return { ...prev, [bsKey]: cur };
+      });
+      updateStatus(req.id, "approved", { approvedBy: myName });
+    } catch {}
+  }
+
+  function rejectFinal(req) {
+    try {
+      const d = JSON.parse(req.text || "{}");
+      if (!window.confirm(`Reject this break swap request from ${d.fromName} and ${d.toName}?`)) return;
+      updateStatus(req.id, "rejected_supervisor", { rejectedBy: myName });
+    } catch {}
+  }
+
+  function cancelRequest(req) {
+    try {
+      const d = JSON.parse(req.text || "{}");
+      if (!window.confirm("Cancel your break swap request?")) return;
+      updateStatus(req.id, "cancelled");
+    } catch {}
+  }
+
+  function deleteRequest(id) {
+    setNotes(prev => (Array.isArray(prev) ? prev : []).filter(n => n.id !== id));
+  }
+
+  function statusBadge(status) {
+    const map = {
+      pending_b:           { bg:"#FEF3C7", color:"#B45309",  label:"⏳ Waiting for colleague" },
+      pending_supervisor:  { bg:"#EFF6FF", color:"#1E40AF",  label:"⏳ Waiting for supervisor" },
+      approved:            { bg:"#F0FDF4", color:"#166534",  label:"✅ Approved — Swapped!" },
+      rejected_b:          { bg:"#FEF2F2", color:"#991B1B",  label:"❌ Declined by colleague" },
+      rejected_supervisor: { bg:"#FEF2F2", color:"#991B1B",  label:"❌ Declined by supervisor" },
+      cancelled:           { bg:"#F1F5F9", color:"#64748B",  label:"🚫 Cancelled" },
+    };
+    const c = map[status] || { bg:"#F1F5F9", color:"#64748B", label:status };
+    return (
+      <span style={{ background:c.bg, color:c.color, borderRadius:20,
+        padding:"2px 10px", fontSize:10, fontWeight:700, whiteSpace:"nowrap" }}>
+        {c.label}
+      </span>
+    );
+  }
+
+  const activeRequests  = mySwaps.filter(r => {
+    try { const s=JSON.parse(r.text||"{}").status; return s==="pending_b"||s==="pending_supervisor"; } catch{return false;}
+  });
+  const closedRequests  = mySwaps.filter(r => {
+    try { const s=JSON.parse(r.text||"{}").status; return s==="approved"||s==="rejected_b"||s==="rejected_supervisor"||s==="cancelled"; } catch{return false;}
+  });
+
+  return (
+    <div style={{ ...CRD({padding:"14px 18px"}), marginBottom:20 }}>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
+        <span style={{ fontSize:16 }}>☕</span>
+        <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>Break Swap Requests</span>
+        <span style={{ fontSize:11, color:_theme.textMuted }}>
+          — 3-stage approval: You → Colleague → Supervisor
+        </span>
+        {pendingMyAction.length > 0 && (
+          <span style={{ background:"#FEF3C7", color:"#B45309",
+            border:"1px solid #FCD34D", borderRadius:20,
+            padding:"2px 10px", fontSize:11, fontWeight:700 }}>
+            {pendingMyAction.length} action required
+          </span>
+        )}
+        <div style={{ marginLeft:"auto" }}>
+          {!isSupervisor && (
+            <button onClick={() => setShowForm(s => !s)}
+              style={{ ...PBT("#8B5CF6", {fontSize:12, padding:"6px 14px"}) }}>
+              {showForm ? "✕ Cancel" : "☕ Request Break Swap"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Request Form */}
+      {showForm && !isSupervisor && (
+        <div style={{ background:_theme.surface, borderRadius:10,
+          padding:"14px 16px", marginBottom:14,
+          border:`1px solid ${_theme.cardBorder}` }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+            <div>
+              <label style={LBL}>Swap Date</label>
+              <input type="date" value={selDate} onChange={e=>setSelDate(e.target.value)}
+                style={I()}/>
+            </div>
+            <div>
+              <label style={LBL}>Swap With</label>
+              <select value={withEmp} onChange={e=>setWithEmp(e.target.value)}
+                style={{ ...I({width:"100%"}) }}>
+                <option value="">— Select colleague —</option>
+                {employees.filter(e=>e.id!==myId).map(e=>{
+                  const bi = getBreakInfo(e.id, selDate);
+                  return (
+                    <option key={e.id} value={e.id}>
+                      {e.name} {bi?.hasBreak ? `(Break: ${bi.display})` : "(No break scheduled)"}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          </div>
+
+          {/* Preview */}
+          {myBreak && withEmp && (
+            <div style={{ ...CRD({padding:"12px 14px"}), marginBottom:10,
+              border:`1.5px solid ${canRequest?_theme.primary:"#EF4444"}40` }}>
+              {!myBreak.hasBreak && (
+                <div style={{ color:"#EF4444", fontSize:12, fontWeight:600 }}>
+                  ⚠️ You don't have a break scheduled on {selDate}
+                </div>
+              )}
+              {myBreak.hasBreak && !targetBreak?.hasBreak && (
+                <div style={{ color:"#EF4444", fontSize:12, fontWeight:600 }}>
+                  ⚠️ Colleague doesn't have a break scheduled on {selDate}
+                </div>
+              )}
+              {myBreak.hasBreak && targetBreak?.hasBreak && myBreak.sh.id !== targetBreak.sh.id && (
+                <div style={{ color:"#EF4444", fontSize:12, fontWeight:600 }}>
+                  ⚠️ You are on different shifts — cannot swap breaks
+                </div>
+              )}
+              {canRequest && (
+                <div>
+                  <div style={{ fontSize:11, fontWeight:700, color:_theme.textMuted, marginBottom:8 }}>
+                    Preview after swap:
+                  </div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                    <div style={{ background:_theme.primary+"12", borderRadius:8,
+                      padding:"8px 12px", border:`1px solid ${_theme.primary}30` }}>
+                      <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>You ({myName})</div>
+                      <div style={{ fontSize:11, color:_theme.textMuted }}>
+                        Current: <span style={{ textDecoration:"line-through" }}>{myBreak.display}</span>
+                      </div>
+                      <div style={{ fontSize:13, fontWeight:700, color:_theme.primary }}>
+                        → {targetBreak.display}
+                      </div>
+                    </div>
+                    <div style={{ background:"#8B5CF620", borderRadius:8,
+                      padding:"8px 12px", border:"1px solid #8B5CF630" }}>
+                      <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>
+                        {employees.find(e=>e.id===withEmp)?.name}
+                      </div>
+                      <div style={{ fontSize:11, color:_theme.textMuted }}>
+                        Current: <span style={{ textDecoration:"line-through" }}>{targetBreak.display}</span>
+                      </div>
+                      <div style={{ fontSize:13, fontWeight:700, color:"#8B5CF6" }}>
+                        → {myBreak.display}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <label style={LBL}>Reason (optional)</label>
+          <input value={reason} onChange={e=>setReason(e.target.value)}
+            style={{ ...I({width:"100%", marginBottom:10}) }}
+            placeholder="e.g. Doctor appointment, personal errand..."/>
+
+          {msg && (
+            <div style={{ padding:"8px 12px", borderRadius:8, marginBottom:10,
+              background:msg.startsWith("✅")?"#F0FDF4":"#FEF2F2",
+              color:msg.startsWith("✅")?"#166534":"#EF4444",
+              fontSize:12, fontWeight:600 }}>{msg}</div>
+          )}
+
+          <button onClick={submitRequest} disabled={!canRequest}
+            style={{ ...PBT("#8B5CF6",{width:"100%", padding:"11px",
+              opacity:canRequest?1:0.5}) }}>
+            📤 Submit Break Swap Request
+          </button>
+        </div>
+      )}
+
+      {msg && !showForm && (
+        <div style={{ padding:"8px 12px", borderRadius:8, marginBottom:12,
+          background:msg.startsWith("✅")?"#F0FDF4":"#FEF2F2",
+          color:msg.startsWith("✅")?"#166534":"#EF4444",
+          fontSize:12, fontWeight:600 }}>{msg}</div>
+      )}
+
+      {/* ── Active Requests ── */}
+      {activeRequests.length > 0 && (
+        <div style={{ marginBottom:16 }}>
+          <div style={{ fontSize:12, fontWeight:700, color:_theme.text, marginBottom:8 }}>
+            Active Requests ({activeRequests.length})
+          </div>
+          {activeRequests.map(req => {
+            let d = {};
+            try { d = JSON.parse(req.text || "{}"); } catch {}
+            const isRequester = d.fromId === myId;
+            const isTarget    = d.toId === myId;
+            const needsMyB    = d.status === "pending_b" && isTarget;
+            const needsSuperv = d.status === "pending_supervisor" && isSupervisor;
+            return (
+              <div key={req.id} style={{
+                background: needsMyB||needsSuperv ? "#FFFBEB" : _theme.surface,
+                border:`1.5px solid ${needsMyB||needsSuperv?"#FCD34D":_theme.cardBorder}`,
+                borderRadius:10, padding:"12px 14px", marginBottom:8
+              }}>
+                <div style={{ display:"flex", gap:10, flexWrap:"wrap", alignItems:"flex-start" }}>
+                  <div style={{ flex:1 }}>
+                    {/* Header */}
+                    <div style={{ display:"flex", alignItems:"center", gap:8,
+                      marginBottom:6, flexWrap:"wrap" }}>
+                      <span style={{ fontWeight:700, fontSize:13, color:_theme.text }}>
+                        {d.fromName} → {d.toName}
+                      </span>
+                      {statusBadge(d.status)}
+                    </div>
+                    {/* Break details */}
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
+                      gap:6, marginBottom:6 }}>
+                      <div style={{ fontSize:11, color:_theme.textMuted }}>
+                        📅 {d.swapDate} · ⏰ {d.shiftLabel}
+                      </div>
+                    </div>
+                    <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                      <div style={{ fontSize:11, background:"#EFF6FF",
+                        border:"1px solid #BFDBFE", borderRadius:6, padding:"3px 8px" }}>
+                        <strong>{d.fromName}:</strong> {d.fromDisplay} → {d.toDisplay}
+                      </div>
+                      <div style={{ fontSize:11, background:"#F5F3FF",
+                        border:"1px solid #DDD6FE", borderRadius:6, padding:"3px 8px" }}>
+                        <strong>{d.toName}:</strong> {d.toDisplay} → {d.fromDisplay}
+                      </div>
+                    </div>
+                    {d.reason && (
+                      <div style={{ fontSize:11, color:_theme.textSub, marginTop:4, fontStyle:"italic" }}>
+                        "{d.reason}"
+                      </div>
+                    )}
+                    {/* Approval progress */}
+                    <div style={{ display:"flex", gap:6, marginTop:8, alignItems:"center" }}>
+                      <div style={{ fontSize:10, fontWeight:700, color:"#10B981" }}>✅ Requested</div>
+                      <div style={{ fontSize:10, color:_theme.textMuted }}>→</div>
+                      <div style={{ fontSize:10, fontWeight:700,
+                        color:d.status==="pending_b"?"#F59E0B":
+                              d.status==="rejected_b"?"#EF4444":"#10B981" }}>
+                        {d.status==="pending_b"?"⏳":d.status==="rejected_b"?"❌":"✅"} Colleague
+                      </div>
+                      <div style={{ fontSize:10, color:_theme.textMuted }}>→</div>
+                      <div style={{ fontSize:10, fontWeight:700,
+                        color:d.status==="pending_supervisor"?"#F59E0B":"#94A3B8" }}>
+                        {d.status==="pending_supervisor"?"⏳":"⬜"} Supervisor
+                      </div>
+                    </div>
+                  </div>
+                  {/* Action buttons */}
+                  <div style={{ display:"flex", flexDirection:"column", gap:6, flexShrink:0 }}>
+                    {/* B approves/rejects */}
+                    {needsMyB && (
+                      <>
+                        <button onClick={()=>approveAsB(req)}
+                          style={{ ...PBT("#10B981",{fontSize:12,padding:"6px 12px"}) }}>
+                          ✅ Approve
+                        </button>
+                        <button onClick={()=>rejectAsB(req)}
+                          style={{ ...PBT("#EF4444",{fontSize:12,padding:"6px 12px"}) }}>
+                          ❌ Decline
+                        </button>
+                      </>
+                    )}
+                    {/* Supervisor final */}
+                    {needsSuperv && (
+                      <>
+                        <button onClick={()=>approveFinal(req)}
+                          style={{ ...PBT("#10B981",{fontSize:12,padding:"6px 12px"}) }}>
+                          ✅ Final Approve
+                        </button>
+                        <button onClick={()=>rejectFinal(req)}
+                          style={{ ...PBT("#EF4444",{fontSize:12,padding:"6px 12px"}) }}>
+                          ❌ Reject
+                        </button>
+                      </>
+                    )}
+                    {/* Cancel — requester only, before final approval */}
+                    {isRequester && (d.status==="pending_b"||d.status==="pending_supervisor") && (
+                      <button onClick={()=>cancelRequest(req)}
+                        style={{ ...PBT("#94A3B8",{fontSize:11,padding:"5px 10px"}) }}>
+                        🚫 Cancel
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── History ── */}
+      {closedRequests.length > 0 && (
+        <div>
+          <div style={{ fontSize:12, fontWeight:700, color:_theme.textMuted, marginBottom:8 }}>
+            History ({closedRequests.length})
+          </div>
+          {closedRequests.slice(0,6).map(req => {
+            let d = {};
+            try { d = JSON.parse(req.text || "{}"); } catch {}
+            return (
+              <div key={req.id} style={{ display:"flex", alignItems:"center", gap:8,
+                padding:"8px 0", borderBottom:`1px solid ${_theme.cardBorder}20`,
+                flexWrap:"wrap" }}>
+                <div style={{ flex:1, fontSize:12 }}>
+                  <span style={{ fontWeight:600 }}>{d.fromName}</span>
+                  <span style={{ color:_theme.textMuted }}> ↔ </span>
+                  <span style={{ fontWeight:600 }}>{d.toName}</span>
+                  <span style={{ color:_theme.textMuted }}> · {d.swapDate}</span>
+                </div>
+                {statusBadge(d.status)}
+                {isSupervisor && (
+                  <button onClick={()=>deleteRequest(req.id)}
+                    style={{ background:"none", border:"none",
+                      color:_theme.textMuted, cursor:"pointer", fontSize:14 }}>✕</button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {mySwaps.length === 0 && (
+        <div style={{ textAlign:"center", padding:"24px 20px",
+          color:_theme.textMuted, fontSize:13 }}>
+          <div style={{ fontSize:32, marginBottom:8 }}>☕</div>
+          {isSupervisor
+            ? "No break swap requests — employees can request from this panel"
+            : "No break swap requests — click 'Request Break Swap' to get started"}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── HOME DASHBOARD — Personal per role ──────────────────────────────────────
+function HomeDashboard({ session, employees, schedule, attendance, performance,
+                         queueLog, notes, breakSchedule, shifts, auditLog,
+                         canEdit, isSuperAdmin, onNavigate }) {
+  const todayKey  = todayStr();
+  const dayName   = DAYS[new Date().getDay()];
+  const now       = new Date();
+  const timeStr   = now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"});
+  const dateStr   = now.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",timeZone:"Asia/Riyadh"});
+
+  const myId      = employees.find(e=>e.name===session?.name)?.id;
+  const myRole    = session?.role;
+
+  // ── Shared computed values ─────────────────────────────────────────────────
+  const todayEmps = employees.filter(e=>{
+    const v=(schedule[e.id]||{})[dayName]; return v&&v!=="OFF"&&v!=="LEAVE"&&v!=="PH";
+  });
+  const todayAtt  = attendance[todayKey]||{};
+  const todayPerf = performance[todayKey]||{};
+  const presentCnt= Object.values(todayAtt).filter(a=>a.status==="Present"||a.status==="Late").length;
+  const absentCnt = Object.values(todayAtt).filter(a=>a.status==="Absent").length;
+  const lateCnt   = Object.values(todayAtt).filter(a=>(a.lateMin||0)>=7).length;
+  const totalClosed= Object.values(todayPerf).reduce((s,p)=>s+(p.closed||0),0);
+  const totalEsc  = Object.values(todayPerf).reduce((s,p)=>s+(p.escalations||0),0);
+
+  // Queue
+  const QKEYS     = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
+  const todayQEntries = Object.entries(queueLog||{}).filter(([k])=>k.startsWith(todayKey)).map(([,v])=>v);
+  const latestQ   = todayQEntries.length>0
+    ? todayQEntries.reduce((b,e)=>(e.updTime||"")>(b.updTime||"")?e:b, todayQEntries[0])
+    : null;
+  const totalQueue= latestQ ? QKEYS.reduce((s,k)=>s+Number(latestQ[k+"Curr"]||0),0) : 0;
+
+  // My shift info (for agent/shift leader)
+  const myShiftId = myId ? (schedule[myId]||{})[dayName] : null;
+  const myShift   = shifts.find(s=>s.id===myShiftId);
+
+  // My break info
+  const myBreakKey = myShiftId ? `${todayKey}_${myShiftId}` : null;
+  const myBreakEntry = myBreakKey&&myId ? (breakSchedule[myBreakKey]||{})[myId] : null;
+  const myBreakStart = myBreakEntry&&myShift ? (()=>{
+    const off = (Number(myBreakEntry.offsetHours)||0)*60+(Number(myBreakEntry.offsetMins)||0);
+    const bm  = (toMin(myShift.start)+off)%1440;
+    return pad(Math.floor(bm/60))+":"+pad(bm%60);
+  })() : null;
+
+  // Unread messages for me
+  const myMessages = (Array.isArray(notes)?notes:[]).filter(n=>{
+    if(n.tag!=="Manager Message") return false;
+    return !n.target||n.target==="all"||n.target===session?.name;
+  }).filter(n=>{
+    // simple unread: created in last 24h
+    return (Date.now()-new Date(n.ts).getTime()) < 24*60*60*1000;
+  });
+
+  // Pending swap requests for me
+  const myPendingSwaps = (Array.isArray(notes)?notes:[]).filter(n=>{
+    if(n.tag!=="Swap Request"&&n.tag!=="Break Swap Request") return false;
+    try{
+      const d=JSON.parse(n.text||"{}");
+      return (d.toId===myId&&d.status==="pending_b")||(d.fromId===myId&&(d.status==="pending_b"||d.status==="pending_supervisor"));
+    }catch{return false;}
+  });
+
+  // My performance today
+  const myPerf    = myId ? todayPerf[myId] : null;
+  const myAtt     = myId ? todayAtt[myId]  : null;
+
+  // Recent audit events (last 5 for owner)
+  const recentEvents = (Array.isArray(auditLog)?auditLog:[])
+    .filter(l=>l.action!=="Page View")
+    .slice(0,5);
+
+  // Top performer today
+  const topPerf   = Object.entries(todayPerf)
+    .map(([id,p])=>({emp:employees.find(e=>e.id===id),closed:p.closed||0}))
+    .filter(x=>x.emp&&x.closed>0)
+    .sort((a,b)=>b.closed-a.closed)[0];
+
+  // Absent supervisors warning
+  const absentSupervisors = employees.filter(e=>{
+    if(e.role==="Agent") return false;
+    const onToday = (schedule[e.id]||{})[dayName];
+    if(!onToday||onToday==="OFF") return false;
+    const a = todayAtt[e.id];
+    return a?.status==="Absent";
+  });
+
+  // My shift colleagues (for shift leader / agent)
+  const myShiftColleagues = myShiftId
+    ? employees.filter(e=>e.id!==myId&&(schedule[e.id]||{})[dayName]===myShiftId)
+    : [];
+
+  // ── Card builder ──────────────────────────────────────────────────────────
+  function KPICard({icon,label,value,sub,color,onClick,alert}) {
+    return (
+      <div onClick={onClick}
+        className={_theme.isDark?"glass-card":"glass-card-light"}
+        style={{ ...CRD({padding:"16px 18px"}),
+          borderTop:`3px solid ${color}`,
+          cursor:onClick?"pointer":"default",
+          position:"relative",
+          background: alert ? color+"18" : undefined }}
+        onMouseEnter={e=>{if(onClick){e.currentTarget.style.transform="translateY(-3px)";
+          e.currentTarget.style.boxShadow=`0 8px 24px ${color}30`;}}}
+        onMouseLeave={e=>{e.currentTarget.style.transform="none";
+          e.currentTarget.style.boxShadow="";}}>
+        {alert&&(
+          <span style={{position:"absolute",top:10,right:10,fontSize:10,
+            background:color,color:"#fff",borderRadius:20,padding:"2px 7px",
+            fontWeight:800,boxShadow:`0 2px 8px ${color}60`}}>!</span>
+        )}
+        <div style={{fontSize:11,color:_theme.textMuted,fontWeight:700,
+          marginBottom:6,textTransform:"uppercase",letterSpacing:"0.05em"}}>
+          {icon} {label}
+        </div>
+        <div style={{fontSize:32,fontWeight:900,color,lineHeight:1,
+          fontVariantNumeric:"tabular-nums"}}>{value}</div>
+        {sub&&<div style={{fontSize:11,color:_theme.textMuted,marginTop:6,
+          fontWeight:500}}>{sub}</div>}
+      </div>
+    );
+  }
+
+  function SectionTitle({children}) {
+    return <div style={{fontWeight:800,fontSize:13,color:_theme.text,margin:"20px 0 10px"}}>{children}</div>;
+  }
+
+  // ── OWNER Dashboard ───────────────────────────────────────────────────────
+  if(isSuperAdmin) return (
+    <div>
+      <div style={{marginBottom:20}}>
+        <div style={{fontSize:22,fontWeight:900,color:_theme.text}}>Good {now.getHours()<12?"morning":now.getHours()<17?"afternoon":"evening"}, Mohammed 👑</div>
+        <div style={{fontSize:13,color:_theme.textMuted}}>{dateStr} · {timeStr}</div>
+      </div>
+
+      {absentSupervisors.length>0&&(
+        <div style={{background:"#FEF2F2",border:"2px solid #EF4444",borderRadius:10,
+          padding:"10px 16px",marginBottom:16,display:"flex",gap:10,alignItems:"center"}}>
+          <span style={{fontSize:20}}>⚠️</span>
+          <div>
+            <div style={{fontWeight:800,color:"#EF4444",fontSize:13}}>Supervisor Absence Alert</div>
+            <div style={{fontSize:12,color:"#991B1B"}}>
+              {absentSupervisors.map(e=>`${e.name} (${e.role})`).join(" · ")} absent today — ensure coverage
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:10,marginBottom:6}}>
+        <KPICard icon="👥" label="Present Today" value={presentCnt}
+          sub={`${absentCnt} absent · ${lateCnt} late`}
+          color="#10B981" onClick={()=>onNavigate("Attendance")}/>
+        <KPICard icon="📊" label="Queue Now" value={totalQueue}
+          sub={totalQueue>300?"⚠️ High load":totalQueue>150?"Moderate":"Normal"}
+          color={totalQueue>300?"#EF4444":totalQueue>150?"#F59E0B":"#10B981"}
+          alert={totalQueue>300} onClick={()=>onNavigate("Queue")}/>
+        <KPICard icon="✅" label="Cases Closed" value={totalClosed}
+          sub={`${totalEsc} escalations`} color="#3B82F6"
+          onClick={()=>onNavigate("Performance")}/>
+        <KPICard icon="🏆" label="Top Performer" value={topPerf?.emp?.name?.split(" ")[0]||"—"}
+          sub={topPerf?`${topPerf.closed} cases`:"No data yet"} color="#F59E0B"
+          onClick={()=>onNavigate("Leaderboard")}/>
+        <KPICard icon="🏅" label="Surveys Pending" value={
+          (Array.isArray(notes)?notes:[]).filter(n=>{
+            try{return n.tag==="Survey"&&JSON.parse(n.text||"{}").status!=="closed";}catch{return false;}
+          }).length
+        } sub="Active surveys" color="#8B5CF6" onClick={()=>onNavigate("Surveys")}/>
+        <KPICard icon="📋" label="Scheduled Today" value={todayEmps.length}
+          sub={`of ${employees.length} total`} color="#6366F1"
+          onClick={()=>onNavigate("Schedule")}/>
+      </div>
+
+      <SectionTitle>⚡ Recent Activity</SectionTitle>
+      <div style={{...CRD({padding:0}),overflow:"hidden"}}>
+        {recentEvents.length===0
+          ?<div style={{padding:"16px",color:_theme.textMuted,fontSize:13}}>No recent activity</div>
+          :recentEvents.map((e,i)=>(
+          <div key={i} style={{display:"flex",gap:10,padding:"10px 14px",
+            borderBottom:i<recentEvents.length-1?`1px solid ${_theme.cardBorder}20`:"none",
+            alignItems:"center"}}>
+            <div style={{width:8,height:8,borderRadius:"50%",background:_theme.primary,flexShrink:0}}/>
+            <div style={{flex:1}}>
+              <span style={{fontWeight:700,fontSize:12,color:_theme.text}}>{e.by}</span>
+              <span style={{fontSize:12,color:_theme.textMuted}}> · {e.action}</span>
+              {e.target&&<span style={{fontSize:11,color:_theme.textMuted}}> → {e.target}</span>}
+            </div>
+            <span style={{fontSize:10,color:_theme.textMuted,flexShrink:0}}>
+              {new Date(e.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{display:"flex",gap:8,marginTop:16,flexWrap:"wrap"}}>
+        {[["📅 Schedule","Schedule"],["📋 Attendance","Attendance"],
+          ["📑 Reports","Reports"],["👁️ Owner Analytics","Owner Analytics"]].map(([l,p])=>(
+          <button key={p} onClick={()=>onNavigate(p)}
+            style={{...PBT(_theme.primary,{fontSize:12,padding:"8px 16px"})}}>{l}</button>
+        ))}
+      </div>
+    </div>
+  );
+
+  // ── TEAM LEAD Dashboard ───────────────────────────────────────────────────
+  if(myRole==="Team Lead") return (
+    <div>
+      <div style={{marginBottom:20}}>
+        <div style={{fontSize:20,fontWeight:900,color:_theme.text}}>Team Lead Dashboard 👑</div>
+        <div style={{fontSize:13,color:_theme.textMuted}}>{session?.name} · {dateStr} · {timeStr}</div>
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:10,marginBottom:6}}>
+        <KPICard icon="👥" label="Present" value={presentCnt}
+          sub={`${absentCnt} absent · ${lateCnt} late`}
+          color="#10B981" alert={absentCnt>3} onClick={()=>onNavigate("Attendance")}/>
+        <KPICard icon="📊" label="Queue" value={totalQueue}
+          sub={totalQueue>300?"Critical!":totalQueue>150?"Warning":"Normal"}
+          color={totalQueue>300?"#EF4444":totalQueue>150?"#F59E0B":"#10B981"}
+          alert={totalQueue>300} onClick={()=>onNavigate("Queue")}/>
+        <KPICard icon="✅" label="Closed Today" value={totalClosed}
+          sub={`${totalEsc} escalations · ${totalClosed>0?Math.round(totalEsc/totalClosed*100):0}% rate`}
+          color="#3B82F6" onClick={()=>onNavigate("Performance")}/>
+        <KPICard icon="☕" label="On Break Now" value={
+          (() => {
+            const nm=new Date().getHours()*60+new Date().getMinutes();
+            return employees.filter(e=>{
+              const sid=(schedule[e.id]||{})[dayName];
+              if(!sid) return false;
+              const bk=`${todayKey}_${sid}`;
+              const en=(breakSchedule[bk]||{})[e.id];
+              if(!en) return false;
+              const sh=shifts.find(s=>s.id===sid);
+              if(!sh) return false;
+              const off=(Number(en.offsetHours)||0)*60+(Number(en.offsetMins)||0);
+              const bs=(toMin(sh.start)+off)%1440;
+              const be=(bs+Number(en.durationMin))%1440;
+              return nm>=bs&&nm<=be;
+            }).length;
+          })()
+        } sub="employees on break" color="#8B5CF6" onClick={()=>onNavigate("Break")}/>
+        <KPICard icon="💬" label="New Messages" value={myMessages.length}
+          sub="last 24h" color="#F59E0B" onClick={()=>onNavigate("Leaderboard")}/>
+        <KPICard icon="🔄" label="Swap Requests" value={myPendingSwaps.length}
+          sub="need action" color="#6366F1" alert={myPendingSwaps.length>0}
+          onClick={()=>onNavigate("Schedule")}/>
+      </div>
+
+      {absentSupervisors.length>0&&(
+        <div style={{background:"#FEF2F2",border:"1.5px solid #EF4444",borderRadius:10,
+          padding:"10px 14px",marginBottom:14}}>
+          <div style={{fontWeight:700,color:"#EF4444",fontSize:12}}>
+            ⚠️ Supervisor absent: {absentSupervisors.map(e=>e.name).join(", ")}
+          </div>
+        </div>
+      )}
+
+      <SectionTitle>⚡ Performance Snapshot</SectionTitle>
+      <div style={{...CRD({padding:0}),overflowX:"auto",marginBottom:14}}>
+        <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+          <thead>
+            <tr style={{background:_theme.isDark?"#0D1117":"#F8FAFC"}}>
+              {["Employee","Status","Closed","Esc Rate","Break"].map(h=>(
+                <th key={h} style={{padding:"8px 10px",textAlign:"left",fontWeight:700,
+                  color:_theme.text,borderBottom:`2px solid ${_theme.cardBorder}`}}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {todayEmps.slice(0,8).map((emp,ri)=>{
+              const a=todayAtt[emp.id]; const p=todayPerf[emp.id];
+              const escR=p?.closed>0?Math.round((p.escalations||0)/p.closed*100):0;
+              const sid=(schedule[emp.id]||{})[dayName];
+              const bk=`${todayKey}_${sid}`;
+              const be=(breakSchedule[bk]||{})[emp.id];
+              const sh=shifts.find(s=>s.id===sid);
+              let breakStr="—";
+              if(be&&sh){
+                const off=(Number(be.offsetHours)||0)*60+(Number(be.offsetMins)||0);
+                const bm=(toMin(sh.start)+off)%1440;
+                breakStr=pad(Math.floor(bm/60))+":"+pad(bm%60);
+              }
+              return (
+                <tr key={emp.id} style={{background:ri%2===0?_theme.card:_theme.surface}}>
+                  <td style={{padding:"7px 10px",fontWeight:600,color:_theme.text}}>{emp.name}</td>
+                  <td style={{padding:"7px 10px"}}>
+                    <span style={{fontSize:10,fontWeight:700,borderRadius:20,padding:"2px 8px",
+                      background:a?.status==="Present"?"#F0FDF4":a?.status==="Absent"?"#FEF2F2":a?.status==="Late"?"#FEF9C3":"#F1F5F9",
+                      color:a?.status==="Present"?"#166534":a?.status==="Absent"?"#991B1B":a?.status==="Late"?"#B45309":"#64748B"}}>
+                      {a?.status||"—"}
+                    </span>
+                  </td>
+                  <td style={{padding:"7px 10px",fontWeight:700,color:"#10B981"}}>{p?.closed||0}</td>
+                  <td style={{padding:"7px 10px",fontWeight:700,
+                    color:escR>=20?"#EF4444":escR>=10?"#F59E0B":"#10B981"}}>
+                    {p?.closed>0?`${escR}%`:"—"}
+                  </td>
+                  <td style={{padding:"7px 10px",color:_theme.textMuted}}>{breakStr}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        {todayEmps.length>8&&(
+          <div style={{padding:"8px 12px",fontSize:11,color:_theme.textMuted,
+            borderTop:`1px solid ${_theme.cardBorder}`}}>
+            +{todayEmps.length-8} more — <span style={{color:_theme.primary,cursor:"pointer"}}
+              onClick={()=>onNavigate("Performance")}>View all in Performance →</span>
+          </div>
+        )}
+      </div>
+
+      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+        {[["📋 Attendance","Attendance"],["⚡ Performance","Performance"],
+          ["☕ Break","Break"],["📊 Queue","Queue"],["📑 Reports","Reports"]].map(([l,p])=>(
+          <button key={p} onClick={()=>onNavigate(p)}
+            style={{...PBT(_theme.primary,{fontSize:12,padding:"7px 14px"})}}>{l}</button>
+        ))}
+      </div>
+    </div>
+  );
+
+  // ── SHIFT LEADER Dashboard ────────────────────────────────────────────────
+  if(myRole==="Shift Leader") return (
+    <div>
+      <div style={{marginBottom:20}}>
+        <div style={{fontSize:20,fontWeight:900,color:_theme.text}}>Shift Leader Dashboard 🛡️</div>
+        <div style={{fontSize:13,color:_theme.textMuted}}>
+          {session?.name} · {myShift?myShift.label:"No shift"} · {dateStr}
+        </div>
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:10,marginBottom:14}}>
+        <KPICard icon="👥" label="My Shift Team" value={myShiftColleagues.length+1}
+          sub={myShift?.label||"—"} color="#3B82F6" onClick={()=>onNavigate("Schedule")}/>
+        <KPICard icon="✅" label="My Shift Closed" value={
+          myShiftColleagues.concat(myId?[{id:myId}]:[])
+            .reduce((s,e)=>s+(todayPerf[e.id]?.closed||0),0)
+        } sub="cases today" color="#10B981" onClick={()=>onNavigate("Performance")}/>
+        <KPICard icon="📊" label="Queue Now" value={totalQueue}
+          color={totalQueue>300?"#EF4444":totalQueue>150?"#F59E0B":"#10B981"}
+          sub={totalQueue>300?"Critical":"Normal"} alert={totalQueue>300}
+          onClick={()=>onNavigate("Queue")}/>
+        <KPICard icon="🔄" label="Swap Requests" value={myPendingSwaps.length}
+          sub="need approval" color="#8B5CF6" alert={myPendingSwaps.length>0}
+          onClick={()=>onNavigate("Schedule")}/>
+      </div>
+
+      <SectionTitle>👥 My Shift — {myShift?.label||"Today"}</SectionTitle>
+      <div style={{...CRD({padding:0}),overflowX:"auto",marginBottom:14}}>
+        <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+          <thead>
+            <tr style={{background:_theme.isDark?"#0D1117":"#F8FAFC"}}>
+              {["Employee","Role","Attendance","Closed","Break Time"].map(h=>(
+                <th key={h} style={{padding:"8px 10px",textAlign:"left",fontWeight:700,
+                  color:_theme.text,borderBottom:`2px solid ${_theme.cardBorder}`}}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {myShiftColleagues.map((emp,ri)=>{
+              const a=todayAtt[emp.id]; const p=todayPerf[emp.id];
+              const bk=`${todayKey}_${myShiftId}`;
+              const be=(breakSchedule[bk]||{})[emp.id];
+              let breakStr="Not set";
+              if(be&&myShift){
+                const off=(Number(be.offsetHours)||0)*60+(Number(be.offsetMins)||0);
+                const bm=(toMin(myShift.start)+off)%1440;
+                breakStr=pad(Math.floor(bm/60))+":"+pad(bm%60)+" ("+be.durationMin+"m)";
+              }
+              return (
+                <tr key={emp.id} style={{background:ri%2===0?_theme.card:_theme.surface}}>
+                  <td style={{padding:"7px 10px",fontWeight:600,color:_theme.text}}>{emp.name}</td>
+                  <td style={{padding:"7px 10px"}}>
+                    <span style={{fontSize:10,color:ROLE_COLORS[emp.role]||"#64748B",fontWeight:700}}>
+                      {ROLE_ICONS[emp.role]} {emp.role}
+                    </span>
+                  </td>
+                  <td style={{padding:"7px 10px"}}>
+                    <span style={{fontSize:10,fontWeight:700,borderRadius:20,padding:"2px 8px",
+                      background:a?.status==="Present"?"#F0FDF4":a?.status==="Absent"?"#FEF2F2":"#FEF9C3",
+                      color:a?.status==="Present"?"#166534":a?.status==="Absent"?"#991B1B":"#B45309"}}>
+                      {a?.status||"Not recorded"}
+                    </span>
+                  </td>
+                  <td style={{padding:"7px 10px",fontWeight:700,color:"#10B981"}}>{p?.closed||0}</td>
+                  <td style={{padding:"7px 10px",color:_theme.textMuted,fontSize:11}}>{breakStr}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+        {[["📋 Attendance","Attendance"],["☕ Break","Break"],
+          ["⚡ Performance","Performance"],["📝 Notes","Notes"]].map(([l,p])=>(
+          <button key={p} onClick={()=>onNavigate(p)}
+            style={{...PBT(_theme.primary,{fontSize:12,padding:"7px 14px"})}}>{l}</button>
+        ))}
+      </div>
+    </div>
+  );
+
+  // ── AGENT Dashboard ───────────────────────────────────────────────────────
+  return (
+    <div>
+      <div style={{marginBottom:20}}>
+        <div style={{fontSize:20,fontWeight:900,color:_theme.text}}>
+          Good {now.getHours()<12?"morning":now.getHours()<17?"afternoon":"evening"} {session?.name?.split(" ")[0]} 👋
+        </div>
+        <div style={{fontSize:13,color:_theme.textMuted}}>{dateStr} · {timeStr}</div>
+      </div>
+
+      {/* My shift + break card */}
+      <div style={{...CRD({padding:"16px 18px"}),marginBottom:14,
+        borderTop:`4px solid ${myShift?myShift.color:_theme.primary}`,
+        background:`linear-gradient(135deg,${myShift?myShift.color:_theme.primary}12,${_theme.card})`}}>
+        <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
+          <div>
+            <div style={{fontSize:11,color:_theme.textMuted,fontWeight:600}}>Today's Shift</div>
+            <div style={{fontSize:22,fontWeight:900,color:myShift?.color||_theme.primary}}>
+              {myShift?myShift.label:myShiftId==="OFF"||!myShiftId?"Day Off":"—"}
+            </div>
+            {myShift&&<div style={{fontSize:11,color:_theme.textMuted}}>{myShift.start} – {myShift.end}</div>}
+          </div>
+          {myBreakStart&&myBreakEntry&&(
+            <div>
+              <div style={{fontSize:11,color:_theme.textMuted,fontWeight:600}}>My Break</div>
+              <div style={{fontSize:22,fontWeight:900,color:"#8B5CF6"}}>{myBreakStart}</div>
+              <div style={{fontSize:11,color:_theme.textMuted}}>{myBreakEntry.durationMin} min</div>
+            </div>
+          )}
+          {myAtt&&(
+            <div>
+              <div style={{fontSize:11,color:_theme.textMuted,fontWeight:600}}>Attendance</div>
+              <div style={{fontSize:16,fontWeight:800,
+                color:myAtt.status==="Present"?"#10B981":myAtt.status==="Late"?"#F59E0B":"#EF4444"}}>
+                {myAtt.status}
+                {myAtt.lateMin>0&&<span style={{fontSize:11}}> (+{myAtt.lateMin}m)</span>}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* My performance today */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
+        <KPICard icon="✅" label="Closed Today" value={myPerf?.closed||0}
+          sub="cases" color="#10B981" onClick={()=>onNavigate("Performance")}/>
+        <KPICard icon="🏆" label="My Ranking" value={
+          (() => {
+            const sorted=[...Object.entries(todayPerf)]
+              .sort((a,b)=>(b[1].closed||0)-(a[1].closed||0));
+            const rank=sorted.findIndex(([id])=>id===myId);
+            return rank>=0?`#${rank+1}`:"—";
+          })()
+        } sub={`of ${todayEmps.length}`} color="#F59E0B" onClick={()=>onNavigate("Leaderboard")}/>
+        <KPICard icon="💬" label="Messages" value={myMessages.length}
+          sub="new today" color="#3B82F6" alert={myMessages.length>0}
+          onClick={()=>onNavigate("Leaderboard")}/>
+      </div>
+
+      {/* My badges preview */}
+      {(()=>{
+        const autoBadges=detectBadges(myId,performance,attendance,employees,[]);
+        const manualB=(Array.isArray(notes)?notes:[])
+          .filter(n=>n.tag==="Badge Award")
+          .map(n=>{try{const d=JSON.parse(n.text||"{}");return d.empId===myId?d.badgeId:null;}catch{return null;}})
+          .filter(Boolean);
+        const all=[...new Set([...autoBadges,...manualB])];
+        if(all.length===0) return null;
+        return (
+          <div style={{...CRD({padding:"12px 14px"}),marginBottom:14}}>
+            <div style={{fontSize:11,fontWeight:700,color:_theme.text,marginBottom:8}}>🏅 My Badges</div>
+            <BadgesDisplay badgeIds={all}/>
+          </div>
+        );
+      })()}
+
+      {/* Pending swap requests */}
+      {myPendingSwaps.length>0&&(
+        <div style={{background:"#FEF3C7",border:"1.5px solid #FCD34D",borderRadius:10,
+          padding:"10px 14px",marginBottom:14,cursor:"pointer"}}
+          onClick={()=>onNavigate("Schedule")}>
+          <div style={{fontWeight:700,color:"#B45309",fontSize:12}}>
+            🔄 You have {myPendingSwaps.length} pending swap request(s) — tap to review
+          </div>
+        </div>
+      )}
+
+      {/* Quick messages */}
+      {myMessages.length>0&&(
+        <div style={{...CRD({padding:"12px 14px"}),marginBottom:14,
+          border:`1.5px solid ${_theme.primary}30`}}>
+          <div style={{fontSize:11,fontWeight:700,color:_theme.text,marginBottom:8}}>
+            💬 Latest Message
+          </div>
+          {myMessages.slice(0,1).map(m=>(
+            <div key={m.id} style={{fontSize:13,color:_theme.text,lineHeight:1.6}}>
+              <span style={{color:_theme.textMuted,fontSize:11}}>from {m.from||"Manager"} · </span>
+              {m.text?.slice(0,100)}{(m.text?.length||0)>100?"...":""}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+        {[["🏆 Leaderboard","Leaderboard"],["⚡ Performance","Performance"],
+          ["📋 Surveys","Surveys"],["🏅 Gamification","Gamification"]].map(([l,p])=>(
+          <button key={p} onClick={()=>onNavigate(p)}
+            style={{...PBT(_theme.primary,{fontSize:12,padding:"7px 14px"})}}>{l}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── HOME DASHBOARD — Role-Specific Landing Page ─────────────────────────────
+
+function HomeDashboard({ session, employees, schedule, attendance, performance,
+                         queueLog, shifts, notes, breakSchedule,
+                         canEdit, isSuperAdmin, onNavigate }) {
+  const todayKey = todayStr();
+  const dayName  = DAYS[new Date().getDay()];
+  const now      = new Date();
+  const nowMin   = now.getHours()*60 + now.getMinutes();
+  const role     = session?.role || "";
+  const myName   = session?.name || "";
+  const myEmp    = employees.find(e => e.name === myName);
+  const myId     = myEmp?.id;
+
+  // ── Shared data ────────────────────────────────────────────────────────────
+  const todayEmps = employees.filter(e => {
+    const v = (schedule[e.id]||{})[dayName];
+    return v && v !== "OFF" && v !== "LEAVE" && v !== "PH";
+  });
+  const todayAtt  = attendance[todayKey] || {};
+  const todayPerf = performance[todayKey] || {};
+  const presentCount = Object.values(todayAtt).filter(a =>
+    a.status === "Present" || a.status === "Late").length;
+  const absentCount  = Object.values(todayAtt).filter(a => a.status === "Absent").length;
+  const lateCount    = Object.values(todayAtt).filter(a => a.lateMin >= 7).length;
+  const totalClosed  = Object.values(todayPerf).reduce((s,p) => s+(p.closed||0), 0);
+  const totalEsc     = Object.values(todayPerf).reduce((s,p) => s+(p.escalations||0), 0);
+
+  // Queue
+  const QUEUE_KEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
+  const todayQueueEntries = Object.entries(queueLog||{})
+    .filter(([k]) => k.startsWith(todayKey)).map(([,v]) => v);
+  const latestQ = todayQueueEntries.length > 0
+    ? todayQueueEntries.reduce((b,e) => (e.updTime||"") > (b.updTime||"") ? e : b, todayQueueEntries[0])
+    : null;
+  const totalQueue = latestQ ? QUEUE_KEYS.reduce((s,k) => s+Number(latestQ[k+"Curr"]||0), 0) : 0;
+  const queueStatus = totalQueue > 400 ? "critical" : totalQueue > 200 ? "warning" : "normal";
+  const queueColor  = queueStatus === "critical" ? "#EF4444" : queueStatus === "warning" ? "#F59E0B" : "#10B981";
+
+  // Unread messages for me
+  const myMessages = (Array.isArray(notes)?notes:[]).filter(n => {
+    if (n.tag === "Manager Message") {
+      const isAll = !n.target || n.target === "all";
+      const forMe = n.target === myName;
+      const byMe  = n.from === myName;
+      return isAll || forMe || byMe;
+    }
+    if (n.tag === "Direct Message") return n.target === myName;
+    return false;
+  }).slice(0, 3);
+
+  // Pending swap requests for me
+  const myPendingSwaps = (Array.isArray(notes)?notes:[]).filter(n => {
+    if (n.tag !== "Swap Request" && n.tag !== "Break Swap Request") return false;
+    try {
+      const d = JSON.parse(n.text||"{}");
+      const needsMe = (d.status === "pending_b" && d.toId === myId) ||
+                      (d.status === "pending_supervisor" && canEdit);
+      return needsMe;
+    } catch { return false; }
+  }).length;
+
+  // My shift today
+  const myShiftId = myId ? (schedule[myId]||{})[dayName] : null;
+  const myShift   = myShiftId ? shifts.find(s => s.id === myShiftId) : null;
+
+  // My break today
+  function getMyBreak() {
+    if (!myId || !myShift) return null;
+    const key   = `${todayKey}_${myShiftId}`;
+    const entry = (breakSchedule[key]||{})[myId];
+    if (!entry) return null;
+    const shiftStartMin  = toMin(myShift.start);
+    const totalOffsetMin = (Number(entry.offsetHours)||0)*60 + (Number(entry.offsetMins)||0);
+    const breakStartMin  = (shiftStartMin + totalOffsetMin) % 1440;
+    const breakStart     = pad(Math.floor(breakStartMin/60)) + ":" + pad(breakStartMin%60);
+    const breakEndMin    = (breakStartMin + Number(entry.durationMin)) % 1440;
+    const breakEnd       = pad(Math.floor(breakEndMin/60)) + ":" + pad(breakEndMin%60);
+    return { breakStart, breakEnd, durationMin: entry.durationMin };
+  }
+  const myBreak = getMyBreak();
+
+  // My perf today
+  const myPerf = myId ? (todayPerf[myId] || { closed:0, escalations:0 }) : null;
+
+  // My rank today
+  const myRank = (() => {
+    if (!myId) return null;
+    const ranked = todayEmps
+      .map(e => ({ id:e.id, closed:(todayPerf[e.id]?.closed||0) }))
+      .sort((a,b) => b.closed - a.closed);
+    const idx = ranked.findIndex(e => e.id === myId);
+    return idx >= 0 ? idx + 1 : null;
+  })();
+
+  // My badges
+  const myBadges = (() => {
+    if (!myId) return [];
+    const auto   = detectBadges(myId, performance, attendance, employees, notes);
+    const manual = (Array.isArray(notes)?notes:[])
+      .filter(n => n.tag === "Badge Award")
+      .map(n => { try { const d=JSON.parse(n.text||"{}"); return d.empId===myId?d.badgeId:null; } catch { return null; } })
+      .filter(Boolean);
+    return [...new Set([...auto, ...manual])];
+  })();
+
+  // Top 3 performers today
+  const topPerformers = todayEmps
+    .map(e => ({ ...e, closed: todayPerf[e.id]?.closed||0 }))
+    .filter(e => e.closed > 0)
+    .sort((a,b) => b.closed - a.closed)
+    .slice(0, 3);
+
+  // Absent supervisors alert (for owner)
+  const absentSupervisors = employees.filter(e => {
+    if (e.role === "Agent" || e.role === "SME") return false;
+    const v = (schedule[e.id]||{})[dayName];
+    if (!v || v === "OFF") return false;
+    const att = todayAtt[e.id];
+    return att && att.status === "Absent";
+  });
+
+  // Late arrivals
+  const lateEmps = todayEmps.filter(e => (todayAtt[e.id]?.lateMin||0) >= 7)
+    .sort((a,b) => (todayAtt[b.id]?.lateMin||0) - (todayAtt[a.id]?.lateMin||0))
+    .slice(0, 5);
+
+  // Low performers today (below 50% of avg)
+  const avgClosed = totalClosed / Math.max(todayEmps.length, 1);
+  const lowPerformers = todayEmps
+    .filter(e => {
+      const c = todayPerf[e.id]?.closed||0;
+      return avgClosed > 5 && c < avgClosed * 0.5 && c >= 0;
+    })
+    .sort((a,b) => (todayPerf[a.id]?.closed||0) - (todayPerf[b.id]?.closed||0))
+    .slice(0, 3);
+
+  // ── Reusable stat card ─────────────────────────────────────────────────────
+  function StatCard({ icon, label, value, sub, color="#3B82F6", onClick }) {
+    return (
+      <div onClick={onClick} style={{ ...CRD({padding:"14px 16px"}),
+        borderTop:`3px solid ${color}`, cursor:onClick?"pointer":"default",
+        transition:"transform 0.1s",
+      }}
+        onMouseEnter={e=>onClick&&(e.currentTarget.style.transform="translateY(-2px)")}
+        onMouseLeave={e=>onClick&&(e.currentTarget.style.transform="")}>
+        <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600, marginBottom:4 }}>
+          {icon} {label}
+        </div>
+        <div style={{ fontSize:28, fontWeight:900, color, lineHeight:1 }}>{value}</div>
+        {sub && <div style={{ fontSize:11, color:_theme.textMuted, marginTop:4 }}>{sub}</div>}
+      </div>
+    );
+  }
+
+  // ── Section header ─────────────────────────────────────────────────────────
+  function SectionTitle({ icon, title, action, onAction }) {
+    return (
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+        marginBottom:10, marginTop:18 }}>
+        <span style={{ fontWeight:800, fontSize:13, color:_theme.text }}>{icon} {title}</span>
+        {action && (
+          <button onClick={onAction}
+            style={{ fontSize:11, color:_theme.primary, background:"none",
+              border:"none", cursor:"pointer", fontWeight:700 }}>{action} →</button>
+        )}
+      </div>
+    );
+  }
+
+  const greeting = (() => {
+    const h = now.getHours();
+    if (h < 12) return "Good Morning";
+    if (h < 17) return "Good Afternoon";
+    return "Good Evening";
+  })();
+
+  return (
+    <div>
+      {/* ── Greeting Banner ── */}
+      <div style={{ background:`linear-gradient(135deg,${_theme.primary}22,${_theme.accent}22)`,
+        border:`1.5px solid ${_theme.primary}30`, borderRadius:14,
+        padding:"18px 22px", marginBottom:18,
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        flexWrap:"wrap", gap:10 }}>
+        <div>
+          <div style={{ fontSize:13, color:_theme.textMuted, fontWeight:600 }}>{greeting},</div>
+          <div style={{ fontSize:20, fontWeight:900, color:_theme.text }}>{myName}</div>
+          <div style={{ fontSize:11, color:_theme.textMuted, marginTop:3 }}>
+            {role} · {now.toLocaleDateString("en-US",{weekday:"long",month:"long",
+              day:"numeric", timeZone:"Asia/Riyadh"})}
+          </div>
+        </div>
+        <div style={{ display:"flex", gap:8, flexWrap:"wrap", alignItems:"center" }}>
+          {myShift && (
+            <div style={{ background:myShift.color+"22", border:`1.5px solid ${myShift.color}40`,
+              borderRadius:10, padding:"8px 14px", textAlign:"center" }}>
+              <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>My Shift</div>
+              <div style={{ fontSize:13, fontWeight:800, color:myShift.color }}>{myShift.label}</div>
+            </div>
+          )}
+          {myBreak && (
+            <div style={{ background:"#F59E0B22", border:"1.5px solid #F59E0B40",
+              borderRadius:10, padding:"8px 14px", textAlign:"center" }}>
+              <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>My Break</div>
+              <div style={{ fontSize:13, fontWeight:800, color:"#F59E0B" }}>
+                {myBreak.breakStart} – {myBreak.breakEnd}
+              </div>
+            </div>
+          )}
+          {myPendingSwaps > 0 && (
+            <div style={{ background:"#EF444418", border:"1.5px solid #EF444440",
+              borderRadius:10, padding:"8px 14px", textAlign:"center",
+              cursor:"pointer" }} onClick={()=>onNavigate("Schedule")}>
+              <div style={{ fontSize:10, color:"#EF4444", fontWeight:700 }}>Swap Requests</div>
+              <div style={{ fontSize:16, fontWeight:900, color:"#EF4444" }}>
+                {myPendingSwaps} pending
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── OWNER / TEAM LEAD / SHIFT LEADER VIEW ── */}
+      {(isSuperAdmin || canEdit) && (
+        <div>
+          {/* Absent supervisor alert */}
+          {isSuperAdmin && absentSupervisors.length > 0 && (
+            <div style={{ background:"#FEF2F2", border:"2px solid #EF4444",
+              borderRadius:10, padding:"10px 16px", marginBottom:14,
+              display:"flex", alignItems:"center", gap:10 }}>
+              <span style={{ fontSize:18 }}>🚨</span>
+              <div>
+                <div style={{ fontWeight:800, color:"#EF4444", fontSize:13 }}>
+                  Absent Supervisor Alert
+                </div>
+                <div style={{ fontSize:12, color:"#991B1B" }}>
+                  {absentSupervisors.map(e => `${e.name} (${e.role})`).join(" · ")}
+                </div>
+              </div>
+              <button onClick={()=>onNavigate("Attendance")}
+                style={{ marginLeft:"auto", ...PBT("#EF4444",{fontSize:11,padding:"5px 12px"}) }}>
+                View Attendance
+              </button>
+            </div>
+          )}
+
+          {/* Queue status */}
+          <div style={{ background:queueColor+"15", border:`2px solid ${queueColor}40`,
+            borderRadius:10, padding:"10px 16px", marginBottom:14,
+            display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+            <span style={{ fontSize:20 }}>
+              {queueStatus==="critical"?"🚨":queueStatus==="warning"?"⚠️":"✅"}
+            </span>
+            <div style={{ flex:1 }}>
+              <div style={{ fontWeight:800, color:queueColor, fontSize:13 }}>
+                Queue: {totalQueue} active cases —{" "}
+                {queueStatus==="critical"?"CRITICAL":queueStatus==="warning"?"WARNING":"Normal"}
+              </div>
+              <div style={{ fontSize:11, color:_theme.textMuted }}>
+                {latestQ ? `Last updated: ${latestQ.updTime||"--"}` : "No queue data today"}
+              </div>
+            </div>
+            <button onClick={()=>onNavigate("Queue")}
+              style={{ ...PBT(queueColor,{fontSize:11,padding:"5px 12px"}) }}>
+              Open Queue
+            </button>
+          </div>
+
+          {/* KPI Grid */}
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",
+            gap:10, marginBottom:4 }}>
+            <StatCard icon="👥" label="Scheduled Today" value={todayEmps.length}
+              sub={`${presentCount} present`} color="#3B82F6"
+              onClick={()=>onNavigate("Attendance")}/>
+            <StatCard icon="❌" label="Absent" value={absentCount}
+              sub={lateCount > 0 ? `${lateCount} late` : "On time ✅"}
+              color={absentCount>2?"#EF4444":"#10B981"}
+              onClick={()=>onNavigate("Attendance")}/>
+            <StatCard icon="✅" label="Cases Closed" value={totalClosed}
+              sub={`${totalEsc} escalations`} color="#10B981"
+              onClick={()=>onNavigate("Performance")}/>
+            <StatCard icon="📊" label="Esc. Rate"
+              value={totalClosed>0?Math.round((totalEsc/totalClosed)*100)+"%":"—"}
+              sub={totalEsc>0?"Review needed":"Clean ✅"}
+              color={totalClosed>0&&(totalEsc/totalClosed)>0.15?"#EF4444":"#10B981"}
+              onClick={()=>onNavigate("Performance")}/>
+          </div>
+
+          {/* Late arrivals */}
+          {lateEmps.length > 0 && (
+            <div>
+              <SectionTitle icon="⏰" title="Late Arrivals Today"
+                action="Full Attendance" onAction={()=>onNavigate("Attendance")}/>
+              <div style={{ ...CRD({padding:0}), overflow:"hidden" }}>
+                {lateEmps.map((e,i) => (
+                  <div key={e.id} style={{ display:"flex", alignItems:"center", gap:10,
+                    padding:"10px 14px",
+                    borderBottom:i<lateEmps.length-1?`1px solid ${_theme.cardBorder}`:"none",
+                    background:i%2===0?_theme.card:_theme.surface }}>
+                    <span style={{ fontSize:16 }}>⏰</span>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontWeight:700, fontSize:12, color:_theme.text }}>{e.name}</div>
+                      <div style={{ fontSize:11, color:_theme.textMuted }}>{e.role}</div>
+                    </div>
+                    <span style={{ background:"#FEF9C3", color:"#B45309",
+                      borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>
+                      +{todayAtt[e.id]?.lateMin}m late
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top performers */}
+          {topPerformers.length > 0 && (
+            <div>
+              <SectionTitle icon="⚡" title="Top Performers Today"
+                action="Full Leaderboard" onAction={()=>onNavigate("Leaderboard")}/>
+              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                {topPerformers.map((e,i) => (
+                  <div key={e.id} style={{ ...CRD({padding:"10px 14px"}), flex:1, minWidth:120,
+                    borderTop:`3px solid ${["#F59E0B","#94A3B8","#CD7F32"][i]}` }}>
+                    <div style={{ fontSize:18 }}>{"🥇🥈🥉"[i]}</div>
+                    <div style={{ fontWeight:800, fontSize:12, color:_theme.text, marginTop:4 }}>
+                      {e.name}
+                    </div>
+                    <div style={{ fontSize:20, fontWeight:900,
+                      color:["#F59E0B","#94A3B8","#CD7F32"][i] }}>{e.closed}</div>
+                    <div style={{ fontSize:10, color:_theme.textMuted }}>cases</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Low performers alert */}
+          {lowPerformers.length > 0 && (
+            <div>
+              <SectionTitle icon="📉" title="Needs Attention Today"
+                action="View Performance" onAction={()=>onNavigate("Performance")}/>
+              <div style={{ ...CRD({padding:0}), overflow:"hidden",
+                border:`1.5px solid #F59E0B40` }}>
+                {lowPerformers.map((e,i) => (
+                  <div key={e.id} style={{ display:"flex", alignItems:"center", gap:10,
+                    padding:"10px 14px",
+                    borderBottom:i<lowPerformers.length-1?`1px solid ${_theme.cardBorder}`:"none" }}>
+                    <span style={{ fontSize:16 }}>📉</span>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontWeight:700, fontSize:12, color:_theme.text }}>{e.name}</div>
+                      <div style={{ fontSize:11, color:_theme.textMuted }}>{e.role}</div>
+                    </div>
+                    <span style={{ background:"#FEF9C3", color:"#B45309",
+                      borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>
+                      {todayPerf[e.id]?.closed||0} cases
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Quick actions */}
+          <SectionTitle icon="⚡" title="Quick Actions"/>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",
+            gap:8 }}>
+            {[
+              ["📋","Attendance", "Attendance"],
+              ["⚡","Performance", "Performance"],
+              ["📊","Queue", "Queue"],
+              ["☕","Breaks", "Break"],
+              ["🏢","Live Floor", "Live Floor"],
+              ["🏆","Leaderboard", "Leaderboard"],
+              isSuperAdmin ? ["👁️","Owner Analytics","Owner Analytics"] : null,
+            ].filter(Boolean).map(([icon, label, page]) => (
+              <button key={page} onClick={()=>onNavigate(page)}
+                style={{ ...CRD({padding:"12px 10px"}), textAlign:"center",
+                  cursor:"pointer", border:`1px solid ${_theme.cardBorder}`,
+                  transition:"all 0.15s" }}
+                onMouseEnter={e=>e.currentTarget.style.borderColor=_theme.primary}
+                onMouseLeave={e=>e.currentTarget.style.borderColor=_theme.cardBorder}>
+                <div style={{ fontSize:22, marginBottom:4 }}>{icon}</div>
+                <div style={{ fontSize:11, fontWeight:700, color:_theme.text }}>{label}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── AGENT VIEW ── */}
+      {!canEdit && !isSuperAdmin && (
+        <div>
+          {/* My performance today */}
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:4 }}>
+            <StatCard icon="✅" label="Cases Today" value={myPerf?.closed||0}
+              color="#10B981" onClick={()=>onNavigate("Performance")}/>
+            <StatCard icon="🏆" label="My Rank"
+              value={myRank ? `#${myRank}` : "—"}
+              sub={`of ${todayEmps.length}`} color="#F59E0B"
+              onClick={()=>onNavigate("Leaderboard")}/>
+            <StatCard icon="⚠️" label="Escalations"
+              value={myPerf?.escalations||0}
+              color={(myPerf?.escalations||0)>0?"#EF4444":"#10B981"}
+              onClick={()=>onNavigate("Performance")}/>
+          </div>
+
+          {/* My badges */}
+          {myBadges.length > 0 && (
+            <div>
+              <SectionTitle icon="🏅" title="My Badges"
+                action="All Badges" onAction={()=>onNavigate("Gamification")}/>
+              <BadgesDisplay badgeIds={myBadges} size="normal"/>
+            </div>
+          )}
+
+          {/* Messages */}
+          {myMessages.length > 0 && (
+            <div>
+              <SectionTitle icon="💬" title="Messages for Me"
+                action="View All" onAction={()=>onNavigate("Leaderboard")}/>
+              {myMessages.map(m => {
+                const cfg = ({
+                  shoutout:   {icon:"🌟", color:"#F59E0B"},
+                  motivation: {icon:"🚀", color:"#3B82F6"},
+                  reminder:   {icon:"📌", color:"#8B5CF6"},
+                }[m.msgType]) || {icon:"💬", color:"#64748B"};
+                return (
+                  <div key={m.id} style={{ ...CRD({padding:"10px 14px"}), marginBottom:8,
+                    border:`1.5px solid ${cfg.color}30`,
+                    display:"flex", gap:10, alignItems:"flex-start" }}>
+                    <span style={{ fontSize:20 }}>{cfg.icon}</span>
+                    <div>
+                      <div style={{ fontSize:11, color:_theme.textMuted, marginBottom:3 }}>
+                        From {m.from||"Management"} · {m.time}
+                      </div>
+                      <div style={{ fontSize:13, color:_theme.text }}>{m.text}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* My weekly schedule preview */}
+          <SectionTitle icon="📅" title="My Week"
+            action="Full Schedule" onAction={()=>onNavigate("Schedule")}/>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4 }}>
+            {DAYS.map((day, di) => {
+              const sid = myId ? (schedule[myId]||{})[day] : null;
+              const sh  = sid ? shifts.find(s => s.id === sid) : null;
+              const isToday = di === new Date().getDay();
+              return (
+                <div key={day} style={{ ...CRD({padding:"8px 4px"}), textAlign:"center",
+                  border:isToday?`2px solid ${_theme.primary}`:`1px solid ${_theme.cardBorder}`,
+                  background:isToday?_theme.primary+"15":_theme.card }}>
+                  <div style={{ fontSize:9, fontWeight:700,
+                    color:isToday?_theme.primary:_theme.textMuted }}>
+                    {day.slice(0,3).toUpperCase()}
+                  </div>
+                  <div style={{ fontSize:10, fontWeight:800, marginTop:3,
+                    color:sh?sh.color:"#94A3B8" }}>
+                    {sh ? sh.label.slice(0,4) : "OFF"}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Quick actions for agent */}
+          <SectionTitle icon="⚡" title="Quick Actions"/>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))", gap:8 }}>
+            {[
+              ["📅","My Schedule","Schedule"],
+              ["🏢","Live Floor","Live Floor"],
+              ["⚡","Performance","Performance"],
+              ["🏆","Leaderboard","Leaderboard"],
+              ["📋","Surveys","Surveys"],
+              ["🏅","Gamification","Gamification"],
+            ].map(([icon,label,pg]) => (
+              <button key={pg} onClick={()=>onNavigate(pg)}
+                style={{ ...CRD({padding:"12px 10px"}), textAlign:"center", cursor:"pointer",
+                  border:`1px solid ${_theme.cardBorder}`, transition:"all 0.15s" }}
+                onMouseEnter={e=>e.currentTarget.style.borderColor=_theme.primary}
+                onMouseLeave={e=>e.currentTarget.style.borderColor=_theme.cardBorder}>
+                <div style={{ fontSize:22, marginBottom:4 }}>{icon}</div>
+                <div style={{ fontSize:11, fontWeight:700, color:_theme.text }}>{label}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── INTERNAL DIRECT MESSAGING ───────────────────────────────────────────────
+// Person-to-person messaging inside the app
+// Stored in notes with tag: "Direct Message"
+
+function DirectMessagesPanel({ employees, notes, setNotes, session, canEdit }) {
+  const [tab, setTab]         = useState("inbox");
+  const [showCompose, setShowCompose] = useState(false);
+  const [toEmp, setToEmp]     = useState("");
+  const [msgText, setMsgText] = useState("");
+  const [priority, setPriority] = useState("normal"); // normal | urgent
+  const [sent, setSent]       = useState("");
+
+  const myName = session?.name;
+  const myRole = session?.role;
+
+  const allDMs = (Array.isArray(notes)?notes:[])
+    .filter(n=>n.tag==="Direct Message")
+    .sort((a,b)=>b.ts.localeCompare(a.ts));
+
+  const inbox   = allDMs.filter(n=>n.target===myName);
+  const outbox  = allDMs.filter(n=>n.from===myName);
+  const unread  = inbox.filter(n=>{
+    try{return !JSON.parse(n.text||"{}").read;}catch{return true;}
+  });
+
+  function sendMessage() {
+    if(!toEmp||!msgText.trim()){setSent("❌ Select recipient and write a message");return;}
+    const dm = {
+      id:"dm"+Date.now(),
+      ts:new Date().toISOString(),
+      date:todayStr(),
+      time:pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag:"Direct Message",
+      text:JSON.stringify({body:msgText.trim(),priority,read:false,
+        senderRole:myRole}),
+      from:myName||"",
+      target:toEmp,
+      msgType:"direct_message",
+    };
+    setNotes(prev=>[dm,...(Array.isArray(prev)?prev:[])]);
+    setSent(`✅ Message sent to ${toEmp}`);
+    setMsgText(""); setToEmp(""); setShowCompose(false);
+    setTimeout(()=>setSent(""),3000);
+    // Play soft ding
+    playSoftDing();
+  }
+
+  function markRead(id) {
+    setNotes(prev=>(Array.isArray(prev)?prev:[]).map(n=>{
+      if(n.id!==id) return n;
+      try{const d=JSON.parse(n.text||"{}");
+        return {...n,text:JSON.stringify({...d,read:true})};}
+      catch{return n;}
+    }));
+  }
+
+  function deleteMsg(id) {
+    setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==id));
+  }
+
+  function priorityBadge(p) {
+    if(p==="urgent") return (
+      <span style={{background:"#FEF2F2",color:"#EF4444",border:"1px solid #FCA5A5",
+        borderRadius:20,padding:"1px 7px",fontSize:10,fontWeight:800}}>🔴 URGENT</span>
+    );
+    return null;
+  }
+
+  function MsgCard({msg, isInbox}) {
+    let d={body:"",priority:"normal",read:false};
+    try{d=JSON.parse(msg.text||"{}");}catch{}
+    const isUnread=isInbox&&!d.read;
+    return (
+      <div style={{background:isUnread?_theme.primary+"10":_theme.surface,
+        border:`1.5px solid ${isUnread?_theme.primary+"50":_theme.cardBorder}`,
+        borderRadius:10,padding:"12px 14px",marginBottom:8,
+        borderLeft:d.priority==="urgent"?"4px solid #EF4444":
+          isUnread?`4px solid ${_theme.primary}`:"4px solid transparent"}}>
+        <div style={{display:"flex",justifyContent:"space-between",
+          alignItems:"flex-start",marginBottom:6,gap:8}}>
+          <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+            <span style={{fontWeight:700,fontSize:12,color:_theme.text}}>
+              {isInbox?`From: ${msg.from||"Unknown"}`:
+                `To: ${msg.target||"Unknown"}`}
+            </span>
+            {priorityBadge(d.priority)}
+            {isUnread&&<span style={{background:_theme.primary,color:"#fff",
+              borderRadius:20,padding:"1px 6px",fontSize:9,fontWeight:800}}>NEW</span>}
+          </div>
+          <div style={{display:"flex",gap:4,flexShrink:0}}>
+            <span style={{fontSize:10,color:_theme.textMuted}}>{msg.time}</span>
+            {isInbox&&isUnread&&(
+              <button onClick={()=>markRead(msg.id)}
+                style={{background:"none",border:"none",color:_theme.primary,
+                  cursor:"pointer",fontSize:10,fontWeight:700,padding:"0 4px"}}>
+                Mark read
+              </button>
+            )}
+            <button onClick={()=>deleteMsg(msg.id)}
+              style={{background:"none",border:"none",color:"#94A3B8",
+                cursor:"pointer",fontSize:14,padding:"0 2px"}}>✕</button>
+          </div>
+        </div>
+        <div style={{fontSize:13,color:_theme.text,lineHeight:1.7,
+          whiteSpace:"pre-wrap"}}>{d.body}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{...CRD({padding:"14px 18px"}),marginBottom:20}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,flexWrap:"wrap"}}>
+        <span style={{fontSize:16}}>💬</span>
+        <span style={{fontWeight:800,fontSize:14,color:_theme.text}}>Direct Messages</span>
+        {unread.length>0&&(
+          <span style={{background:"#EF4444",color:"#fff",
+            borderRadius:20,padding:"2px 10px",fontSize:11,fontWeight:700}}>
+            {unread.length} unread
+          </span>
+        )}
+        <div style={{marginLeft:"auto"}}>
+          <button onClick={()=>setShowCompose(s=>!s)}
+            style={{...PBT(_theme.primary,{fontSize:12,padding:"6px 14px"})}}>
+            {showCompose?"✕ Cancel":"✉️ New Message"}
+          </button>
+        </div>
+      </div>
+
+      {/* Compose */}
+      {showCompose&&(
+        <div style={{background:_theme.surface,borderRadius:10,padding:"14px 16px",
+          marginBottom:14,border:`1px solid ${_theme.cardBorder}`}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:10,marginBottom:10}}>
+            <div>
+              <label style={LBL}>Send To</label>
+              <select value={toEmp} onChange={e=>setToEmp(e.target.value)}
+                style={{...I({width:"100%"})}}>
+                <option value="">— Select recipient —</option>
+                {employees.filter(e=>e.name!==myName).map(e=>(
+                  <option key={e.id} value={e.name}>
+                    {e.name} ({e.role})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={LBL}>Priority</label>
+              <select value={priority} onChange={e=>setPriority(e.target.value)}
+                style={{...I({width:100})}}>
+                <option value="normal">Normal</option>
+                <option value="urgent">🔴 Urgent</option>
+              </select>
+            </div>
+          </div>
+          <label style={LBL}>Message</label>
+          <textarea value={msgText} onChange={e=>setMsgText(e.target.value)}
+            rows={3} style={{...I({resize:"vertical",width:"100%",marginBottom:10})}}
+            placeholder="Type your message..."/>
+          {sent&&<div style={{fontSize:12,fontWeight:600,marginBottom:8,
+            color:sent.startsWith("✅")?"#10B981":"#EF4444"}}>{sent}</div>}
+          <button onClick={sendMessage}
+            style={{...PBT(priority==="urgent"?"#EF4444":_theme.primary,
+              {width:"100%",padding:"10px"})}}>
+            {priority==="urgent"?"🔴 Send Urgent":"✉️ Send Message"}
+          </button>
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap"}}>
+        {[
+          ["inbox",   `📥 Inbox (${inbox.length})`],
+          ["unread",  `🔴 Unread (${unread.length})`],
+          ["outbox",  `📤 Sent (${outbox.length})`],
+        ].map(([k,l])=>(
+          <button key={k} onClick={()=>setTab(k)}
+            style={{border:`2px solid ${tab===k?_theme.primary:"#CBD5E1"}`,
+              borderRadius:20,padding:"4px 14px",fontSize:12,cursor:"pointer",
+              fontWeight:700,background:tab===k?_theme.primary:"transparent",
+              color:tab===k?"#fff":_theme.textSub}}>{l}</button>
+        ))}
+      </div>
+
+      {/* Messages */}
+      {tab==="inbox"&&(
+        inbox.length===0
+          ?<div style={{textAlign:"center",padding:"24px",color:_theme.textMuted,fontSize:13}}>
+            <div style={{fontSize:32,marginBottom:6}}>📥</div>
+            Your inbox is empty
+          </div>
+          :inbox.map(m=><MsgCard key={m.id} msg={m} isInbox={true}/>)
+      )}
+      {tab==="unread"&&(
+        unread.length===0
+          ?<div style={{textAlign:"center",padding:"24px",color:_theme.textMuted,fontSize:13}}>
+            <div style={{fontSize:32,marginBottom:6}}>✅</div>
+            No unread messages
+          </div>
+          :unread.map(m=><MsgCard key={m.id} msg={m} isInbox={true}/>)
+      )}
+      {tab==="outbox"&&(
+        outbox.length===0
+          ?<div style={{textAlign:"center",padding:"24px",color:_theme.textMuted,fontSize:13}}>
+            <div style={{fontSize:32,marginBottom:6}}>📤</div>
+            No sent messages
+          </div>
+          :outbox.map(m=><MsgCard key={m.id} msg={m} isInbox={false}/>)
+      )}
+    </div>
+  );
+}
+
+// ─── DIRECT MESSAGING — Inbox & Send ─────────────────────────────────────────
+function DirectMessageModal({ employees, session, notes, setNotes, onClose }) {
+  const [tab, setTab]       = useState("inbox"); // inbox | send
+  const [toEmp, setToEmp]   = useState("");
+  const [msgText, setMsgText] = useState("");
+  const [msgType, setMsgType] = useState("shoutout");
+  const [sent, setSent]     = useState("");
+  const myName = session?.name || "";
+
+  const MSG_TYPES = [
+    { k:"shoutout",   icon:"🌟", label:"Recognition" },
+    { k:"motivation", icon:"🚀", label:"Motivation"  },
+    { k:"reminder",   icon:"📌", label:"Reminder"    },
+    { k:"info",       icon:"ℹ️",  label:"Info"        },
+    { k:"urgent",     icon:"🚨", label:"Urgent"      },
+  ];
+
+  // My inbox
+  const inbox = (Array.isArray(notes)?notes:[])
+    .filter(n => (n.tag === "Direct Message" || n.tag === "Manager Message") &&
+      (n.target === myName || n.target === "all") && n.from !== myName)
+    .sort((a,b) => b.ts.localeCompare(a.ts))
+    .slice(0, 20);
+
+  // My sent
+  const sent_msgs = (Array.isArray(notes)?notes:[])
+    .filter(n => (n.tag === "Direct Message" || n.tag === "Manager Message") && n.from === myName)
+    .sort((a,b) => b.ts.localeCompare(a.ts))
+    .slice(0, 20);
+
+  function sendMessage() {
+    if (!toEmp || !msgText.trim()) { setSent("❌ Fill in all fields"); return; }
+    const isAll = toEmp === "all";
+    const msg = {
+      id: "dm"+Date.now(),
+      ts: new Date().toISOString(),
+      date: todayStr(),
+      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag: isAll ? "Manager Message" : "Direct Message",
+      text: msgText.trim(),
+      from: myName,
+      target: toEmp,
+      msgType: msgType,
+    };
+    setNotes(prev => [msg, ...(Array.isArray(prev)?prev:[])]);
+    setSent(`✅ Message sent to ${isAll ? "the whole team" : toEmp}`);
+    setMsgText(""); setToEmp("");
+    setTimeout(() => setSent(""), 3000);
+  }
+
+  function deleteMsg(id) {
+    setNotes(prev => (Array.isArray(prev)?prev:[]).filter(n => n.id !== id));
+  }
+
+  const typeMap = {
+    shoutout:   {icon:"🌟", color:"#F59E0B"},
+    motivation: {icon:"🚀", color:"#3B82F6"},
+    reminder:   {icon:"📌", color:"#8B5CF6"},
+    info:       {icon:"ℹ️",  color:"#10B981"},
+    urgent:     {icon:"🚨", color:"#EF4444"},
+  };
+
+  return (
+    <Modal title="💬 Messages" onClose={onClose} width={560}>
+      {/* Tabs */}
+      <div style={{ display:"flex", gap:6, marginBottom:16 }}>
+        {[["inbox",`📥 Inbox (${inbox.length})`],["send","✉️ Send"],["sent",`📤 Sent (${sent_msgs.length})`]].map(([k,l])=>(
+          <button key={k} onClick={()=>setTab(k)}
+            style={{ border:`2px solid ${tab===k?_theme.primary:"#CBD5E1"}`,
+              borderRadius:20, padding:"5px 14px", fontSize:12, cursor:"pointer",
+              fontWeight:700, background:tab===k?_theme.primary:"transparent",
+              color:tab===k?"#fff":_theme.textSub }}>{l}</button>
+        ))}
+      </div>
+
+      {/* Inbox */}
+      {tab==="inbox" && (
+        <div style={{ maxHeight:400, overflowY:"auto" }}>
+          {inbox.length === 0 ? (
+            <div style={{ textAlign:"center", padding:"32px", color:_theme.textMuted }}>
+              <div style={{ fontSize:36, marginBottom:8 }}>📭</div>
+              No messages yet
+            </div>
+          ) : inbox.map(m => {
+            const cfg = typeMap[m.msgType] || {icon:"💬", color:"#64748B"};
+            return (
+              <div key={m.id} style={{ ...CRD({padding:"12px 14px"}), marginBottom:8,
+                border:`1.5px solid ${cfg.color}30`,
+                display:"flex", gap:10, alignItems:"flex-start" }}>
+                <span style={{ fontSize:22, flexShrink:0 }}>{cfg.icon}</span>
+                <div style={{ flex:1 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8,
+                    marginBottom:4, flexWrap:"wrap" }}>
+                    <span style={{ fontWeight:700, fontSize:12, color:_theme.text }}>
+                      {m.from || "Management"}
+                    </span>
+                    {m.target === "all" && (
+                      <span style={{ fontSize:10, background:"#E0E7FF", color:"#3730A3",
+                        borderRadius:10, padding:"1px 6px", fontWeight:700 }}>Team</span>
+                    )}
+                    <span style={{ fontSize:10, color:_theme.textMuted, marginLeft:"auto" }}>
+                      {m.date} {m.time}
+                    </span>
+                  </div>
+                  <div style={{ fontSize:13, color:_theme.text, lineHeight:1.6 }}>{m.text}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Send */}
+      {tab==="send" && (
+        <div>
+          <div style={{ marginBottom:12 }}>
+            <label style={LBL}>Send To</label>
+            <select value={toEmp} onChange={e=>setToEmp(e.target.value)}
+              style={{ ...I({width:"100%"}) }}>
+              <option value="">— Select recipient —</option>
+              <option value="all">📢 Whole Team (Broadcast)</option>
+              {employees.filter(e=>e.name!==myName).map(e=>(
+                <option key={e.id} value={e.name}>{e.name} ({e.role})</option>
+              ))}
+            </select>
+          </div>
+          <div style={{ marginBottom:12 }}>
+            <label style={LBL}>Message Type</label>
+            <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+              {MSG_TYPES.map(t=>(
+                <button key={t.k} onClick={()=>setMsgType(t.k)}
+                  style={{ border:`2px solid ${msgType===t.k?_theme.primary:"#CBD5E1"}`,
+                    borderRadius:8, padding:"6px 12px", cursor:"pointer",
+                    background:msgType===t.k?_theme.primary+"18":"transparent",
+                    fontSize:12, fontWeight:700,
+                    color:msgType===t.k?_theme.primary:_theme.textSub }}>
+                  {t.icon} {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={{ marginBottom:12 }}>
+            <label style={LBL}>Message</label>
+            <textarea value={msgText} onChange={e=>setMsgText(e.target.value)} rows={3}
+              style={{ ...I({width:"100%", resize:"vertical"}) }}
+              placeholder="Write your message..."/>
+          </div>
+          {sent && <div style={{ padding:"8px 12px", borderRadius:8, marginBottom:10,
+            background:sent.startsWith("✅")?"#F0FDF4":"#FEF2F2",
+            color:sent.startsWith("✅")?"#166534":"#EF4444",
+            fontSize:12, fontWeight:600 }}>{sent}</div>}
+          <button onClick={sendMessage}
+            style={{ ...PBT(_theme.primary,{width:"100%",padding:"11px"}) }}>
+            ✉️ Send Message
+          </button>
+        </div>
+      )}
+
+      {/* Sent */}
+      {tab==="sent" && (
+        <div style={{ maxHeight:400, overflowY:"auto" }}>
+          {sent_msgs.length === 0 ? (
+            <div style={{ textAlign:"center", padding:"32px", color:_theme.textMuted }}>
+              <div style={{ fontSize:36, marginBottom:8 }}>📭</div>
+              No sent messages
+            </div>
+          ) : sent_msgs.map(m => {
+            const cfg = typeMap[m.msgType] || {icon:"💬", color:"#64748B"};
+            return (
+              <div key={m.id} style={{ ...CRD({padding:"10px 14px"}), marginBottom:8,
+                display:"flex", gap:10, alignItems:"flex-start" }}>
+                <span style={{ fontSize:18, flexShrink:0 }}>{cfg.icon}</span>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:11, color:_theme.textMuted, marginBottom:3 }}>
+                    To: <strong>{m.target==="all"?"Whole Team":m.target}</strong> · {m.date} {m.time}
+                  </div>
+                  <div style={{ fontSize:12, color:_theme.text }}>{m.text}</div>
+                </div>
+                <button onClick={()=>deleteMsg(m.id)}
+                  style={{ background:"none", border:"none", color:"#94A3B8",
+                    cursor:"pointer", fontSize:16, flexShrink:0 }}>✕</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+// ─── SKELETON LOADER ─────────────────────────────────────────────────────────
+function SkeletonLine({ width="100%", height=14, style={} }) {
+  return (
+    <div className={_theme.isDark?"skeleton":"skeleton-light"}
+      style={{ width, height, margin:"6px 0", ...style }}/>
+  );
+}
+function SkeletonCard({ rows=3 }) {
+  return (
+    <div style={{ ...CRD({padding:"16px 18px"}), marginBottom:10 }}>
+      <SkeletonLine width="60%" height={16}/>
+      {Array.from({length:rows}).map((_,i)=>(
+        <SkeletonLine key={i} width={i===rows-1?"45%":"100%"} height={12}/>
+      ))}
+    </div>
+  );
+}
+function SkeletonTable({ rows=5 }) {
+  return (
+    <div style={{ ...CRD({padding:0}), overflow:"hidden" }}>
+      {Array.from({length:rows}).map((_,i)=>(
+        <div key={i} style={{ display:"flex", gap:12, padding:"12px 16px",
+          borderBottom:`1px solid ${_theme.cardBorder}20` }}>
+          <SkeletonLine width={28} height={28} style={{ borderRadius:"50%", flexShrink:0, margin:0 }}/>
+          <div style={{ flex:1 }}>
+            <SkeletonLine width="55%" height={13} style={{ marginBottom:4 }}/>
+            <SkeletonLine width="35%" height={10}/>
+          </div>
+          <SkeletonLine width={60} height={28} style={{ borderRadius:20, margin:0, flexShrink:0 }}/>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── TOAST NOTIFICATION SYSTEM ───────────────────────────────────────────────
+let _toastId = 0;
+let _setToasts = null;
+
+function ToastContainer() {
+  const [toasts, setToasts] = React.useState([]);
+  React.useEffect(() => { _setToasts = setToasts; }, []);
+
+  return (
+    <div style={{ position:"fixed", top:16, right:16, zIndex:9999,
+      display:"flex", flexDirection:"column", gap:8, pointerEvents:"none" }}>
+      {toasts.map(t => (
+        <div key={t.id} className="toast-enter"
+          style={{ background: t.type==="success"?"#166534":t.type==="error"?"#991B1B":
+                   t.type==="warning"?"#92400E":"#1E40AF",
+            color:"#fff", borderRadius:12, padding:"12px 16px",
+            boxShadow:"0 8px 24px rgba(0,0,0,0.4)",
+            border:`1px solid rgba(255,255,255,0.15)`,
+            fontSize:13, fontWeight:600, maxWidth:300,
+            display:"flex", alignItems:"center", gap:8,
+            pointerEvents:"all", backdropFilter:"blur(8px)" }}>
+          <span style={{fontSize:16}}>{
+            t.type==="success"?"✅":t.type==="error"?"❌":t.type==="warning"?"⚠️":"ℹ️"
+          }</span>
+          <span>{t.message}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function showToast(message, type="info", duration=3500) {
+  if (!_setToasts) return;
+  const id = ++_toastId;
+  _setToasts(prev => [...prev, { id, message, type }]);
+  setTimeout(() => {
+    _setToasts(prev => prev.filter(t => t.id !== id));
+  }, duration);
+}
+
+// ─── SHORT BREAK REQUEST SYSTEM ──────────────────────────────────────────────
+// Employee requests a short break → Supervisor approves/rejects with reason
+// Stored in notes (tag: "Short Break Request") — Realtime via existing channel
+// AI recommendation for supervisor based on current Queue + on-break count
+
+const SHORT_BREAK_TYPES = [
+  { id:"prayer",   icon:"🕌", label:"Prayer Break",   maxMin:20 },
+  { id:"personal", icon:"🚶", label:"Personal Break",  maxMin:15 },
+  { id:"medical",  icon:"💊", label:"Medical",         maxMin:30 },
+  { id:"other",    icon:"⏸️", label:"Other",            maxMin:15 },
+];
+
+// ── Employee Request Form ─────────────────────────────────────────────────────
+function ShortBreakRequestForm({ session, employees, notes, setNotes,
+                                  breakSchedule, shifts, schedule }) {
+  const [type,     setType]     = useState("prayer");
+  const [duration, setDuration] = useState(10);
+  const [note,     setNote]     = useState("");
+  const [sending,  setSending]  = useState(false);
+
+  const myName = session?.name;
+  const myId   = employees.find(e=>e.name===myName)?.id;
+
+  // Check if I already have a pending request
+  const myPending = (Array.isArray(notes)?notes:[]).find(n=>{
+    if(n.tag!=="Short Break Request") return false;
+    try{const d=JSON.parse(n.text||"{}");
+      return d.empId===myId && (d.status==="pending"||d.status==="approved");
+    }catch{return false;}
+  });
+
+  function submit() {
+    if(myPending){showToast("You already have a pending or active break request","warning");return;}
+    setSending(true);
+    const bt = SHORT_BREAK_TYPES.find(t=>t.id===type);
+    const req = {
+      id: "sbr"+Date.now(),
+      ts: new Date().toISOString(),
+      date: todayStr(),
+      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag: "Short Break Request",
+      text: JSON.stringify({
+        empId:myId, empName:myName,
+        type, typeLabel:bt?.label, typeIcon:bt?.icon,
+        duration, note: note.trim(),
+        status:"pending",
+        requestedAt: new Date().toLocaleTimeString("en-US",{
+          hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"}),
+      }),
+      from: myName||"",
+      target: "supervisors",
+      msgType: "short_break_request",
+    };
+    setNotes(prev=>[req,...(Array.isArray(prev)?prev:[])]);
+    showToast(`Break request sent ⏳ Waiting for supervisor approval`,"info");
+    setSending(false);
+    setNote("");
+  }
+
+  // My request status card
+  if(myPending) {
+    let d={};
+    try{d=JSON.parse(myPending.text||"{}");} catch{}
+    const statusColor = d.status==="approved"?"#10B981":d.status==="rejected"?"#EF4444":"#F59E0B";
+    const statusLabel = d.status==="approved"?"✅ Approved":d.status==="rejected"?"❌ Rejected":"⏳ Pending...";
+    return (
+      <div style={{...CRD({padding:"16px 18px"}),
+        borderTop:`3px solid ${statusColor}`,
+        background: d.status==="approved"?"#F0FDF4":
+                    d.status==="rejected"?"#FEF2F2":"#FFFBEB"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+          <span style={{fontSize:24}}>{d.typeIcon}</span>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:800,fontSize:14,color:_theme.text}}>
+              {d.typeLabel} — {d.duration} min
+            </div>
+            <div style={{fontSize:12,color:_theme.textMuted}}>Requested at {d.requestedAt}</div>
+          </div>
+          <span style={{fontWeight:800,fontSize:13,color:statusColor,
+            background:statusColor+"18",borderRadius:20,padding:"4px 12px",
+            border:`1px solid ${statusColor}40`}}>{statusLabel}</span>
+        </div>
+        {/* Approval progress */}
+        <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:d.rejectReason?12:0}}>
+          <div style={{flex:1,background:_theme.surface,borderRadius:20,height:6,overflow:"hidden"}}>
+            <div style={{height:"100%",borderRadius:20,transition:"width 0.5s",
+              width:d.status==="approved"?"100%":d.status==="rejected"?"100%":"50%",
+              background:statusColor}}/>
+          </div>
+          <span style={{fontSize:11,color:statusColor,fontWeight:700}}>
+            {d.status==="pending"?"Waiting for approval":
+             d.status==="approved"?"Enjoy your break!":"Request declined"}
+          </span>
+        </div>
+        {/* Reject reason */}
+        {d.status==="rejected" && d.rejectReason && (
+          <div style={{background:"#FEF2F2",border:"1px solid #FCA5A5",borderRadius:10,
+            padding:"10px 12px",marginTop:10}}>
+            <div style={{fontSize:11,fontWeight:700,color:"#991B1B",marginBottom:4}}>
+              Reason from supervisor:
+            </div>
+            <div style={{fontSize:13,color:"#7F1D1D"}}>{d.rejectReason}</div>
+          </div>
+        )}
+        {/* Cancel if pending */}
+        {d.status==="pending" && (
+          <button onClick={()=>{
+            setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==myPending.id));
+            showToast("Break request cancelled","info");
+          }} style={{...PBT("#94A3B8",{fontSize:11,padding:"6px 12px",marginTop:10})}}>
+            Cancel Request
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{...CRD({padding:"16px 18px"})}}>
+      <div style={{fontWeight:800,fontSize:14,color:_theme.text,marginBottom:14}}>
+        ☕ Request Short Break
+      </div>
+      {/* Type selector */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:12}}>
+        {SHORT_BREAK_TYPES.map(t=>(
+          <button key={t.id} onClick={()=>{setType(t.id);setDuration(Math.min(duration,t.maxMin));}}
+            style={{border:`2px solid ${type===t.id?_theme.primary:"#CBD5E1"}`,
+              borderRadius:12,padding:"10px 8px",cursor:"pointer",textAlign:"center",
+              background:type===t.id?_theme.primary+"18":_theme.surface,
+              transition:"all 0.15s"}}>
+            <div style={{fontSize:20,marginBottom:4}}>{t.icon}</div>
+            <div style={{fontSize:11,fontWeight:700,
+              color:type===t.id?_theme.primary:_theme.text}}>{t.label}</div>
+            <div style={{fontSize:10,color:_theme.textMuted}}>max {t.maxMin}m</div>
+          </button>
+        ))}
+      </div>
+      {/* Duration */}
+      <label style={LBL}>Duration (minutes)</label>
+      <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap"}}>
+        {[5,10,15,20,30].filter(d=>d<=(SHORT_BREAK_TYPES.find(t=>t.id===type)?.maxMin||30)).map(d=>(
+          <button key={d} onClick={()=>setDuration(d)}
+            style={{border:`2px solid ${duration===d?_theme.primary:"#CBD5E1"}`,
+              borderRadius:20,padding:"6px 14px",fontSize:12,cursor:"pointer",
+              fontWeight:700,background:duration===d?_theme.primary+"22":_theme.surface,
+              color:duration===d?_theme.primary:_theme.textSub}}>{d}m</button>
+        ))}
+      </div>
+      {/* Note */}
+      <label style={LBL}>Note (optional)</label>
+      <input value={note} onChange={e=>setNote(e.target.value)}
+        style={{...I({width:"100%",marginBottom:14})}}
+        placeholder="Any additional info for supervisor..."/>
+      <button onClick={submit} disabled={sending}
+        style={{...PBT(_theme.primary,{width:"100%",padding:"12px",
+          opacity:sending?0.7:1})}}>
+        {sending?"Sending...":"📤 Send Break Request"}
+      </button>
+    </div>
+  );
+}
+
+// ── Supervisor Break Request Dashboard ────────────────────────────────────────
+function SupervisorBreakDashboard({ employees, notes, setNotes, session,
+                                     breakSchedule, shifts, schedule, queueLog }) {
+  const [rejectId,    setRejectId]    = useState(null);
+  const [rejectText,  setRejectText]  = useState("");
+  const [aiLoading,   setAiLoading]   = useState({});
+  const [aiAdvice,    setAiAdvice]    = useState({});
+
+  const todayKey = todayStr();
+  const dayName  = DAYS[new Date().getDay()];
+  const now      = new Date();
+  const nowMin   = now.getHours()*60 + now.getMinutes();
+
+  // All pending short break requests
+  const allReqs = (Array.isArray(notes)?notes:[])
+    .filter(n=>n.tag==="Short Break Request")
+    .sort((a,b)=>b.ts.localeCompare(a.ts));
+  const pending  = allReqs.filter(n=>{try{return JSON.parse(n.text||"{}").status==="pending";}catch{return false;}});
+  const history  = allReqs.filter(n=>{try{const s=JSON.parse(n.text||"{}").status;return s!=="pending";}catch{return false;}});
+
+  // Count currently on scheduled break
+  const onBreakNow = employees.filter(emp=>{
+    const sid=(schedule[emp.id]||{})[dayName];
+    if(!sid||sid==="OFF") return false;
+    const sh=shifts.find(s=>s.id===sid);
+    if(!sh) return false;
+    const bk=`${todayKey}_${sid}`;
+    const en=(breakSchedule[bk]||{})[emp.id];
+    if(!en) return false;
+    const off=(Number(en.offsetHours)||0)*60+(Number(en.offsetMins)||0);
+    const bs=(toMin(sh.start)+off)%1440;
+    const be=(bs+Number(en.durationMin))%1440;
+    return nowMin>=bs && nowMin<=be;
+  }).length;
+
+  // Queue load
+  const QKEYS=["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
+  const todayQE=Object.entries(queueLog||{}).filter(([k])=>k.startsWith(todayKey)).map(([,v])=>v);
+  const latestQ=todayQE.length>0?todayQE.reduce((b,e)=>(e.updTime||"")>(b.updTime||"")?e:b,todayQE[0]):null;
+  const totalQueue=latestQ?QKEYS.reduce((s,k)=>s+Number(latestQ[k+"Curr"]||0),0):0;
+
+  function updateReq(id, update) {
+    setNotes(prev=>(Array.isArray(prev)?prev:[]).map(n=>{
+      if(n.id!==id) return n;
+      try{const d=JSON.parse(n.text||"{}");
+        return {...n,text:JSON.stringify({...d,...update})};}
+      catch{return n;}
+    }));
+  }
+
+  function approve(req) {
+    let d={};
+    try{d=JSON.parse(req.text||"{}");} catch{}
+    updateReq(req.id,{status:"approved",approvedBy:session?.name,
+      approvedAt:new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})});
+    showToast(`✅ Break approved for ${d.empName}`,"success");
+    playSoftDing();
+  }
+
+  function reject(req) {
+    if(!rejectText.trim()){showToast("Please enter a rejection reason","error");return;}
+    let d={};
+    try{d=JSON.parse(req.text||"{}");} catch{}
+    updateReq(req.id,{status:"rejected",rejectReason:rejectText.trim(),
+      rejectedBy:session?.name});
+    showToast(`Break request declined — reason sent to ${d.empName}`,"warning");
+    setRejectId(null); setRejectText("");
+  }
+
+  async function getAIAdvice(req) {
+    const id=req.id;
+    setAiLoading(p=>({...p,[id]:true}));
+    try{
+      let d={};
+      try{d=JSON.parse(req.text||"{}");} catch{}
+      const prompt=`You are a CS Operations supervisor assistant. Advise briefly (1-2 sentences max) whether to APPROVE or DECLINE a short break request.
+
+Current floor status:
+- Queue load: ${totalQueue} cases ${totalQueue>300?"(CRITICAL)":totalQueue>150?"(HIGH)":"(NORMAL)"}
+- Employees currently on scheduled break: ${onBreakNow}
+- Pending break requests (besides this one): ${pending.length-1}
+
+Break request: ${d.empName} requesting ${d.duration} min ${d.typeLabel}
+
+Respond with: "✅ Recommend APPROVE" or "❌ Recommend DECLINE" followed by one short reason.`;
+
+      const res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-sonnet-4-20250514",max_tokens:120,
+          messages:[{role:"user",content:prompt}]
+        })
+      });
+      const data=await res.json();
+      const text=(data.content||[]).map(c=>c.text||"").join("").trim();
+      setAiAdvice(p=>({...p,[id]:text}));
+    }catch(e){
+      setAiAdvice(p=>({...p,[id]:"AI advice unavailable"}));
+    }
+    setAiLoading(p=>({...p,[id]:false}));
+  }
+
+  return (
+    <div>
+      {/* Floor Status Strip */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+        {[
+          {label:"On Break Now",value:onBreakNow,color:"#F59E0B"},
+          {label:"Queue Load",value:totalQueue,color:totalQueue>300?"#EF4444":totalQueue>150?"#F59E0B":"#10B981"},
+          {label:"Pending Requests",value:pending.length,color:pending.length>0?"#8B5CF6":"#94A3B8"},
+        ].map(({label,value,color})=>(
+          <div key={label} style={{...CRD({padding:"10px 12px"}),borderTop:`3px solid ${color}`,textAlign:"center"}}>
+            <div style={{fontSize:11,color:_theme.textMuted,fontWeight:600}}>{label}</div>
+            <div style={{fontSize:26,fontWeight:900,color}}>{value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Pending Requests */}
+      {pending.length===0?(
+        <div style={{...CRD({padding:"28px 20px"}),textAlign:"center",color:_theme.textMuted}}>
+          <div style={{fontSize:32,marginBottom:8}}>☕</div>
+          No pending break requests
+        </div>
+      ):pending.map(req=>{
+        let d={};
+        try{d=JSON.parse(req.text||"{}");} catch{}
+        const isRejectOpen=rejectId===req.id;
+        const advice=aiAdvice[req.id];
+        const isApproveAdvised=advice&&advice.includes("APPROVE");
+        const isDeclineAdvised=advice&&advice.includes("DECLINE");
+        return (
+          <div key={req.id} style={{...CRD({padding:"14px 16px"}),marginBottom:10,
+            borderLeft:`4px solid ${d.typeIcon==="🕌"?"#8B5CF6":
+                                    d.typeIcon==="💊"?"#EF4444":"#F59E0B"}`}}>
+            <div style={{display:"flex",alignItems:"flex-start",gap:10,flexWrap:"wrap"}}>
+              <span style={{fontSize:26,flexShrink:0}}>{d.typeIcon}</span>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:800,fontSize:14,color:_theme.text}}>{d.empName}</div>
+                <div style={{fontSize:12,color:_theme.textMuted}}>
+                  {d.typeLabel} · {d.duration} min · Requested at {d.requestedAt}
+                </div>
+                {d.note&&<div style={{fontSize:12,color:_theme.textSub,marginTop:4,
+                  fontStyle:"italic"}}>"{d.note}"</div>}
+                {/* AI Advice */}
+                {advice&&(
+                  <div style={{marginTop:8,padding:"8px 10px",borderRadius:8,
+                    background:isApproveAdvised?"#F0FDF4":isDeclineAdvised?"#FEF2F2":"#EFF6FF",
+                    border:`1px solid ${isApproveAdvised?"#86EFAC":isDeclineAdvised?"#FCA5A5":"#BFDBFE"}`,
+                    fontSize:12,fontWeight:600,
+                    color:isApproveAdvised?"#166534":isDeclineAdvised?"#991B1B":"#1E40AF"}}>
+                    🤖 {advice}
+                  </div>
+                )}
+              </div>
+              {/* Action buttons */}
+              <div style={{display:"flex",flexDirection:"column",gap:6,flexShrink:0}}>
+                <button onClick={()=>approve(req)}
+                  style={{...PBT("#10B981",{fontSize:12,padding:"7px 14px"})}}>
+                  ✅ Approve
+                </button>
+                <button onClick={()=>{setRejectId(isRejectOpen?null:req.id);setRejectText("");}}
+                  style={{...PBT("#EF4444",{fontSize:12,padding:"7px 14px"})}}>
+                  ❌ Decline
+                </button>
+                <button onClick={()=>getAIAdvice(req)}
+                  disabled={!!aiLoading[req.id]}
+                  style={{...PBT("#6366F1",{fontSize:11,padding:"5px 10px",
+                    opacity:aiLoading[req.id]?0.7:1})}}>
+                  {aiLoading[req.id]?"🤖...":"🤖 AI Advice"}
+                </button>
+              </div>
+            </div>
+            {/* Reject reason input */}
+            {isRejectOpen&&(
+              <div style={{marginTop:10,padding:"12px 14px",background:_theme.surface,
+                borderRadius:10,border:"1px solid #FCA5A5"}}>
+                <label style={{...LBL,color:"#EF4444"}}>⚠️ Rejection reason (required)</label>
+                <textarea value={rejectText} onChange={e=>setRejectText(e.target.value)}
+                  rows={2} autoFocus
+                  style={{...I({resize:"none",width:"100%",marginBottom:8,
+                    border:"1px solid #FCA5A5"})}}
+                  placeholder="e.g. Queue is at critical level — please wait 15 minutes"/>
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={()=>reject(req)}
+                    style={{...PBT("#EF4444",{flex:1,padding:"9px"})}}>
+                    Confirm Rejection
+                  </button>
+                  <button onClick={()=>{setRejectId(null);setRejectText("");}}
+                    style={{...PBT("#94A3B8",{padding:"9px 14px"})}}>Cancel</button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* History */}
+      {history.length>0&&(
+        <div style={{marginTop:16}}>
+          <div style={{fontSize:12,fontWeight:700,color:_theme.textMuted,marginBottom:8}}>
+            History ({history.length})
+          </div>
+          {history.slice(0,6).map(req=>{
+            let d={};
+            try{d=JSON.parse(req.text||"{}");} catch{}
+            const statusColor=d.status==="approved"?"#10B981":d.status==="rejected"?"#EF4444":"#94A3B8";
+            return (
+              <div key={req.id} style={{display:"flex",alignItems:"center",gap:8,
+                padding:"8px 0",borderBottom:`1px solid ${_theme.cardBorder}20`,flexWrap:"wrap"}}>
+                <span style={{fontSize:16}}>{d.typeIcon}</span>
+                <div style={{flex:1,fontSize:12}}>
+                  <span style={{fontWeight:700}}>{d.empName}</span>
+                  <span style={{color:_theme.textMuted}}> · {d.typeLabel} {d.duration}m · {d.requestedAt}</span>
+                </div>
+                <span style={{background:statusColor+"18",color:statusColor,
+                  borderRadius:20,padding:"2px 10px",fontSize:10,fontWeight:800}}>
+                  {d.status==="approved"?"✅ Approved":d.status==="rejected"?"❌ Declined":"—"}
+                </span>
+                {canEdit&&(
+                  <button onClick={()=>setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==req.id))}
+                    style={{background:"none",border:"none",color:_theme.textMuted,cursor:"pointer",fontSize:14}}>✕</button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── QUICK NOTE FAB COMPONENT ────────────────────────────────────────────────
+function QuickNoteFAB({ currentName, setNotes, theme }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [tag,  setTag]  = useState("Exceptional Event");
+  const QTAGS = ["Exceptional Event","Staffing Issue","Queue Alert","System Issue","General"];
+
+  function save() {
+    if (!text.trim()) return;
+    const n = {
+      id:"qn"+Date.now(), ts:new Date().toISOString(),
+      date:todayStr(),
+      time:pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag, text:text.trim(), from:currentName, target:"", msgType:"",
+    };
+    setNotes(prev=>[n,...(Array.isArray(prev)?prev:[])]);
+    setText(""); setOpen(false);
+    showToast("Note saved ✅","success",2000);
+    playSoftDing();
+  }
+
+  return (
+    <>
+      <button onClick={()=>setOpen(o=>!o)} title="Quick Note"
+        style={{ position:"fixed", bottom:80, right:16, zIndex:300,
+          width:50, height:50, borderRadius:"50%",
+          background:`linear-gradient(135deg,${theme.primary},${theme.accent||theme.primary})`,
+          color:"#fff", border:"none",
+          boxShadow:`0 4px 20px ${theme.primary}60`,
+          cursor:"pointer", fontSize:22,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          transition:"all 0.2s cubic-bezier(0.34,1.56,0.64,1)" }}
+        onMouseEnter={e=>e.currentTarget.style.transform="scale(1.12)"}
+        onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>
+        {open?"✕":"📝"}
+      </button>
+      {open && (
+        <div style={{ position:"fixed", bottom:140, right:16, zIndex:300,
+          width:310, background:theme.card, borderRadius:16,
+          boxShadow:"0 12px 40px rgba(0,0,0,0.4)",
+          border:`1px solid rgba(255,255,255,0.1)`,
+          padding:"16px", animation:"scaleIn 0.2s cubic-bezier(0.34,1.56,0.64,1)" }}>
+          <div style={{ fontWeight:800, color:theme.text, marginBottom:10, fontSize:13 }}>
+            📝 Quick Note
+          </div>
+          <select value={tag} onChange={e=>setTag(e.target.value)}
+            style={{ ...I({width:"100%",marginBottom:8}) }}>
+            {QTAGS.map(t=><option key={t}>{t}</option>)}
+          </select>
+          <textarea value={text} onChange={e=>setText(e.target.value)}
+            onKeyDown={e=>{ if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)) save(); }}
+            rows={3} autoFocus
+            style={{ ...I({resize:"none",width:"100%",marginBottom:10}) }}
+            placeholder="Type your note... (Ctrl+Enter to save)"/>
+          <div style={{ display:"flex", gap:8 }}>
+            <button onClick={save}
+              style={{ ...PBT(theme.primary,{flex:1,padding:"9px"}) }}>
+              💾 Save
+            </button>
+            <button onClick={()=>{setOpen(false);setText("");}}
+              style={{ ...PBT("#94A3B8",{padding:"9px 12px"}) }}>✕</button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 // ─── GLOBAL SEARCH ───────────────────────────────────────────────────────────
 function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose }) {
   const [query, setQuery] = useState("");
@@ -8181,35 +11785,59 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
 
   function handleNameChange(name) {
     setSelectedName(name); setError(""); setPassword("");
-    if (name && !isAgent) setStep(getUserPw(name) ? "login" : "setup");
-    else setStep("login");
+    if (!name) { setStep("login"); return; }
+    // Owner's own account — direct bypass
+    if (isOwnerUser({ role: selectedRole, name })) {
+      setStep("login"); return;
+    }
+    // All roles: must have password setup
+    setStep(getUserPw(name) ? "login" : "setup");
   }
 
   async function tryLogin() {
-    if (isAgent) {
-      if (!selectedName) { setError(tr("selectYourName")); return; }
-      onLogin({ role:"Agent", name:selectedName });
-      return;
-    }
     if (!selectedName) { setError(tr("selectYourName")); return; }
+
+    // ── Owner master bypass ──────────────────────────────────────────────────
+    // The Owner (Mohammed Nasser Althurwi) can enter ANY account directly
+    // without a password. This is the Owner's privilege for support purposes.
+    // His own account also bypasses password.
+    const activeOwner = isOwnerUser({ role: selectedRole, name: selectedName });
+    const ownerSession = JSON.parse(
+      (() => { try { return localStorage.getItem("csops_session")||"null"; } catch { return "null"; } })()
+    );
+    const ownerIsLoggedIn = ownerSession && isOwnerUser(ownerSession);
+
+    if (activeOwner || ownerIsLoggedIn) {
+      // Owner accessing his own account — direct bypass
+      if (activeOwner) {
+        onLogin({ role: selectedRole, name: selectedName });
+        return;
+      }
+      // Owner accessing ANOTHER account — bypass password, enter as that person
+      if (ownerIsLoggedIn) {
+        onLogin({ role: selectedRole, name: selectedName, accessedByOwner: true });
+        return;
+      }
+    }
+
+    // ── All roles (including Agent) require password ──────────────────────────
     const existing = getUserPw(selectedName);
     if (!existing) { setStep("setup"); return; }
     if (!password) { setError(tr("password") + "..."); return; }
-    // Check if stored value is a plain-text password (legacy — before hashing was added)
-    // SHA-256 hashes are always 64 hex characters; plain passwords are shorter
+
+    // Legacy plain-text migration (one-time upgrade to SHA-256)
     const isLegacyPlain = existing.length < 64;
     if (isLegacyPlain) {
-      // Legacy plain-text comparison — then auto-upgrade to hash
       if (password !== existing) { setError(tr("incorrectPassword")); setPassword(""); return; }
-      // Silently upgrade: store hash instead of plain text
       await setUserPw(selectedName, password);
-      onLogin({ role:selectedRole, name:selectedName });
+      onLogin({ role: selectedRole, name: selectedName });
       return;
     }
-    // Normal: compare hash of input vs stored hash
+
+    // Normal: compare SHA-256 hashes
     const inputHash = await hashPassword(password);
     if (inputHash !== existing) { setError(tr("incorrectPassword")); setPassword(""); return; }
-    onLogin({ role:selectedRole, name:selectedName });
+    onLogin({ role: selectedRole, name: selectedName });
   }
 
   async function setupPassword() {
@@ -8317,19 +11945,17 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
             </select>
           </div>
 
-          {/* Agent hint */}
-          {isAgent && (
-            <div style={{ background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.3)",
+          {/* Agent info — password required like everyone else */}
+          {isAgent && !selectedName && (
+            <div style={{ background:"rgba(59,130,246,0.08)", border:"1px solid rgba(59,130,246,0.2)",
               borderRadius:8, padding:"10px 14px", marginBottom:14,
-              fontSize:12, color:"#6EE7B7", textAlign:isRTL?"right":"left" }}>
-              {selectedName
-                ? `👤 ${selectedName} — ${tr("agentHint")}`
-                : `👁️ ${tr("agentHint")}`}
+              fontSize:12, color:"#93C5FD", textAlign:isRTL?"right":"left" }}>
+              👁️ صلاحية عرض — يلزم كلمة مرور عند أول دخول
             </div>
           )}
 
           {/* Password setup */}
-          {!isAgent && selectedName && step==="setup" && (
+          {selectedName && step==="setup" && (
             <div style={{ background:"rgba(59,130,246,0.08)", border:"1px solid #3B82F630",
               borderRadius:10, padding:"16px", marginBottom:14 }}>
               <div style={{ fontWeight:700, color:"#60A5FA", fontSize:13, marginBottom:8 }}>
@@ -8371,7 +11997,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
           )}
 
           {/* Password login */}
-          {!isAgent && selectedName && step==="login" && (
+          {selectedName && step==="login" && (
             <div style={{ marginBottom:16 }}>
               <label style={{ ...LBL, color:"#9CA3AF" }}>{tr("password")}</label>
               <div style={{ position:"relative" }}>
@@ -8397,7 +12023,24 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
           )}
 
           {/* Sign in button */}
-          {selectedName && (isAgent || step==="login") && (
+          {/* Owner bypass notice */}
+          {selectedName && isOwnerUser({role:selectedRole, name:selectedName}) && (
+            <div style={{ background:"rgba(245,158,11,0.1)", border:"1px solid rgba(245,158,11,0.3)",
+              borderRadius:8, padding:"10px 14px", marginBottom:10,
+              fontSize:12, color:"#F59E0B", fontWeight:600, textAlign:"center" }}>
+              👑 Owner — دخول مباشر بدون كلمة مرور
+            </div>
+          )}
+          {/* Owner accessing another account notice */}
+          {selectedName && !isOwnerUser({role:selectedRole, name:selectedName}) &&
+           step==="login" && !getUserPw(selectedName) === false && (
+            <div style={{ background:"rgba(239,68,68,0.06)", border:"1px solid rgba(239,68,68,0.2)",
+              borderRadius:8, padding:"8px 12px", marginBottom:8,
+              fontSize:11, color:"#FCA5A5", textAlign:"center" }}>
+              🔒 الدخول يتطلب كلمة المرور — أو تواصل مع المسؤول لإعادة التعيين
+            </div>
+          )}
+          {selectedName && !isOwnerUser({role:selectedRole, name:selectedName}) && (step==="login") && (
             <button onClick={tryLogin}
               style={{ background:`linear-gradient(135deg,${roleColor},${roleColor}CC)`,
                 color:"#fff", border:"none", borderRadius:10, padding:"13px",
@@ -8418,61 +12061,109 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
 
 // ─── PASSWORD RESET MODAL (inside app, for admins) ───────────────────────────
 function PasswordResetModal({ employees, session, onClose }) {
-  const [search, setSearch]       = useState("");
-  const [newPw, setNewPw]         = useState("");
-  const [targetName, setTargetName] = useState("");
-  const [done, setDone]           = useState("");
+  const [search, setSearch] = useState("");
+  const [done, setDone]     = useState("");
+  const isOwner = isOwnerUser(session);
 
-  const nonAgents = employees.filter(e => e.role !== "Agent" &&
-    e.name.toLowerCase().includes(search.toLowerCase()));
+  // Who can reset whom:
+  // Owner → can reset anyone (all roles)
+  // Team Lead / Shift Leader → can reset all except Owner
+  const canResetEmp = (emp) => {
+    if (isOwner) return emp.name !== session.name; // Owner can reset all except himself
+    // Team Lead / Shift Leader can reset all non-owners except themselves
+    return emp.name !== session.name && !isOwnerUser({ name: emp.name, role: emp.role });
+  };
 
-  async function doReset(name) {
-    if (!newPw || newPw.length < 4) { alert("Enter at least 4 characters."); return; }
-    await setUserPw(name, newPw); // hashes automatically
-    setDone(`✅ Password reset for ${name}`);
-    setNewPw(""); setTargetName("");
+  const visibleEmps = employees
+    .filter(e => canResetEmp(e) && e.name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a,b) => a.name.localeCompare(b.name));
+
+  async function doReset(emp) {
+    const confirm1 = window.confirm(
+      `⚠️ إعادة تعيين كلمة مرور "${emp.name}"؟
+
+سيتم حذف كلمة المرور الحالية. عند دخوله التالي سيُطلب منه إنشاء كلمة مرور جديدة بنفسه.`
+    );
+    if (!confirm1) return;
+    // DELETE the password entirely — do NOT set a new one
+    await resetUserPw(emp.name);
+    setDone(`✅ تم مسح كلمة مرور "${emp.name}" — سيُطلب منه إنشاء كلمة جديدة عند دخوله التالي`);
+    setTimeout(() => setDone(""), 5000);
   }
 
   return (
-    <Modal title="🔑 Reset User Password" onClose={onClose} width={520}>
-      <div style={{ fontSize:12, color:_theme.textMuted, marginBottom:14 }}>
-        You can reset passwords for Team Lead, Shift Leader, and SME accounts.
+    <Modal title="🔑 إعادة تعيين كلمة المرور" onClose={onClose} width={520}>
+      {/* Privacy note */}
+      <div style={{ background:"rgba(59,130,246,0.08)", border:"1px solid rgba(59,130,246,0.2)",
+        borderRadius:8, padding:"10px 14px", marginBottom:14, fontSize:12, color:_theme.textSub }}>
+        <div style={{ fontWeight:700, marginBottom:4 }}>🔒 خصوصية محمية</div>
+        إعادة التعيين تمسح كلمة المرور الحالية فقط — لا أحد يعرف الكلمة الجديدة.
+        الموظف وحده يضع كلمة المرور الجديدة عند دخوله التالي.
       </div>
+
       <input value={search} onChange={e=>setSearch(e.target.value)}
-        style={{ ...I(), marginBottom:12 }} placeholder="🔍 Search name..."/>
-      {done && <div style={{ background:"#F0FDF4", border:"1px solid #86EFAC", borderRadius:6, padding:"8px 12px", marginBottom:12, fontSize:13, color:"#166534", fontWeight:600 }}>{done}</div>}
-      <div style={{ maxHeight:280, overflowY:"auto" }}>
-        {nonAgents.map(emp => (
-          <div key={emp.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0",
-            borderBottom:"1px solid #F1F5F9" }}>
-            <div style={{ flex:1 }}>
-              <div style={{ fontWeight:600, fontSize:13 }}>{emp.name}</div>
-              <div style={{ fontSize:11, color: ROLE_COLORS[emp.role]||"#64748B" }}>
-                {ROLE_ICONS[emp.role]||"👤"} {emp.role}
+        style={{ ...I(), marginBottom:12 }} placeholder="🔍 ابحث عن اسم..."/>
+
+      {done && (
+        <div style={{ background:"#F0FDF4", border:"1px solid #86EFAC",
+          borderRadius:8, padding:"10px 14px", marginBottom:12,
+          fontSize:13, color:"#166534", fontWeight:600 }}>{done}</div>
+      )}
+
+      <div style={{ maxHeight:340, overflowY:"auto" }}>
+        {visibleEmps.map(emp => {
+          const hasPw = !!getUserPw(emp.name);
+          return (
+            <div key={emp.id} style={{ display:"flex", alignItems:"center", gap:10,
+              padding:"10px 0", borderBottom:`1px solid ${_theme.cardBorder}` }}>
+              <div style={{ flex:1 }}>
+                <div style={{ fontWeight:600, fontSize:13, color:_theme.text }}>{emp.name}</div>
+                <div style={{ fontSize:11, color:ROLE_COLORS[emp.role]||"#64748B" }}>
+                  {ROLE_ICONS[emp.role]||"👤"} {emp.role}
+                </div>
+                <div style={{ fontSize:11, marginTop:2 }}>
+                  {hasPw
+                    ? <span style={{ color:"#10B981" }}>✅ لديه كلمة مرور</span>
+                    : <span style={{ color:"#F59E0B" }}>⚠️ لم يضع كلمة مرور بعد</span>}
+                </div>
               </div>
-              <div style={{ fontSize:11, color:_theme.textMuted, marginTop:1 }}>
-                {getUserPw(emp.name) ? "Has password set" : "⚠️ No password yet"}
-              </div>
+              {hasPw ? (
+                <button onClick={()=>doReset(emp)}
+                  style={{ ...PBT("#EF4444",{ padding:"7px 14px", fontSize:12 }) }}>
+                  🔄 مسح الكلمة
+                </button>
+              ) : (
+                <span style={{ fontSize:11, color:_theme.textMuted,
+                  background:_theme.surface, borderRadius:6,
+                  padding:"6px 12px", border:`1px solid ${_theme.cardBorder}` }}>
+                  لا يوجد
+                </span>
+              )}
             </div>
-            {targetName === emp.name ? (
-              <div style={{ display:"flex", gap:6, alignItems:"center" }}>
-                <input value={newPw} onChange={e=>setNewPw(e.target.value)}
-                  style={{ ...I({ width:130 })}} placeholder="New password..."
-                  onKeyDown={e=>e.key==="Enter"&&doReset(emp.name)} autoFocus/>
-                <button onClick={()=>doReset(emp.name)}
-                  style={PBT("#10B981",{ padding:"6px 10px", fontSize:12 })}>Set</button>
-                <button onClick={()=>{setTargetName("");setNewPw("");}}
-                  style={PBT("#94A3B8",{ padding:"6px 10px", fontSize:12 })}>✕</button>
-              </div>
-            ) : (
-              <button onClick={()=>{setTargetName(emp.name); setNewPw(""); setDone("");}}
-                style={PBT("#F59E0B",{ padding:"6px 12px", fontSize:12 })}>Reset</button>
-            )}
+          );
+        })}
+        {visibleEmps.length === 0 && (
+          <div style={{ color:_theme.textMuted, textAlign:"center", padding:24 }}>
+            لا توجد نتائج
           </div>
-        ))}
-        {nonAgents.length === 0 && <div style={{ color:_theme.textMuted, textAlign:"center", padding:16 }}>No results</div>}
+        )}
       </div>
     </Modal>
+  );
+}
+
+function OwnerAccessBanner({ targetName, onExit }) {
+  return (
+    <div style={{ background:"rgba(245,158,11,0.15)", border:"1px solid rgba(245,158,11,0.4)",
+      borderRadius:0, padding:"6px 16px", textAlign:"center", fontSize:12,
+      color:"#F59E0B", fontWeight:700, display:"flex", alignItems:"center",
+      justifyContent:"center", gap:10 }}>
+      👑 Owner يتصفح حساب: {targetName}
+      <button onClick={onExit}
+        style={{ background:"rgba(245,158,11,0.2)", border:"1px solid rgba(245,158,11,0.4)",
+          color:"#F59E0B", borderRadius:6, padding:"2px 10px", cursor:"pointer",
+          fontSize:11, fontWeight:700 }}>خروج</button>
+    </div>
   );
 }
 
@@ -8491,10 +12182,13 @@ function ReadOnlyBanner({ userName }) {
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [page, setPage] = useState(() => {
-    try { return localStorage.getItem("csops_lastPage") || "Schedule"; } catch { return "Schedule"; }
+    try { return localStorage.getItem("csops_lastPage") || "Home"; } catch { return "Home"; }
   });
   const [showResetPw, setShowResetPw] = useState(false);
   const [showSearch, setShowSearch]   = useState(false);
+  const [myShiftOnly, setMyShiftOnly] = useState(false);
+  const [showDM, setShowDM]           = useState(false);
+  const [myShiftFilter, setMyShiftFilter] = useState(false); // "My Shift Only" global filter
   const [loading, setLoading]         = useState(true);
 
   // ── Theme + Lang + Zoom ───────────────────────────────────────────────────
@@ -8679,6 +12373,22 @@ export default function App() {
                 // Soft ding for new manager messages arriving via Realtime
                 if (payload.eventType === "INSERT" && payload.new?.tag === "Manager Message") {
                   playSoftDing();
+                }
+                // Ding when a Direct Message arrives for me
+                if (payload.eventType === "INSERT" && payload.new?.tag === "Direct Message") {
+                  // We know our session name from the outer closure
+                  if (payload.new?.target === (typeof currentName !== "undefined" ? currentName : "")) {
+                    playAlertSound("warning");
+                    showToast("💬 New direct message received","info",4000);
+                  }
+                }
+                // Toast when break request status updated
+                if (payload.eventType === "UPDATE" && payload.new?.tag === "Short Break Request") {
+                  try {
+                    const d = JSON.parse(payload.new?.text||"{}");
+                    if (d.status === "approved") showToast("✅ Your break request was approved! Enjoy ☕","success",5000);
+                    if (d.status === "rejected") showToast("❌ Break request declined — check reason in Break page","error",6000);
+                  } catch {}
                 }
               }
               lsSet("csops_notes", next);
@@ -9194,7 +12904,13 @@ export default function App() {
       setAuditLog(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
       setSession(sess);
       setShowTip(true);
-      try { const lp = localStorage.getItem("csops_lastPage"); if(lp) setPage(lp); } catch {}
+      try {
+        const lp = localStorage.getItem("csops_lastPage");
+        // Always go to Home on fresh login
+        setPage("Home");
+        // After 0ms store the fact we just logged in
+        localStorage.removeItem("csops_lastPage");
+      } catch {}
     }}/>;
   }
 
@@ -9204,6 +12920,13 @@ export default function App() {
   const isAgent = currentRole === "Agent";
   const currentEmployee = employees.find(e => e.name === currentName); // defined BEFORE canEdit
   const canEdit     = ROLE_CAN_EDIT[currentRole] || (currentEmployee?.isAdmin === true);
+  // My shift filter: employees on the same shift as me today
+  const myCurrentShiftId = currentEmployee
+    ? (schedule[currentEmployee.id]||{})[DAYS[new Date().getDay()]]
+    : null;
+  const myShiftEmployeeIds = myShiftOnly && myCurrentShiftId && myCurrentShiftId !== "OFF"
+    ? employees.filter(e=>(schedule[e.id]||{})[DAYS[new Date().getDay()]]===myCurrentShiftId).map(e=>e.id)
+    : null; // null means no filter
   const roleColor   = ROLE_COLORS[currentRole];
 
   // ── Critical Alert System ──────────────────────────────────────────────────
@@ -9280,8 +13003,9 @@ export default function App() {
   }
 
   function logout() {
+    if (!window.confirm("Are you sure you want to sign out?")) return;
     addAudit("Sign Out", currentName, `${currentRole} signed out`);
-    // small delay so audit saves before session clears
+    localStorage.removeItem("csops_lastPage");
     setTimeout(() => setSession(null), 50);
   }
 
@@ -9296,34 +13020,37 @@ export default function App() {
   const wrap = (el) => <ErrorBoundary>{el}</ErrorBoundary>;
 
   const pageComponents = {
-    Schedule:      wrap(<SchedulePage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} canEdit={canEdit}/>),
-    Attendance:    wrap(<AttendancePage employees={employees} schedule={schedule} setSchedule={SC} shifts={shifts} attendance={attendance} setAttendance={AT} notes={notes} setNotes={setNotes} session={session}/>),
-    Queue:         wrap(<QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL} setHeatmap={HM}/>),
+    "Messages":    wrap(<DirectMessagesPanel employees={employees} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
+    "Home":        wrap(<HomeDashboard session={session} employees={employees} schedule={schedule} attendance={attendance} performance={performance} queueLog={queueLog} notes={notes} breakSchedule={breakSchedule} shifts={shifts} auditLog={auditLog} canEdit={canEdit} isSuperAdmin={isSuperAdmin} onNavigate={navigateLogged}/>),
+    Schedule:      wrap(<SchedulePage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} canEdit={canEdit} notes={notes} setNotes={setNotes} session={session}/>),
+    Attendance:    wrap(<AttendancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} setSchedule={SC} shifts={shifts} attendance={attendance} setAttendance={AT} notes={notes} setNotes={setNotes} session={session} myShiftFilter={myShiftFilter}/>),
+    Queue:         wrap(<QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL} setHeatmap={HM} canEdit={canEdit} session={session}/>),
     "Daily Tasks": wrap(<DailyTasksPage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} auditLog={auditLog} setAuditLog={AL} session={session}/>),
-    "Live Floor":  wrap(<LiveFloorPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} queueLog={queueLog} canEdit={canEdit} session={session}/>),
-    Break:         wrap(<BreakPage employees={employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={canEdit} addAudit={addAudit} session={session}/>),
-    "Heat Map":    wrap(<HeatMapPage queueLog={queueLog}/>),
+    "Live Floor":  wrap(<LiveFloorPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} queueLog={queueLog} canEdit={canEdit} session={session}/>),
+    Break:         wrap(<BreakPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={canEdit} addAudit={addAudit} session={session} notes={notes} setNotes={setNotes} myShiftFilter={myShiftFilter} queueLog={queueLog}/>),
+    "Heat Map":    wrap(<HeatMapPage queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning}/>),
     "Audit Log":   wrap(<AuditLogPage auditLog={auditLog} session={session}/>),
     Notes:         wrap(<NotesPage notes={notes} setNotes={canEdit?setNotes:noop}/>),
     Shifts:        wrap(<ShiftsPage shifts={shifts} setShifts={SH}/>),
-    Performance:   wrap(<PerformancePage employees={employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF}/>),
-    Reports:       wrap(<ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog}/>),
+    Performance:   wrap(<PerformancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF} myShiftFilter={myShiftFilter} session={session}/>),
+    Reports:       wrap(<ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog} session={session} canEdit={canEdit}/>),
     "Owner Analytics": wrap(<OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} setEmployees={setEmployees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>),
-    Leaderboard:   wrap(<LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} canEdit={canEdit}/>),
+    Leaderboard:   wrap(<LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} setNotes={setNotes} canEdit={canEdit}/>),
     "Attendance History": wrap(<AttendanceHistoryPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance}/>),
     "KPI Dashboard": wrap(<KPIDashboardPage employees={employees} schedule={schedule} attendance={attendance} performance={performance} session={session}/>),
     "Surveys":       wrap(<SurveysPage employees={employees} notes={notes} setNotes={canEdit?setNotes:noop} session={session} canEdit={canEdit}/>),
+    "Gamification":  wrap(<GamificationPage employees={employees} performance={performance} attendance={attendance} schedule={schedule} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
   };
 
   // Page icons
   const PAGE_ICONS = {
-    "Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
+    "Home":"🏠","Messages":"💬","Home":"🏠","Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
     "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍","Notes":"📝",
-    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️","Leaderboard":"🏆","Attendance History":"📆","KPI Dashboard":"🎯","Surveys":"📋"
+    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️","Leaderboard":"🏆","Attendance History":"📆","KPI Dashboard":"🎯","Surveys":"📋","Gamification":"🏅"
   };
 
   const PAGE_LABELS = {
-    "Schedule": tr("schedule"), "Attendance": tr("attendance"),
+    "Home": "Home", "Messages": "Messages", "Home": "Home", "Schedule": tr("schedule"), "Attendance": tr("attendance"),
     "Queue": tr("queue"), "Daily Tasks": tr("dailyTasks"),
     "Live Floor": tr("liveFloor"), "Break": tr("breakPage"),
     "Heat Map": tr("heatMap"), "Audit Log": tr("auditLog"),
@@ -9333,7 +13060,8 @@ export default function App() {
     "Leaderboard": lang==="ar"?"لوحة المتصدرين":"Leaderboard",
     "Attendance History": lang==="ar"?"سجل الحضور":"Attendance History",
     "KPI Dashboard": lang==="ar"?"لوحة المؤشرات":"KPI Dashboard",
-    "Surveys": lang==="ar"?"الاستبيانات":"Surveys"
+    "Surveys": lang==="ar"?"الاستبيانات":"Surveys",
+    "Gamification": "Gamification"
   };
 
   const safeCurrentPage = visiblePages.includes(page) ? page : visiblePages[0];
@@ -9341,9 +13069,12 @@ export default function App() {
   // ── Global search keyboard shortcut: Ctrl+K ──────────────────────────────────
   useEffect(() => {
     const handler = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-        e.preventDefault();
-        setShowSearch(s => !s);
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === "k") { e.preventDefault(); setShowSearch(s => !s); }
+        if (e.key === "h") { e.preventDefault(); navigateLogged("Home"); }
+        if (e.key === "a" && !isAgent) { e.preventDefault(); navigateLogged("Attendance"); }
+        if (e.key === "p") { e.preventDefault(); navigateLogged("Performance"); }
+        if (e.key === "q") { e.preventDefault(); navigateLogged("Queue"); }
       }
     };
     window.addEventListener("keydown", handler);
@@ -9366,6 +13097,16 @@ export default function App() {
       fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif",
       color:theme.text
     }}>
+      {/* Toast notification system */}
+      <ToastContainer/>
+
+      {/* Owner access banner */}
+      {session?.accessedByOwner && (
+        <OwnerAccessBanner
+          targetName={session.name}
+          onExit={()=>setSession(null)}
+        />
+      )}
 
 
 
@@ -9373,10 +13114,94 @@ export default function App() {
         @media (max-width: 768px) { .desktop-nav { display: none !important; } }
         @media (min-width: 769px) { .mobile-bottom-nav { display: none !important; } }
         .desktop-nav::-webkit-scrollbar { display: none; }
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-        .nav-btn { transition: all 0.15s; }
-        .nav-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+        /* ── Animations ── */
+        @keyframes pulse       { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        @keyframes fadeInUp    { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeIn      { from{opacity:0} to{opacity:1} }
+        @keyframes slideInRight{ from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes scaleIn     { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+        @keyframes shimmer     { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+        @keyframes glowPulse   { 0%,100%{box-shadow:0 0 8px var(--glow,#58A6FF40)} 50%{box-shadow:0 0 20px var(--glow,#58A6FF80)} }
+        @keyframes toastIn     { from{opacity:0;transform:translateX(100%)} to{opacity:1;transform:translateX(0)} }
+        @keyframes toastOut    { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(100%)} }
+
+        /* ── Page transition ── */
+        .page-content { animation: fadeInUp 0.28s cubic-bezier(0.16,1,0.3,1); }
+
+        /* ── Nav buttons ── */
+        .nav-btn { transition: all 0.18s cubic-bezier(0.34,1.56,0.64,1); }
+        .nav-btn:hover { opacity:0.88; transform:translateY(-2px); }
+        .nav-btn:active { transform:scale(0.94) translateY(0); }
+
+        /* ── Buttons ── */
+        button { -webkit-tap-highlight-color: transparent; }
+        button:active:not(:disabled) { transform: scale(0.95) !important; transition: transform 0.1s !important; }
+
+        /* ── Glassmorphism card ── */
+        .glass-card {
+          backdrop-filter: blur(12px) saturate(140%);
+          -webkit-backdrop-filter: blur(12px) saturate(140%);
+          background: rgba(255,255,255,0.06) !important;
+          border: 1px solid rgba(255,255,255,0.12) !important;
+        }
+        .glass-card-light {
+          backdrop-filter: blur(12px) saturate(160%);
+          -webkit-backdrop-filter: blur(12px) saturate(160%);
+          background: rgba(255,255,255,0.65) !important;
+          border: 1px solid rgba(255,255,255,0.8) !important;
+        }
+
+        /* ── Skeleton loader ── */
+        .skeleton {
+          background: linear-gradient(90deg,
+            rgba(255,255,255,0.04) 25%,
+            rgba(255,255,255,0.1)  50%,
+            rgba(255,255,255,0.04) 75%);
+          background-size: 400px 100%;
+          animation: shimmer 1.4s infinite;
+          border-radius: 8px;
+        }
+        .skeleton-light {
+          background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+          background-size: 400px 100%;
+          animation: shimmer 1.4s infinite;
+          border-radius: 8px;
+        }
+
+        /* ── Floating bottom nav ── */
+        .mobile-bottom-nav {
+          margin: 0 10px 10px !important;
+          border-radius: 24px !important;
+          bottom: 4px !important;
+          left: 0 !important;
+          right: 0 !important;
+          box-shadow: 0 -2px 24px rgba(0,0,0,0.35), 0 8px 32px rgba(0,0,0,0.25) !important;
+          border-top: none !important;
+          border: 1px solid rgba(255,255,255,0.1) !important;
+          backdrop-filter: blur(20px) !important;
+          -webkit-backdrop-filter: blur(20px) !important;
+        }
+        .mobile-bottom-nav > div { padding: 8px 4px 10px !important; }
+
+        /* ── Active nav glow ── */
+        .nav-active-glow {
+          --glow: var(--primary-glow, #58A6FF50);
+          animation: glowPulse 2.5s ease-in-out infinite;
+          background: rgba(88,166,255,0.15) !important;
+          border-radius: 14px;
+        }
+
+        /* ── Touch targets ── */
+        .touch-target { min-height: 44px; min-width: 44px; }
+
+        /* ── Toast ── */
+        .toast-enter { animation: toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+        .toast-exit  { animation: toastOut 0.25s ease-in forwards; }
+
         select option { background: #1C2333; color: #E6EDF3; }
+        * { -webkit-tap-highlight-color: transparent; }
+        input, textarea, select { touch-action: manipulation; }
       `}</style>
 
       {/* Top Header */}
@@ -9417,6 +13242,21 @@ export default function App() {
 
             {/* Right controls */}
             <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
+
+              {/* My Shift Only toggle — for supervisors only (not agents, not admin-agents) */}
+              {!isAgent && !isAdminAgent && (
+                <button
+                  title={myShiftOnly ? "Showing my shift only — click to show all" : "Show my shift only"}
+                  onClick={()=>setMyShiftOnly(s=>!s)}
+                  style={{ background:myShiftOnly?theme.primary+"22":"transparent",
+                    color:myShiftOnly?theme.primary:theme.textSub,
+                    border:`1px solid ${myShiftOnly?theme.primary:theme.cardBorder}`,
+                    borderRadius:7, padding:"5px 9px", fontSize:11,
+                    cursor:"pointer", fontWeight:700,
+                    whiteSpace:"nowrap", flexShrink:0 }}>
+                  {myShiftOnly?"🔵 My Shift":"⬜ My Shift"}
+                </button>
+              )}
 
               {/* Zoom — fixed to apply to content wrapper only */}
               <div className="desktop-nav" style={{ display:"flex", alignItems:"center", gap:1,
@@ -9518,6 +13358,44 @@ export default function App() {
                 </button>
               )}
 
+              {/* My Shift Only filter */}
+              <button
+                title="Toggle: My Shift Only"
+                onClick={()=>setMyShiftFilter(f=>!f)}
+                style={{ background:myShiftFilter?_theme.primary+"22":"transparent",
+                  color:myShiftFilter?_theme.primary:theme.textSub,
+                  border:`1px solid ${myShiftFilter?_theme.primary:theme.cardBorder}`,
+                  borderRadius:7, padding:"5px 8px", fontSize:12, cursor:"pointer",
+                  fontWeight:700 }}>
+                {myShiftFilter?"🔵 My Shift":"⊞ All"}
+              </button>
+
+              {/* Direct Messages */}
+              <button
+                title="Messages"
+                onClick={()=>setShowDM(true)}
+                style={{ position:"relative", background:"transparent",
+                  color:theme.textSub,
+                  border:`1px solid ${theme.cardBorder}`,
+                  borderRadius:7, padding:"5px 8px", fontSize:13, cursor:"pointer" }}>
+                💬
+                {(()=>{
+                  const unread = (Array.isArray(notes)?notes:[]).filter(n=>
+                    (n.tag==="Direct Message"||n.tag==="Manager Message") &&
+                    (n.target===currentName||n.target==="all") &&
+                    n.from!==currentName
+                  ).length;
+                  return unread > 0 ? (
+                    <span style={{ position:"absolute", top:-4, right:-4,
+                      background:"#EF4444", color:"#fff", borderRadius:"50%",
+                      width:14, height:14, fontSize:9, fontWeight:800,
+                      display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  ) : null;
+                })()}
+              </button>
+
               {/* Push Notification toggle — supervisors only */}
               {!isAgent && "Notification" in window && (
                 <button
@@ -9593,7 +13471,42 @@ export default function App() {
           </div>
         )}
 
+        {/* My Shift Only banner */}
+        {myShiftOnly && myCurrentShiftId && myCurrentShiftId !== "OFF" && (
+          <div style={{ background:theme.primary+"18", border:`1px solid ${theme.primary}40`,
+            borderRadius:8, padding:"6px 14px", marginBottom:10,
+            display:"flex", alignItems:"center", gap:8, fontSize:12 }}>
+            <span style={{ fontWeight:800, color:theme.primary }}>🔵 My Shift Filter ON</span>
+            <span style={{ color:theme.textMuted }}>
+              Showing {(myShiftEmployeeIds||[]).length} employees on your shift only
+            </span>
+            <button onClick={()=>setMyShiftOnly(false)}
+              style={{ marginLeft:"auto", background:"none", border:`1px solid ${theme.primary}40`,
+                color:theme.primary, borderRadius:6, padding:"2px 8px",
+                cursor:"pointer", fontSize:11, fontWeight:700 }}>
+              Show All ✕
+            </button>
+          </div>
+        )}
+              {myShiftFilter && (
+        <div style={{ background:"#EFF6FF", border:"1.5px solid #3B82F640",
+          borderRadius:8, padding:"8px 16px", marginBottom:12,
+          display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:14 }}>🔵</span>
+          <span style={{ fontSize:12, fontWeight:700, color:"#1E40AF" }}>
+            My Shift Only — showing your shift employees only
+          </span>
+          <button onClick={()=>setMyShiftFilter(false)}
+            style={{ marginLeft:"auto", fontSize:11, color:"#3B82F6",
+              background:"none", border:"none", cursor:"pointer", fontWeight:700 }}>
+            Show All
+          </button>
+        </div>
+      )}
+
+      <div key={safeCurrentPage} className="page-content">
         {pageComponents[safeCurrentPage]}
+      </div>
       </div>
 
       {/* Mobile Bottom Nav */}
@@ -9605,12 +13518,28 @@ export default function App() {
           padding:"5px 2px 7px" }}>
           {visiblePages.map(p => (
             <button key={p} onClick={()=>navigateLogged(p)}
+              className={safeCurrentPage===p?"nav-active-glow":""}
               style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:1,
-                background: safeCurrentPage===p ? theme.primary+"30" : "transparent",
-                border:"none", cursor:"pointer", padding:"4px 6px",
-                borderRadius:8, minWidth:42, transition:"background 0.15s", flexShrink:0 }}>
+                background: "transparent",
+                border:"none", cursor:"pointer", padding:"6px 8px",
+                borderRadius:14, minWidth:44, minHeight:44,
+                transition:"all 0.2s cubic-bezier(0.34,1.56,0.64,1)",
+                flexShrink:0, justifyContent:"center" }}>
               <span style={{ fontSize:18, position:"relative" }}>
                 {PAGE_ICONS[p]}
+                {p==="Messages" && (() => {
+                  const unreadDMs = (Array.isArray(notes)?notes:[])
+                    .filter(n=>n.tag==="Direct Message"&&n.target===session?.name)
+                    .filter(n=>{try{return !JSON.parse(n.text||"{}").read;}catch{return true;}}).length;
+                  return unreadDMs > 0 ? (
+                    <span style={{ position:"absolute", top:-4, right:-6,
+                      background:"#EF4444", color:"#fff", borderRadius:"50%",
+                      width:14, height:14, fontSize:9, fontWeight:800,
+                      display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      {unreadDMs}
+                    </span>
+                  ) : null;
+                })()}
                 {p==="Surveys" && (() => {
                   const pending = (Array.isArray(notes)?notes:[])
                     .filter(n=>n.tag==="Survey" && (() => {
@@ -9629,8 +13558,9 @@ export default function App() {
                   ) : null;
                 })()}
               </span>
-              <span style={{ fontSize:8, color: safeCurrentPage===p ? theme.primary : theme.textMuted,
-                fontWeight: safeCurrentPage===p ? 700 : 400, whiteSpace:"nowrap" }}>
+              <span style={{ fontSize:9, color: safeCurrentPage===p ? theme.primary : theme.textMuted,
+                fontWeight: safeCurrentPage===p ? 800 : 500, whiteSpace:"nowrap",
+                transition:"color 0.2s" }}>
                 {(PAGE_LABELS[p]||p).length > 7 ? (PAGE_LABELS[p]||p).slice(0,6)+"..." : (PAGE_LABELS[p]||p)}
               </span>
             </button>
@@ -9649,6 +13579,15 @@ export default function App() {
         <PasswordResetModal employees={employees} session={session} onClose={()=>setShowResetPw(false)}/>
       )}
 
+      {/* ── Quick Note FAB — proper component ── */}
+      {!isAgent && (
+        <QuickNoteFAB
+          currentName={currentName}
+          setNotes={setNotes}
+          theme={theme}
+        />
+      )}
+
       {/* ── Global Search Modal ── */}
       {showSearch && (
         <GlobalSearch
@@ -9661,6 +13600,16 @@ export default function App() {
       )}
 
       {/* ── POPUPS: rendered at root level, unaffected by transform:scale on content ── */}
+      {showDM && (
+        <DirectMessageModal
+          employees={employees}
+          session={session}
+          notes={notes}
+          setNotes={setNotes}
+          onClose={()=>setShowDM(false)}
+        />
+      )}
+
       {showCriticalAlert && (
         <div style={{ position:"fixed", inset:0, zIndex:10000, background:"rgba(0,0,0,0.75)",
           display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
