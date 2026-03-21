@@ -5153,7 +5153,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
     "Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Leaderboard"];
 
   const PAGE_ICONS_MAP = {
-    "Home":"🏠","Messages":"💬","Home":"🏠","Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
+    "Home":"🏠","Messages":"💬","Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
     "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍",
     "Notes":"📝","Shifts":"⏰","Performance":"⚡","Reports":"📑","Leaderboard":"🏆"
   };
@@ -12545,13 +12545,13 @@ export default function App() {
 
   // Page icons
   const PAGE_ICONS = {
-    "Home":"🏠","Messages":"💬","Home":"🏠","Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
+    "Home":"🏠","Messages":"💬","Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
     "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍","Notes":"📝",
     "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️","Leaderboard":"🏆","Attendance History":"📆","KPI Dashboard":"🎯","Surveys":"📋","Gamification":"🏅"
   };
 
   const PAGE_LABELS = {
-    "Home": "Home", "Messages": "Messages", "Home": "Home", "Schedule": tr("schedule"), "Attendance": tr("attendance"),
+    "Home": "Home", "Messages": "Messages", "Schedule": tr("schedule"), "Attendance": tr("attendance"),
     "Queue": tr("queue"), "Daily Tasks": tr("dailyTasks"),
     "Live Floor": tr("liveFloor"), "Break": tr("breakPage"),
     "Heat Map": tr("heatMap"), "Audit Log": tr("auditLog"),
