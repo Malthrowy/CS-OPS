@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
 
 // ─── i18n TRANSLATIONS ────────────────────────────────────────────────────────
 const T = {
@@ -124,9 +124,9 @@ const TASK_LIST = ["KFOOD","KEEMRT"];
 const TASK_LIST_ASSIGN = ["KFOOD","KEEMRT"];
 const TASK_COLORS = ["#10B981","#3B82F6","#6366F1","#0EA5E9","#F59E0B","#10B981","#EF4444","#8B5CF6","#EC4899","#14B8A6","#F97316","#06B6D4","#84CC16","#A855F7","#E11D48"];
 const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Day Off"];
-const ALL_PAGES = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard"];
+const ALL_PAGES = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard","Attendance History","KPI Dashboard","Surveys"];
 const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics" && p !== "Leaderboard");
-const AGENT_PAGES = ["Schedule","Live Floor","Performance","Queue","Leaderboard"];
+const AGENT_PAGES = ["Schedule","Live Floor","Performance","Queue","Leaderboard","Surveys"];
 
 // Super Admin — protected by name AND role
 const SUPER_ADMIN = "Mohammed Nasser Althurwi";
@@ -355,6 +355,92 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
   const [filterPopup, setFilterPopup] = useState(null); // dayName currently showing popup
   const fileRef = useRef();
   const today = new Date().getDay();
+
+  // ── New Schedule enhancements ─────────────────────────────────────────────
+  const [searchEmp, setSearchEmp]       = useState("");
+  const [groupByShift, setGroupByShift] = useState(false);
+  const [viewMode, setViewMode]         = useState("week"); // "week" | "day"
+  const [viewDay, setViewDay]           = useState(DAYS[new Date().getDay()]);
+  const [quickShift, setQuickShift]     = useState(""); // shiftId filter
+  const [showRoles, setShowRoles]       = useState(true);
+  const [showCopyWeek, setShowCopyWeek] = useState(false);
+  const [copyFromWeek, setCopyFromWeek] = useState("");
+  const [copyToWeek, setCopyToWeek]     = useState("");
+  const [copyDone, setCopyDone]         = useState("");
+  // Drag & Drop order — stored as array of employee IDs
+  const [empOrder, setEmpOrder] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("csops_empOrder")||"null"); } catch { return null; }
+  });
+  const dragItem  = useRef(null);
+  const dragOver  = useRef(null);
+
+  // Ordered employees list
+  const orderedEmps = useMemo(() => {
+    if (!empOrder) return employees;
+    const ordered = empOrder
+      .map(id => employees.find(e => e.id === id))
+      .filter(Boolean);
+    // Append any new employees not yet in order
+    const remaining = employees.filter(e => !empOrder.includes(e.id));
+    return [...ordered, ...remaining];
+  }, [employees, empOrder]);
+
+  // Save order
+  function saveOrder(newOrder) {
+    const ids = newOrder.map(e => e.id);
+    setEmpOrder(ids);
+    try { localStorage.setItem("csops_empOrder", JSON.stringify(ids)); } catch {}
+    // Also persist in employees array order via setEmployees
+    setEmployees(newOrder);
+  }
+
+  // Drag handlers
+  function onDragStart(e, idx) {
+    dragItem.current = idx;
+    e.dataTransfer.effectAllowed = "move";
+  }
+  function onDragEnter(idx) { dragOver.current = idx; }
+  function onDragEnd() {
+    if (dragItem.current === null || dragOver.current === null ||
+        dragItem.current === dragOver.current) { dragItem.current = dragOver.current = null; return; }
+    const list = [...filteredEmps];
+    const dragged = list.splice(dragItem.current, 1)[0];
+    list.splice(dragOver.current, 0, dragged);
+    // Rebuild full order: replace filtered positions, keep unfiltered in place
+    const newFull = [...orderedEmps];
+    const filteredIds = filteredEmps.map(e=>e.id);
+    let fi = 0;
+    for (let i=0; i<newFull.length; i++) {
+      if (filteredIds.includes(newFull[i].id)) {
+        newFull[i] = list[fi++];
+      }
+    }
+    saveOrder(newFull);
+    dragItem.current = dragOver.current = null;
+  }
+
+  // Copy Week function
+  function doCopyWeek() {
+    if (!copyFromWeek || !copyToWeek) { setCopyDone("❌ اختر الأسبوعين"); return; }
+    const fromStart = new Date(copyFromWeek);
+    const toStart   = new Date(copyToWeek);
+    // For each employee, copy their week pattern
+    const newSched = { ...schedule };
+    employees.forEach(emp => {
+      const empSched = { ...(schedule[emp.id]||{}) };
+      DAYS.forEach((dayName, di) => {
+        const fromDate = new Date(fromStart); fromDate.setDate(fromStart.getDate() + di);
+        const toDate   = new Date(toStart);   toDate.setDate(toStart.getDate() + di);
+        const fromKey  = fromDate.toLocaleDateString("en-US",{weekday:"long"});
+        const toKey    = toDate.toLocaleDateString("en-US",{weekday:"long"});
+        empSched[toKey] = empSched[fromKey] || "OFF";
+      });
+      newSched[emp.id] = empSched;
+    });
+    setSchedule(newSched);
+    setCopyDone(`✅ تم نسخ الجدول من أسبوع ${copyFromWeek} إلى ${copyToWeek}`);
+    setTimeout(() => { setCopyDone(""); setShowCopyWeek(false); }, 3000);
+  }
 
   function doSwap() {
     if (!swapEmp1 || !swapEmp2 || swapEmp1===swapEmp2) {
@@ -726,6 +812,46 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
     URL.revokeObjectURL(url);
   }
 
+  // Filtered + ordered employee list
+  const filteredEmps = useMemo(() => {
+    let list = orderedEmps;
+    // Search filter
+    if (searchEmp.trim()) {
+      const q = searchEmp.toLowerCase();
+      list = list.filter(e => e.name.toLowerCase().includes(q) || e.role.toLowerCase().includes(q));
+    }
+    // Quick shift filter (today)
+    if (quickShift) {
+      const todayName = DAYS[new Date().getDay()];
+      list = list.filter(e => (schedule[e.id]||{})[todayName] === quickShift);
+    }
+    return list;
+  }, [orderedEmps, searchEmp, quickShift, schedule]);
+
+  // Grouped by today's shift
+  const groupedEmps = useMemo(() => {
+    if (!groupByShift) return null;
+    const todayName = DAYS[new Date().getDay()];
+    const groups = {};
+    filteredEmps.forEach(e => {
+      const sid = (schedule[e.id]||{})[todayName] || "OFF";
+      if (!groups[sid]) groups[sid] = [];
+      groups[sid].push(e);
+    });
+    return groups;
+  }, [filteredEmps, groupByShift, schedule]);
+
+  // Today's KPI strip
+  const todayKPIs = useMemo(() => {
+    const todayName = DAYS[new Date().getDay()];
+    const counts = {};
+    employees.forEach(e => {
+      const sid = (schedule[e.id]||{})[todayName] || "OFF";
+      counts[sid] = (counts[sid]||0) + 1;
+    });
+    return counts;
+  }, [employees, schedule]);
+
   // Week preview
   const weekCards = DAYS.map((day, di) => {
     const groups = {};
@@ -738,30 +864,185 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
     return { day, di, groups };
   });
 
+  // Final employee list to render (grouped or flat)
+  const renderList = groupByShift ? null : filteredEmps;
+
   return (
     <div>
-      {/* ── Toolbar ── */}
-      <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:_theme.text, flex:1 }}>📅 Weekly Schedule</span>
-        <button style={PBT("#2563EB")} onClick={()=>setShowAdd(true)}>+ Add</button>
-        <button style={PBT("#475569")} onClick={()=>fileRef.current.click()}>📥 Import</button>
-        <div style={{ display:"flex", gap:4 }}>
-          <button style={PBT("#10B981",{borderRadius:"6px 0 0 6px", paddingRight:8})} onClick={downloadTemplate}>⬇️ XLSX</button>
-          <button style={PBT("#10B981",{borderRadius:"0 6px 6px 0", paddingLeft:8, borderLeft:"1px solid rgba(255,255,255,0.3)"})} onClick={downloadCSV}>⬇️ CSV</button>
+      {/* ── Main Toolbar ── */}
+      <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:10, alignItems:"center" }}>
+        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>📅 الجدول الأسبوعي</span>
+        <input value={searchEmp} onChange={e=>setSearchEmp(e.target.value)}
+          style={{ ...I({width:180}) }} placeholder="🔍 ابحث عن موظف..."/>
+        <div style={{ display:"flex", gap:0 }}>
+          {[["week","📅 أسبوعي"],["day","📋 يومي"]].map(([k,l])=>(
+            <button key={k} onClick={()=>setViewMode(k)}
+              style={{ background:viewMode===k?_theme.primary:"transparent",
+                color:viewMode===k?"#fff":_theme.textSub,
+                border:`1px solid ${_theme.primary}`, padding:"6px 12px",
+                borderRadius:k==="week"?"7px 0 0 7px":"0 7px 7px 0",
+                fontSize:12, cursor:"pointer", fontWeight:700 }}>{l}</button>
+          ))}
         </div>
-        {canEdit && (
-          <button style={PBT("#8B5CF6")} onClick={()=>{ setShowSwap(true); setSwapDone(""); }}>🔄 Swap</button>
-        )}
+        <div style={{ marginLeft:"auto", display:"flex", gap:6, flexWrap:"wrap" }}>
+          {canEdit && <button style={PBT("#2563EB",{fontSize:12})} onClick={()=>setShowAdd(true)}>+ موظف</button>}
+          <button style={PBT("#475569",{fontSize:12})} onClick={()=>fileRef.current.click()}>📥 Import</button>
+          <button style={PBT("#10B981",{fontSize:12})} onClick={downloadCSV}>⬇️ CSV</button>
+          {canEdit && <button style={PBT("#8B5CF6",{fontSize:12})} onClick={()=>{ setShowSwap(true); setSwapDone(""); }}>🔄 Swap</button>}
+          {canEdit && <button style={PBT("#F59E0B",{fontSize:12})} onClick={()=>setShowCopyWeek(true)}>📋 نسخ أسبوع</button>}
+        </div>
         <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" style={{display:"none"}} onChange={handleFile}/>
       </div>
 
-      {/* ── Schedule Table ── */}
+      {/* ── Quick Shift Filter + View Options ── */}
+      <div style={{ display:"flex", gap:6, marginBottom:10, flexWrap:"wrap", alignItems:"center" }}>
+        <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>الشفت السريع:</span>
+        <button onClick={()=>setQuickShift("")}
+          style={{ border:`1.5px solid ${!quickShift?_theme.primary:"#CBD5E1"}`,
+            borderRadius:20, padding:"3px 12px", fontSize:11, cursor:"pointer",
+            background:!quickShift?_theme.primary+"22":"transparent",
+            color:!quickShift?_theme.primary:_theme.textMuted, fontWeight:700 }}>الكل</button>
+        {shifts.map(sh=>(
+          <button key={sh.id} onClick={()=>setQuickShift(quickShift===sh.id?"":sh.id)}
+            style={{ border:`1.5px solid ${quickShift===sh.id?sh.color:"#CBD5E1"}`,
+              borderRadius:20, padding:"3px 12px", fontSize:11, cursor:"pointer",
+              background:quickShift===sh.id?sh.color+"22":"transparent",
+              color:quickShift===sh.id?sh.color:_theme.textMuted, fontWeight:700 }}>
+            {sh.label} ({employees.filter(e=>(schedule[e.id]||{})[DAYS[new Date().getDay()]]===sh.id).length})
+          </button>
+        ))}
+        <div style={{ marginLeft:"auto", display:"flex", gap:6 }}>
+          <button onClick={()=>setGroupByShift(g=>!g)}
+            style={{ border:`1.5px solid ${groupByShift?_theme.accent:"#CBD5E1"}`,
+              borderRadius:20, padding:"3px 12px", fontSize:11, cursor:"pointer",
+              background:groupByShift?_theme.accent+"22":"transparent",
+              color:groupByShift?_theme.accent:_theme.textMuted, fontWeight:700 }}>
+            {groupByShift?"✅ مجمّع":"⊞ تجميع حسب الشفت"}
+          </button>
+          <button onClick={()=>setShowRoles(r=>!r)}
+            style={{ border:"1.5px solid #CBD5E1", borderRadius:20, padding:"3px 12px",
+              fontSize:11, cursor:"pointer", color:_theme.textMuted, fontWeight:700 }}>
+            🏷️ {showRoles?"إخفاء الأدوار":"إظهار الأدوار"}
+          </button>
+        </div>
+      </div>
+
+      {/* ── KPI Strip ── */}
+      <div style={{ display:"flex", gap:8, marginBottom:12, flexWrap:"wrap", alignItems:"center" }}>
+        <div style={{ ...CRD({padding:"8px 14px"}), display:"flex", gap:10, alignItems:"center",
+          flex:1, flexWrap:"wrap" }}>
+          <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:700 }}>
+            👥 إجمالي: {employees.length}
+          </span>
+          {shifts.map(sh=>(
+            <span key={sh.id} style={{ background:sh.color+"22", color:sh.color,
+              border:`1px solid ${sh.color}40`, borderRadius:20, padding:"2px 10px",
+              fontSize:11, fontWeight:700 }}>
+              {sh.label}: {todayKPIs[sh.id]||0}
+            </span>
+          ))}
+          <span style={{ background:"#94A3B822", color:"#94A3B8",
+            border:"1px solid #CBD5E1", borderRadius:20, padding:"2px 10px",
+            fontSize:11, fontWeight:700 }}>
+            OFF: {employees.length - shifts.reduce((s,sh)=>s+(todayKPIs[sh.id]||0),0)}
+          </span>
+          {searchEmp && (
+            <span style={{ color:_theme.primary, fontSize:11, fontWeight:700 }}>
+              🔍 {filteredEmps.length} نتيجة
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Copy Week Modal ── */}
+      {showCopyWeek && (
+        <div style={{ ...CRD(), marginBottom:16, border:`2px solid #F59E0B` }}>
+          <div style={{ fontWeight:700, color:_theme.text, marginBottom:10 }}>📋 نسخ جدول أسبوع كامل</div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+            <div>
+              <label style={LBL}>من تاريخ (بداية الأسبوع)</label>
+              <input type="date" value={copyFromWeek} onChange={e=>setCopyFromWeek(e.target.value)} style={I()}/>
+            </div>
+            <div>
+              <label style={LBL}>إلى تاريخ (بداية الأسبوع)</label>
+              <input type="date" value={copyToWeek} onChange={e=>setCopyToWeek(e.target.value)} style={I()}/>
+            </div>
+          </div>
+          {copyDone && (
+            <div style={{ fontSize:12, color:copyDone.startsWith("✅")?"#10B981":"#EF4444",
+              fontWeight:600, marginBottom:8 }}>{copyDone}</div>
+          )}
+          <div style={{ display:"flex", gap:8 }}>
+            <button onClick={doCopyWeek} style={PBT("#F59E0B",{flex:1})}>📋 نسخ الجدول</button>
+            <button onClick={()=>setShowCopyWeek(false)}
+              style={PBT("#94A3B8",{padding:"8px 16px"})}>إلغاء</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Day View ── */}
+      {viewMode==="day" && (
+        <div style={{ ...CRD(), marginBottom:20 }}>
+          <div style={{ display:"flex", gap:6, marginBottom:14, flexWrap:"wrap" }}>
+            {DAYS.map(d=>(
+              <button key={d} onClick={()=>setViewDay(d)}
+                style={{ border:`2px solid ${viewDay===d?_theme.primary:"#CBD5E1"}`,
+                  borderRadius:20, padding:"5px 14px", fontSize:12, cursor:"pointer", fontWeight:700,
+                  background:viewDay===d?_theme.primary:"transparent",
+                  color:viewDay===d?"#fff":_theme.textSub }}>{d.slice(0,3)}</button>
+            ))}
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))", gap:8 }}>
+            {(() => {
+              const dayGroups = {};
+              filteredEmps.forEach(e => {
+                const sid=(schedule[e.id]||{})[viewDay]||"OFF";
+                if (!dayGroups[sid]) dayGroups[sid]=[];
+                dayGroups[sid].push(e);
+              });
+              return Object.entries(dayGroups).map(([sid, emps])=>{
+                const sh=shifts.find(s=>s.id===sid);
+                return (
+                  <div key={sid} style={{ ...CRD({padding:"10px 12px"}),
+                    borderTop:`3px solid ${sh?sh.color:"#94A3B8"}` }}>
+                    <div style={{ fontWeight:800, fontSize:12,
+                      color:sh?sh.color:"#94A3B8", marginBottom:8 }}>
+                      {sh?sh.label:"OFF / إجازة"} ({emps.length})
+                    </div>
+                    {emps.map(e=>(
+                      <div key={e.id} style={{ fontSize:12, color:_theme.text,
+                        padding:"3px 0", borderBottom:`1px solid ${_theme.cardBorder}20`,
+                        display:"flex", alignItems:"center", gap:6 }}>
+                        {showRoles && (
+                          <span style={{ fontSize:9, fontWeight:800, padding:"1px 4px",
+                            borderRadius:4, background:(ROLE_COLORS[e.role]||"#64748B")+"22",
+                            color:ROLE_COLORS[e.role]||"#64748B",
+                            border:`1px solid ${(ROLE_COLORS[e.role]||"#64748B")}40` }}>
+                            {ROLE_ICONS[e.role]||"👤"}
+                          </span>
+                        )}
+                        {e.name}
+                      </div>
+                    ))}
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* ── Week View (Table) ── */}
+      {viewMode==="week" && (
       <div style={{ ...CRD(), overflowX:"auto", marginBottom:20 }}>
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
             <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+              {canEdit && <th style={{ width:24, borderBottom:`2px solid ${_theme.cardBorder}` }}/>}
               <th style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:_theme.text,
-                borderBottom:`2px solid ${_theme.cardBorder}`, minWidth:180 }}>Employee</th>
+                borderBottom:`2px solid ${_theme.cardBorder}`, minWidth:180,
+                position:"sticky", left:0, background:_theme.isDark?"#0D1117":"#F8FAFC",
+                zIndex:2 }}>الموظف</th>
               {DAYS.map((day, di) => {
                 const now2   = new Date();
                 const diff   = di - now2.getDay();
@@ -849,36 +1130,71 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
             </tr>
           </thead>
           <tbody>
-            {employees.map((emp,ri) => {
-              // Apply day filters -- hide row if ALL filtered days don't match
-              const isFiltered = DAYS.some(day => {
-                const f = dayFilters[day]||[];
-                if (f.length===0) return false;
-                const val = (schedule[emp.id]||{})[day]||"OFF";
-                return !f.includes(val);
-              });
-              // Show row only if it passes ALL active day filters
-              const passesFilter = DAYS.every(day => {
-                const f = dayFilters[day]||[];
-                if (f.length===0) return true;
-                const val = (schedule[emp.id]||{})[day]||"OFF";
-                return f.includes(val);
-              });
-              if (!passesFilter) return null;
-              return (
-              <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
-                <td style={{ padding:"8px 12px", fontWeight:600, color:_theme.text }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                    <span>{emp.name}</span>
-                    <span style={{ fontSize:9, fontWeight:800, padding:"1px 5px", borderRadius:4,
-                      background:emp.gender==="F"?"#FCE7F3":"#EFF6FF",
-                      color:emp.gender==="F"?"#BE185D":"#1D4ED8",
-                      border:emp.gender==="F"?"1px solid #F9A8D4":"1px solid #BFDBFE" }}>
-                      {emp.gender||"M"}
-                    </span>
-                  </div>
-                  <div style={{ fontSize:11, color:_theme.textMuted }}>{emp.role}</div>
-                </td>
+            {/* Flat or grouped rendering */}
+            {(groupByShift ? Object.entries(groupedEmps||{}) : [[null, renderList||[]]]).flatMap(([sid, empList], gi) => {
+              const sh = sid ? shifts.find(s=>s.id===sid) : null;
+              const rows = [];
+              // Group header
+              if (groupByShift) {
+                rows.push(
+                  <tr key={"grp-"+gi}>
+                    <td colSpan={DAYS.length+3} style={{ padding:"6px 12px",
+                      background:sh?sh.color+"18":_theme.surface,
+                      borderTop:`2px solid ${sh?sh.color:"#94A3B8"}`,
+                      fontWeight:800, fontSize:12,
+                      color:sh?sh.color:_theme.textMuted }}>
+                      {sh?sh.label:"OFF / إجازة"} — {empList.length} موظف
+                    </td>
+                  </tr>
+                );
+              }
+              empList.forEach((emp, ri) => {
+                const passesFilter = DAYS.every(day => {
+                  const f = dayFilters[day]||[];
+                  if (f.length===0) return true;
+                  return f.includes((schedule[emp.id]||{})[day]||"OFF");
+                });
+                if (!passesFilter) return;
+                const globalIdx = orderedEmps.findIndex(e=>e.id===emp.id);
+                rows.push(
+                <tr key={emp.id}
+                  draggable={canEdit}
+                  onDragStart={e=>canEdit&&onDragStart(e,ri)}
+                  onDragEnter={()=>canEdit&&onDragEnter(ri)}
+                  onDragEnd={()=>canEdit&&onDragEnd()}
+                  onDragOver={e=>e.preventDefault()}
+                  style={{ background: ri%2===0?_theme.card:_theme.surface,
+                    cursor:canEdit?"grab":"default",
+                    opacity: dragItem.current===ri?0.5:1,
+                    transition:"opacity 0.1s" }}>
+                  {/* Drag handle */}
+                  {canEdit && (
+                    <td style={{ padding:"4px 6px", color:_theme.textMuted, fontSize:16,
+                      cursor:"grab", userSelect:"none", textAlign:"center" }}>⠿</td>
+                  )}
+                  {/* Sticky name cell */}
+                  <td style={{ padding:"8px 12px", fontWeight:600, color:_theme.text,
+                    position:"sticky", left:0, background:ri%2===0?_theme.card:_theme.surface,
+                    zIndex:1, boxShadow:"2px 0 4px rgba(0,0,0,0.05)" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                      {showRoles && (
+                        <span style={{ fontSize:10, fontWeight:800, padding:"1px 5px", borderRadius:4,
+                          background:(ROLE_COLORS[emp.role]||"#64748B")+"22",
+                          color:ROLE_COLORS[emp.role]||"#64748B",
+                          border:`1px solid ${(ROLE_COLORS[emp.role]||"#64748B")}40`,
+                          whiteSpace:"nowrap" }}>
+                          {ROLE_ICONS[emp.role]||"👤"} {emp.role.slice(0,3)}
+                        </span>
+                      )}
+                      <span>{emp.name}</span>
+                      <span style={{ fontSize:9, fontWeight:800, padding:"1px 5px", borderRadius:4,
+                        background:emp.gender==="F"?"#FCE7F3":"#EFF6FF",
+                        color:emp.gender==="F"?"#BE185D":"#1D4ED8",
+                        border:emp.gender==="F"?"1px solid #F9A8D4":"1px solid #BFDBFE" }}>
+                        {emp.gender||"M"}
+                      </span>
+                    </div>
+                  </td>
                 {DAYS.map((day,di) => {
                   const val = (schedule[emp.id]||{})[day]||"OFF";
                   const sh  = shifts.find(s=>s.id===val);
@@ -907,12 +1223,15 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                     style={{ background:"none", border:"1px solid #CBD5E1", borderRadius:6,
                       padding:"4px 8px", cursor:"pointer", fontSize:14 }}>✏️</button>
                 </td>
-              </tr>
-              );
+                </tr>
+                );
+              });
+              return rows;
             })}
           </tbody>
         </table>
       </div>
+      )} {/* end week view */}
 
       {/* Close filter popup when clicking outside */}
       {filterPopup && (
@@ -1189,7 +1508,8 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
 }
 
 // ─── ATTENDANCE PAGE ──────────────────────────────────────────────────────────
-function AttendancePage({ employees, schedule, shifts, attendance, setAttendance }) {
+function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, setAttendance, notes, setNotes, session }) {
+  const noop = ()=>{}; // fallback if setSchedule not passed
   const [date, setDate] = useState(todayStr());
 
   // ── Auto-detect active shift based on current time ──
@@ -1377,6 +1697,14 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
           <div style={{ display:"flex", gap:8, marginLeft:"auto" }}>
             <button style={PBT("#10B981",{padding:"5px 12px",fontSize:12})} onClick={()=>bulkSet("Present")}>✅ All Present</button>
             <button style={PBT("#EF4444",{padding:"5px 12px",fontSize:12})} onClick={()=>bulkSet("Absent")}>🔴 All Absent</button>
+          <button style={PBT("#3B82F6",{padding:"5px 12px",fontSize:12})} onClick={()=>{
+            const now=new Date(); const hh=pad(now.getHours()), mm=pad(now.getMinutes());
+            if (!window.confirm(`تسجيل حضور ${shiftEmployees.length} موظف الآن (${hh}:${mm})؟`)) return;
+            shiftEmployees.forEach(emp=>{
+              setAtt(emp.id,"status","Present");
+              setAtt(emp.id,"checkIn",`${hh}:${mm}`);
+            });
+          }}>⚡ تسجيل جماعي الآن</button>
           </div>
         </div>
       )}
@@ -1400,10 +1728,18 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
               const dur = att.workDuration !== "" && att.workDuration !== undefined ? att.workDuration : calcWorkDuration(att.checkIn, att.checkOut);
               const isEarlyLeave = att.status === "Early Leave";
               return (
-                <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
+                <tr key={emp.id} style={{
+                  background: isLate ? "#FEF9C3" : ri%2===0?_theme.card:_theme.surface,
+                  borderLeft: isLate ? "3px solid #F59E0B" : isEarlyLeave ? "3px solid #8B5CF6" : "3px solid transparent"
+                }}>
                   <td style={{ padding:"8px", color:_theme.textMuted, fontWeight:600 }}>{ri+1}</td>
                   <td style={{ padding:"8px", fontWeight:600, color:_theme.text }}>
-                    {emp.name}
+                    <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                      {emp.name}
+                      {isLate && <span style={{ fontSize:10, fontWeight:800, background:"#FEF3C7",
+                        color:"#B45309", border:"1px solid #FCD34D",
+                        borderRadius:20, padding:"1px 7px" }}>متأخر {att.lateMin}m</span>}
+                    </div>
                     <div style={{ fontSize:11, color:_theme.textMuted }}>{emp.role}</div>
                   </td>
                   <td style={{ padding:"8px" }}>
@@ -1461,6 +1797,16 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
           </tbody>
         </table>
       </div>
+      {/* ── Leave Requests Panel ── */}
+      <LeaveRequestsPanel
+        session={typeof session !== "undefined" ? session : null}
+        employees={employees}
+        schedule={schedule}
+        setSchedule={setSchedule||noop}
+        notes={typeof notes !== "undefined" ? notes : []}
+        setNotes={typeof setNotes !== "undefined" ? setNotes : (v=>v)}
+        canEdit={true}
+      />
     </div>
   );
 }
@@ -1469,6 +1815,11 @@ function AttendancePage({ employees, schedule, shifts, attendance, setAttendance
 function PerformancePage({ employees, schedule, shifts, performance, setPerformance }) {
   const [date, setDate] = useState(todayStr());
   const [showQuality, setShowQuality] = useState(false);
+  const [dailyTarget, setDailyTarget] = useState(() => {
+    return Number(localStorage.getItem("csops_perf_target")||"25");
+  });
+  const [showTargetEdit, setShowTargetEdit] = useState(false);
+  const ESC_WARN_PCT = 20; // % escalation rate warning
   const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
 
   const dayEmps = employees.filter(emp => { const v=(schedule[emp.id]||{})[dayName]; return v && v!=="OFF" && v!=="LEAVE" && v!=="PH"; });
@@ -1489,6 +1840,18 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
   const totalEsc = dayEmps.reduce((s,e)=>s+(getPerf(e.id).escalations||0),0);
   const medals = ["🥇","🥈","🥉"];
 
+  // Chart data: last 7 days totals
+  const last7 = Array.from({length:7},(_,i)=>{
+    const d = new Date(); d.setDate(d.getDate()-6+i);
+    const dk = d.toISOString().slice(0,10);
+    return employees.reduce((s,e)=>s+((performance[dk]||{})[e.id]?.closed||0),0);
+  });
+  const last7Esc = Array.from({length:7},(_,i)=>{
+    const d = new Date(); d.setDate(d.getDate()-6+i);
+    const dk = d.toISOString().slice(0,10);
+    return employees.reduce((s,e)=>s+((performance[dk]||{})[e.id]?.escalations||0),0);
+  });
+
   function getShiftLabel(empId) {
     const sid = (schedule[empId]||{})[dayName];
     if (!sid||sid==="OFF") return "--";
@@ -1505,14 +1868,54 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
         </label>
       </div>
 
-      {/* KPI Cards */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:10, marginBottom:16 }}>
-        {[["Total Closed",totalClosed,"#10B981"],["Escalations",totalEsc,"#F59E0B"]].map(([l,v,c])=>(
-          <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
-            <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>{l}</div>
-            <div style={{ fontSize:28, fontWeight:800, color:c }}>{v}</div>
+      {/* Daily Target Bar */}
+      <div style={{ ...CRD({padding:"10px 16px"}), marginBottom:10, display:"flex",
+        alignItems:"center", gap:12, flexWrap:"wrap" }}>
+        <span style={{ fontSize:12, fontWeight:700, color:_theme.text }}>🎯 هدف اليوم:</span>
+        {showTargetEdit ? (
+          <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+            <input type="number" min="1" max="500" defaultValue={dailyTarget}
+              style={{ ...I({width:80}) }}
+              onBlur={e=>{ const v=Number(e.target.value)||25;
+                setDailyTarget(v); localStorage.setItem("csops_perf_target",String(v));
+                setShowTargetEdit(false); }}
+              autoFocus/>
           </div>
-        ))}
+        ) : (
+          <span style={{ fontWeight:800, fontSize:16, color:_theme.primary, cursor:"pointer" }}
+            onClick={()=>setShowTargetEdit(true)}>{dailyTarget} حالة ✏️</span>
+        )}
+        <div style={{ flex:1, background:_theme.surface, borderRadius:20, height:12,
+          overflow:"hidden", minWidth:120 }}>
+          <div style={{ height:"100%", borderRadius:20, transition:"width 0.5s",
+            width:`${Math.min(100,Math.round((totalClosed/dailyTarget)*100))}%`,
+            background: totalClosed>=dailyTarget?"#10B981":totalClosed>=dailyTarget*0.8?"#F59E0B":"#3B82F6" }}/>
+        </div>
+        <span style={{ fontSize:12, fontWeight:700,
+          color:totalClosed>=dailyTarget?"#10B981":_theme.textSub }}>
+          {totalClosed}/{dailyTarget} ({Math.round((totalClosed/dailyTarget)*100)}%)
+          {totalClosed>=dailyTarget?" 🎉":""}
+        </span>
+      </div>
+
+      {/* KPI Cards + Charts */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:16 }}>
+        <div style={{ ...CRD({padding:"12px 16px"}), borderTop:"3px solid #10B981" }}>
+          <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>Today Closed</div>
+          <div style={{ fontSize:28, fontWeight:800, color:"#10B981" }}>{totalClosed}</div>
+        </div>
+        <div style={{ ...CRD({padding:"12px 16px"}), borderTop:"3px solid #F59E0B" }}>
+          <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>Today Escalations</div>
+          <div style={{ fontSize:28, fontWeight:800, color:"#F59E0B" }}>{totalEsc}</div>
+        </div>
+        <div style={{ ...CRD({padding:"12px 16px"}), borderTop:"3px solid #3B82F6" }}>
+          <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600, marginBottom:6 }}>7-Day Closed</div>
+          <SparkBar values={last7} color="#3B82F6" height={44} width={140}/>
+        </div>
+        <div style={{ ...CRD({padding:"12px 16px"}), borderTop:"3px solid #F59E0B" }}>
+          <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600, marginBottom:6 }}>7-Day Escalations</div>
+          <SparkLine values={last7Esc} color="#F59E0B" height={44} width={140}/>
+        </div>
       </div>
 
       {/* Table */}
@@ -1530,7 +1933,20 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
               return (
                 <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
                   <td style={{ padding:"8px", fontSize:18, textAlign:"center" }}>{medals[ri]||ri+1}</td>
-                  <td style={{ padding:"8px", fontWeight:600 }}>{emp.name}</td>
+                  <td style={{ padding:"8px", fontWeight:600 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+                      <span>{emp.name}</span>
+                      {(() => {
+                        const p = getPerf(emp.id);
+                        const escPct = p.closed > 0 ? Math.round((p.escalations/p.closed)*100) : 0;
+                        return escPct >= ESC_WARN_PCT && p.escalations > 0 ? (
+                          <span style={{ fontSize:10, fontWeight:800, background:"#FEF2F2",
+                            color:"#EF4444", border:"1px solid #FCA5A5",
+                            borderRadius:20, padding:"1px 7px" }}>⚠️ تصعيد {escPct}%</span>
+                        ) : null;
+                      })()}
+                    </div>
+                  </td>
                   <td style={{ padding:"8px" }}>
                     <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
                       {emp.tasks.map(t=><span key={t} style={{ background:taskColor(t), color:"#fff", borderRadius:10, padding:"2px 6px", fontSize:10, fontWeight:600 }}>{t}</span>)}
@@ -2160,11 +2576,43 @@ function NotesPage({ notes, setNotes }) {
   const [date, setDate] = useState(todayStr());
   const [time, setTime] = useState(() => { const n=new Date(); return pad(n.getHours())+":"+pad(n.getMinutes()); });
   const [text, setText] = useState("");
-  const [tag, setTag]   = useState("General");
+  const [tag, setTag]     = useState("General");
+  const [recording, setRecording] = useState(false);
+  const [recMsg, setRecMsg]       = useState("");
   const TAGS = ["General","Staffing Issue","Queue Alert","System Issue","Performance Note","Exceptional Event","Other"];
+
+  // ── Voice Notes via Web Speech API ──────────────────────────────────────────
+  function startVoiceNote() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { setRecMsg("⚠️ متصفحك لا يدعم التعرف على الصوت"); setTimeout(()=>setRecMsg(""),3000); return; }
+    const rec = new SR();
+    rec.lang = "ar-SA";
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.onstart  = () => setRecording(true);
+    rec.onend    = () => setRecording(false);
+    rec.onerror  = (e) => { setRecording(false); setRecMsg("خطأ في التسجيل: "+e.error); setTimeout(()=>setRecMsg(""),3000); };
+    rec.onresult = (e) => {
+      const transcript = Array.from(e.results).map(r=>r[0].transcript).join(" ");
+      setText(prev => prev ? prev+" "+transcript : transcript);
+      setRecMsg("✅ تم التعرف: "+transcript.slice(0,40));
+      setTimeout(()=>setRecMsg(""),3000);
+    };
+    rec.start();
+  }
   const TAG_COLORS = {"General":"#64748B","Staffing Issue":"#EF4444","Queue Alert":"#F59E0B","System Issue":"#8B5CF6","Performance Note":"#2563EB","Exceptional Event":"#EC4899","Other":"#10B981"};
 
-  const allNotes = Array.isArray(notes) ? [...notes].sort((a,b)=>b.ts.localeCompare(a.ts)) : [];
+  const [filterTag,  setFilterTag]  = useState("All");
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo,   setFilterTo]   = useState("");
+
+  const allNotes = useMemo(()=>{
+    let list = Array.isArray(notes) ? [...notes] : [];
+    if (filterTag !== "All") list = list.filter(n=>n.tag===filterTag);
+    if (filterFrom) list = list.filter(n=>n.date>=filterFrom);
+    if (filterTo)   list = list.filter(n=>n.date<=filterTo);
+    return list.sort((a,b)=>b.ts.localeCompare(a.ts));
+  }, [notes, filterTag, filterFrom, filterTo]);
 
   function addNote() {
     if (!text.trim()) return;
@@ -2180,6 +2628,26 @@ function NotesPage({ notes, setNotes }) {
         <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>📝 Notes & Exceptional Events</span>
         <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
       </div>
+      {/* Filter bar */}
+      <div style={{ display:"flex", gap:8, marginBottom:12, flexWrap:"wrap", alignItems:"center" }}>
+        <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>فلتر:</span>
+        <select value={filterTag} onChange={e=>setFilterTag(e.target.value)}
+          style={{ ...I({width:160}) }}>
+          <option value="All">كل الأنواع</option>
+          {TAGS.map(t=><option key={t} value={t}>{t}</option>)}
+        </select>
+        <input type="date" value={filterFrom} onChange={e=>setFilterFrom(e.target.value)}
+          style={{ ...I({width:140}) }} placeholder="من تاريخ"/>
+        <input type="date" value={filterTo} onChange={e=>setFilterTo(e.target.value)}
+          style={{ ...I({width:140}) }} placeholder="إلى تاريخ"/>
+        {(filterTag!=="All"||filterFrom||filterTo) && (
+          <button onClick={()=>{setFilterTag("All");setFilterFrom("");setFilterTo("");}}
+            style={{ ...PBT("#94A3B8",{padding:"5px 10px",fontSize:11}) }}>✕ مسح الفلتر</button>
+        )}
+        <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>
+          {allNotes.length} ملاحظة
+        </span>
+      </div>
       <div style={{ ...CRD(), marginBottom:16 }}>
         <div style={{ fontWeight:700, color:_theme.text, marginBottom:12 }}>Add Note</div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr auto", gap:10, marginBottom:10 }}>
@@ -2194,7 +2662,19 @@ function NotesPage({ notes, setNotes }) {
         <textarea value={text} onChange={e=>setText(e.target.value)} rows={3}
           style={{ ...I(), resize:"vertical", marginBottom:10 }}
           placeholder="Describe the exceptional circumstance, issue, or note that affected operations today..."/>
-        <button style={PBT("#2563EB",{padding:"8px 20px"})} onClick={addNote}>+ Save Note</button>
+        {recMsg && <div style={{ fontSize:12, color:recording?"#EF4444":"#10B981",
+          fontWeight:600, marginBottom:6 }}>{recMsg}</div>}
+        <div style={{ display:"flex", gap:8 }}>
+          <button style={PBT("#2563EB",{padding:"8px 20px",flex:1})} onClick={addNote}>+ Save Note</button>
+          {"SpeechRecognition" in window || "webkitSpeechRecognition" in window ? (
+            <button onClick={startVoiceNote}
+              style={{ background:recording?"#EF4444":"#6366F1", color:"#fff", border:"none",
+                borderRadius:8, padding:"8px 16px", fontSize:13, cursor:"pointer", fontWeight:600,
+                display:"flex", alignItems:"center", gap:5 }}>
+              {recording ? "⏹ جارٍ التسجيل..." : "🎙️ تسجيل صوتي"}
+            </button>
+          ) : null}
+        </div>
       </div>
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
         {allNotes.length===0 && <div style={{ ...CRD(), textAlign:"center", padding:32, color:_theme.textMuted }}>📭 No notes yet</div>}
@@ -2370,11 +2850,11 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
         ))}
       </div>
 
-      {/* Explanation box for viewers */}
-      {!isOwner && canEdit && (
-        <div style={{ background:"rgba(59,130,246,0.08)", border:"1px solid rgba(59,130,246,0.2)",
+      {/* Info for viewers only */}
+      {!canEdit && (
+        <div style={{ background:"rgba(245,158,11,0.08)", border:"1px solid rgba(245,158,11,0.2)",
           borderRadius:8, padding:"10px 16px", marginBottom:14, fontSize:12, color:_theme.textSub }}>
-          📋 Break times are set by the Owner. The offset (hours after shift start) is calculated per employee based on their shift start time.
+          👁️ عرض فقط — صلاحية التعديل للمشرفين فقط.
         </div>
       )}
 
@@ -2384,8 +2864,8 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
           <thead>
             <tr style={{ background:_theme.tableHead }}>
               {["#","Employee","Shift Start",
-                isOwner ? "Offset from Shift Start" : "Break Offset",
-                isOwner ? "Duration" : "Duration",
+                canEdit ? "Offset from Shift Start" : "Break Offset",
+                "Duration",
                 "Break Start","Break End","Status"].map(h => (
                 <th key={h} style={{ padding:"10px 10px", textAlign:"left", fontWeight:700,
                   color:_theme.text, borderBottom:`2px solid ${_theme.tableBorder}`,
@@ -2428,7 +2908,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
 
                   {/* Offset input — only owner can edit */}
                   <td style={{ padding:"8px 10px" }}>
-                    {isOwner ? (
+                    {canEdit ? (
                       <div>
                         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
                           {/* Hours */}
@@ -2486,7 +2966,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
 
                   {/* Duration */}
                   <td style={{ padding:"8px 10px" }}>
-                    {isOwner ? (
+                    {canEdit ? (
                       <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
                         {[30,45,60,90].map(d => {
                           const isDef = d === defaultDur;
@@ -2540,7 +3020,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
       </div>
 
       {/* Owner-only: Bulk set offset */}
-      {isOwner && shiftEmps.length > 0 && (
+      {canEdit && shiftEmps.length > 0 && (
         <div style={{ ...CRD({ padding:"14px 18px" }), marginTop:14 }}>
           <div style={{ fontWeight:700, color:_theme.text, marginBottom:10, fontSize:13 }}>
             ⚡ Bulk Set Offset — apply same offset to all employees in this shift
@@ -2572,7 +3052,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
 }
 
 // ─── LIVE FLOOR PAGE ──────────────────────────────────────────────────────────
-function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance, breakSchedule, setBreakSchedule, queueLog }) {
+function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance, breakSchedule, setBreakSchedule, queueLog, canEdit, session }) {
   const [now, setNow] = useState(new Date());
   const [shortBreaks, setShortBreaks] = useState({}); // empId → [{start, durationMin}] -- Short Breaks
   const [showShortModal, setShowShortModal] = useState(null);
@@ -2915,11 +3395,13 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
                 </div>
               )}
 
-              {/* Actions */}
-              <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                <button onClick={()=>{ setShowShortModal(emp.id); setShortStart(pad(now.getHours())+":"+pad(now.getMinutes())); setShortDur(15); }}
-                  style={PBT("#8B5CF6",{padding:"5px 12px",fontSize:11})}>⚡ Short Break</button>
-              </div>
+              {/* Actions — canEdit required for Short Break */}
+              {canEdit && (
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                  <button onClick={()=>{ setShowShortModal(emp.id); setShortStart(pad(now.getHours())+":"+pad(now.getMinutes())); setShortDur(15); }}
+                    style={PBT("#8B5CF6",{padding:"5px 12px",fontSize:11})}>⚡ Short Break</button>
+                </div>
+              )}
             </div>
           );
         })}
@@ -3260,6 +3742,49 @@ function ReportsPage({ employees, schedule, shifts, attendance, performance, hea
   const [selectedShifts, setSelectedShifts] = useState([]);
   const [copied, setCopied]           = useState(false);
 
+  // ── PDF / Print export ───────────────────────────────────────────────────────
+  function printReport() {
+    const content = reportType==="scorecard" ? buildScorecard() :
+                    reportType==="monthly"   ? buildMonthlyReport() : buildOpsReport();
+    const title   = reportType==="scorecard" ? "Scorecard Report" :
+                    reportType==="monthly"   ? "Monthly Report"   : "Operations Report";
+    const win = window.open("", "_blank", "width=900,height=700");
+    if (!win) { alert("اسمح بالـ Popup في المتصفح لفتح نافذة الطباعة."); return; }
+    win.document.write(`<!DOCTYPE html>
+<html dir="ltr" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>CS Operations — ${title}</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: "Segoe UI", Arial, sans-serif; font-size: 13px;
+           color: #111; background: #fff; padding: 32px; line-height: 1.6; }
+    h1 { font-size: 20px; font-weight: 800; color: #0F2744; margin-bottom: 4px; }
+    .meta { color: #6B7280; font-size: 11px; margin-bottom: 24px;
+            border-bottom: 2px solid #E5E7EB; padding-bottom: 12px; }
+    pre { white-space: pre-wrap; word-wrap: break-word; font-family: "Courier New", monospace;
+          font-size: 12px; line-height: 1.7; }
+    @media print {
+      body { padding: 16px; }
+      @page { margin: 1.5cm; size: A4; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎯 CS Operations — ${title}</h1>
+  <div class="meta">Generated: ${new Date().toLocaleString("en-US",{timeZone:"Asia/Riyadh"})}</div>
+  <pre>${content.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre>
+  <script>
+    window.onload = function() {
+      window.print();
+      setTimeout(()=>window.close(), 1000);
+    };
+  </script>
+</body>
+</html>`);
+    win.document.close();
+  }
+
   // ── Ops Report state ────────────────────────────────────────────────────────
   const [opsBaseTime,   setOpsBaseTime]   = useState("17:00");
   const [opsUpdTime,    setOpsUpdTime]    = useState("20:00");
@@ -3512,6 +4037,13 @@ Generated: ${new Date().toLocaleString()}`;
     });
   }
 
+  function shareWhatsApp() {
+    const text = getReportText();
+    if (!text) { alert("لا يوجد تقرير لمشاركته. اختر نوع التقرير أولاً."); return; }
+    const encoded = encodeURIComponent(text.slice(0,1800)); // WhatsApp limit
+    window.open("https://wa.me/?text="+encoded, "_blank");
+  }
+
   const [y,m] = month.split("-").map(Number);
   const mStats    = getMonthStats(y, m-1);
   const scoreData = getScorecard(mStats).sort((a,b)=>b.score-a.score);
@@ -3521,18 +4053,143 @@ Generated: ${new Date().toLocaleString()}`;
       <div style={SBR({ flexWrap:"wrap" })}>
         <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>📑 Reports</span>
         <div style={{ display:"flex", gap:6 }}>
-          {[["ops","📊 Ops Report"],["monthly","📅 Monthly"],["scorecard","🎯 Scorecard"]].map(([k,l])=>(
+          {[["ops","📊 Ops Report"],["monthly","📅 Monthly"],["scorecard","🎯 Scorecard"],["trend","📈 Trends"]].map(([k,l])=>(
             <button key={k} onClick={()=>setReportType(k)}
               style={{ border:`2px solid #2563EB`, borderRadius:20, padding:"5px 14px", fontSize:12, cursor:"pointer", fontWeight:600,
                 background:reportType===k?"#2563EB":"transparent", color:reportType===k?"#fff":"#2563EB" }}>{l}</button>
           ))}
         </div>
         {reportType==="ops"     && <input type="date"  value={date}  onChange={e=>setDate(e.target.value)}  style={{ ...I(), width:150 }}/>}
-        {(reportType==="monthly"||reportType==="scorecard") && <input type="month" value={month} onChange={e=>setMonth(e.target.value)} style={{ ...I(), width:150 }}/>}
+        {(reportType==="monthly"||reportType==="scorecard"||reportType==="trend") && <input type="month" value={month} onChange={e=>setMonth(e.target.value)} style={{ ...I(), width:150 }}/>}
         {reportType!=="scorecard" && (
           <button style={PBT(copied?"#10B981":"#2563EB")} onClick={copyReport}>{copied?"✅ Copied!":"📋 Copy Report"}</button>
         )}
+        <button onClick={printReport}
+          style={{ background:"#7C3AED", color:"#fff", border:"none", borderRadius:8,
+            padding:"8px 14px", fontSize:13, cursor:"pointer", fontWeight:600,
+            display:"flex", alignItems:"center", gap:5 }}>
+          🖨️ PDF / طباعة
+        </button>
+        {(reportType==="ops"||reportType==="monthly") && (
+          <button onClick={shareWhatsApp}
+            style={{ background:"#25D366", color:"#fff", border:"none", borderRadius:8,
+              padding:"8px 14px", fontSize:13, cursor:"pointer", fontWeight:600,
+              display:"flex", alignItems:"center", gap:5 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.395 5.61L0 24l6.555-1.371A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.028-1.385l-.36-.214-3.732.98.997-3.648-.235-.374A9.818 9.818 0 1112 21.818z"/>
+            </svg>
+            واتساب
+          </button>
+        )}
       </div>
+
+      {/* ── TREND REPORT ── */}
+      {reportType==="trend" && (() => {
+        const [ty, tm] = month.split("-").map(Number);
+        // Compare current month vs previous 3 months
+        const months = Array.from({length:4},(_,i)=>{
+          const d = new Date(ty, tm-1-i, 1);
+          return { y:d.getFullYear(), m:d.getMonth(), label:d.toLocaleDateString("en-US",{month:"short",year:"numeric"}) };
+        }).reverse();
+
+        const monthData = months.map(({y,m,label})=>{
+          const stats = getMonthStats(y,m);
+          const totClosed = Object.values(stats).reduce((s,st)=>s+st.closed,0);
+          const totEsc    = Object.values(stats).reduce((s,st)=>s+st.escalations,0);
+          const totAbs    = Object.values(stats).reduce((s,st)=>s+st.abs,0);
+          const totLate   = Object.values(stats).reduce((s,st)=>s+st.lateCount,0);
+          const workDays  = monthDates(y,m).length;
+          return {label,totClosed,totEsc,totAbs,totLate,workDays};
+        });
+
+        const maxClosed = Math.max(...monthData.map(d=>d.totClosed),1);
+        const curr = monthData[monthData.length-1];
+        const prev = monthData[monthData.length-2];
+        const delta = (v,p) => {
+          if (!p) return null;
+          const d = v-p;
+          const pct = p > 0 ? Math.round((d/p)*100) : 0;
+          return { d, pct, up: d > 0 };
+        };
+
+        return (
+          <div>
+            {/* Trend summary cards */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))", gap:10, marginBottom:20 }}>
+              {[
+                { label:"إجمالي الإغلاق", cur:curr.totClosed, dlt:delta(curr.totClosed,prev?.totClosed), color:"#10B981" },
+                { label:"التصعيدات",       cur:curr.totEsc,    dlt:delta(curr.totEsc,prev?.totEsc),    color:"#F59E0B" },
+                { label:"الغيابات",        cur:curr.totAbs,    dlt:delta(curr.totAbs,prev?.totAbs),    color:"#EF4444" },
+                { label:"التأخيرات",       cur:curr.totLate,   dlt:delta(curr.totLate,prev?.totLate),  color:"#8B5CF6" },
+              ].map(({label,cur,dlt,color})=>(
+                <div key={label} style={{ ...CRD({padding:"14px 16px"}), borderTop:`3px solid ${color}` }}>
+                  <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>{label}</div>
+                  <div style={{ fontSize:26, fontWeight:800, color, marginTop:4 }}>{cur}</div>
+                  {dlt && (
+                    <div style={{ fontSize:11, fontWeight:700, marginTop:4,
+                      color: color==="EF4444"||color==="#EF4444"||color==="#8B5CF6"
+                        ? (dlt.up?"#EF4444":"#10B981")
+                        : (dlt.up?"#10B981":"#EF4444") }}>
+                      {dlt.up?"▲":"▼"} {Math.abs(dlt.pct)}% vs الشهر الماضي
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Bar chart comparison */}
+            <div style={{ ...CRD(), marginBottom:14 }}>
+              <div style={{ fontWeight:700, color:_theme.text, marginBottom:14, fontSize:13 }}>
+                📈 مقارنة الإغلاق — آخر 4 أشهر
+              </div>
+              <div style={{ display:"flex", gap:12, alignItems:"flex-end", height:120 }}>
+                {monthData.map((d,i)=>{
+                  const h = Math.round((d.totClosed/maxClosed)*100);
+                  const isLast = i===monthData.length-1;
+                  return (
+                    <div key={d.label} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+                      <div style={{ fontSize:11, fontWeight:800, color:isLast?"#10B981":_theme.textSub }}>{d.totClosed}</div>
+                      <div style={{ width:"100%", height:Math.max(h,4), background:isLast?"#10B981":"#10B98150",
+                        borderRadius:"4px 4px 0 0", transition:"height 0.3s",
+                        border:isLast?"2px solid #10B981":"none" }}/>
+                      <div style={{ fontSize:10, color:_theme.textMuted, textAlign:"center" }}>{d.label}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Detailed table */}
+            <div style={{ ...CRD({padding:0}), overflowX:"auto" }}>
+              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+                <thead>
+                  <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+                    {["الشهر","الإغلاق","التصعيدات","الغيابات","التأخيرات"].map(h=>(
+                      <th key={h} style={{ padding:"10px 12px", textAlign:"right", fontWeight:700,
+                        color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {monthData.map((d,ri)=>{
+                    const isLast = ri===monthData.length-1;
+                    return (
+                      <tr key={d.label} style={{ background: isLast?_theme.primary+"10":ri%2===0?_theme.card:_theme.surface }}>
+                        <td style={{ padding:"9px 12px", fontWeight:isLast?800:600, color:isLast?_theme.primary:_theme.text }}>{d.label}</td>
+                        <td style={{ padding:"9px 12px", color:"#10B981", fontWeight:700 }}>{d.totClosed}</td>
+                        <td style={{ padding:"9px 12px", color:d.totEsc>0?"#F59E0B":_theme.textMuted, fontWeight:600 }}>{d.totEsc||"—"}</td>
+                        <td style={{ padding:"9px 12px", color:d.totAbs>0?"#EF4444":_theme.textMuted, fontWeight:600 }}>{d.totAbs||"—"}</td>
+                        <td style={{ padding:"9px 12px", color:d.totLate>0?"#8B5CF6":_theme.textMuted, fontWeight:600 }}>{d.totLate||"—"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── OPS REPORT BUILDER ── */}
       {reportType==="ops" && (
@@ -3735,8 +4392,11 @@ Generated: ${new Date().toLocaleString()}`;
                         <div style={{ fontSize:11, color:_theme.textMuted }}>Late {s.s.lateCount}x · {s.s.lateMin}m total</div>
                       </td>
                       <td style={{ padding:"10px 12px" }}>
-                        <span style={{ background:scoreColor+"20", color:scoreColor, border:`1.5px solid ${scoreColor}`,
-                          borderRadius:20, padding:"4px 14px", fontWeight:800, fontSize:15 }}>{s.score}</span>
+                        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                          <DonutChart value={s.score} max={100} color={scoreColor} size={52}/>
+                          <span style={{ background:scoreColor+"20", color:scoreColor, border:`1.5px solid ${scoreColor}`,
+                            borderRadius:20, padding:"4px 14px", fontWeight:800, fontSize:15 }}>{s.score}</span>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -3962,7 +4622,7 @@ function AuditLogPage({ auditLog, session }) {
   const [filterAction, setFilterAction]   = useState("");
   const [filterDate, setFilterDate]       = useState("");
   const [hidePageViews, setHidePageViews] = useState(true);
-  const [showHistoryFor, setShowHistoryFor] = useState(null); // action type to drill into
+  const [showHistoryFor, setShowHistoryFor] = useState(null);
 
   const isSuperAdminSession = session?.name === "Mohammed Nasser Althurwi";
   const canViewHistory = session?.role === "Team Lead" ||
@@ -4216,6 +4876,21 @@ function AuditLogPage({ auditLog, session }) {
           Hide Page Views
         </label>
         <span style={{ fontSize:12, color:_theme.textMuted, marginLeft:"auto" }}>{filtered.length} records</span>
+        <button onClick={()=>{
+          const rows = [["Timestamp","User","Role","Action","Target","Detail"]];
+          filtered.forEach(l=>rows.push([
+            new Date(l.ts).toLocaleString("en-US",{timeZone:"Asia/Riyadh"}),
+            l.by||"", l.role||"", l.action||"", l.target||"", l.detail||""
+          ]));
+          const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,"''")}"`)
+            .join(",")).join("
+");
+          const blob = new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8;"});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href=url; a.download=`audit-${todayStr()}.csv`; a.click();
+          URL.revokeObjectURL(url);
+        }} style={PBT("#10B981",{fontSize:12,padding:"6px 14px"})}>⬇️ CSV</button>
       </div>
 
       {/* ── Log Timeline ── */}
@@ -4263,6 +4938,445 @@ function AuditLogPage({ auditLog, session }) {
 
 
 
+
+
+// ─── OWNER EMPLOYEE MANAGER ──────────────────────────────────────────────────
+// Full employee management panel exclusive to Owner (Super Admin)
+function OwnerEmployeeManager({ employees, setEmployees, session }) {
+  const [tab, setTab] = useState("roles"); // "roles" | "add" | "pages"
+  const [search, setSearch] = useState("");
+  const [addForm, setAddForm] = useState({ name:"", role:"Agent", gender:"M", tasks:[] });
+  const [addDone, setAddDone] = useState("");
+  const [expandedEmp, setExpandedEmp] = useState(null); // emp id with pages expanded
+
+  const ALL_MANAGEABLE = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor",
+    "Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Leaderboard"];
+
+  const PAGE_ICONS_MAP = {
+    "Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
+    "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍",
+    "Notes":"📝","Shifts":"⏰","Performance":"⚡","Reports":"📑","Leaderboard":"🏆"
+  };
+
+  const filtered = employees.filter(e =>
+    e.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  function updateEmp(id, patch) {
+    setEmployees(prev => prev.map(e => e.id===id ? {...e, ...patch} : e));
+  }
+
+  function deleteEmployee(emp) {
+    if (emp.name === session?.name) { alert("لا يمكنك حذف حسابك الخاص."); return; }
+    if (!window.confirm(`⚠️ حذف الموظف "${emp.name}" نهائياً من النظام؟\nسيُحذف من الجداول والحضور وكل السجلات.`)) return;
+    setEmployees(prev => prev.filter(e => e.id !== emp.id));
+  }
+
+  function addEmployee() {
+    if (!addForm.name.trim()) { setAddDone("❌ الاسم مطلوب"); return; }
+    const id = "e" + Date.now();
+    setEmployees(prev => [...prev, {
+      id, name:addForm.name.trim(), role:addForm.role,
+      gender:addForm.gender, tasks:addForm.tasks,
+      isAdmin:false, hiddenPages:[]
+    }]);
+    setAddDone(`✅ تمت إضافة "${addForm.name.trim()}" بنجاح`);
+    setAddForm({ name:"", role:"Agent", gender:"M", tasks:[] });
+    setTimeout(() => setAddDone(""), 3000);
+  }
+
+  function togglePage(emp, page) {
+    const hidden = emp.hiddenPages || [];
+    const next = hidden.includes(page) ? hidden.filter(p=>p!==page) : [...hidden, page];
+    updateEmp(emp.id, { hiddenPages: next });
+  }
+
+  function toggleAdmin(emp) {
+    if (emp.name === session?.name) { alert("لا يمكنك تعديل صلاحياتك الخاصة."); return; }
+    const next = !emp.isAdmin;
+    if (!window.confirm(`${next?"منح":"إزالة"} صلاحية Admin من "${emp.name}"؟`)) return;
+    updateEmp(emp.id, { isAdmin: next });
+  }
+
+  const tabs = [
+    { k:"roles", icon:"🔑", label:"الأدوار والصلاحيات" },
+    { k:"pages", icon:"🗂️", label:"تحكم الصفحات" },
+    { k:"add",   icon:"➕", label:"إضافة موظف" },
+  ];
+
+  return (
+    <div style={{ background:_theme.card, border:`1.5px solid ${_theme.primary}30`,
+      borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
+
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, flexWrap:"wrap" }}>
+        <span style={{ fontSize:18 }}>👑</span>
+        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>إدارة الموظفين والصلاحيات</span>
+        <span style={{ fontSize:12, color:_theme.textMuted }}>— حصري للـ Owner</span>
+        <span style={{ background:"#EF444420", color:"#EF4444", border:"1px solid #EF444440",
+          borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>
+          👑 Owner Only
+        </span>
+        <div style={{ marginLeft:"auto" }}>
+          <input value={search} onChange={e=>setSearch(e.target.value)}
+            style={{ background:_theme.input, border:`1px solid ${_theme.inputBorder}`,
+              borderRadius:8, padding:"6px 12px", fontSize:12, color:_theme.inputText,
+              outline:"none", width:200 }}
+            placeholder="🔍 بحث عن موظف..."/>
+        </div>
+      </div>
+
+      {/* Tab nav */}
+      <div style={{ display:"flex", gap:6, marginBottom:16, flexWrap:"wrap" }}>
+        {tabs.map(({k,icon,label}) => (
+          <button key={k} onClick={()=>setTab(k)}
+            style={{ border:`2px solid ${tab===k?_theme.primary:"#CBD5E1"}`,
+              borderRadius:20, padding:"6px 16px", fontSize:12, cursor:"pointer", fontWeight:700,
+              background:tab===k?_theme.primary:"transparent",
+              color:tab===k?"#fff":_theme.textMuted, transition:"all 0.15s" }}>
+            {icon} {label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── TAB: Roles & Permissions ── */}
+      {tab==="roles" && (
+        <div style={{ overflowX:"auto" }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+            <thead>
+              <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+                {["الموظف","الجنس","الدور الحالي","تغيير الدور","Admin","المهام","حذف"].map(h=>(
+                  <th key={h} style={{ padding:"10px 10px", textAlign:"right", fontWeight:700,
+                    color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((emp,ri) => {
+                const isSelf = emp.name === session?.name;
+                return (
+                  <tr key={emp.id} style={{ background:ri%2===0?_theme.card:_theme.surface,
+                    opacity: isSelf ? 0.75 : 1 }}>
+
+                    {/* Name */}
+                    <td style={{ padding:"8px 10px", fontWeight:700, color:_theme.text, minWidth:160 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                        {emp.isAdmin && <span title="Admin" style={{ fontSize:12 }}>⚡</span>}
+                        {emp.name}
+                        {isSelf && <span style={{ fontSize:10, color:_theme.textMuted }}>(أنت)</span>}
+                      </div>
+                      <div style={{ fontSize:10, color:_theme.textMuted }}>{emp.id}</div>
+                    </td>
+
+                    {/* Gender */}
+                    <td style={{ padding:"8px 10px", textAlign:"center" }}>
+                      <div style={{ display:"flex", gap:4 }}>
+                        {["M","F"].map(g => (
+                          <button key={g} onClick={()=>!isSelf&&updateEmp(emp.id,{gender:g})}
+                            disabled={isSelf}
+                            style={{ border:`1.5px solid ${emp.gender===g?(g==="F"?"#BE185D":"#1D4ED8"):"#CBD5E1"}`,
+                              borderRadius:5, padding:"2px 7px", fontSize:10, cursor:isSelf?"default":"pointer",
+                              background:emp.gender===g?(g==="F"?"#FCE7F3":"#EFF6FF"):"transparent",
+                              color:emp.gender===g?(g==="F"?"#BE185D":"#1D4ED8"):"#94A3B8",
+                              fontWeight:700, opacity:isSelf?0.5:1 }}>
+                            {g==="M"?"👨 M":"👩 F"}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
+
+                    {/* Current role badge */}
+                    <td style={{ padding:"8px 10px", whiteSpace:"nowrap" }}>
+                      <span style={{ background:(ROLE_COLORS[emp.role]||"#64748B")+"22",
+                        color:ROLE_COLORS[emp.role]||"#64748B",
+                        border:`1px solid ${(ROLE_COLORS[emp.role]||"#64748B")}40`,
+                        borderRadius:6, padding:"3px 10px", fontSize:11, fontWeight:700 }}>
+                        {ROLE_ICONS[emp.role]||"👤"} {emp.role}
+                      </span>
+                    </td>
+
+                    {/* Role buttons */}
+                    <td style={{ padding:"8px 10px" }}>
+                      <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
+                        {Object.keys(ROLE_CAN_EDIT).map(role => (
+                          <button key={role}
+                            onClick={()=>{
+                              if (isSelf) { alert("لا يمكنك تغيير دورك الخاص."); return; }
+                              if (!window.confirm(`تغيير دور "${emp.name}" إلى "${role}"؟`)) return;
+                              updateEmp(emp.id, { role });
+                            }}
+                            style={{ border:`1.5px solid ${emp.role===role?(ROLE_COLORS[role]||"#64748B"):"#CBD5E1"}`,
+                              borderRadius:5, padding:"2px 8px", fontSize:10, cursor:"pointer", fontWeight:700,
+                              background:emp.role===role?(ROLE_COLORS[role]||"#64748B")+"22":"transparent",
+                              color:emp.role===role?(ROLE_COLORS[role]||"#64748B"):"#94A3B8", transition:"all 0.1s" }}>
+                            {role}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
+
+                    {/* Admin toggle */}
+                    <td style={{ padding:"8px 10px", textAlign:"center" }}>
+                      <button onClick={()=>toggleAdmin(emp)}
+                        title={emp.isAdmin?"إزالة Admin":"منح Admin"}
+                        style={{ border:`2px solid ${emp.isAdmin?"#F59E0B":"#CBD5E1"}`,
+                          borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer",
+                          fontWeight:800,
+                          background:emp.isAdmin?"#FEF3C7":"transparent",
+                          color:emp.isAdmin?"#B45309":"#94A3B8", transition:"all 0.15s",
+                          opacity:isSelf?0.4:1 }}>
+                        {emp.isAdmin ? "⚡ Admin" : "+ Admin"}
+                      </button>
+                    </td>
+
+                    {/* Tasks */}
+                    <td style={{ padding:"8px 10px" }}>
+                      <div style={{ display:"flex", gap:3 }}>
+                        {["KFOOD","KEEMRT"].map(task => {
+                          const has = (emp.tasks||[]).includes(task);
+                          const color = task==="KFOOD"?"#10B981":"#3B82F6";
+                          return (
+                            <button key={task}
+                              onClick={()=>{
+                                const cur = emp.tasks||[];
+                                updateEmp(emp.id, { tasks: has ? cur.filter(t=>t!==task) : [...cur,task] });
+                              }}
+                              style={{ border:`1.5px solid ${has?color:"#CBD5E1"}`,
+                                borderRadius:5, padding:"2px 7px", fontSize:10, cursor:"pointer",
+                                fontWeight:700, background:has?color+"22":"transparent",
+                                color:has?color:"#94A3B8", transition:"all 0.1s" }}>
+                              {has?"✓":"+"}  {task}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </td>
+
+                    {/* Delete */}
+                    <td style={{ padding:"8px 10px", textAlign:"center" }}>
+                      <button onClick={()=>deleteEmployee(emp)}
+                        disabled={isSelf}
+                        title="حذف الموظف نهائياً"
+                        style={{ background:isSelf?"transparent":"#FEF2F2",
+                          border:`1px solid ${isSelf?"#CBD5E1":"#FCA5A5"}`,
+                          color:isSelf?"#CBD5E1":"#EF4444", borderRadius:6,
+                          padding:"4px 10px", cursor:isSelf?"default":"pointer",
+                          fontSize:12, fontWeight:700 }}>
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtered.length===0 && (
+                <tr><td colSpan={7} style={{ padding:24, textAlign:"center", color:_theme.textMuted }}>
+                  لا توجد نتائج للبحث
+                </td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ── TAB: Page Visibility Control ── */}
+      {tab==="pages" && (
+        <div>
+          <div style={{ fontSize:12, color:_theme.textMuted, marginBottom:12, padding:"8px 12px",
+            background:_theme.surface, borderRadius:8, border:`1px solid ${_theme.cardBorder}` }}>
+            💡 اضغط على اسم الموظف لإظهار/إخفاء الصفحات الخاصة به. الصفحات المحجوبة لن تظهر في نافذة التنقل.
+            الـ Owner دائماً يرى كل الصفحات بغض النظر عن هذا الإعداد.
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {filtered.map(emp => {
+              const hidden = emp.hiddenPages || [];
+              const isExpanded = expandedEmp === emp.id;
+              const isSelf = emp.name === session?.name;
+              return (
+                <div key={emp.id} style={{ background:_theme.surface, borderRadius:10,
+                  border:`1px solid ${_theme.cardBorder}`, overflow:"hidden" }}>
+                  {/* Row header */}
+                  <div onClick={()=>setExpandedEmp(isExpanded?null:emp.id)}
+                    style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px",
+                      cursor:"pointer", userSelect:"none" }}>
+                    <span style={{ fontSize:14 }}>{isExpanded?"▼":"▶"}</span>
+                    <span style={{ fontWeight:700, fontSize:13, color:_theme.text }}>{emp.name}</span>
+                    <span style={{ fontSize:11, color:ROLE_COLORS[emp.role]||"#64748B", fontWeight:600 }}>
+                      {ROLE_ICONS[emp.role]} {emp.role}
+                    </span>
+                    {hidden.length > 0 && (
+                      <span style={{ background:"#FEF2F2", color:"#EF4444", border:"1px solid #FCA5A5",
+                        borderRadius:20, padding:"1px 8px", fontSize:10, fontWeight:700, marginLeft:"auto" }}>
+                        {hidden.length} صفحة محجوبة
+                      </span>
+                    )}
+                    {hidden.length === 0 && (
+                      <span style={{ background:"#F0FDF4", color:"#10B981", border:"1px solid #86EFAC",
+                        borderRadius:20, padding:"1px 8px", fontSize:10, fontWeight:700, marginLeft:"auto" }}>
+                        ✅ كل الصفحات مرئية
+                      </span>
+                    )}
+                  </div>
+                  {/* Expanded pages grid */}
+                  {isExpanded && (
+                    <div style={{ padding:"10px 14px", borderTop:`1px solid ${_theme.cardBorder}` }}>
+                      {isSelf && (
+                        <div style={{ fontSize:12, color:"#F59E0B", marginBottom:8 }}>
+                          ⚠️ لا يمكن تعديل صفحاتك الخاصة كـ Owner
+                        </div>
+                      )}
+                      <div style={{ display:"flex", gap:8, marginBottom:10, flexWrap:"wrap" }}>
+                        <button onClick={()=>!isSelf&&updateEmp(emp.id,{hiddenPages:[]})}
+                          disabled={isSelf}
+                          style={{ border:"1.5px solid #10B981", borderRadius:8, padding:"4px 12px",
+                            fontSize:11, cursor:isSelf?"default":"pointer", fontWeight:700,
+                            background:"#F0FDF4", color:"#10B981", opacity:isSelf?0.5:1 }}>
+                          ✅ إظهار الكل
+                        </button>
+                        <button onClick={()=>!isSelf&&updateEmp(emp.id,{hiddenPages:[...ALL_MANAGEABLE]})}
+                          disabled={isSelf}
+                          style={{ border:"1.5px solid #EF4444", borderRadius:8, padding:"4px 12px",
+                            fontSize:11, cursor:isSelf?"default":"pointer", fontWeight:700,
+                            background:"#FEF2F2", color:"#EF4444", opacity:isSelf?0.5:1 }}>
+                          🚫 إخفاء الكل
+                        </button>
+                      </div>
+                      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))", gap:6 }}>
+                        {ALL_MANAGEABLE.map(page => {
+                          const isHidden = hidden.includes(page);
+                          return (
+                            <button key={page}
+                              onClick={()=>!isSelf&&togglePage(emp, page)}
+                              disabled={isSelf}
+                              style={{ display:"flex", alignItems:"center", gap:6,
+                                border:`1.5px solid ${isHidden?"#EF4444":"#10B981"}`,
+                                borderRadius:8, padding:"6px 10px",
+                                cursor:isSelf?"default":"pointer",
+                                background:isHidden?"#FEF2F2":"#F0FDF4",
+                                opacity:isSelf?0.5:1, transition:"all 0.15s" }}>
+                              <span style={{ fontSize:14 }}>{PAGE_ICONS_MAP[page]||"📄"}</span>
+                              <span style={{ fontSize:11, fontWeight:700,
+                                color:isHidden?"#EF4444":"#10B981", textAlign:"left" }}>{page}</span>
+                              <span style={{ marginLeft:"auto", fontSize:14 }}>
+                                {isHidden ? "🔒" : "✅"}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB: Add Employee ── */}
+      {tab==="add" && (
+        <div style={{ maxWidth:500 }}>
+          <div style={{ fontSize:12, color:_theme.textMuted, marginBottom:16, padding:"8px 12px",
+            background:_theme.surface, borderRadius:8, border:`1px solid ${_theme.cardBorder}` }}>
+            ➕ إضافة موظف جديد للنظام — سيظهر فوراً في كل الصفحات ويمكن تخصيصه من تبويب الأدوار.
+          </div>
+
+          {addDone && (
+            <div style={{ background: addDone.startsWith("✅")?"#F0FDF4":"#FEF2F2",
+              border:`1px solid ${addDone.startsWith("✅")?"#86EFAC":"#FCA5A5"}`,
+              borderRadius:8, padding:"10px 14px", marginBottom:14,
+              fontSize:13, color:addDone.startsWith("✅")?"#166534":"#EF4444", fontWeight:600 }}>
+              {addDone}
+            </div>
+          )}
+
+          <div style={{ display:"grid", gap:12 }}>
+            {/* Name */}
+            <div>
+              <label style={{ fontSize:11, fontWeight:700, color:_theme.textSub, display:"block", marginBottom:5 }}>
+                الاسم الكامل *
+              </label>
+              <input value={addForm.name} onChange={e=>setAddForm(p=>({...p,name:e.target.value}))}
+                placeholder="أدخل الاسم الكامل..."
+                style={{ background:_theme.input, border:`1px solid ${_theme.inputBorder}`,
+                  borderRadius:8, padding:"9px 12px", fontSize:13, color:_theme.inputText,
+                  outline:"none", width:"100%" }}/>
+            </div>
+
+            {/* Role */}
+            <div>
+              <label style={{ fontSize:11, fontWeight:700, color:_theme.textSub, display:"block", marginBottom:5 }}>
+                الدور
+              </label>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
+                {Object.keys(ROLE_CAN_EDIT).map(role => (
+                  <button key={role} onClick={()=>setAddForm(p=>({...p,role}))}
+                    style={{ border:`2px solid ${addForm.role===role?(ROLE_COLORS[role]||"#64748B"):"#CBD5E1"}`,
+                      borderRadius:8, padding:"8px 10px", cursor:"pointer",
+                      background:addForm.role===role?(ROLE_COLORS[role]||"#64748B")+"18":"transparent",
+                      display:"flex", alignItems:"center", gap:6, transition:"all 0.15s" }}>
+                    <span style={{ fontSize:16 }}>{ROLE_ICONS[role]||"👤"}</span>
+                    <span style={{ fontSize:12, fontWeight:700,
+                      color:addForm.role===role?(ROLE_COLORS[role]||"#64748B"):_theme.textSub }}>
+                      {role}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Gender */}
+            <div>
+              <label style={{ fontSize:11, fontWeight:700, color:_theme.textSub, display:"block", marginBottom:5 }}>
+                الجنس
+              </label>
+              <div style={{ display:"flex", gap:8 }}>
+                {[["M","👨 ذكر","#1D4ED8","#EFF6FF"],["F","👩 أنثى","#BE185D","#FCE7F3"]].map(([v,l,c,bg])=>(
+                  <button key={v} onClick={()=>setAddForm(p=>({...p,gender:v}))}
+                    style={{ flex:1, border:`2px solid ${addForm.gender===v?c:"#CBD5E1"}`,
+                      borderRadius:8, padding:"9px", cursor:"pointer",
+                      background:addForm.gender===v?bg:"transparent",
+                      color:addForm.gender===v?c:_theme.textSub, fontWeight:700, fontSize:13 }}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tasks */}
+            <div>
+              <label style={{ fontSize:11, fontWeight:700, color:_theme.textSub, display:"block", marginBottom:5 }}>
+                المهام (اختياري)
+              </label>
+              <div style={{ display:"flex", gap:8 }}>
+                {["KFOOD","KEEMRT"].map(task => {
+                  const has = addForm.tasks.includes(task);
+                  const color = task==="KFOOD"?"#10B981":"#3B82F6";
+                  return (
+                    <button key={task}
+                      onClick={()=>setAddForm(p=>({...p,tasks:has?p.tasks.filter(t=>t!==task):[...p.tasks,task]}))}
+                      style={{ flex:1, border:`2px solid ${has?color:"#CBD5E1"}`,
+                        borderRadius:8, padding:"9px", cursor:"pointer", fontWeight:700,
+                        background:has?color+"18":"transparent", color:has?color:_theme.textSub, fontSize:13 }}>
+                      {has?"✓ ":""}{task}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Submit */}
+            <button onClick={addEmployee}
+              style={{ background:_theme.primary, color:"#fff", border:"none", borderRadius:10,
+                padding:"12px", fontSize:14, cursor:"pointer", fontWeight:700,
+                boxShadow:`0 4px 14px ${_theme.primary}40`, marginTop:4 }}>
+              ➕ إضافة الموظف للنظام
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── OWNER ANALYTICS PAGE ────────────────────────────────────────────────────
 function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedule, shifts, attendance, performance, queueLog, alertThresholdCritical, alertThresholdWarning, saveAlertThresholds, notes, setNotes }) {
@@ -4423,6 +5537,34 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
         ))}
       </div>
 
+      {/* ── Backup & Restore Strip ── */}
+      <div style={{ display:"flex", gap:10, marginBottom:20, flexWrap:"wrap", alignItems:"center" }}>
+        <button
+          onClick={()=>{
+            const backup = {
+              version: "cs-ops-v1",
+              exported: new Date().toISOString(),
+              employees, shifts, schedule, attendance, performance,
+              heatmap, queueLog, notes, auditLog,
+            };
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type:"application/json" });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement("a");
+            a.href     = url;
+            a.download = `cs-ops-backup-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+          style={{ background:"#10B981", color:"#fff", border:"none", borderRadius:8,
+            padding:"9px 18px", fontSize:13, cursor:"pointer", fontWeight:700,
+            display:"flex", alignItems:"center", gap:6 }}>
+          💾 تصدير نسخة احتياطية
+        </button>
+        <div style={{ fontSize:11, color:_theme.textMuted }}>
+          يُصدّر كل البيانات ملف JSON واحد — احتفظ به كنسخة احتياطية يومية.
+        </div>
+      </div>
+
       {/* ── Alert Threshold Settings ── */}
       <div style={{ background:_theme.card, border:`1.5px solid #EF444430`,
         borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
@@ -4480,95 +5622,84 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
       </div>
 
 
-      {/* ── Employee Role Management ── */}
-      <div style={{ background:_theme.card, border:`1.5px solid ${_theme.primary}30`,
-        borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, flexWrap:"wrap" }}>
-          <span style={{ fontSize:16 }}>🔑</span>
-          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>إدارة صلاحيات الموظفين</span>
-          <span style={{ fontSize:12, color:_theme.textMuted }}>— تغيير الأدوار والصلاحيات لكل موظف</span>
-        </div>
-        <div style={{ overflowX:"auto" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-            <thead>
-              <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
-                {["الموظف","الجنس","الدور الحالي","تغيير الصلاحية","تعديل المهام"].map(h=>(
-                  <th key={h} style={{ padding:"10px 12px", textAlign:"right", fontWeight:700,
-                    color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {employees.map((emp,ri) => (
-                <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
-                  <td style={{ padding:"8px 12px", fontWeight:700, color:_theme.text }}>
-                    {emp.name}
-                    <div style={{ fontSize:10, color:_theme.textMuted }}>{emp.id}</div>
-                  </td>
-                  <td style={{ padding:"8px 12px", textAlign:"center" }}>
-                    <span style={{ fontSize:11, fontWeight:800, padding:"2px 6px", borderRadius:4,
-                      background:emp.gender==="F"?"#FCE7F3":"#EFF6FF",
-                      color:emp.gender==="F"?"#BE185D":"#1D4ED8",
-                      border:emp.gender==="F"?"1px solid #F9A8D4":"1px solid #BFDBFE" }}>
-                      {emp.gender||"M"}
-                    </span>
-                  </td>
-                  <td style={{ padding:"8px 12px" }}>
-                    <span style={{ background:(ROLE_COLORS[emp.role]||"#64748B")+"22",
-                      color:ROLE_COLORS[emp.role]||"#64748B",
-                      border:`1px solid ${(ROLE_COLORS[emp.role]||"#64748B")}40`,
-                      borderRadius:6, padding:"3px 10px", fontSize:12, fontWeight:700 }}>
-                      {ROLE_ICONS[emp.role]||"👤"} {emp.role}
-                    </span>
-                  </td>
-                  <td style={{ padding:"8px 12px" }}>
-                    <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
-                      {Object.keys(ROLE_CAN_EDIT).map(role => (
-                        <button key={role}
-                          onClick={()=>{
-                            if (emp.name===session?.name) { alert("لا يمكنك تغيير صلاحيتك الخاصة."); return; }
-                            if (!window.confirm(`تغيير صلاحية ${emp.name} من "${emp.role}" إلى "${role}"؟`)) return;
-                            setEmployees(prev => prev.map(e => e.id===emp.id ? {...e, role} : e));
-                          }}
-                          style={{ border:`1.5px solid ${emp.role===role?(ROLE_COLORS[role]||"#64748B"):"#CBD5E1"}`,
-                            borderRadius:6, padding:"3px 10px", fontSize:11, cursor:"pointer", fontWeight:700,
-                            background:emp.role===role?(ROLE_COLORS[role]||"#64748B")+"22":"transparent",
-                            color:emp.role===role?(ROLE_COLORS[role]||"#64748B"):"#94A3B8",
-                            transition:"all 0.12s" }}>
-                          {role}
-                        </button>
-                      ))}
-                    </div>
-                  </td>
-                  <td style={{ padding:"8px 12px" }}>
-                    <div style={{ display:"flex", gap:4 }}>
-                      {["KFOOD","KEEMRT"].map(task => {
-                        const has = (emp.tasks||[]).includes(task);
-                        const color = task==="KFOOD"?"#10B981":"#3B82F6";
-                        return (
-                          <button key={task}
-                            onClick={()=>{
-                              const cur = emp.tasks||[];
-                              const next = has ? cur.filter(t=>t!==task) : [...cur, task];
-                              setEmployees(prev => prev.map(e => e.id===emp.id ? {...e, tasks:next} : e));
-                            }}
-                            style={{ border:`1.5px solid ${has?color:"#CBD5E1"}`,
-                              borderRadius:6, padding:"3px 8px", fontSize:11, cursor:"pointer", fontWeight:700,
-                              background:has?color+"22":"transparent",
-                              color:has?color:"#94A3B8", transition:"all 0.12s" }}>
-                            {has?"✓":"+"}  {task}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* ══════════ EMPLOYEE MANAGEMENT ══════════ */}
+      <OwnerEmployeeManager employees={employees} setEmployees={setEmployees} session={session}/>
 
+
+      {/* ── Weekly Team Review ── */}
+      <div style={{ background:_theme.card, border:`1.5px solid ${_theme.primary}20`,
+        borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
+          <span style={{ fontSize:16 }}>📊</span>
+          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>مراجعة الفريق الأسبوعية</span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>— آخر 7 أيام</span>
+        </div>
+        {(() => {
+          const last7days = Array.from({length:7},(_,i)=>{
+            const d=new Date(); d.setDate(d.getDate()-6+i);
+            return { date:d.toISOString().slice(0,10), label:d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"Asia/Riyadh"}) };
+          });
+          const weekStats = last7days.map(({date,label})=>{
+            const attMap  = attendance[date]||{};
+            const perfMap = performance[date]||{};
+            const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
+            const scheduled = employees.filter(e=>{const v=(schedule[e.id]||{})[dayName];return v&&v!=="OFF";});
+            const present   = Object.values(attMap).filter(a=>a.status==="Present"||a.status==="Late").length;
+            const absent    = Object.values(attMap).filter(a=>a.status==="Absent").length;
+            const closed    = Object.values(perfMap).reduce((s,p)=>s+(p.closed||0),0);
+            const esc       = Object.values(perfMap).reduce((s,p)=>s+(p.escalations||0),0);
+            return {label,date,scheduled:scheduled.length,present,absent,closed,esc};
+          });
+          const totalClosed7 = weekStats.reduce((s,d)=>s+d.closed,0);
+          const totalEsc7    = weekStats.reduce((s,d)=>s+d.esc,0);
+          const avgPresent   = weekStats.length > 0 ? Math.round(weekStats.reduce((s,d)=>s+d.present,0)/weekStats.length) : 0;
+          return (
+            <div>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:14 }}>
+                <div style={{ ...CRD({padding:"10px 12px"}), borderTop:"3px solid #10B981" }}>
+                  <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>إجمالي الإغلاق 7 أيام</div>
+                  <div style={{ fontSize:24, fontWeight:800, color:"#10B981" }}>{totalClosed7}</div>
+                  <SparkBar values={weekStats.map(d=>d.closed)} color="#10B981" height={32} width={100}/>
+                </div>
+                <div style={{ ...CRD({padding:"10px 12px"}), borderTop:"3px solid #F59E0B" }}>
+                  <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>إجمالي التصعيدات 7 أيام</div>
+                  <div style={{ fontSize:24, fontWeight:800, color:"#F59E0B" }}>{totalEsc7}</div>
+                  <SparkLine values={weekStats.map(d=>d.esc)} color="#F59E0B" height={32} width={100}/>
+                </div>
+                <div style={{ ...CRD({padding:"10px 12px"}), borderTop:"3px solid #3B82F6" }}>
+                  <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>متوسط الحضور اليومي</div>
+                  <div style={{ fontSize:24, fontWeight:800, color:"#3B82F6" }}>{avgPresent}</div>
+                  <SparkBar values={weekStats.map(d=>d.present)} color="#3B82F6" height={32} width={100}/>
+                </div>
+              </div>
+              <div style={{ overflowX:"auto" }}>
+                <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+                  <thead>
+                    <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+                      {["اليوم","المجدولون","حاضر","غائب","مغلق","تصعيد"].map(h=>(
+                        <th key={h} style={{ padding:"8px 10px", textAlign:"right", fontWeight:700,
+                          color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {weekStats.map((d,ri)=>(
+                      <tr key={d.date} style={{ background:ri%2===0?_theme.card:_theme.surface }}>
+                        <td style={{ padding:"7px 10px", fontWeight:600, color:_theme.text }}>{d.label}</td>
+                        <td style={{ padding:"7px 10px", color:_theme.textSub }}>{d.scheduled}</td>
+                        <td style={{ padding:"7px 10px", color:"#10B981", fontWeight:600 }}>{d.present}</td>
+                        <td style={{ padding:"7px 10px", color:d.absent>0?"#EF4444":_theme.textMuted, fontWeight:600 }}>{d.absent||"—"}</td>
+                        <td style={{ padding:"7px 10px", color:"#3B82F6", fontWeight:700 }}>{d.closed||"—"}</td>
+                        <td style={{ padding:"7px 10px", color:d.esc>0?"#F59E0B":_theme.textMuted, fontWeight:600 }}>{d.esc||"—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
       {/* ── Manager Messages Panel ── */}
       <div style={{ background:_theme.card, border:`1.5px solid ${_theme.accent}30`,
         borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
@@ -4974,7 +6105,8 @@ function CriticalAlertPopup({ onDismiss, alerts }) {
 
 // ─── LEADERBOARD PAGE (Agent view) ────────────────────────────────────────────
 function LeaderboardPage({ employees, schedule, performance, session, notes, canEdit }) {
-  const [tick, setTick] = useState(0);
+  const [tick, setTick]       = useState(0);
+  const [lbPeriod, setLbPeriod] = useState("today"); // "today"|"week"|"month"
   useEffect(() => {
     const t = setInterval(() => setTick(p => p+1), 60000);
     return () => clearInterval(t);
@@ -4989,8 +6121,21 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, can
     return v && v !== "OFF";
   });
 
+  // Aggregate by period
+  const periodDates = lbPeriod==="today" ? [todayKey] :
+    lbPeriod==="week" ? Array.from({length:7},(_,i)=>{
+      const d=new Date(); d.setDate(d.getDate()-6+i); return d.toISOString().slice(0,10);
+    }) :
+    Array.from({length:new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate()},(_,i)=>{
+      const d=new Date(); d.setDate(1+i); return d.toISOString().slice(0,10);
+    });
+
   const sorted = [...todayEmps]
-    .map(e => ({ ...e, perf: (performance[todayKey]||{})[e.id]||{ closed:0, escalations:0 } }))
+    .map(e => {
+      const closed = periodDates.reduce((s,dk)=>s+((performance[dk]||{})[e.id]?.closed||0),0);
+      const esc    = periodDates.reduce((s,dk)=>s+((performance[dk]||{})[e.id]?.escalations||0),0);
+      return { ...e, perf: { closed, escalations: esc } };
+    })
     .sort((a,b) => (b.perf.closed||0) - (a.perf.closed||0));
 
   const totalClosed = sorted.reduce((s,e)=>s+(e.perf.closed||0),0);
@@ -5025,6 +6170,18 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, can
         <div style={{ fontSize:13, color:_theme.textMuted }}>
           {new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",timeZone:"Asia/Riyadh"})}
           &nbsp;·&nbsp; {todayEmps.length} موظف مجدول · {totalClosed} حالة مُغلقة
+        </div>
+        {/* Period tabs */}
+        <div style={{ display:"flex", gap:6, marginTop:12, justifyContent:"center" }}>
+          {[["today","📅 اليوم"],["week","📈 الأسبوع"],["month","🗓️ الشهر"]].map(([k,l])=>(
+            <button key={k} onClick={()=>setLbPeriod(k)}
+              style={{ border:`2px solid ${lbPeriod===k?_theme.primary:"#CBD5E1"}`,
+                borderRadius:20, padding:"5px 16px", fontSize:12, cursor:"pointer", fontWeight:700,
+                background:lbPeriod===k?_theme.primary:"transparent",
+                color:lbPeriod===k?"#fff":_theme.textSub }}>
+              {l}
+            </button>
+          ))}
         </div>
         {myRank && (
           <div style={{ marginTop:12, display:"inline-flex", alignItems:"center", gap:8,
@@ -5090,6 +6247,17 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, can
           })}
         </div>
       )}
+
+      {/* ── Leave Requests (submit for agents, view status) ── */}
+      <LeaveRequestsPanel
+        session={session}
+        employees={employees}
+        schedule={schedule}
+        setSchedule={()=>{}}
+        notes={notes}
+        setNotes={canEdit ? ()=>{} : ()=>{}}
+        canEdit={false}
+      />
 
       {/* Top 3 podium */}
       {sorted.slice(0,3).some(e=>e.perf.closed>0) && (
@@ -5202,88 +6370,220 @@ function waitForXLSX() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// SUPABASE INTEGRATION
-// ═══════════════════════════════════════════════════════════
-const SUPABASE_URL = "https://ohbgpdsuaointhidnmps.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oYmdwZHN1YW9pbnRoaWRubXBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzI3MjMsImV4cCI6MjA4OTQ0ODcyM30.pEIUTSpOnMIFCJLWT07nk-8nDVZmepw6vaDEkzKQ-I0";
+// ─── PUSH NOTIFICATIONS ──────────────────────────────────────────────────────
+// Uses browser Notification API + Service Worker showNotification
+// No VAPID/server needed — works when app is open or in background (PWA)
 
-// Light Supabase client -- no npm needed
+async function askPushPermission() {
+  if (!("Notification" in window)) return "unsupported";
+  if (Notification.permission === "granted") return "granted";
+  if (Notification.permission === "denied")  return "denied";
+  const result = await Notification.requestPermission();
+  return result;
+}
+
+function sendPushNotification(title, body, tag = "cs-ops-alert") {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  // Try via Service Worker first (works when app is in background)
+  if (navigator.serviceWorker?.controller) {
+    navigator.serviceWorker.ready.then(reg => {
+      reg.showNotification(title, {
+        body,
+        tag,           // prevents duplicate notifications with same tag
+        icon:  "/icon-192.png",
+        badge: "/icon-192.png",
+        vibrate: [200, 100, 200],
+        requireInteraction: true,  // stays until user taps
+        data: { url: "/" },
+        actions: [
+          { action: "view", title: "فتح التطبيق" },
+          { action: "dismiss", title: "تجاهل" },
+        ]
+      });
+    }).catch(() => {
+      // Fallback: direct Notification (only works when app is open)
+      new Notification(title, { body, icon: "/icon-192.png", tag });
+    });
+  } else {
+    new Notification(title, { body, icon: "/icon-192.png", tag });
+  }
+}
+
+
+// ─── ALERT SOUND SYSTEM (Web Audio API, zero dependencies) ───────────────────
+function playAlertSound(type = "critical") {
+  if (localStorage.getItem("csops_mute") === "1") return; // muted
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+
+    if (type === "critical") {
+      // Urgent triple beep — descending tone
+      [0, 0.25, 0.5].forEach((t, i) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 880 - i * 110;
+        osc.type = "sine";
+        gain.gain.setValueAtTime(0.4, now + t);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + t + 0.18);
+        osc.start(now + t);
+        osc.stop(now + t + 0.2);
+      });
+    } else {
+      // Gentle double ping — warning
+      [0, 0.3].forEach(t => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 660;
+        osc.type = "sine";
+        gain.gain.setValueAtTime(0.25, now + t);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + t + 0.22);
+        osc.start(now + t);
+        osc.stop(now + t + 0.25);
+      });
+    }
+    setTimeout(() => ctx.close(), 2000);
+  } catch {}
+}
+
+// Play a subtle "ding" for new messages / info
+function playSoftDing() {
+  if (localStorage.getItem("csops_mute") === "1") return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 784; // G5
+    osc.type = "sine";
+    const now = ctx.currentTime;
+    gain.gain.setValueAtTime(0.18, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    osc.start(now); osc.stop(now + 0.45);
+    setTimeout(() => ctx.close(), 1000);
+  } catch {}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SUPABASE - FULL REALTIME (supabase-js v2 from CDN)
+// All reads/writes go through the official SDK.
+// Realtime subscriptions are set up separately in the App component.
+// ═══════════════════════════════════════════════════════════════════════════
+const SUPABASE_URL  = "https://ohbgpdsuaointhidnmps.supabase.co";
+const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oYmdwZHN1YW9pbnRoaWRubXBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzI3MjMsImV4cCI6MjA4OTQ0ODcyM30.pEIUTSpOnMIFCJLWT07nk-8nDVZmepow6vaDEkzKQ-I0";
+
+// ── Singleton client ─────────────────────────────────────────────────────────
+let _supabase = null;
+
+/** Returns the Supabase client. Loads the SDK from CDN if not yet loaded. */
+function getDB() {
+  if (_supabase) return Promise.resolve(_supabase);
+  return new Promise(resolve => {
+    // Already loading?
+    if (document.getElementById("sb-sdk")) {
+      const t = setInterval(() => { if (_supabase) { clearInterval(t); resolve(_supabase); } }, 40);
+      return;
+    }
+    const s   = document.createElement("script");
+    s.id      = "sb-sdk";
+    s.src     = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
+    s.onload  = () => {
+      _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        realtime: {
+          params: { eventsPerSecond: 20 },
+        },
+        db: { schema: "public" },
+      });
+      resolve(_supabase);
+    };
+    s.onerror = () => resolve(null); // graceful offline fallback
+    document.head.appendChild(s);
+  });
+}
+
+// ── Legacy REST shim  (keeps all existing sb.from() calls working unchanged) ─
+// When SDK is ready it uses it; otherwise falls back to raw fetch.
 const sb = {
   async from(table) {
+    const db = await getDB();
+    if (db) {
+      // ── SDK path ──────────────────────────────────────────────────────────
+      return {
+        async select(cols = "*", filterStr = "") {
+          let q = db.from(table).select(cols);
+          if (filterStr) {
+            filterStr.split("&").forEach(f => {
+              if      (f.startsWith("order="))    { const [col, dir] = f.slice(6).split("."); q = q.order(col, { ascending: dir === "asc" }); }
+              else if (f.startsWith("limit="))    { q = q.limit(Number(f.slice(6))); }
+              else if (f.startsWith("date=gte.")) { q = q.gte("date", f.slice(9)); }
+            });
+          }
+          const { data, error } = await q;
+          if (error) console.warn("sb.select error", table, error.message);
+          return data || [];
+        },
+        async upsert(rows) {
+          const arr = Array.isArray(rows) ? rows : [rows];
+          // Per-table primary key (onConflict must match the actual PK)
+          const PK = {
+            schedule:       "emp_id",
+            heatmap:        "date",
+            user_passwords: "name",
+          };
+          const conflictCol = PK[table] || "id";
+          const { data, error } = await db.from(table).upsert(arr, { onConflict: conflictCol });
+          if (error) console.warn("sb.upsert error", table, conflictCol, error.message);
+          return data;
+        },
+        async insert(rows) {
+          const arr = Array.isArray(rows) ? rows : [rows];
+          const { data, error } = await db.from(table).insert(arr);
+          if (error) console.warn("sb.insert error", table, error.message);
+          return data;
+        },
+        async delete(filterStr) {
+          // filterStr format: "col=eq.value"
+          const eqMatch = filterStr.match(/^(\w+)=eq\.(.+)$/);
+          if (eqMatch) {
+            const { error } = await db.from(table).delete().eq(eqMatch[1], eqMatch[2]);
+            if (error) console.warn("sb.delete error", table, error.message);
+          }
+          return true;
+        },
+      };
+    }
+    // ── Offline REST fallback (no SDK) ────────────────────────────────────────
     const base = `${SUPABASE_URL}/rest/v1/${table}`;
-    const headers = {
-      "apikey": SUPABASE_KEY,
-      "Authorization": `Bearer ${SUPABASE_KEY}`,
-      "Content-Type": "application/json",
-      "Prefer": "return=representation",
-    };
+    const hdrs = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`,
+                   "Content-Type": "application/json", "Prefer": "return=representation" };
     return {
-      async select(cols="*", filter="") {
-        const url = `${base}?select=${cols}${filter?"&"+filter:""}`;
-        const r = await fetch(url, { headers });
-        return r.ok ? await r.json() : [];
+      async select(cols = "*", filterStr = "") {
+        const url = `${base}?select=${cols}${filterStr ? "&" + filterStr : ""}`;
+        const r   = await fetch(url, { headers: hdrs });
+        return r.ok ? r.json() : [];
       },
-      async upsert(data) {
-        const r = await fetch(base, {
-          method: "POST",
-          headers: { ...headers, "Prefer": "resolution=merge-duplicates,return=representation" },
-          body: JSON.stringify(Array.isArray(data) ? data : [data]),
-        });
-        return r.ok ? await r.json() : null;
+      async upsert(rows) {
+        const r = await fetch(base, { method: "POST",
+          headers: { ...hdrs, "Prefer": "resolution=merge-duplicates,return=representation" },
+          body: JSON.stringify(Array.isArray(rows) ? rows : [rows]) });
+        return r.ok ? r.json() : null;
       },
-      async delete(filter) {
-        const url = `${base}?${filter}`;
-        const r = await fetch(url, { method: "DELETE", headers });
+      async insert(rows) {
+        const r = await fetch(base, { method: "POST", headers: hdrs,
+          body: JSON.stringify(Array.isArray(rows) ? rows : [rows]) });
+        return r.ok ? r.json() : null;
+      },
+      async delete(filterStr) {
+        const r = await fetch(`${base}?${filterStr}`, { method: "DELETE", headers: hdrs });
         return r.ok;
-      },
-      async insert(data) {
-        const r = await fetch(base, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(Array.isArray(data) ? data : [data]),
-        });
-        return r.ok ? await r.json() : null;
       },
     };
   }
 };
 
-// ─── SUPABASE DATA HOOK ───────────────────────────────────────────────────────
-// Loads from Supabase on mount, falls back to localStorage while offline
-function useSupabaseState(key, defaultVal, loader, saver) {
-  const [state, setState] = useState(() => {
-    try {
-      const raw = localStorage.getItem("csops_" + key);
-      return raw ? JSON.parse(raw) : (typeof defaultVal==="function" ? defaultVal() : defaultVal);
-    } catch { return typeof defaultVal==="function" ? defaultVal() : defaultVal; }
-  });
-  const [loaded, setLoaded] = useState(false);
-
-  // Load from Supabase once on mount
-  useCallback(() => {
-    if (loaded) return;
-    loader().then(data => {
-      if (data !== null && data !== undefined) {
-        setState(data);
-        try { localStorage.setItem("csops_" + key, JSON.stringify(data)); } catch {}
-      }
-      setLoaded(true);
-    }).catch(() => setLoaded(true));
-  }, [])(); // IIFE pattern -- runs once
-
-  const set = useCallback((val) => {
-    setState(prev => {
-      const next = typeof val==="function" ? val(prev) : val;
-      // Save locally immediately
-      try { localStorage.setItem("csops_" + key, JSON.stringify(next)); } catch {}
-      // Save to Supabase async (fire and forget)
-      saver(next).catch(()=>{});
-      return next;
-    });
-  }, [key]);
-
-  return [state, set];
-}
+// (useSupabaseState removed — state is managed directly in App with Realtime subscriptions)
 
 // ─── PASSWORD SYSTEM (Supabase-backed) ───────────────────────────────────────
 const RESET_ADMINS = ["Team Lead", "Shift Leader", "Mohammed Nasser Althurwi"];
@@ -5292,20 +6592,40 @@ function canResetPasswords(role, name) {
 }
 
 // Local cache for passwords (also stored in Supabase user_passwords table)
+// ─── PASSWORD SYSTEM — SHA-256 hashed (Web Crypto API, no library needed) ─────
+// Passwords are NEVER stored in plain text — only SHA-256 hashes.
+// Comparison: hash(input) === stored_hash  (one-way, irreversible)
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function hashPassword(pw) {
+  // SHA-256 via built-in Web Crypto API
+  const encoded = new TextEncoder().encode(pw);
+  const hashBuf = await crypto.subtle.digest("SHA-256", encoded);
+  const hashArr = Array.from(new Uint8Array(hashBuf));
+  return hashArr.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 function getPwStore() {
   try { return JSON.parse(localStorage.getItem("csops_passwords")||"{}"); } catch { return {}; }
 }
 function setPwStore(obj) {
   try { localStorage.setItem("csops_passwords", JSON.stringify(obj)); } catch {}
 }
+
+// Returns the stored hash (or null if no password set)
 function getUserPw(name) { return getPwStore()[name] || null; }
+
+// Stores a hashed password
 async function setUserPw(name, pw) {
-  const s = getPwStore(); s[name] = pw; setPwStore(s);
+  const hash = await hashPassword(pw);
+  const s = getPwStore(); s[name] = hash; setPwStore(s);
   try {
     const t = await sb.from("user_passwords");
-    await t.upsert({ name, password: pw, updated_at: new Date().toISOString() });
+    // Store only the hash — never the plain password
+    await t.upsert({ name, password: hash, updated_at: new Date().toISOString() });
   } catch {}
 }
+
 async function resetUserPw(name) {
   const s = getPwStore(); delete s[name]; setPwStore(s);
   try {
@@ -5313,18 +6633,19 @@ async function resetUserPw(name) {
     await t.delete(`name=eq.${encodeURIComponent(name)}`);
   } catch {}
 }
-// Load passwords from Supabase on startup
-(async function loadPasswords() {
+
+// Load password HASHES from Supabase — waits for SDK to be ready
+getDB().then(async () => {
   try {
     const t = await sb.from("user_passwords");
     const rows = await t.select();
     if (Array.isArray(rows) && rows.length > 0) {
       const obj = {};
-      rows.forEach(r => { obj[r.name] = r.password; });
+      rows.forEach(r => { obj[r.name] = r.password; }); // hashes only
       setPwStore(obj);
     }
   } catch {}
-})();
+});
 
 // ─── ROLE CONFIG ──────────────────────────────────────────────────────────────
 const ROLE_CAN_EDIT = {
@@ -5374,6 +6695,1474 @@ const DAILY_TIPS_AR = [
 ];
 
 // ─── LOGIN SCREEN ─────────────────────────────────────────────────────────────
+
+// ─── EMPLOYEE ATTENDANCE HISTORY PAGE ────────────────────────────────────────
+function AttendanceHistoryPage({ employees, schedule, shifts, attendance }) {
+  const [selectedEmp, setSelectedEmp] = useState("");
+  const [month, setMonth]             = useState(new Date().toISOString().slice(0,7));
+  const [search, setSearch]           = useState("");
+
+  const [y, m] = month.split("-").map(Number);
+  const dates  = monthDates(y, m-1);
+
+  const filtered = employees.filter(e =>
+    e.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const emp = employees.find(e => e.id === selectedEmp);
+
+  // Stats for selected employee
+  const stats = useMemo(() => {
+    if (!emp) return null;
+    let present=0, absent=0, late=0, earlyLeave=0, dayOff=0, totalLateMin=0, totalWorkMin=0, workDays=0;
+    dates.forEach(d => {
+      const dayName = DAYS[new Date(d+"T12:00:00").getDay()];
+      const sid     = (schedule[emp.id]||{})[dayName];
+      if (!sid || sid==="OFF" || sid==="LEAVE" || sid==="PH") { dayOff++; return; }
+      workDays++;
+      const att = ((attendance[d]||{})[emp.id]) || { status:"Present" };
+      if      (att.status==="Present")     present++;
+      else if (att.status==="Absent")      absent++;
+      else if (att.status==="Late")        { late++; present++; }
+      else if (att.status==="Early Leave") { earlyLeave++; present++; }
+      totalLateMin  += att.lateMin||0;
+      totalWorkMin  += Number(att.workDuration)||0;
+    });
+    const attRate = workDays > 0 ? Math.round(((workDays-absent)/workDays)*100) : 0;
+    const avgWork = workDays > 0 ? Math.round(totalWorkMin/workDays) : 0;
+    return { present, absent, late, earlyLeave, dayOff, totalLateMin, workDays, attRate, avgWork };
+  }, [emp, dates, schedule, attendance]);
+
+  function statusColor(s) {
+    if (s==="Present")     return "#10B981";
+    if (s==="Absent")      return "#EF4444";
+    if (s==="Late")        return "#F59E0B";
+    if (s==="Early Leave") return "#8B5CF6";
+    return "#94A3B8";
+  }
+  function statusIcon(s) {
+    if (s==="Present")     return "✅";
+    if (s==="Absent")      return "❌";
+    if (s==="Late")        return "⏰";
+    if (s==="Early Leave") return "🔆";
+    return "—";
+  }
+
+  return (
+    <div>
+      {/* Toolbar */}
+      <div style={SBR()}>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>📆 سجل الحضور الفردي</span>
+        <input value={search} onChange={e=>setSearch(e.target.value)}
+          style={{ ...I({width:200}) }} placeholder="🔍 ابحث عن موظف..."/>
+        <input type="month" value={month} onChange={e=>setMonth(e.target.value)}
+          style={{ ...I({width:160}) }}/>
+      </div>
+
+      <div style={{ display:"grid", gridTemplateColumns:"260px 1fr", gap:14, alignItems:"start" }}>
+        {/* Employee list */}
+        <div style={{ ...CRD({padding:0}), overflow:"hidden", maxHeight:"80vh", overflowY:"auto" }}>
+          <div style={{ padding:"10px 14px", fontWeight:700, fontSize:12,
+            color:_theme.textMuted, borderBottom:`1px solid ${_theme.cardBorder}` }}>
+            {filtered.length} موظف
+          </div>
+          {filtered.map(e => (
+            <div key={e.id} onClick={()=>setSelectedEmp(e.id)}
+              style={{ padding:"10px 14px", cursor:"pointer",
+                background: selectedEmp===e.id ? _theme.primary+"22" : "transparent",
+                borderBottom:`1px solid ${_theme.cardBorder}20`,
+                borderRight: selectedEmp===e.id ? `3px solid ${_theme.primary}` : "3px solid transparent",
+                transition:"all 0.1s" }}>
+              <div style={{ fontWeight:600, fontSize:13, color:_theme.text }}>{e.name}</div>
+              <div style={{ fontSize:11, color:ROLE_COLORS[e.role]||_theme.textMuted }}>{e.role}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Detail panel */}
+        {!emp ? (
+          <div style={{ ...CRD(), textAlign:"center", padding:"60px 20px", color:_theme.textMuted }}>
+            <div style={{ fontSize:40, marginBottom:12 }}>👤</div>
+            <div style={{ fontWeight:600 }}>اختر موظفاً من القائمة لعرض سجل حضوره</div>
+          </div>
+        ) : (
+          <div>
+            {/* Employee header */}
+            <div style={{ ...CRD({padding:"14px 18px"}), marginBottom:12,
+              borderRight:`4px solid ${ROLE_COLORS[emp.role]||"#64748B"}` }}>
+              <div style={{ fontWeight:800, fontSize:16, color:_theme.text }}>{emp.name}</div>
+              <div style={{ fontSize:12, color:ROLE_COLORS[emp.role]||_theme.textMuted, fontWeight:600 }}>
+                {ROLE_ICONS[emp.role]} {emp.role}
+              </div>
+            </div>
+
+            {/* KPI strip */}
+            {stats && (
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))", gap:8, marginBottom:14 }}>
+                {[
+                  ["أيام العمل",  stats.workDays,                        "#3B82F6"],
+                  ["حاضر",        stats.present,                         "#10B981"],
+                  ["غائب",        stats.absent,                          "#EF4444"],
+                  ["متأخر",       stats.late,                            "#F59E0B"],
+                  ["مغادرة مبكرة",stats.earlyLeave,                     "#8B5CF6"],
+                  ["نسبة الحضور", stats.attRate+"%",                     "#0EA5E9"],
+                  ["إجمالي التأخير", stats.totalLateMin+"m",            "#EC4899"],
+                  ["متوسط العمل", Math.floor(stats.avgWork/60)+"h "+stats.avgWork%60+"m", "#14B8A6"],
+                ].map(([l,v,c])=>(
+                  <div key={l} style={{ ...CRD({padding:"10px 12px"}), borderTop:`3px solid ${c}` }}>
+                    <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600, marginBottom:2 }}>{l}</div>
+                    <div style={{ fontSize:20, fontWeight:800, color:c }}>{v}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Monthly calendar grid */}
+            <div style={{ ...CRD({padding:0}), overflowX:"auto" }}>
+              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+                <thead>
+                  <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+                    {["التاريخ","اليوم","الشفت","الحالة","حضور","انصراف","تأخير","مدة العمل","ملاحظة"].map(h=>(
+                      <th key={h} style={{ padding:"9px 8px", textAlign:"right", fontWeight:700,
+                        color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {dates.map((d,ri) => {
+                    const dayName = DAYS[new Date(d+"T12:00:00").getDay()];
+                    const sid     = (schedule[emp.id]||{})[dayName];
+                    const sh      = shifts.find(s=>s.id===sid);
+                    const isOff   = !sid || sid==="OFF";
+                    const isWknd  = dayName==="Friday" || dayName==="Saturday";
+                    const att     = ((attendance[d]||{})[emp.id]) || null;
+                    const status  = att?.status || (isOff?"يوم إجازة":"Present");
+                    const today   = d === todayStr();
+                    return (
+                      <tr key={d} style={{
+                        background: today ? _theme.primary+"18" :
+                                    isOff ? _theme.surface :
+                                    ri%2===0 ? _theme.card : _theme.surface,
+                        opacity: isOff ? 0.6 : 1
+                      }}>
+                        <td style={{ padding:"7px 8px", fontWeight: today?700:400,
+                          color: today?_theme.primary:_theme.text }}>{d.slice(5)}</td>
+                        <td style={{ padding:"7px 8px", color:isWknd?"#EF4444":_theme.textSub, fontWeight:600 }}>
+                          {dayName.slice(0,3)}
+                        </td>
+                        <td style={{ padding:"7px 8px" }}>
+                          {sh ? <span style={{ background:sh.color+"22", color:sh.color,
+                            border:`1px solid ${sh.color}40`, borderRadius:5, padding:"1px 7px",
+                            fontSize:10, fontWeight:700 }}>{sh.label}</span>
+                          : <span style={{ color:_theme.textMuted, fontSize:11 }}>—</span>}
+                        </td>
+                        <td style={{ padding:"7px 8px" }}>
+                          <span style={{ color:statusColor(status), fontWeight:700, fontSize:12 }}>
+                            {statusIcon(status)} {status}
+                          </span>
+                        </td>
+                        <td style={{ padding:"7px 8px", color:_theme.textSub, fontSize:11 }}>{att?.checkIn||"—"}</td>
+                        <td style={{ padding:"7px 8px", color:_theme.textSub, fontSize:11 }}>{att?.checkOut||"—"}</td>
+                        <td style={{ padding:"7px 8px", color:(att?.lateMin||0)>=7?"#EF4444":"#94A3B8",
+                          fontWeight:600, fontSize:11 }}>
+                          {att?.lateMin > 0 ? att.lateMin+"m" : "—"}
+                        </td>
+                        <td style={{ padding:"7px 8px", fontSize:11,
+                          color: att?.workDuration ? "#10B981" : _theme.textMuted }}>
+                          {att?.workDuration
+                            ? Math.floor(att.workDuration/60)+"h "+att.workDuration%60+"m"
+                            : "—"}
+                        </td>
+                        <td style={{ padding:"7px 8px", color:_theme.textMuted, fontSize:11,
+                          maxWidth:140, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                          {att?.note||"—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── LEAVE REQUEST SYSTEM ────────────────────────────────────────────────────
+// Employees submit requests, supervisors approve/reject from Attendance page
+function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, setNotes, canEdit }) {
+  const [showForm, setShowForm]   = useState(false);
+  const [startDate, setStartDate] = useState(todayStr());
+  const [endDate, setEndDate]     = useState(todayStr());
+  const [reason, setReason]       = useState("");
+  const [saved, setSaved]         = useState("");
+
+  // Leave requests stored as notes with tag "Leave Request"
+  const allRequests = (Array.isArray(notes)?notes:[])
+    .filter(n => n.tag === "Leave Request")
+    .sort((a,b) => b.ts.localeCompare(a.ts));
+
+  // Employee sees only their own; supervisors see all
+  const myName = session?.name;
+  const visibleRequests = canEdit
+    ? allRequests
+    : allRequests.filter(r => r.from === myName);
+
+  const pending  = visibleRequests.filter(r => r.leaveStatus === "pending");
+  const approved = visibleRequests.filter(r => r.leaveStatus === "approved");
+  const rejected = visibleRequests.filter(r => r.leaveStatus === "rejected");
+
+  function submitRequest() {
+    if (!startDate || !endDate || !reason.trim()) { setSaved("❌ أدخل التاريخ والسبب"); return; }
+    if (endDate < startDate) { setSaved("❌ تاريخ الانتهاء قبل البداية"); return; }
+    const req = {
+      id: "lr"+Date.now(), ts: new Date().toISOString(),
+      date: startDate, time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag: "Leave Request", text: reason.trim(),
+      from: myName, target: "all",
+      leaveStatus: "pending",
+      leaveStart: startDate, leaveEnd: endDate,
+      msgType: "leave",
+    };
+    setNotes(prev => [req, ...(Array.isArray(prev)?prev:[])]);
+    setSaved("✅ تم إرسال الطلب — في انتظار الموافقة");
+    setReason(""); setShowForm(false);
+    setTimeout(() => setSaved(""), 3000);
+  }
+
+  function approveRequest(req) {
+    // Mark approved
+    setNotes(prev => (Array.isArray(prev)?prev:[]).map(n =>
+      n.id===req.id ? {...n, leaveStatus:"approved", approvedBy:myName} : n
+    ));
+    // Apply LEAVE to schedule for each day in range
+    const emp = employees.find(e => e.name === req.from);
+    if (!emp) return;
+    const d = new Date(req.leaveStart+"T12:00:00");
+    const end = new Date(req.leaveEnd+"T12:00:00");
+    const updates = { ...(schedule[emp.id]||{}) };
+    while (d <= end) {
+      const dayName = DAYS[d.getDay()];
+      updates[dayName] = "LEAVE";
+      d.setDate(d.getDate()+1);
+    }
+    setSchedule(prev => ({ ...prev, [emp.id]: updates }));
+  }
+
+  function rejectRequest(req) {
+    setNotes(prev => (Array.isArray(prev)?prev:[]).map(n =>
+      n.id===req.id ? {...n, leaveStatus:"rejected", rejectedBy:myName} : n
+    ));
+  }
+
+  function deleteRequest(id) {
+    setNotes(prev => (Array.isArray(prev)?prev:[]).filter(n => n.id!==id));
+  }
+
+  function statusBadge(status) {
+    const map = {
+      pending:  { bg:"#FEF3C7", color:"#B45309", label:"قيد الانتظار ⏳" },
+      approved: { bg:"#F0FDF4", color:"#166534", label:"موافق عليه ✅" },
+      rejected: { bg:"#FEF2F2", color:"#991B1B", label:"مرفوض ❌" },
+    };
+    const cfg = map[status] || map.pending;
+    return (
+      <span style={{ background:cfg.bg, color:cfg.color,
+        borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>
+        {cfg.label}
+      </span>
+    );
+  }
+
+  return (
+    <div style={{ ...CRD(), marginTop:16 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
+        <span style={{ fontSize:16 }}>🏖️</span>
+        <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>طلبات الإجازة</span>
+        {pending.length > 0 && (
+          <span style={{ background:"#FEF3C7", color:"#B45309", border:"1px solid #FCD34D",
+            borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>
+            {pending.length} طلب معلّق
+          </span>
+        )}
+        <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
+          {!canEdit && (
+            <button onClick={()=>setShowForm(s=>!s)}
+              style={{ ...PBT("#10B981",{padding:"6px 14px",fontSize:12}) }}>
+              {showForm ? "✕ إغلاق" : "+ طلب إجازة جديد"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Request form (employees only) */}
+      {showForm && !canEdit && (
+        <div style={{ background:_theme.surface, borderRadius:10, padding:"14px 16px",
+          marginBottom:14, border:`1px solid ${_theme.cardBorder}` }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+            <div>
+              <label style={{ ...LBL }}>من تاريخ</label>
+              <input type="date" value={startDate} onChange={e=>setStartDate(e.target.value)} style={I()}/>
+            </div>
+            <div>
+              <label style={{ ...LBL }}>إلى تاريخ</label>
+              <input type="date" value={endDate} onChange={e=>setEndDate(e.target.value)} style={I()}/>
+            </div>
+          </div>
+          <label style={{ ...LBL }}>سبب الإجازة</label>
+          <textarea value={reason} onChange={e=>setReason(e.target.value)} rows={2}
+            style={{ ...I({resize:"vertical",marginBottom:10}) }}
+            placeholder="اذكر سبب الإجازة..."/>
+          <button onClick={submitRequest} style={{ ...PBT("#10B981",{width:"100%"}) }}>
+            📤 إرسال الطلب
+          </button>
+          {saved && <div style={{ marginTop:8, fontSize:12, color:saved.startsWith("✅")?"#10B981":"#EF4444",
+            fontWeight:600 }}>{saved}</div>}
+        </div>
+      )}
+
+      {/* Pending requests (supervisors see approve/reject) */}
+      {pending.length > 0 && (
+        <div style={{ marginBottom:14 }}>
+          <div style={{ fontSize:12, fontWeight:700, color:"#B45309", marginBottom:8 }}>⏳ معلّقة ({pending.length})</div>
+          {pending.map(r => (
+            <div key={r.id} style={{ background:"#FEF3C720", border:"1px solid #FCD34D",
+              borderRadius:10, padding:"12px 14px", marginBottom:8 }}>
+              <div style={{ display:"flex", alignItems:"flex-start", gap:10, flexWrap:"wrap" }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontWeight:700, fontSize:13, color:_theme.text }}>
+                    {r.from} {statusBadge(r.leaveStatus)}
+                  </div>
+                  <div style={{ fontSize:11, color:_theme.textMuted, marginTop:3 }}>
+                    📅 {r.leaveStart} → {r.leaveEnd}
+                    {r.leaveStart !== r.leaveEnd && ` (${Math.ceil((new Date(r.leaveEnd)-new Date(r.leaveStart))/(864e5))+1} أيام)`}
+                  </div>
+                  <div style={{ fontSize:12, color:_theme.text, marginTop:5 }}>{r.text}</div>
+                </div>
+                {canEdit && (
+                  <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                    <button onClick={()=>approveRequest(r)}
+                      style={{ ...PBT("#10B981",{padding:"5px 12px",fontSize:12}) }}>✅ موافقة</button>
+                    <button onClick={()=>rejectRequest(r)}
+                      style={{ ...PBT("#EF4444",{padding:"5px 12px",fontSize:12}) }}>❌ رفض</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* History */}
+      {[...approved, ...rejected].length > 0 && (
+        <div>
+          <div style={{ fontSize:12, fontWeight:700, color:_theme.textMuted, marginBottom:8 }}>السجل</div>
+          {[...approved, ...rejected].slice(0,10).map(r => (
+            <div key={r.id} style={{ display:"flex", alignItems:"center", gap:10,
+              padding:"8px 12px", borderBottom:`1px solid ${_theme.cardBorder}20`,
+              borderRadius:8, marginBottom:4,
+              background: r.leaveStatus==="approved"?"#F0FDF408":"#FEF2F208" }}>
+              <div style={{ flex:1 }}>
+                <span style={{ fontWeight:600, fontSize:12, color:_theme.text }}>{r.from}</span>
+                <span style={{ fontSize:11, color:_theme.textMuted, marginRight:6 }}>
+                  {" "}· {r.leaveStart} → {r.leaveEnd}
+                </span>
+                {statusBadge(r.leaveStatus)}
+              </div>
+              {canEdit && (
+                <button onClick={()=>deleteRequest(r.id)}
+                  style={{ background:"none", border:`1px solid ${_theme.cardBorder}`,
+                    color:_theme.textMuted, borderRadius:5, padding:"2px 7px",
+                    cursor:"pointer", fontSize:11 }}>✕</button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {visibleRequests.length === 0 && (
+        <div style={{ textAlign:"center", padding:"24px", color:_theme.textMuted, fontSize:13 }}>
+          <div style={{ fontSize:32, marginBottom:8 }}>🏖️</div>
+          لا توجد طلبات إجازة {canEdit ? "" : "— اضغط + لتقديم طلب جديد"}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── CHART HELPERS (SVG, zero dependencies) ───────────────────────────────────
+function SparkBar({ values, color="#3B82F6", height=40, width=120 }) {
+  if (!values || values.length === 0) return null;
+  const max   = Math.max(...values, 1);
+  const bw    = Math.floor(width / values.length) - 2;
+  const bwMin = Math.max(bw, 3);
+  return (
+    <svg width={width} height={height} style={{ display:"block" }}>
+      {values.map((v, i) => {
+        const bh = Math.round((v / max) * (height - 4)) || 1;
+        const x  = i * (bwMin + 2);
+        const y  = height - bh;
+        return (
+          <g key={i}>
+            <rect x={x} y={y} width={bwMin} height={bh}
+              fill={color} rx={2} opacity={0.85}/>
+            {bh > 12 && (
+              <text x={x + bwMin/2} y={y + bh - 3}
+                textAnchor="middle" fontSize={9} fill="#fff" fontWeight="bold">
+                {v}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function SparkLine({ values, color="#10B981", height=36, width=120 }) {
+  if (!values || values.length < 2) return null;
+  const max  = Math.max(...values, 1);
+  const step = width / (values.length - 1);
+  const pts  = values.map((v,i) => `${Math.round(i*step)},${Math.round(height - (v/max)*(height-4) - 2)}`).join(" ");
+  const last = values[values.length-1];
+  const lx   = Math.round((values.length-1)*step);
+  const ly   = Math.round(height - (last/max)*(height-4) - 2);
+  return (
+    <svg width={width} height={height} style={{ display:"block" }}>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round"/>
+      <circle cx={lx} cy={ly} r={3} fill={color}/>
+      <text x={lx+5} y={ly+4} fontSize={10} fill={color} fontWeight="bold">{last}</text>
+    </svg>
+  );
+}
+
+function DonutChart({ value, max=100, color="#3B82F6", size=64, label="" }) {
+  const pct  = Math.min(100, Math.max(0, Math.round((value/max)*100)));
+  const r    = (size-8)/2;
+  const circ = 2 * Math.PI * r;
+  const dash = (pct/100) * circ;
+  return (
+    <div style={{ position:"relative", width:size, height:size }}>
+      <svg width={size} height={size} style={{ transform:"rotate(-90deg)" }}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none"
+          stroke={color+"30"} strokeWidth={6}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none"
+          stroke={color} strokeWidth={6}
+          strokeDasharray={`${dash} ${circ}`}
+          strokeLinecap="round"/>
+      </svg>
+      <div style={{ position:"absolute", inset:0, display:"flex",
+        flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+        <span style={{ fontSize:13, fontWeight:800, color }}>{pct}%</span>
+        {label && <span style={{ fontSize:9, color:"#94A3B8" }}>{label}</span>}
+      </div>
+    </div>
+  );
+}
+
+// ─── KPI DASHBOARD PAGE ───────────────────────────────────────────────────────
+// Supervisors set personal KPI targets; system tracks progress automatically
+function KPIDashboardPage({ employees, schedule, attendance, performance, session }) {
+  const todayKey = todayStr();
+  const [targets, setTargets] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("csops_kpi_targets")||"{}"); } catch { return {}; }
+  });
+  const [editMode, setEditMode] = useState(false);
+  const [draft, setDraft]       = useState({});
+
+  // Default KPI targets
+  const DEFAULT_TARGETS = {
+    dailyClosed:    50,
+    maxEscRate:     5,   // % max escalation rate
+    minAttRate:     90,  // % min attendance
+    maxAvgLate:     10,  // minutes avg lateness
+    maxAbsent:      3,   // count
+  };
+  const T = { ...DEFAULT_TARGETS, ...targets };
+
+  // Today's actuals
+  const dayName    = DAYS[new Date().getDay()];
+  const todayEmps  = employees.filter(e=>{ const v=(schedule[e.id]||{})[dayName]; return v&&v!=="OFF"; });
+  const todayAtt   = attendance[todayKey] || {};
+  const todayPerf  = performance[todayKey] || {};
+
+  const totalClosed   = Object.values(todayPerf).reduce((s,p)=>s+(p.closed||0),0);
+  const totalEsc      = Object.values(todayPerf).reduce((s,p)=>s+(p.escalations||0),0);
+  const presentCount  = Object.values(todayAtt).filter(a=>a.status==="Present"||a.status==="Late").length;
+  const absentCount   = Object.values(todayAtt).filter(a=>a.status==="Absent").length;
+  const lateArr       = Object.values(todayAtt).filter(a=>a.lateMin>0);
+  const avgLate       = lateArr.length > 0 ? Math.round(lateArr.reduce((s,a)=>s+(a.lateMin||0),0)/lateArr.length) : 0;
+  const attRate       = todayEmps.length > 0 ? Math.round((presentCount/todayEmps.length)*100) : 100;
+  const escRate       = totalClosed > 0 ? Math.round((totalEsc/totalClosed)*100) : 0;
+
+  function saveTargets() {
+    setTargets(draft);
+    localStorage.setItem("csops_kpi_targets", JSON.stringify(draft));
+    setEditMode(false);
+  }
+
+  function openEdit() {
+    setDraft({...T});
+    setEditMode(true);
+  }
+
+  const kpis = [
+    {
+      id:"dailyClosed", label:"الحالات المغلقة اليوم", icon:"✅",
+      actual:totalClosed, target:T.dailyClosed, unit:"حالة",
+      color:"#10B981", higherBetter:true,
+    },
+    {
+      id:"maxEscRate", label:"نسبة التصعيد", icon:"⚠️",
+      actual:escRate, target:T.maxEscRate, unit:"%",
+      color:"#F59E0B", higherBetter:false,
+    },
+    {
+      id:"minAttRate", label:"نسبة الحضور", icon:"👥",
+      actual:attRate, target:T.minAttRate, unit:"%",
+      color:"#3B82F6", higherBetter:true,
+    },
+    {
+      id:"maxAvgLate", label:"متوسط التأخير", icon:"⏰",
+      actual:avgLate, target:T.maxAvgLate, unit:"دقيقة",
+      color:"#8B5CF6", higherBetter:false,
+    },
+    {
+      id:"maxAbsent", label:"عدد الغائبين اليوم", icon:"❌",
+      actual:absentCount, target:T.maxAbsent, unit:"موظف",
+      color:"#EF4444", higherBetter:false,
+    },
+  ];
+
+  function getStatus(kpi) {
+    if (kpi.higherBetter) return kpi.actual >= kpi.target ? "achieved" : kpi.actual >= kpi.target*0.8 ? "close" : "behind";
+    else return kpi.actual <= kpi.target ? "achieved" : kpi.actual <= kpi.target*1.2 ? "close" : "behind";
+  }
+
+  const statusConfig = {
+    achieved: { color:"#10B981", bg:"#F0FDF4", label:"✅ محقق",   ring:"#10B981" },
+    close:    { color:"#F59E0B", bg:"#FEF9C3", label:"⚡ قريب",    ring:"#F59E0B" },
+    behind:   { color:"#EF4444", bg:"#FEF2F2", label:"❌ متأخر",   ring:"#EF4444" },
+  };
+
+  const achieved = kpis.filter(k=>getStatus(k)==="achieved").length;
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={SBR()}>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🎯 لوحة مؤشرات الأداء (KPI)</span>
+        <span style={{ fontSize:12, color:_theme.textMuted }}>
+          {new Date().toLocaleDateString("ar-SA",{weekday:"long",year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Riyadh"})}
+        </span>
+        <div style={{ marginLeft:"auto", display:"flex", gap:8, alignItems:"center" }}>
+          <span style={{ background:"#F0FDF4", color:"#10B981", border:"1px solid #86EFAC",
+            borderRadius:20, padding:"3px 12px", fontSize:12, fontWeight:700 }}>
+            {achieved}/{kpis.length} محقق
+          </span>
+          <button onClick={openEdit}
+            style={{ ...PBT("#6366F1",{padding:"6px 14px",fontSize:12}) }}>
+            ⚙️ تعديل الأهداف
+          </button>
+        </div>
+      </div>
+
+      {/* Edit targets modal */}
+      {editMode && (
+        <div style={{ ...CRD(), marginBottom:16, border:`2px solid #6366F1` }}>
+          <div style={{ fontWeight:700, color:_theme.text, marginBottom:12 }}>⚙️ تعديل أهداف KPI</div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))", gap:12, marginBottom:14 }}>
+            {kpis.map(k=>(
+              <div key={k.id}>
+                <label style={{ fontSize:11, fontWeight:700, color:_theme.textSub, display:"block", marginBottom:4 }}>
+                  {k.icon} {k.label} (هدف)
+                </label>
+                <input type="number" min="0" value={draft[k.id]||""}
+                  onChange={e=>setDraft(p=>({...p,[k.id]:Number(e.target.value)}))}
+                  style={{ ...I({width:"100%"}) }} placeholder={String(T[k.id])}/>
+              </div>
+            ))}
+          </div>
+          <div style={{ display:"flex", gap:8 }}>
+            <button onClick={saveTargets} style={{ ...PBT("#10B981",{flex:1}) }}>💾 حفظ الأهداف</button>
+            <button onClick={()=>setEditMode(false)} style={{ ...PBT("#94A3B8",{padding:"8px 16px"}) }}>إلغاء</button>
+          </div>
+        </div>
+      )}
+
+      {/* KPI Cards */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))", gap:14, marginBottom:20 }}>
+        {kpis.map(kpi=>{
+          const status = getStatus(kpi);
+          const cfg    = statusConfig[status];
+          const pct    = kpi.higherBetter
+            ? Math.min(100, Math.round((kpi.actual/kpi.target)*100))
+            : Math.min(100, Math.round((kpi.target/Math.max(kpi.actual,1))*100));
+          return (
+            <div key={kpi.id} style={{ ...CRD({padding:"16px 18px"}),
+              borderTop:`4px solid ${cfg.ring}`,
+              background: cfg.bg }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
+                <div>
+                  <div style={{ fontSize:11, fontWeight:700, color:"#6B7280", marginBottom:4 }}>{kpi.icon} {kpi.label}</div>
+                  <div style={{ fontSize:32, fontWeight:900, color:cfg.color, lineHeight:1 }}>
+                    {kpi.actual}<span style={{ fontSize:13, fontWeight:600, marginRight:3 }}>{kpi.unit}</span>
+                  </div>
+                  <div style={{ fontSize:11, color:"#6B7280", marginTop:4 }}>
+                    الهدف: {kpi.target} {kpi.unit}
+                  </div>
+                </div>
+                <DonutChart value={pct} max={100} color={cfg.ring} size={60}/>
+              </div>
+              <div style={{ background:"#E5E7EB", borderRadius:10, height:6, overflow:"hidden" }}>
+                <div style={{ width:`${pct}%`, height:"100%", background:cfg.ring,
+                  borderRadius:10, transition:"width 0.5s" }}/>
+              </div>
+              <div style={{ marginTop:6, fontSize:12, fontWeight:700, color:cfg.color }}>{cfg.label}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Top performers today */}
+      <div style={{ ...CRD() }}>
+        <div style={{ fontWeight:700, color:_theme.text, marginBottom:12, fontSize:13 }}>
+          ⚡ أفضل الأداء اليوم
+        </div>
+        {(() => {
+          const ranked = todayEmps
+            .map(e=>({ ...e, closed:(performance[todayKey]||{})[e.id]?.closed||0 }))
+            .filter(e=>e.closed>0)
+            .sort((a,b)=>b.closed-a.closed)
+            .slice(0,5);
+          if (ranked.length===0) return (
+            <div style={{ color:_theme.textMuted, textAlign:"center", padding:"16px", fontSize:13 }}>
+              لا توجد بيانات أداء بعد — أضف الحالات المغلقة في صفحة الأداء
+            </div>
+          );
+          return ranked.map((e,i)=>(
+            <div key={e.id} style={{ display:"flex", alignItems:"center", gap:10,
+              padding:"8px 0", borderBottom:`1px solid ${_theme.cardBorder}20` }}>
+              <span style={{ fontSize:20 }}>{"🥇🥈🥉🏅🏅"[i]}</span>
+              <div style={{ flex:1 }}>
+                <div style={{ fontWeight:700, fontSize:13, color:_theme.text }}>{e.name}</div>
+                <div style={{ fontSize:11, color:ROLE_COLORS[e.role]||_theme.textMuted }}>{e.role}</div>
+              </div>
+              <div style={{ fontWeight:800, fontSize:16, color:"#10B981" }}>{e.closed} حالة</div>
+              <SparkBar values={[e.closed]} color="#10B981" height={28} width={40}/>
+            </div>
+          ));
+        })()}
+      </div>
+    </div>
+  );
+}
+// ─── ERROR BOUNDARY ──────────────────────────────────────────────────────────
+// Catches render errors in any page and shows a recovery screen
+// Must be a class component (React requirement for error boundaries)
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error:null, info:null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  componentDidCatch(error, info) { this.setState({ info }); console.error("CS-Ops Error:", error, info); }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding:32, textAlign:"center", maxWidth:500, margin:"40px auto" }}>
+          <div style={{ fontSize:48, marginBottom:16 }}>⚠️</div>
+          <div style={{ fontWeight:800, fontSize:18, color:"#EF4444", marginBottom:8 }}>
+            حدث خطأ غير متوقع
+          </div>
+          <div style={{ fontSize:13, color:"#6B7280", marginBottom:8, fontFamily:"monospace",
+            background:"#FEF2F2", border:"1px solid #FCA5A5", borderRadius:8,
+            padding:"10px 14px", textAlign:"left", whiteSpace:"pre-wrap", wordBreak:"break-all" }}>
+            {this.state.error?.message || "Unknown error"}
+          </div>
+          <div style={{ fontSize:12, color:"#9CA3AF", marginBottom:20 }}>
+            الصفحة الحالية واجهت مشكلة. يمكنك العودة أو إعادة التحميل.
+          </div>
+          <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
+            <button onClick={()=>this.setState({error:null,info:null})}
+              style={{ background:"#2563EB", color:"#fff", border:"none", borderRadius:8,
+                padding:"10px 20px", fontSize:13, cursor:"pointer", fontWeight:700 }}>
+              🔄 حاول مجدداً
+            </button>
+            <button onClick={()=>window.location.reload()}
+              style={{ background:"#6B7280", color:"#fff", border:"none", borderRadius:8,
+                padding:"10px 20px", fontSize:13, cursor:"pointer", fontWeight:700 }}>
+              ↺ إعادة تحميل
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+
+// ─── SURVEYS & POLLS SYSTEM ──────────────────────────────────────────────────
+// إنشاء استبيانات واستطلاعات رأي داخل النظام
+// البيانات مخزنة في جدول notes مع tag="Survey"
+
+// ── Survey Builder (للمشرفين) ─────────────────────────────────────────────────
+function SurveyBuilderModal({ employees, session, setNotes, onClose }) {
+  const [title, setTitle]           = useState("");
+  const [type, setType]             = useState("poll"); // poll | quiz | shift_review | peer | blocker
+  const [questions, setQuestions]   = useState([{ text:"", options:["","","",""], correct:null }]);
+  const [targetRole, setTargetRole] = useState("all");
+  const [saved, setSaved]           = useState("");
+
+  const TYPE_CONFIG = {
+    poll:         { icon:"📊", label:"استطلاع رأي",     desc:"سؤال واحد سريع مع خيارات", multiQ:false },
+    quiz:         { icon:"📝", label:"اختبار معرفة",    desc:"أسئلة متعددة مع إجابة صحيحة", multiQ:true },
+    shift_review: { icon:"⭐", label:"تقييم المناوبة",  desc:"تقييم تجربة الشفت", multiQ:false },
+    peer:         { icon:"🤝", label:"تقدير الزملاء",   desc:"الموظف يختار زميلاً أبهره", multiQ:false },
+    blocker:      { icon:"🚧", label:"تشخيص العوائق",   desc:"ما الذي أبطأ عملك؟", multiQ:false },
+  };
+
+  // Default questions per type
+  function applyTemplate(t) {
+    setType(t);
+    if (t==="shift_review") {
+      setTitle("تقييم المناوبة — " + new Date().toLocaleDateString("ar-SA",{weekday:"long",timeZone:"Asia/Riyadh"}));
+      setQuestions([
+        { text:"كيف كان ضغط العمل خلال الشفت؟", options:["خفيف 🟢","متوسط 🟡","ثقيل 🔴","شديد جداً ⛔"], correct:null },
+        { text:"كيف تقيّم تعاون الفريق اليوم؟", options:["ممتاز ⭐⭐⭐⭐⭐","جيد جداً ⭐⭐⭐⭐","جيد ⭐⭐⭐","يحتاج تحسين ⭐⭐"], correct:null },
+        { text:"هل واجهت أي تحدٍّ يحتاج متابعة؟", options:["لا، كل شيء سلس","نعم — مشكلة تقنية","نعم — ضغط عالٍ","نعم — سأذكره في الملاحظات"], correct:null },
+      ]);
+    } else if (t==="blocker") {
+      setTitle("ما الذي أبطأ عملك هذا الأسبوع؟");
+      setQuestions([{ text:"اختر العائق الرئيسي", options:["مشكلة تقنية 💻","نقص معلومات 📋","ضغط عالٍ 📈","صعوبة في التواصل 💬","لا يوجد — كل شيء سلس ✅"], correct:null }]);
+    } else if (t==="peer") {
+      setTitle("نجم الأسبوع — تقدير الزملاء");
+      setQuestions([{ text:"من أبهرك أداؤه هذا الأسبوع؟", options:[], correct:null, isPeer:true }]);
+    } else if (t==="poll") {
+      setTitle(""); setQuestions([{ text:"", options:["","",""], correct:null }]);
+    } else if (t==="quiz") {
+      setTitle(""); setQuestions([{ text:"", options:["","","",""], correct:0 }]);
+    }
+  }
+
+  function addQuestion() {
+    setQuestions(p=>[...p,{ text:"", options:["","","",""], correct:type==="quiz"?0:null }]);
+  }
+  function removeQuestion(i) { setQuestions(p=>p.filter((_,j)=>j!==i)); }
+  function updateQ(i, field, val) { setQuestions(p=>p.map((q,j)=>j===i?{...q,[field]:val}:q)); }
+  function updateOpt(qi, oi, val) {
+    setQuestions(p=>p.map((q,j)=>j===qi?{...q,options:q.options.map((o,k)=>k===oi?val:o)}:q));
+  }
+  function addOption(qi) {
+    setQuestions(p=>p.map((q,j)=>j===qi?{...q,options:[...q.options,""]}:q));
+  }
+  function removeOption(qi, oi) {
+    setQuestions(p=>p.map((q,j)=>j===qi?{...q,options:q.options.filter((_,k)=>k!==oi)}:q));
+  }
+
+  function saveSurvey() {
+    if (!title.trim()) { setSaved("❌ العنوان مطلوب"); return; }
+    if (!questions[0]?.text?.trim()) { setSaved("❌ أدخل السؤال الأول"); return; }
+    const survey = {
+      id: "sv"+Date.now(),
+      ts: new Date().toISOString(),
+      date: todayStr(),
+      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag: "Survey",
+      text: JSON.stringify({ title, type, questions, targetRole, status:"active", createdBy:session?.name }),
+      from: session?.name||"",
+      target: targetRole,
+      msgType: "survey",
+    };
+    setNotes(prev=>[survey,...(Array.isArray(prev)?prev:[])]);
+    setSaved("✅ تم إنشاء الاستبيان وإرساله!");
+    setTimeout(()=>{ setSaved(""); onClose(); }, 1500);
+  }
+
+  const cfg = TYPE_CONFIG[type];
+
+  return (
+    <Modal title={`${cfg.icon} إنشاء ${cfg.label}`} onClose={onClose} width={620}>
+      {/* Type selector */}
+      <div style={{ marginBottom:14 }}>
+        <label style={LBL}>نوع الاستبيان</label>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6 }}>
+          {Object.entries(TYPE_CONFIG).map(([k,v])=>(
+            <button key={k} onClick={()=>applyTemplate(k)}
+              style={{ border:`2px solid ${type===k?_theme.primary:"#CBD5E1"}`,
+                borderRadius:8, padding:"8px 6px", cursor:"pointer",
+                background:type===k?_theme.primary+"18":"transparent",
+                textAlign:"center" }}>
+              <div style={{ fontSize:18 }}>{v.icon}</div>
+              <div style={{ fontSize:11, fontWeight:700,
+                color:type===k?_theme.primary:_theme.text }}>{v.label}</div>
+              <div style={{ fontSize:10, color:_theme.textMuted, marginTop:2 }}>{v.desc}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Title */}
+      <div style={{ marginBottom:12 }}>
+        <label style={LBL}>عنوان الاستبيان</label>
+        <input value={title} onChange={e=>setTitle(e.target.value)}
+          style={{ ...I({width:"100%"}) }} placeholder="مثال: كيف تقيّم الشفت اليوم؟"/>
+      </div>
+
+      {/* Target audience */}
+      <div style={{ marginBottom:14 }}>
+        <label style={LBL}>الجمهور المستهدف</label>
+        <select value={targetRole} onChange={e=>setTargetRole(e.target.value)}
+          style={{ ...I({width:"100%"}) }}>
+          <option value="all">الجميع</option>
+          <option value="Agent">Agents فقط</option>
+          <option value="Team Lead">Team Leads فقط</option>
+          <option value="Shift Leader">Shift Leaders فقط</option>
+          <option value="SME">SMEs فقط</option>
+        </select>
+      </div>
+
+      {/* Questions */}
+      <div style={{ marginBottom:14 }}>
+        <label style={LBL}>الأسئلة</label>
+        {questions.map((q,qi)=>(
+          <div key={qi} style={{ background:_theme.surface, borderRadius:10,
+            padding:"12px 14px", marginBottom:10, border:`1px solid ${_theme.cardBorder}` }}>
+            <div style={{ display:"flex", gap:8, marginBottom:8, alignItems:"flex-start" }}>
+              <span style={{ fontSize:12, fontWeight:700, color:_theme.primary,
+                background:_theme.primary+"18", borderRadius:20,
+                padding:"2px 8px", flexShrink:0 }}>سؤال {qi+1}</span>
+              <input value={q.text} onChange={e=>updateQ(qi,"text",e.target.value)}
+                style={{ ...I({flex:1}) }} placeholder="نص السؤال..."/>
+              {questions.length > 1 && (
+                <button onClick={()=>removeQuestion(qi)}
+                  style={{ background:"#FEF2F2", border:"1px solid #FCA5A5",
+                    color:"#EF4444", borderRadius:6, padding:"4px 8px",
+                    cursor:"pointer", fontSize:12, flexShrink:0 }}>✕</button>
+              )}
+            </div>
+            {!q.isPeer && (
+              <div>
+                {q.options.map((opt,oi)=>(
+                  <div key={oi} style={{ display:"flex", gap:6, marginBottom:5, alignItems:"center" }}>
+                    {type==="quiz" && (
+                      <button onClick={()=>updateQ(qi,"correct",oi)}
+                        title="الإجابة الصحيحة"
+                        style={{ width:22, height:22, borderRadius:"50%", flexShrink:0,
+                          border:`2px solid ${q.correct===oi?"#10B981":"#CBD5E1"}`,
+                          background:q.correct===oi?"#10B981":"transparent",
+                          cursor:"pointer" }}/>
+                    )}
+                    <input value={opt} onChange={e=>updateOpt(qi,oi,e.target.value)}
+                      style={{ ...I({flex:1}) }} placeholder={`خيار ${oi+1}`}/>
+                    {q.options.length > 2 && (
+                      <button onClick={()=>removeOption(qi,oi)}
+                        style={{ background:"none", border:"none", color:"#94A3B8",
+                          cursor:"pointer", fontSize:16 }}>✕</button>
+                    )}
+                  </div>
+                ))}
+                {q.options.length < 6 && (
+                  <button onClick={()=>addOption(qi)}
+                    style={{ fontSize:11, color:_theme.primary, background:"none",
+                      border:"none", cursor:"pointer", fontWeight:600 }}>+ إضافة خيار</button>
+                )}
+                {type==="quiz" && (
+                  <div style={{ fontSize:10, color:"#10B981", marginTop:4 }}>
+                    ✅ الإجابة الصحيحة: الخيار {(q.correct||0)+1}
+                  </div>
+                )}
+              </div>
+            )}
+            {q.isPeer && (
+              <div style={{ fontSize:11, color:_theme.textMuted, fontStyle:"italic" }}>
+                ⚡ القائمة ستُولَّد تلقائياً من أسماء الموظفين المجدولين اليوم
+              </div>
+            )}
+          </div>
+        ))}
+        {TYPE_CONFIG[type].multiQ && questions.length < 10 && (
+          <button onClick={addQuestion}
+            style={{ ...PBT("#6366F1",{fontSize:12,padding:"6px 14px"}) }}>
+            + إضافة سؤال
+          </button>
+        )}
+      </div>
+
+      {saved && (
+        <div style={{ padding:"10px 14px", borderRadius:8, marginBottom:12,
+          background:saved.startsWith("✅")?"#F0FDF4":"#FEF2F2",
+          color:saved.startsWith("✅")?"#166534":"#EF4444",
+          fontWeight:600, fontSize:13 }}>{saved}</div>
+      )}
+
+      <button onClick={saveSurvey} style={{ ...PBT(_theme.primary,{width:"100%",padding:"12px"}) }}>
+        🚀 إطلاق الاستبيان
+      </button>
+    </Modal>
+  );
+}
+
+// ── Survey Answer Card (للموظفين) ─────────────────────────────────────────────
+function SurveyAnswerCard({ survey, session, employees, notes, setNotes }) {
+  let data = {};
+  try { data = JSON.parse(survey.text||"{}"); } catch {}
+
+  const { title, type, questions=[], createdBy } = data;
+  const [answers, setAnswers]   = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError]       = useState("");
+
+  // Check if already answered
+  const alreadyAnswered = (Array.isArray(notes)?notes:[]).some(n =>
+    n.tag==="Survey Response" && n.target===survey.id && n.from===session?.name
+  );
+
+  // For peer type — get today's employees
+  const todayName = DAYS[new Date().getDay()];
+  const peerOptions = employees
+    .filter(e => e.name !== session?.name && (data.targetRole==="all" || e.role===data.targetRole))
+    .map(e => e.name);
+
+  function submit() {
+    if (Object.keys(answers).length < questions.length) {
+      setError("❌ أجب على جميع الأسئلة"); return;
+    }
+    const response = {
+      id: "sr"+Date.now(),
+      ts: new Date().toISOString(),
+      date: todayStr(),
+      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag: "Survey Response",
+      text: JSON.stringify({ surveyId:survey.id, answers, empName:session?.name }),
+      from: session?.name||"",
+      target: survey.id,
+      msgType: "survey_response",
+    };
+    setNotes(prev=>[response,...(Array.isArray(prev)?prev:[])]);
+    setSubmitted(true);
+    setError("");
+  }
+
+  if (alreadyAnswered || submitted) {
+    return (
+      <div style={{ ...CRD({padding:"16px 18px"}), marginBottom:12,
+        border:`1.5px solid #10B981`, background:"#F0FDF4" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:20 }}>✅</span>
+          <div>
+            <div style={{ fontWeight:700, fontSize:13, color:"#166534" }}>{title}</div>
+            <div style={{ fontSize:11, color:"#4ADE80" }}>تم إرسال إجابتك — شكراً!</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const TYPE_ICONS = { poll:"📊", quiz:"📝", shift_review:"⭐", peer:"🤝", blocker:"🚧" };
+
+  return (
+    <div style={{ ...CRD({padding:"16px 18px"}), marginBottom:12,
+      border:`1.5px solid ${_theme.primary}40`,
+      boxShadow:`0 2px 12px ${_theme.primary}15` }}>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+        <span style={{ fontSize:20 }}>{TYPE_ICONS[type]||"📋"}</span>
+        <div style={{ flex:1 }}>
+          <div style={{ fontWeight:800, fontSize:14, color:_theme.text }}>{title}</div>
+          <div style={{ fontSize:11, color:_theme.textMuted }}>
+            من {createdBy} · {new Date(survey.ts).toLocaleString("ar-SA",
+              {hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})}
+          </div>
+        </div>
+        <span style={{ background:_theme.primary+"22", color:_theme.primary,
+          border:`1px solid ${_theme.primary}40`, borderRadius:20,
+          padding:"2px 10px", fontSize:10, fontWeight:700 }}>جديد 🔴</span>
+      </div>
+
+      {/* Questions */}
+      {questions.map((q, qi) => {
+        const opts = q.isPeer ? peerOptions : q.options.filter(Boolean);
+        return (
+          <div key={qi} style={{ marginBottom:12 }}>
+            <div style={{ fontSize:13, fontWeight:700, color:_theme.text, marginBottom:8 }}>
+              {questions.length > 1 && <span style={{ color:_theme.primary }}>{qi+1}. </span>}
+              {q.text}
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {opts.map((opt, oi) => {
+                const selected = answers[qi] === oi;
+                return (
+                  <button key={oi} onClick={()=>setAnswers(p=>({...p,[qi]:oi}))}
+                    style={{ display:"flex", alignItems:"center", gap:10,
+                      border:`2px solid ${selected?_theme.primary:"#E2E8F0"}`,
+                      borderRadius:10, padding:"10px 14px", cursor:"pointer",
+                      background:selected?_theme.primary+"18":_theme.surface,
+                      textAlign:"right", transition:"all 0.12s" }}>
+                    <div style={{ width:20, height:20, borderRadius:"50%", flexShrink:0,
+                      border:`2px solid ${selected?_theme.primary:"#CBD5E1"}`,
+                      background:selected?_theme.primary:"transparent",
+                      display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      {selected && <div style={{ width:8, height:8, borderRadius:"50%", background:"#fff" }}/>}
+                    </div>
+                    <span style={{ fontSize:13, fontWeight:selected?700:400,
+                      color:selected?_theme.primary:_theme.text }}>{opt}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+
+      {error && <div style={{ color:"#EF4444", fontSize:12, fontWeight:600, marginBottom:8 }}>{error}</div>}
+
+      <button onClick={submit}
+        style={{ ...PBT(_theme.primary,{width:"100%",padding:"11px",fontSize:13})}}>
+        📤 إرسال الإجابة
+      </button>
+    </div>
+  );
+}
+
+// ── Survey Results Panel (للمشرفين) ───────────────────────────────────────────
+function SurveyResultsPanel({ survey, notes, employees, session, setNotes }) {
+  let data = {};
+  try { data = JSON.parse(survey.text||"{}"); } catch {}
+  const { title, type, questions=[], targetRole, status, createdBy } = data;
+  const [showDetails, setShowDetails] = useState(false);
+
+  // Gather responses
+  const responses = (Array.isArray(notes)?notes:[])
+    .filter(n => n.tag==="Survey Response" && n.target===survey.id);
+
+  const TYPE_ICONS = { poll:"📊", quiz:"📝", shift_review:"⭐", peer:"🤝", blocker:"🚧" };
+  const TYPE_LABELS = { poll:"استطلاع رأي", quiz:"اختبار معرفة",
+    shift_review:"تقييم المناوبة", peer:"تقدير الزملاء", blocker:"تشخيص العوائق" };
+
+  // Calculate results per question
+  function getResults(qi) {
+    const q = questions[qi];
+    if (!q) return {};
+    const counts = {};
+    const opts = q.isPeer ? employees.filter(e=>e.name!==session?.name).map(e=>e.name) : q.options.filter(Boolean);
+    opts.forEach((_,i) => { counts[i]=0; });
+    responses.forEach(r => {
+      try {
+        const rd = JSON.parse(r.text||"{}");
+        const ans = rd.answers?.[qi];
+        if (ans !== undefined && ans !== null) counts[ans] = (counts[ans]||0)+1;
+      } catch {}
+    });
+    return { counts, opts, total: responses.length };
+  }
+
+  function closeSurvey() {
+    if (!window.confirm("إغلاق الاستبيان؟ لن يتمكن الموظفون من الإجابة بعد الإغلاق.")) return;
+    setNotes(prev=>(Array.isArray(prev)?prev:[]).map(n=>{
+      if (n.id !== survey.id) return n;
+      try {
+        const d = JSON.parse(n.text||"{}");
+        return { ...n, text: JSON.stringify({...d, status:"closed"}) };
+      } catch { return n; }
+    }));
+  }
+
+  function deleteSurvey() {
+    if (!window.confirm("حذف الاستبيان وجميع إجاباته؟")) return;
+    const ids = new Set([survey.id, ...responses.map(r=>r.id)]);
+    setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>!ids.has(n.id)));
+  }
+
+  const isClosed = status === "closed";
+  const pct = responses.length > 0 ? responses.length : 0;
+
+  return (
+    <div style={{ ...CRD({padding:"14px 16px"}), marginBottom:12,
+      border:`1.5px solid ${isClosed?"#94A3B8":_theme.accent}40`,
+      opacity: isClosed ? 0.8 : 1 }}>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, flexWrap:"wrap" }}>
+        <span style={{ fontSize:18 }}>{TYPE_ICONS[type]||"📋"}</span>
+        <div style={{ flex:1 }}>
+          <div style={{ fontWeight:800, fontSize:13, color:_theme.text }}>{title}</div>
+          <div style={{ fontSize:11, color:_theme.textMuted }}>
+            {TYPE_LABELS[type]} · {new Date(survey.ts).toLocaleDateString("ar-SA",{timeZone:"Asia/Riyadh"})}
+            · إلى: {targetRole==="all"?"الجميع":targetRole}
+          </div>
+        </div>
+        <div style={{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
+          <span style={{ background:responses.length>0?"#F0FDF4":"#F8FAFC",
+            color:responses.length>0?"#10B981":"#94A3B8",
+            border:`1px solid ${responses.length>0?"#86EFAC":"#E2E8F0"}`,
+            borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>
+            {responses.length} إجابة
+          </span>
+          <span style={{ background:isClosed?"#F1F5F9":"#FEF9C3",
+            color:isClosed?"#64748B":"#B45309",
+            borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>
+            {isClosed?"🔒 مغلق":"🟢 نشط"}
+          </span>
+          <button onClick={()=>setShowDetails(s=>!s)}
+            style={{ ...PBT("#6366F1",{fontSize:11,padding:"4px 10px"}) }}>
+            {showDetails?"▲ إخفاء":"▼ النتائج"}
+          </button>
+          {!isClosed && createdBy===session?.name && (
+            <button onClick={closeSurvey}
+              style={{ ...PBT("#F59E0B",{fontSize:11,padding:"4px 10px"}) }}>🔒 إغلاق</button>
+          )}
+          {createdBy===session?.name && (
+            <button onClick={deleteSurvey}
+              style={{ ...PBT("#EF4444",{fontSize:11,padding:"4px 10px"}) }}>🗑️</button>
+          )}
+        </div>
+      </div>
+
+      {/* Results */}
+      {showDetails && (
+        <div style={{ borderTop:`1px solid ${_theme.cardBorder}`, paddingTop:12 }}>
+          {responses.length === 0 ? (
+            <div style={{ textAlign:"center", color:_theme.textMuted, fontSize:12, padding:"16px" }}>
+              لا توجد إجابات بعد
+            </div>
+          ) : (
+            <div>
+              {questions.map((q, qi) => {
+                const { counts, opts, total } = getResults(qi);
+                const max = Math.max(...Object.values(counts), 1);
+                return (
+                  <div key={qi} style={{ marginBottom:14 }}>
+                    <div style={{ fontSize:12, fontWeight:700, color:_theme.text, marginBottom:8 }}>
+                      {questions.length > 1 && <span style={{ color:_theme.primary }}>{qi+1}. </span>}
+                      {q.text}
+                    </div>
+                    {opts.map((opt, oi) => {
+                      const cnt  = counts[oi]||0;
+                      const pct  = total > 0 ? Math.round((cnt/total)*100) : 0;
+                      const isWinner = cnt === max && cnt > 0;
+                      const isCorrect = type==="quiz" && q.correct===oi;
+                      return (
+                        <div key={oi} style={{ marginBottom:6 }}>
+                          <div style={{ display:"flex", justifyContent:"space-between",
+                            alignItems:"center", marginBottom:3 }}>
+                            <span style={{ fontSize:12, fontWeight:isWinner?700:400,
+                              color:isCorrect?"#10B981":isWinner?_theme.primary:_theme.text }}>
+                              {isCorrect&&"✅ "}{opt}
+                            </span>
+                            <span style={{ fontSize:11, fontWeight:700,
+                              color:isWinner?_theme.primary:_theme.textMuted }}>
+                              {cnt} ({pct}%)
+                            </span>
+                          </div>
+                          <div style={{ background:_theme.surface, borderRadius:20,
+                            height:8, overflow:"hidden" }}>
+                            <div style={{ height:"100%", borderRadius:20,
+                              width:`${pct}%`, transition:"width 0.5s",
+                              background:isCorrect?"#10B981":isWinner?_theme.primary:"#94A3B8" }}/>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {type==="quiz" && (
+                      <div style={{ fontSize:11, color:"#10B981", marginTop:6, fontWeight:600 }}>
+                        نسبة الإجابات الصحيحة: {Math.round((counts[q.correct]||0)/total*100)}%
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Respondents list */}
+              <div style={{ marginTop:10, borderTop:`1px solid ${_theme.cardBorder}`, paddingTop:8 }}>
+                <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600, marginBottom:6 }}>
+                  المشاركون ({responses.length}):
+                </div>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
+                  {responses.map(r=>(
+                    <span key={r.id} style={{ background:_theme.surface,
+                      border:`1px solid ${_theme.cardBorder}`,
+                      borderRadius:20, padding:"2px 8px", fontSize:10,
+                      color:_theme.textSub }}>{r.from}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main Surveys Page ──────────────────────────────────────────────────────────
+function SurveysPage({ employees, notes, setNotes, session, canEdit }) {
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [tab, setTab]                 = useState(canEdit ? "manage" : "answer");
+
+  const allSurveys = (Array.isArray(notes)?notes:[])
+    .filter(n => n.tag==="Survey")
+    .sort((a,b) => b.ts.localeCompare(a.ts));
+
+  // Filter surveys visible to this user by targetRole
+  const mySurveys = allSurveys.filter(sv => {
+    try {
+      const d = JSON.parse(sv.text||"{}");
+      return d.targetRole==="all" || d.targetRole===session?.role || canEdit;
+    } catch { return true; }
+  });
+
+  const activeSurveys = mySurveys.filter(sv => {
+    try { return JSON.parse(sv.text||"{}").status !== "closed"; } catch { return true; }
+  });
+  const closedSurveys = mySurveys.filter(sv => {
+    try { return JSON.parse(sv.text||"{}").status === "closed"; } catch { return false; }
+  });
+
+  // Unanswered for current user
+  const unanswered = activeSurveys.filter(sv => {
+    return !(Array.isArray(notes)?notes:[]).some(
+      n => n.tag==="Survey Response" && n.target===sv.id && n.from===session?.name
+    );
+  });
+
+  const tabs = canEdit
+    ? [["manage","📊 الإدارة والنتائج"],["answer","📝 الإجابة"]]
+    : [["answer","📝 الاستبيانات"]];
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={SBR()}>
+        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>📋 الاستبيانات والاختبارات</span>
+        {unanswered.length > 0 && (
+          <span style={{ background:"#EF444418", color:"#EF4444",
+            border:"1px solid #FCA5A5", borderRadius:20,
+            padding:"3px 12px", fontSize:12, fontWeight:700 }}>
+            🔴 {unanswered.length} استبيان بانتظار إجابتك
+          </span>
+        )}
+        {canEdit && (
+          <button onClick={()=>setShowBuilder(true)}
+            style={{ ...PBT(_theme.primary,{fontSize:12}) }}>
+            ➕ إنشاء استبيان
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      {canEdit && (
+        <div style={{ display:"flex", gap:6, marginBottom:14 }}>
+          {tabs.map(([k,l])=>(
+            <button key={k} onClick={()=>setTab(k)}
+              style={{ border:`2px solid ${tab===k?_theme.primary:"#CBD5E1"}`,
+                borderRadius:20, padding:"5px 16px", fontSize:12,
+                cursor:"pointer", fontWeight:700,
+                background:tab===k?_theme.primary:"transparent",
+                color:tab===k?"#fff":_theme.textSub }}>{l}</button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Manage Tab (supervisors) ── */}
+      {tab==="manage" && canEdit && (
+        <div>
+          {/* Active */}
+          <div style={{ fontWeight:700, color:_theme.text, fontSize:13, marginBottom:10 }}>
+            🟢 الاستبيانات النشطة ({activeSurveys.length})
+          </div>
+          {activeSurveys.length===0 && (
+            <div style={{ ...CRD({padding:"32px 20px"}), textAlign:"center",
+              color:_theme.textMuted, marginBottom:16 }}>
+              <div style={{ fontSize:36, marginBottom:8 }}>📋</div>
+              لا توجد استبيانات نشطة — اضغط "إنشاء استبيان" للبدء
+            </div>
+          )}
+          {activeSurveys.map(sv=>(
+            <SurveyResultsPanel key={sv.id} survey={sv} notes={notes}
+              employees={employees} session={session} setNotes={setNotes}/>
+          ))}
+          {/* Closed */}
+          {closedSurveys.length > 0 && (
+            <div>
+              <div style={{ fontWeight:700, color:_theme.textMuted, fontSize:12, marginBottom:8, marginTop:16 }}>
+                🔒 المغلقة ({closedSurveys.length})
+              </div>
+              {closedSurveys.map(sv=>(
+                <SurveyResultsPanel key={sv.id} survey={sv} notes={notes}
+                  employees={employees} session={session} setNotes={setNotes}/>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Answer Tab (all users) ── */}
+      {(tab==="answer" || !canEdit) && (
+        <div>
+          {unanswered.length === 0 && activeSurveys.length === 0 && (
+            <div style={{ ...CRD({padding:"48px 20px"}), textAlign:"center",
+              color:_theme.textMuted }}>
+              <div style={{ fontSize:48, marginBottom:12 }}>✅</div>
+              <div style={{ fontWeight:700, fontSize:15, marginBottom:6 }}>
+                لا توجد استبيانات حالياً
+              </div>
+              <div style={{ fontSize:13 }}>ستظهر هنا الاستبيانات الجديدة فور إطلاقها</div>
+            </div>
+          )}
+          {unanswered.length > 0 && (
+            <div>
+              <div style={{ fontWeight:700, color:"#EF4444", fontSize:13, marginBottom:10 }}>
+                ⏳ بانتظار إجابتك ({unanswered.length})
+              </div>
+              {unanswered.map(sv=>(
+                <SurveyAnswerCard key={sv.id} survey={sv} session={session}
+                  employees={employees} notes={notes} setNotes={setNotes}/>
+              ))}
+            </div>
+          )}
+          {activeSurveys.filter(sv=>!unanswered.includes(sv)).length > 0 && (
+            <div style={{ marginTop:16 }}>
+              <div style={{ fontWeight:700, color:"#10B981", fontSize:13, marginBottom:10 }}>
+                ✅ أجبت عليها ({activeSurveys.length - unanswered.length})
+              </div>
+              {activeSurveys.filter(sv=>!unanswered.includes(sv)).map(sv=>(
+                <SurveyAnswerCard key={sv.id} survey={sv} session={session}
+                  employees={employees} notes={notes} setNotes={setNotes}/>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Builder Modal */}
+      {showBuilder && (
+        <SurveyBuilderModal employees={employees} session={session}
+          setNotes={setNotes} onClose={()=>setShowBuilder(false)}/>
+      )}
+    </div>
+  );
+}
+// ─── GLOBAL SEARCH ───────────────────────────────────────────────────────────
+function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose }) {
+  const [query, setQuery] = useState("");
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (inputRef.current) inputRef.current.focus();
+  }, []);
+
+  const q = query.trim().toLowerCase();
+
+  const results = useMemo(() => {
+    if (!q || q.length < 2) return [];
+    const out = [];
+
+    // Search employees
+    employees.forEach(e => {
+      if (e.name.toLowerCase().includes(q) || e.role.toLowerCase().includes(q)) {
+        out.push({ type:"employee", icon:"👤", label:e.name, sub:e.role,
+          color:ROLE_COLORS[e.role]||"#64748B", action:"Schedule" });
+      }
+    });
+
+    // Search notes
+    (Array.isArray(notes)?notes:[]).forEach(n => {
+      if (n.text?.toLowerCase().includes(q) || n.tag?.toLowerCase().includes(q)) {
+        out.push({ type:"note", icon:"📝", label:n.text?.slice(0,60)||"Note",
+          sub:`${n.date} · ${n.tag}`, color:"#8B5CF6", action:"Notes" });
+      }
+    });
+
+    // Search audit log
+    (Array.isArray(auditLog)?auditLog:[]).slice(0,200).forEach(l => {
+      if (l.by?.toLowerCase().includes(q) || l.action?.toLowerCase().includes(q) ||
+          l.detail?.toLowerCase().includes(q)) {
+        out.push({ type:"log", icon:"🔍", label:`${l.action} — ${l.by}`,
+          sub:new Date(l.ts).toLocaleString("en-US",{timeZone:"Asia/Riyadh",
+            month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}),
+          color:"#64748B", action:"Audit Log" });
+      }
+    });
+
+    return out.slice(0, 12);
+  }, [q, employees, notes, auditLog]);
+
+  return (
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)",
+      zIndex:20000, display:"flex", alignItems:"flex-start", justifyContent:"center",
+      padding:"80px 16px 16px" }}
+      onClick={e=>{ if(e.target===e.currentTarget) onClose(); }}>
+      <div style={{ background:_theme.card, borderRadius:14, width:"100%", maxWidth:580,
+        boxShadow:"0 24px 64px rgba(0,0,0,0.5)", border:`1px solid ${_theme.cardBorder}`,
+        overflow:"hidden" }}>
+        {/* Search input */}
+        <div style={{ display:"flex", alignItems:"center", gap:10,
+          padding:"14px 16px", borderBottom:`1px solid ${_theme.cardBorder}` }}>
+          <span style={{ fontSize:18 }}>🔍</span>
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={e=>setQuery(e.target.value)}
+            onKeyDown={e=>{ if(e.key==="Escape") onClose(); }}
+            placeholder="ابحث عن موظف، ملاحظة، إجراء... (2 حرف على الأقل)"
+            style={{ flex:1, background:"transparent", border:"none", outline:"none",
+              fontSize:15, color:_theme.text, fontFamily:"inherit" }}
+          />
+          <span style={{ fontSize:11, color:_theme.textMuted, whiteSpace:"nowrap" }}>ESC للإغلاق</span>
+        </div>
+
+        {/* Results */}
+        <div style={{ maxHeight:400, overflowY:"auto" }}>
+          {q.length < 2 && (
+            <div style={{ padding:"28px 20px", textAlign:"center",
+              color:_theme.textMuted, fontSize:13 }}>
+              <div style={{ fontSize:32, marginBottom:8 }}>🔍</div>
+              اكتب كلمتين أو أكثر للبحث في الموظفين، الملاحظات، وسجل العمليات
+            </div>
+          )}
+          {q.length >= 2 && results.length === 0 && (
+            <div style={{ padding:"28px 20px", textAlign:"center",
+              color:_theme.textMuted, fontSize:13 }}>
+              لا توجد نتائج لـ "<strong>{query}</strong>"
+            </div>
+          )}
+          {results.map((r, i) => (
+            <div key={i}
+              onClick={()=>{ onNavigate(r.action); onClose(); }}
+              style={{ display:"flex", alignItems:"center", gap:12,
+                padding:"11px 16px", cursor:"pointer", transition:"background 0.1s",
+                borderBottom:`1px solid ${_theme.cardBorder}40` }}
+              onMouseEnter={e=>e.currentTarget.style.background=_theme.surface}
+              onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+              <div style={{ width:34, height:34, borderRadius:8, flexShrink:0,
+                background:r.color+"22", border:`1px solid ${r.color}40`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:16 }}>{r.icon}</div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontWeight:600, fontSize:13, color:_theme.text,
+                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.label}</div>
+                <div style={{ fontSize:11, color:_theme.textMuted, marginTop:1 }}>{r.sub}</div>
+              </div>
+              <div style={{ fontSize:10, color:r.color, fontWeight:700,
+                background:r.color+"18", borderRadius:6, padding:"2px 8px",
+                flexShrink:0 }}>{r.type==="employee"?"موظف":r.type==="note"?"ملاحظة":"سجل"}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        {results.length > 0 && (
+          <div style={{ padding:"8px 16px", fontSize:11, color:_theme.textMuted,
+            borderTop:`1px solid ${_theme.cardBorder}`,
+            background:_theme.surface }}>
+            {results.length} نتيجة — اضغط على أي نتيجة للانتقال للصفحة
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function LoginScreen({ onLogin, employees, lang, setLang }) {
   const [selectedRole, setSelectedRole] = useState("Team Lead");
   const [selectedName, setSelectedName] = useState("");
@@ -5396,7 +8185,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
     else setStep("login");
   }
 
-  function tryLogin() {
+  async function tryLogin() {
     if (isAgent) {
       if (!selectedName) { setError(tr("selectYourName")); return; }
       onLogin({ role:"Agent", name:selectedName });
@@ -5406,14 +8195,27 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
     const existing = getUserPw(selectedName);
     if (!existing) { setStep("setup"); return; }
     if (!password) { setError(tr("password") + "..."); return; }
-    if (password !== existing) { setError(tr("incorrectPassword")); setPassword(""); return; }
+    // Check if stored value is a plain-text password (legacy — before hashing was added)
+    // SHA-256 hashes are always 64 hex characters; plain passwords are shorter
+    const isLegacyPlain = existing.length < 64;
+    if (isLegacyPlain) {
+      // Legacy plain-text comparison — then auto-upgrade to hash
+      if (password !== existing) { setError(tr("incorrectPassword")); setPassword(""); return; }
+      // Silently upgrade: store hash instead of plain text
+      await setUserPw(selectedName, password);
+      onLogin({ role:selectedRole, name:selectedName });
+      return;
+    }
+    // Normal: compare hash of input vs stored hash
+    const inputHash = await hashPassword(password);
+    if (inputHash !== existing) { setError(tr("incorrectPassword")); setPassword(""); return; }
     onLogin({ role:selectedRole, name:selectedName });
   }
 
-  function setupPassword() {
+  async function setupPassword() {
     if (!newPw1 || newPw1.length < 4) { setError("4+ characters required"); return; }
     if (newPw1 !== newPw2) { setError("Passwords do not match"); return; }
-    setUserPw(selectedName, newPw1);
+    await setUserPw(selectedName, newPw1); // hashes automatically
     onLogin({ role:selectedRole, name:selectedName });
   }
 
@@ -5624,9 +8426,9 @@ function PasswordResetModal({ employees, session, onClose }) {
   const nonAgents = employees.filter(e => e.role !== "Agent" &&
     e.name.toLowerCase().includes(search.toLowerCase()));
 
-  function doReset(name) {
+  async function doReset(name) {
     if (!newPw || newPw.length < 4) { alert("Enter at least 4 characters."); return; }
-    setUserPw(name, newPw);
+    await setUserPw(name, newPw); // hashes automatically
     setDone(`✅ Password reset for ${name}`);
     setNewPw(""); setTargetName("");
   }
@@ -5692,6 +8494,7 @@ export default function App() {
     try { return localStorage.getItem("csops_lastPage") || "Schedule"; } catch { return "Schedule"; }
   });
   const [showResetPw, setShowResetPw] = useState(false);
+  const [showSearch, setShowSearch]   = useState(false);
   const [loading, setLoading]         = useState(true);
 
   // ── Theme + Lang + Zoom ───────────────────────────────────────────────────
@@ -5705,6 +8508,7 @@ export default function App() {
     try { return Number(localStorage.getItem("csops_zoom")) || 100; } catch { return 100; }
   });
   const [showTip, setShowTip] = useState(false);
+  const [tipShownThisSession, setTipShownThisSession] = useState(false);
 
   const theme = THEMES[themeKey] || THEMES.dark;
   setGlobalTheme(theme);
@@ -5712,10 +8516,50 @@ export default function App() {
   const isRTL = lang === "ar";
   const tr = (key) => T[lang]?.[key] || T.en[key] || key;
 
+  // Show daily tip once per session (handles both fresh login AND persistent session)
+  // Also log "Session Active" so user appears in Owner Analytics Active Now
+  useEffect(() => {
+    if (!loading && session && !tipShownThisSession) {
+      setTipShownThisSession(true);
+      // Log session activity so Owner sees this user as Active Now
+      const entry = {
+        id: "al"+Date.now()+Math.random(),
+        ts: new Date().toISOString(),
+        by: session.name, role: session.role,
+        action: "Sign In", target: session.name,
+        detail: `${session.role} session active`,
+      };
+      setAuditLog(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0, 2000));
+      // Small delay so the app renders first, then show tip
+      const t = setTimeout(() => setShowTip(true), 600);
+      return () => clearTimeout(t);
+    }
+  }, [loading, session]);
+
   function changeTheme(key) {
     setThemeKey(key);
     try { localStorage.setItem("csops_theme", key); } catch {}
   }
+
+  // ── Auto dark mode: switch to dark after 18:00, light after 06:00 ──────────
+  useEffect(() => {
+    function checkAutoTheme() {
+      const h = new Date().getHours();
+      // Only auto-switch if user hasn't manually set a theme today
+      const lastManual = localStorage.getItem("csops_theme_manual_date");
+      if (lastManual === todayStr()) return; // user chose manually today
+      if (h >= 18 || h < 6) {
+        if (themeKey === "light") setThemeKey("dark");
+      } else {
+        if (themeKey === "dark" && !localStorage.getItem("csops_theme_manual_date")) {
+          // Don't auto-switch to light if user is on dark
+        }
+      }
+    }
+    checkAutoTheme();
+    const t = setInterval(checkAutoTheme, 5*60*1000);
+    return () => clearInterval(t);
+  }, []);
   function changeLang(l) {
     setLang(l);
     try { localStorage.setItem("csops_lang", l); } catch {}
@@ -5761,6 +8605,11 @@ export default function App() {
   const [notes,       setNotesRaw]       = useState([]);
 
   // ── Load ALL data from Supabase on mount ──────────────────────────────────
+  // ── Load Supabase SDK immediately on mount (fastest realtime connect) ────────
+  useEffect(() => {
+    getDB().catch(() => {}); // pre-load SDK
+  }, []);
+
   // Safety timeout: if Supabase takes too long, unblock UI
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -5769,6 +8618,203 @@ export default function App() {
     return () => clearTimeout(timeout);
   }, []);
 
+  // ── Supabase Realtime subscriptions ─────────────────────────────────────────
+  // Uses useRef to store channels so cleanup works correctly from useEffect return
+  const rtChannelsRef = useRef([]);
+
+  useEffect(() => {
+    if (loading) return;
+    let cancelled = false;
+
+    // Row mappers
+    const mapAudit = r => ({ id:r.id, ts:r.ts, by:r.by_name, role:r.by_role,
+      action:r.action, target:r.target||"", detail:r.detail||"" });
+    const mapNote  = r => ({ id:r.id, ts:r.ts, date:r.date, time:r.time, tag:r.tag, text:r.text,
+      from:r.from||"", target:r.target||"", msgType:r.msg_type||r.msgType||"" });
+    const mapAtt   = r => ({ status:r.status, checkIn:r.check_in||"", checkOut:r.check_out||"",
+      lateMin:r.late_min||0, earlyMin:r.early_min||0, workDuration:r.work_duration||"", note:r.note||"" });
+    const mapPerf  = r => ({ closed:r.closed||0, escalations:r.escalations||0, quality:r.quality||"" });
+    const mapEmp   = r => ({ id:r.id, name:r.name, role:r.role, tasks:r.tasks||[],
+      gender:r.gender||"M", isAdmin:r.is_admin||false, hiddenPages:r.hidden_pages||[] });
+    const mapShift = r => ({ id:r.id, label:r.label, start:r.start_time, end:r.end_time, color:r.color });
+
+    // Helper: safely update localStorage
+    const lsSet = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} };
+
+    getDB().then(client => {
+      if (!client || cancelled) return;
+
+      // Dedup helper: skip if we own this change (same session, <2s ago)
+      // Prevents echo: save → DB → realtime → setState (redundant)
+      const myId = () => (typeof session !== "undefined" && session?.name) || "";
+      const recentlySaved = new Set();
+      const markSaved  = id => { recentlySaved.add(id); setTimeout(() => recentlySaved.delete(id), 2000); };
+      const isMine     = id => recentlySaved.has(id);
+
+      const channels = [
+
+        // ── audit_log ── INSERT only (we only ever insert, never update)
+        client.channel("rt-audit_log")
+          .on("postgres_changes", { event: "INSERT", schema: "public", table: "audit_log" }, payload => {
+            const entry = mapAudit(payload.new);
+            setAuditLogRaw(prev => {
+              const next = [entry, ...(Array.isArray(prev)?prev:[])].slice(0,500);
+              lsSet("csops_auditLog", next);
+              return next;
+            });
+          }).subscribe(),
+
+        // ── notes ── all events
+        client.channel("rt-notes")
+          .on("postgres_changes", { event: "*", schema: "public", table: "notes" }, payload => {
+            setNotesRaw(prev => {
+              const arr = Array.isArray(prev) ? prev : [];
+              let next;
+              if (payload.eventType === "DELETE") {
+                next = arr.filter(n => n.id !== payload.old?.id);
+              } else {
+                const note = mapNote(payload.new);
+                const idx  = arr.findIndex(n => n.id === note.id);
+                next = idx >= 0 ? arr.map((n,i) => i===idx ? note : n) : [note, ...arr];
+                // Soft ding for new manager messages arriving via Realtime
+                if (payload.eventType === "INSERT" && payload.new?.tag === "Manager Message") {
+                  playSoftDing();
+                }
+              }
+              lsSet("csops_notes", next);
+              return next;
+            });
+          }).subscribe(),
+
+        // ── queue_log ──
+        client.channel("rt-queue_log")
+          .on("postgres_changes", { event: "*", schema: "public", table: "queue_log" }, payload => {
+            if (payload.eventType !== "DELETE" && payload.new?.id) {
+              const { id, data } = payload.new;
+              setQueueLogRaw(prev => {
+                const next = { ...(prev||{}), [id]: data||{} };
+                lsSet("csops_queueLog", next);
+                return next;
+              });
+            }
+          }).subscribe(),
+
+        // ── attendance ──
+        client.channel("rt-attendance")
+          .on("postgres_changes", { event: "*", schema: "public", table: "attendance" }, payload => {
+            if (payload.eventType !== "DELETE" && payload.new?.date) {
+              const r = payload.new;
+              setAttendanceRaw(prev => {
+                const next = { ...(prev||{}) };
+                next[r.date] = { ...(next[r.date]||{}), [r.emp_id]: mapAtt(r) };
+                lsSet("csops_attendance", next);
+                return next;
+              });
+            }
+          }).subscribe(),
+
+        // ── performance ──
+        client.channel("rt-performance")
+          .on("postgres_changes", { event: "*", schema: "public", table: "performance" }, payload => {
+            if (payload.eventType !== "DELETE" && payload.new?.date) {
+              const r = payload.new;
+              setPerformanceRaw(prev => {
+                const next = { ...(prev||{}) };
+                next[r.date] = { ...(next[r.date]||{}), [r.emp_id]: mapPerf(r) };
+                lsSet("csops_performance", next);
+                return next;
+              });
+            }
+          }).subscribe(),
+
+        // ── employees ──
+        client.channel("rt-employees")
+          .on("postgres_changes", { event: "*", schema: "public", table: "employees" }, payload => {
+            setEmployeesRaw(prev => {
+              const arr = Array.isArray(prev) ? prev : [];
+              if (payload.eventType === "DELETE") return arr.filter(e => e.id !== payload.old?.id);
+              if (!payload.new?.id) return arr;
+              const emp = mapEmp(payload.new);
+              const idx = arr.findIndex(e => e.id === emp.id);
+              return idx >= 0 ? arr.map((e,i) => i===idx ? emp : e) : [...arr, emp];
+            });
+          }).subscribe(),
+
+        // ── heatmap ──
+        client.channel("rt-heatmap")
+          .on("postgres_changes", { event: "*", schema: "public", table: "heatmap" }, payload => {
+            if (payload.new?.date) {
+              setHeatmapRaw(prev => {
+                const next = { ...(prev||{}), [payload.new.date]: payload.new.hours||{} };
+                lsSet("csops_heatmap", next);
+                return next;
+              });
+            }
+          }).subscribe(),
+
+        // ── schedule ──
+        client.channel("rt-schedule")
+          .on("postgres_changes", { event: "*", schema: "public", table: "schedule" }, payload => {
+            if (payload.new?.emp_id) {
+              setScheduleRaw(prev => {
+                const next = { ...(prev||{}), [payload.new.emp_id]: payload.new.days||{} };
+                lsSet("csops_schedule", next);
+                return next;
+              });
+            }
+          }).subscribe(),
+
+        // ── shifts ──
+        client.channel("rt-shifts")
+          .on("postgres_changes", { event: "*", schema: "public", table: "shifts" }, payload => {
+            setShiftsRaw(prev => {
+              const arr = Array.isArray(prev) ? prev : [];
+              if (payload.eventType === "DELETE") return arr.filter(s => s.id !== payload.old?.id);
+              if (!payload.new?.id) return arr;
+              const sh  = mapShift(payload.new);
+              const idx = arr.findIndex(s => s.id === sh.id);
+              return idx >= 0 ? arr.map((s,i) => i===idx ? sh : s) : [...arr, sh];
+            });
+          }).subscribe(),
+
+        // ── user_passwords ── refresh local cache only
+        client.channel("rt-user_passwords")
+          .on("postgres_changes", { event: "*", schema: "public", table: "user_passwords" }, payload => {
+            if (payload.new?.name) {
+              const store = JSON.parse(localStorage.getItem("csops_passwords")||"{}");
+              if (payload.eventType === "DELETE") delete store[payload.old?.name];
+              else store[payload.new.name] = payload.new.password;
+              localStorage.setItem("csops_passwords", JSON.stringify(store));
+            }
+          }).subscribe(),
+
+        // ── break_schedule ── (stored in Supabase too now)
+        client.channel("rt-break_schedule")
+          .on("postgres_changes", { event: "*", schema: "public", table: "break_schedule" }, payload => {
+            if (payload.new?.key) {
+              setBreakScheduleRaw(prev => {
+                const next = { ...(prev||{}), [payload.new.key]: payload.new.data||{} };
+                lsSet("csops_breakSchedule", next);
+                return next;
+              });
+            }
+          }).subscribe(),
+      ];
+
+      rtChannelsRef.current = channels;
+    });
+
+    // ── Cleanup: runs when component unmounts OR loading changes ──
+    return () => {
+      cancelled = true;
+      getDB().then(client => {
+        if (!client) return;
+        rtChannelsRef.current.forEach(ch => { try { client.removeChannel(ch); } catch {} });
+        rtChannelsRef.current = [];
+      });
+    };
+  }, [loading]);
+
   useEffect(() => {
     (async () => {
       try {
@@ -5776,7 +8822,7 @@ export default function App() {
         const empT = await sb.from("employees");
         const empRows = await empT.select();
         if (empRows?.length) {
-          const emps = empRows.map(r => ({ id:r.id, name:r.name, role:r.role, tasks:r.tasks||[], gender:r.gender||"M" }));
+          const emps = empRows.map(r => ({ id:r.id, name:r.name, role:r.role, tasks:r.tasks||[], gender:r.gender||"M", isAdmin:r.is_admin||false, hiddenPages:r.hidden_pages||[] }));
           setEmployeesRaw(emps);
           localStorage.setItem("csops_employees", JSON.stringify(emps));
         } else {
@@ -5861,11 +8907,25 @@ export default function App() {
           setAuditLogRaw(al);
         }
 
-        // Load notes
+        // Load notes (including Manager Message fields)
         const ntT = await sb.from("notes");
         const ntRows = await ntT.select("*", "order=ts.desc");
         if (ntRows?.length) {
-          setNotesRaw(ntRows.map(r=>({id:r.id,ts:r.ts,date:r.date,time:r.time,tag:r.tag,text:r.text})));
+          setNotesRaw(ntRows.map(r=>({
+            id:r.id, ts:r.ts, date:r.date, time:r.time,
+            tag:r.tag, text:r.text,
+            from:r.from||"", target:r.target||"", msgType:r.msg_type||r.msgType||""
+          })));
+        }
+
+        // Load break_schedule
+        const bsT = await sb.from("break_schedule");
+        const bsRows = await bsT.select();
+        if (bsRows?.length) {
+          const bs = {};
+          bsRows.forEach(r => { bs[r.key] = r.data||{}; });
+          setBreakScheduleRaw(bs);
+          try { localStorage.setItem("csops_breakSchedule", JSON.stringify(bs)); } catch {}
         }
 
       } catch(e) {
@@ -5896,7 +8956,7 @@ export default function App() {
   async function saveEmployees(emps) {
     try {
       const t = await sb.from("employees");
-      await t.upsert(emps.map(e=>({id:e.id,name:e.name,role:e.role,tasks:e.tasks||[],gender:e.gender||"M"})));
+      await t.upsert(emps.map(e=>({id:e.id,name:e.name,role:e.role,tasks:e.tasks||[],gender:e.gender||"M",is_admin:e.isAdmin||false,hidden_pages:e.hiddenPages||[]})));
     } catch {}
     localStorage.setItem("csops_employees", JSON.stringify(emps));
   }
@@ -5956,17 +9016,28 @@ export default function App() {
     localStorage.setItem("csops_queueLog", JSON.stringify(ql));
   }
   async function saveAuditLog(al) {
+    // Only push the latest 1 entry — realtime broadcasts it to all other clients
+    // Full history is loaded on mount; we don't need to re-upsert all 500 entries
     try {
-      const latest = Array.isArray(al) ? al.slice(0,50) : []; // save only new 50
-      const rows = latest.map(l=>({id:l.id,ts:l.ts,by_name:l.by,by_role:l.role,action:l.action,target:l.target||"",detail:l.detail||""}));
-      if (rows.length) { const t = await sb.from("audit_log"); await t.upsert(rows); }
+      const entry = Array.isArray(al) && al[0] ? al[0] : null;
+      if (entry) {
+        const t = await sb.from("audit_log");
+        await t.upsert([{id:entry.id,ts:entry.ts,by_name:entry.by,by_role:entry.role,
+          action:entry.action,target:entry.target||"",detail:entry.detail||""}]);
+      }
     } catch {}
     localStorage.setItem("csops_auditLog", JSON.stringify(al));
   }
   async function saveNotes(nt) {
+    // Upsert only the latest note; realtime pushes it to all subscribers
     try {
-      const rows = (Array.isArray(nt)?nt:[]).map(n=>({id:n.id,ts:n.ts,date:n.date,time:n.time||"",tag:n.tag||"General",text:n.text}));
-      if (rows.length) { const t = await sb.from("notes"); await t.upsert(rows); }
+      const n = Array.isArray(nt) && nt[0] ? nt[0] : null;
+      if (n) {
+        const t = await sb.from("notes");
+        await t.upsert([{id:n.id,ts:n.ts,date:n.date,time:n.time||"",
+          tag:n.tag||"General",text:n.text,
+          from:n.from||"",target:n.target||"",msg_type:n.msgType||""}]);
+      }
     } catch {}
     localStorage.setItem("csops_notes", JSON.stringify(nt));
   }
@@ -5983,7 +9054,17 @@ export default function App() {
     const n=typeof val==="function"?val(breakSchedule):val;
     setBreakScheduleRaw(n);
     try { localStorage.setItem("csops_breakSchedule", JSON.stringify(n)); } catch {}
-    // Audit trail for break changes
+    // Save to Supabase: upsert each key (date_shiftId) separately
+    (async () => {
+      try {
+        const rows = Object.entries(n).map(([key, data]) => ({ key, data, updated_at: new Date().toISOString() }));
+        if (rows.length) {
+          const t = await sb.from("break_schedule");
+          await t.upsert(rows);
+        }
+      } catch {}
+    })();
+    // Audit trail
     const entry = {
       id: "al"+Date.now()+Math.random(),
       ts: new Date().toISOString(),
@@ -6037,9 +9118,21 @@ export default function App() {
       if (totalCurr > alertThresholdCritical) {
         setCriticalAlerts([{ icon:"🚨", title:`Queue Critical — ${totalCurr} cases`, detail:`إجمالي الحالات تجاوز الحد الحرج (${alertThresholdCritical}+). يتطلب تدخلاً فورياً وإعادة توزيع الطاقم.`, total:totalCurr }]);
         setAlertDismissed(false);
+        playAlertSound("critical"); // 🔊 urgent triple beep
+        sendPushNotification(
+          `🚨 Queue Critical — ${totalCurr} حالة`,
+          `تجاوز الحد الحرج (${alertThresholdCritical}+). يتطلب تدخلاً فورياً.`,
+          "queue-critical"
+        );
       } else if (totalCurr > alertThresholdWarning) {
         setCriticalAlerts([{ icon:"⚠️", title:`Queue Warning — ${totalCurr} cases`, detail:`إجمالي الحالات في منطقة التحذير (${alertThresholdWarning}+). راقب الوضع عن كثب.`, total:totalCurr }]);
         setAlertDismissed(false);
+        playAlertSound("warning"); // 🔊 gentle double ping
+        sendPushNotification(
+          `⚠️ Queue Warning — ${totalCurr} حالة`,
+          `في منطقة التحذير (${alertThresholdWarning}+). راقب الوضع.`,
+          "queue-warning"
+        );
       }
     }
 
@@ -6107,10 +9200,11 @@ export default function App() {
 
   const currentRole = session.role;
   const currentName = session.name;
-  const canEdit     = ROLE_CAN_EDIT[currentRole];
-  const roleColor   = ROLE_COLORS[currentRole];
   const isSuperAdmin = isOwnerUser(session);
   const isAgent = currentRole === "Agent";
+  const currentEmployee = employees.find(e => e.name === currentName); // defined BEFORE canEdit
+  const canEdit     = ROLE_CAN_EDIT[currentRole] || (currentEmployee?.isAdmin === true);
+  const roleColor   = ROLE_COLORS[currentRole];
 
   // ── Critical Alert System ──────────────────────────────────────────────────
   function saveAlertThresholds(c, w) {
@@ -6125,9 +9219,18 @@ export default function App() {
 
   // Pages visible to this user
   // Mohammed Nasser Althurwi (SUPER_ADMIN) always sees Owner Analytics
-  const visiblePages = isAgent ? AGENT_PAGES : (isSuperAdmin ? [...PAGES, "Owner Analytics"] : PAGES);
-  // Inject Owner Analytics for super admin even if role is SME
-  // (already handled above — isSuperAdmin check covers this)
+  // Also respect employee.hiddenPages set by owner
+  const hiddenPages = (currentEmployee?.hiddenPages) || [];
+  // isAdmin agents get full edit access and see all non-owner pages
+  const isAdminAgent = isAgent && (currentEmployee?.isAdmin === true);
+  const basePages = isSuperAdmin
+    ? [...PAGES, "Owner Analytics"]
+    : isAdminAgent ? PAGES           // admin-elevated agent
+    : isAgent ? AGENT_PAGES          // regular agent
+    : PAGES;
+  const visiblePages = isSuperAdmin
+    ? basePages  // owner sees everything always
+    : basePages.filter(p => !hiddenPages.includes(p));
 
   function navigate(p) {
     setPage(p);
@@ -6189,28 +9292,34 @@ export default function App() {
     addAudit("Page View", p, `Opened ${p}`);
   }
 
+  // Wrap each page in ErrorBoundary so one broken page doesn't crash the whole app
+  const wrap = (el) => <ErrorBoundary>{el}</ErrorBoundary>;
+
   const pageComponents = {
-    Schedule:      <SchedulePage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} canEdit={canEdit}/>,
-    Attendance:    <AttendancePage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT}/>,
-    Queue:         <QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL} setHeatmap={HM}/>,
-    "Daily Tasks": <DailyTasksPage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} auditLog={auditLog} setAuditLog={AL} session={session}/>,
-    "Live Floor":  <LiveFloorPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} queueLog={queueLog}/>,
-    Break:         <BreakPage employees={employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={canEdit} addAudit={addAudit} session={session}/>,
-    "Heat Map":    <HeatMapPage queueLog={queueLog}/>,
-    "Audit Log":   <AuditLogPage auditLog={auditLog} session={session}/>,
-    Notes:         <NotesPage notes={notes} setNotes={canEdit?setNotes:noop}/>,
-    Shifts:        <ShiftsPage shifts={shifts} setShifts={SH}/>,
-    Performance:   <PerformancePage employees={employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF}/>,
-    Reports:       <ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog}/>,
-    "Owner Analytics": <OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} setEmployees={setEmployees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>,
-    Leaderboard:   <LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} canEdit={canEdit}/>,
+    Schedule:      wrap(<SchedulePage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} canEdit={canEdit}/>),
+    Attendance:    wrap(<AttendancePage employees={employees} schedule={schedule} setSchedule={SC} shifts={shifts} attendance={attendance} setAttendance={AT} notes={notes} setNotes={setNotes} session={session}/>),
+    Queue:         wrap(<QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL} setHeatmap={HM}/>),
+    "Daily Tasks": wrap(<DailyTasksPage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} auditLog={auditLog} setAuditLog={AL} session={session}/>),
+    "Live Floor":  wrap(<LiveFloorPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} queueLog={queueLog} canEdit={canEdit} session={session}/>),
+    Break:         wrap(<BreakPage employees={employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={canEdit} addAudit={addAudit} session={session}/>),
+    "Heat Map":    wrap(<HeatMapPage queueLog={queueLog}/>),
+    "Audit Log":   wrap(<AuditLogPage auditLog={auditLog} session={session}/>),
+    Notes:         wrap(<NotesPage notes={notes} setNotes={canEdit?setNotes:noop}/>),
+    Shifts:        wrap(<ShiftsPage shifts={shifts} setShifts={SH}/>),
+    Performance:   wrap(<PerformancePage employees={employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF}/>),
+    Reports:       wrap(<ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog}/>),
+    "Owner Analytics": wrap(<OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} setEmployees={setEmployees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>),
+    Leaderboard:   wrap(<LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} canEdit={canEdit}/>),
+    "Attendance History": wrap(<AttendanceHistoryPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance}/>),
+    "KPI Dashboard": wrap(<KPIDashboardPage employees={employees} schedule={schedule} attendance={attendance} performance={performance} session={session}/>),
+    "Surveys":       wrap(<SurveysPage employees={employees} notes={notes} setNotes={canEdit?setNotes:noop} session={session} canEdit={canEdit}/>),
   };
 
   // Page icons
   const PAGE_ICONS = {
     "Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
     "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍","Notes":"📝",
-    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️","Leaderboard":"🏆"
+    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️","Leaderboard":"🏆","Attendance History":"📆","KPI Dashboard":"🎯","Surveys":"📋"
   };
 
   const PAGE_LABELS = {
@@ -6221,10 +9330,35 @@ export default function App() {
     "Notes": tr("notes"), "Shifts": tr("shifts"),
     "Performance": tr("performance"), "Reports": tr("reports"),
     "Owner Analytics": tr("ownerAnalytics"),
-    "Leaderboard": lang==="ar"?"لوحة المتصدرين":"Leaderboard"
+    "Leaderboard": lang==="ar"?"لوحة المتصدرين":"Leaderboard",
+    "Attendance History": lang==="ar"?"سجل الحضور":"Attendance History",
+    "KPI Dashboard": lang==="ar"?"لوحة المؤشرات":"KPI Dashboard",
+    "Surveys": lang==="ar"?"الاستبيانات":"Surveys"
   };
 
   const safeCurrentPage = visiblePages.includes(page) ? page : visiblePages[0];
+
+  // ── Global search keyboard shortcut: Ctrl+K ──────────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setShowSearch(s => !s);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  // ── Heartbeat: log activity every 10 min (realtime handles the rest) ──
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!session) return;
+    const hb = setInterval(() => {
+      addAudit("Page View", safeCurrentPage||page, `Active on ${safeCurrentPage||page}`);
+    }, 10 * 60 * 1000); // every 10 minutes
+    return () => clearInterval(hb);
+  }, [session]);
 
   return (
     <div dir={isRTL?"rtl":"ltr"} style={{
@@ -6300,6 +9434,16 @@ export default function App() {
                     borderRadius:4, fontWeight:700 }}>+</button>
               </div>
 
+              {/* Global Search button */}
+              <button onClick={()=>setShowSearch(true)}
+                title="بحث عالمي (Ctrl+K)"
+                style={{ background:theme.surface, border:`1px solid ${theme.cardBorder}`,
+                  color:theme.textSub, borderRadius:7, padding:"5px 9px",
+                  fontSize:11, cursor:"pointer", fontWeight:600,
+                  display:"flex", alignItems:"center", gap:4 }}>
+                🔍 <span className="desktop-nav" style={{fontSize:10}}>Ctrl+K</span>
+              </button>
+
               {/* Lang */}
               <button onClick={()=>changeLang(lang==="en"?"ar":"en")}
                 style={{ background:theme.surface, border:`1px solid ${theme.cardBorder}`,
@@ -6354,6 +9498,51 @@ export default function App() {
                   style={{ background:`${theme.warning}18`, color:theme.warning,
                     border:`1px solid ${theme.warning}30`, borderRadius:7,
                     padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>🔑</button>
+              )}
+
+              {/* Sound mute toggle */}
+              {!isAgent && (
+                <button
+                  title="تبديل صوت التنبيهات"
+                  onClick={()=>{
+                    const muted = localStorage.getItem("csops_mute")==="1";
+                    localStorage.setItem("csops_mute", muted?"0":"1");
+                    if (!muted) alert("🔕 تم كتم صوت التنبيهات");
+                    else { alert("🔔 تم تفعيل صوت التنبيهات"); playSoftDing(); }
+                  }}
+                  style={{ background:localStorage.getItem("csops_mute")==="1"?"rgba(239,68,68,0.1)":theme.surface,
+                    color:localStorage.getItem("csops_mute")==="1"?theme.danger:theme.textSub,
+                    border:`1px solid ${localStorage.getItem("csops_mute")==="1"?theme.danger+"40":theme.cardBorder}`,
+                    borderRadius:7, padding:"5px 8px", fontSize:13, cursor:"pointer" }}>
+                  {localStorage.getItem("csops_mute")==="1" ? "🔕" : "🔊"}
+                </button>
+              )}
+
+              {/* Push Notification toggle — supervisors only */}
+              {!isAgent && "Notification" in window && (
+                <button
+                  title={Notification.permission==="granted"?"إشعارات Push مفعّلة — اضغط للمعلومات":"تفعيل إشعارات Push"}
+                  onClick={async()=>{
+                    if (Notification.permission==="granted") {
+                      alert("✅ إشعارات Push مفعّلة
+ستصلك تنبيهات Queue حتى لو التطبيق مغلق.");
+                    } else if (Notification.permission==="denied") {
+                      alert("🚫 الإشعارات محجوبة من إعدادات المتصفح.
+افتح إعدادات المتصفح وأعد السماح للموقع.");
+                    } else {
+                      const res = await askPushPermission();
+                      if (res==="granted") alert("✅ تم تفعيل إشعارات Push بنجاح!");
+                      else alert("⚠️ لم يتم السماح بالإشعارات.");
+                    }
+                  }}
+                  style={{
+                    background: Notification.permission==="granted"?"rgba(16,185,129,0.15)":"rgba(245,158,11,0.1)",
+                    color:      Notification.permission==="granted"?theme.success:theme.warning,
+                    border:`1px solid ${Notification.permission==="granted"?theme.success+"40":theme.warning+"40"}`,
+                    borderRadius:7, padding:"5px 8px", fontSize:13, cursor:"pointer", fontWeight:700
+                  }}>
+                  {Notification.permission==="granted" ? "🔔" : "🔕"}
+                </button>
               )}
 
               {/* Audit log quick access */}
@@ -6420,7 +9609,26 @@ export default function App() {
                 background: safeCurrentPage===p ? theme.primary+"30" : "transparent",
                 border:"none", cursor:"pointer", padding:"4px 6px",
                 borderRadius:8, minWidth:42, transition:"background 0.15s", flexShrink:0 }}>
-              <span style={{ fontSize:18 }}>{PAGE_ICONS[p]}</span>
+              <span style={{ fontSize:18, position:"relative" }}>
+                {PAGE_ICONS[p]}
+                {p==="Surveys" && (() => {
+                  const pending = (Array.isArray(notes)?notes:[])
+                    .filter(n=>n.tag==="Survey" && (() => {
+                      try { return JSON.parse(n.text||"{}").status!=="closed"; } catch { return true; }
+                    })())
+                    .filter(n => !(Array.isArray(notes)?notes:[]).some(
+                      r=>r.tag==="Survey Response"&&r.target===n.id&&r.from===session?.name
+                    )).length;
+                  return pending > 0 ? (
+                    <span style={{ position:"absolute", top:-4, right:-6,
+                      background:"#EF4444", color:"#fff", borderRadius:"50%",
+                      width:14, height:14, fontSize:9, fontWeight:800,
+                      display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      {pending}
+                    </span>
+                  ) : null;
+                })()}
+              </span>
               <span style={{ fontSize:8, color: safeCurrentPage===p ? theme.primary : theme.textMuted,
                 fontWeight: safeCurrentPage===p ? 700 : 400, whiteSpace:"nowrap" }}>
                 {(PAGE_LABELS[p]||p).length > 7 ? (PAGE_LABELS[p]||p).slice(0,6)+"..." : (PAGE_LABELS[p]||p)}
@@ -6439,6 +9647,17 @@ export default function App() {
 
       {showResetPw && (
         <PasswordResetModal employees={employees} session={session} onClose={()=>setShowResetPw(false)}/>
+      )}
+
+      {/* ── Global Search Modal ── */}
+      {showSearch && (
+        <GlobalSearch
+          employees={employees}
+          notes={notes}
+          auditLog={auditLog}
+          onNavigate={p=>navigateLogged(p)}
+          onClose={()=>setShowSearch(false)}
+        />
       )}
 
       {/* ── POPUPS: rendered at root level, unaffected by transform:scale on content ── */}
