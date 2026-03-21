@@ -11720,6 +11720,28 @@ export default function App() {
   const isRTL = lang === "ar";
   const tr = (key) => T[lang]?.[key] || T.en[key] || key;
 
+  // ── Session ────────────────────────────────────────────────────────────────
+  const [session, _setSession] = useState(() => {
+    try {
+      const r = localStorage.getItem("csops_session");
+      if (!r || r === "null") return null;
+      const parsed = JSON.parse(r);
+      // Validate session has required fields
+      if (!parsed?.name || !parsed?.role) return null;
+      return parsed;
+    } catch { return null; }
+  });
+  function setSession(val) {
+    _setSession(val);
+    try {
+      if (val) {
+        localStorage.setItem("csops_session", JSON.stringify(val));
+      } else {
+        localStorage.removeItem("csops_session");
+      }
+    } catch {}
+  }
+
   // Show daily tip once per session (handles both fresh login AND persistent session)
   // Also log "Session Active" so user appears in Owner Analytics Active Now
   useEffect(() => {
@@ -11772,28 +11794,6 @@ export default function App() {
     const clamped = Math.min(200, Math.max(50, z));
     setZoom(clamped);
     try { localStorage.setItem("csops_zoom", clamped); } catch {}
-  }
-
-  // ── Session ────────────────────────────────────────────────────────────────
-  const [session, _setSession] = useState(() => {
-    try {
-      const r = localStorage.getItem("csops_session");
-      if (!r || r === "null") return null;
-      const parsed = JSON.parse(r);
-      // Validate session has required fields
-      if (!parsed?.name || !parsed?.role) return null;
-      return parsed;
-    } catch { return null; }
-  });
-  function setSession(val) {
-    _setSession(val);
-    try {
-      if (val) {
-        localStorage.setItem("csops_session", JSON.stringify(val));
-      } else {
-        localStorage.removeItem("csops_session");
-      }
-    } catch {}
   }
 
   // ── Supabase-backed state ─────────────────────────────────────────────────
