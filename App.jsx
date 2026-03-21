@@ -12402,6 +12402,32 @@ export default function App() {
       </div>
     );
   }
+  // ── Global search keyboard shortcut: Ctrl+K ──────────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === "k") { e.preventDefault(); setShowSearch(s => !s); }
+        if (e.key === "h") { e.preventDefault(); navigateLogged("Home"); }
+        if (e.key === "a" && !isAgent) { e.preventDefault(); navigateLogged("Attendance"); }
+        if (e.key === "p") { e.preventDefault(); navigateLogged("Performance"); }
+        if (e.key === "q") { e.preventDefault(); navigateLogged("Queue"); }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  // ── Heartbeat: log activity every 10 min (realtime handles the rest) ──
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!session) return;
+    const hb = setInterval(() => {
+      addAudit("Page View", safeCurrentPage||page, `Active on ${safeCurrentPage||page}`);
+    }, 10 * 60 * 1000); // every 10 minutes
+    return () => clearInterval(hb);
+  }, [session]);
+
+
   if (!session) {
     return <LoginScreen employees={employees} lang={lang} setLang={changeLang} onLogin={sess => {
       const entry = {
@@ -12575,31 +12601,6 @@ export default function App() {
   };
 
   const safeCurrentPage = visiblePages.includes(page) ? page : visiblePages[0];
-
-  // ── Global search keyboard shortcut: Ctrl+K ──────────────────────────────────
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === "k") { e.preventDefault(); setShowSearch(s => !s); }
-        if (e.key === "h") { e.preventDefault(); navigateLogged("Home"); }
-        if (e.key === "a" && !isAgent) { e.preventDefault(); navigateLogged("Attendance"); }
-        if (e.key === "p") { e.preventDefault(); navigateLogged("Performance"); }
-        if (e.key === "q") { e.preventDefault(); navigateLogged("Queue"); }
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, []);
-
-  // ── Heartbeat: log activity every 10 min (realtime handles the rest) ──
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!session) return;
-    const hb = setInterval(() => {
-      addAudit("Page View", safeCurrentPage||page, `Active on ${safeCurrentPage||page}`);
-    }, 10 * 60 * 1000); // every 10 minutes
-    return () => clearInterval(hb);
-  }, [session]);
 
   return (
     <div dir={isRTL?"rtl":"ltr"} style={{
