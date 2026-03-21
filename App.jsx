@@ -6891,17 +6891,22 @@ async function resetUserPw(name) {
 }
 
 // Load password HASHES from Supabase — waits for SDK to be ready
-getDB().then(async () => {
-  try {
-    const t = await sb.from("user_passwords");
-    const rows = await t.select();
-    if (Array.isArray(rows) && rows.length > 0) {
-      const obj = {};
-      rows.forEach(r => { obj[r.name] = r.password; }); // hashes only
-      setPwStore(obj);
-    }
-  } catch {}
-});
+// Deferred until after full module initialization to avoid TDZ errors
+if (typeof window !== "undefined") {
+  window.addEventListener("load", () => {
+    getDB().then(async () => {
+      try {
+        const t = await sb.from("user_passwords");
+        const rows = await t.select();
+        if (Array.isArray(rows) && rows.length > 0) {
+          const obj = {};
+          rows.forEach(r => { obj[r.name] = r.password; }); // hashes only
+          setPwStore(obj);
+        }
+      } catch {}
+    });
+  });
+}
 
 
 // ─── DAILY TIPS ───────────────────────────────────────────────────────────────
