@@ -3943,7 +3943,7 @@ function ShiftsPage({ shifts, setShifts }) {
 }
 
 // ─── REPORTS PAGE ─────────────────────────────────────────────────────────────
-function ReportsPage({ employees, schedule, shifts, attendance, performance, heatmap, kg, queueLog, session, canEdit }) {
+function ReportsPage({ employees, schedule, shifts, attendance, performance, heatmap, kg, queueLog, session, canEdit, myShiftFilter=false }) {
   const [reportType, setReportType]   = useState("ops");
   const [date, setDate]               = useState(todayStr());
   const [month, setMonth]             = useState(new Date().toISOString().slice(0,7));
@@ -12714,7 +12714,7 @@ export default function App() {
     Notes:         wrap(<NotesPage notes={notes} setNotes={canEdit?setNotes:noop}/>),
     Shifts:        wrap(<ShiftsPage shifts={shifts} setShifts={SH}/>),
     Performance:   wrap(<PerformancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF} myShiftFilter={myShiftOnly} session={session}/>),
-    Reports:       wrap(<ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog} session={session} canEdit={canEdit}/>),
+    Reports:       wrap(<ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog} session={session} canEdit={canEdit} myShiftFilter={myShiftOnly}/>),
     "Owner Analytics": wrap(<OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} setEmployees={setEmployees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>),
     Leaderboard:   wrap(<LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} setNotes={setNotes} canEdit={canEdit}/>),
     "Attendance History": wrap(<AttendanceHistoryPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance}/>),
