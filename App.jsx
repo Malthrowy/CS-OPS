@@ -117,9 +117,9 @@ function statusIcon(status) {
   };
   return map[status] || "⚪";
 }
-const ALL_PAGES = ["Home","Messages","Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard","Attendance History","KPI Dashboard","Surveys","Gamification","Shift Handover"];
+const ALL_PAGES = ["Home","Messages","Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard","Attendance History","KPI Dashboard","Surveys","Gamification","Shift Handover","Coaching Notes","Skills Matrix","Employee Profile"];
 const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics"); // Home + Leaderboard visible to all roles
-const AGENT_PAGES = ["Home","Messages","Schedule","Live Floor","Break","Performance","Queue","Leaderboard","Surveys","Gamification"];
+const AGENT_PAGES = ["Home","Messages","Schedule","Live Floor","Break","Performance","Queue","Leaderboard","Surveys","Gamification","Employee Profile"];
 // ─── ROLE CONFIG ──────────────────────────────────────────────────────────────
 const ROLE_CAN_EDIT = {
   "Team Lead":    true,
@@ -1646,9 +1646,17 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
       const dur = calcWorkDuration(ci, co);
       empData.workDuration = dur !== null ? dur : "";
 
-      // Auto-calc Early Leave: if status=Early Leave and both times set
+      // Auto-calc Early Leave: earlyMin = time remaining in shift (shiftEnd - checkOut)
       if ((empData.status==="Early Leave" || field==="status") && ci && co) {
-        empData.earlyMin = dur !== null ? dur : empData.earlyMin;
+        // Find this employee's shift to calculate remaining time
+        const empShift = shifts?.find(s => s.id === activeShift);
+        if (empShift && empShift.end) {
+          let remaining = toMin(empShift.end) - toMin(co);
+          if (remaining < 0) remaining += 1440; // midnight crossing
+          empData.earlyMin = remaining > 0 ? remaining : 0;
+        } else {
+          empData.earlyMin = dur !== null ? dur : empData.earlyMin;
+        }
       }
 
       dayData[empId] = empData;
@@ -1662,6 +1670,38 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
       shiftEmployees.forEach(emp => { dayData[emp.id] = { ...getAtt(emp.id), status }; });
       return { ...prev, [date]: dayData };
     });
+  }
+
+  function exportAttendanceExcel() {
+    const sh = shifts.find(s=>s.id===activeShift);
+    const rows = [["Employee","Role","Shift","Status","Check-in","Check-out","Late (min)","Work Duration","Early Leave (min)","Note"]];
+    shiftEmployees.forEach(emp => {
+      const a = getAtt(emp.id);
+      rows.push([emp.name, emp.role, sh?.label||"",
+        a.status||"Present", a.checkIn||"", a.checkOut||"",
+        a.lateMin||0, a.workDuration||"", a.earlyMin||0, a.note||""]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+    XLSX.writeFile(wb, `attendance-${date}-${sh?.label||"shift"}.xlsx`);
+  }
+
+  function bulkCheckOut() {
+    const nowTime = pad(new Date().getHours())+":"+pad(new Date().getMinutes());
+    setAttendance(prev => {
+      const dayData = { ...(prev[date]||{}) };
+      shiftEmployees.forEach(emp => {
+        const att = getAtt(emp.id);
+        if (isPresent(att.status) && att.checkIn && !att.checkOut) {
+          const dur = calcWorkDuration(att.checkIn, nowTime);
+          dayData[emp.id] = { ...att, checkOut: nowTime,
+            workDuration: dur !== null ? dur : "" };
+        }
+      });
+      return { ...prev, [date]: dayData };
+    });
+    showToast(`✅ Checked out ${shiftEmployees.filter(e=>isPresent(getAtt(e.id).status)&&getAtt(e.id).checkIn&&!getAtt(e.id).checkOut).length} employees`, "success");
   }
 
   // KPIs across all shifts for the day
@@ -1740,6 +1780,8 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
           <div style={{ display:"flex", gap:8, marginLeft:"auto" }}>
             <button style={PBT("#10B981",{padding:"5px 12px",fontSize:12})} onClick={()=>bulkSet("Present")}>✅ All Present</button>
             <button style={PBT("#EF4444",{padding:"5px 12px",fontSize:12})} onClick={()=>bulkSet("Absent")}>🔴 All Absent</button>
+            <button style={PBT("#6366F1",{padding:"5px 12px",fontSize:12})} onClick={bulkCheckOut}>🚪 Bulk Check-out Now</button>
+            <button style={PBT("#10B981",{padding:"5px 12px",fontSize:12})} onClick={exportAttendanceExcel}>📥 Export Excel</button>
           <button style={PBT("#3B82F6",{padding:"5px 12px",fontSize:12})} onClick={()=>{
             const now=new Date(); const hh=pad(now.getHours()), mm=pad(now.getMinutes());
             if (!window.confirm(`Check in ${shiftEmployees.length} employees now (${hh}:${mm})?`)) return;
@@ -1776,8 +1818,15 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
               const isBizTrip = att.status === "Business Trip";
               return (
                 <tr key={emp.id} style={{
-                  background: isLate ? "#FEF9C3" : isOnLeaveStatus ? "#EFF6FF" : isWFH ? "#F5F3FF" : ri%2===0?_theme.card:_theme.surface,
-                  borderLeft: isLate ? "3px solid #F59E0B" : isEarlyLeave ? "3px solid #8B5CF6" : isOnLeaveStatus ? "3px solid #0EA5E9" : isWFH ? "3px solid #6366F1" : isBizTrip ? "3px solid #F97316" : "3px solid transparent"
+                  background: (() => {
+                    const s = getAtt(emp.id).status;
+                    if (isAbsent(s)) return _theme.isDark?"#2D1515":"#FEF2F2";
+                    if (isLate) return _theme.isDark?"#2D2010":"#FEF9C3";
+                    if (isOnLeaveStatus) return _theme.isDark?"#0F1D2D":"#EFF6FF";
+                    if (isWFH) return _theme.isDark?"#150F2D":"#F5F3FF";
+                    return ri%2===0?_theme.card:_theme.surface;
+                  })(),
+                  borderLeft: isAbsent(getAtt(emp.id).status) ? "3px solid #EF4444" : isLate ? "3px solid #F59E0B" : isEarlyLeave ? "3px solid #8B5CF6" : isOnLeaveStatus ? "3px solid #0EA5E9" : isWFH ? "3px solid #6366F1" : isBizTrip ? "3px solid #F97316" : "3px solid transparent"
                 }}>
                   <td style={{ padding:"8px", color:_theme.textMuted, fontWeight:600 }}>{ri+1}</td>
                   <td style={{ padding:"8px", fontWeight:600, color:_theme.text }}>
@@ -1864,11 +1913,30 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
 }
 
 // ─── PERFORMANCE PAGE ─────────────────────────────────────────────────────────
-function PerformancePage({ employees, schedule, shifts, performance, setPerformance, myShiftFilter, session }) {
+function PerformancePage({ employees, schedule, shifts, performance, setPerformance, myShiftFilter, session, notes, setNotes }) {
   const [date, setDate] = useState(todayStr());
   const [showQuality, setShowQuality] = useState(false);
+  const [perfSearch, setPerfSearch] = useState("");
+
+  function exportPerfExcel() {
+    const rows = [["Employee","Role","Shift","Closed","Reopened","Escalations","Quality %","Esc Rate %"]];
+    dayEmps.forEach(emp => {
+      const p = getPerf(emp.id);
+      const escRate = p.closed > 0 ? ((p.escalations/p.closed)*100).toFixed(1) : 0;
+      rows.push([emp.name, emp.role, getShiftLabel(emp.id),
+        p.closed||0, p.reopened||0, p.escalations||0, p.quality||"", escRate]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Performance");
+    XLSX.writeFile(wb, `performance-${date}.xlsx`);
+  }
+
   const [dailyTarget, setDailyTarget] = useState(() => {
     return Number(localStorage.getItem("csops_perf_target")||"25");
+  });
+  const [shiftTargets, setShiftTargets] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("csops_shift_targets")||"{}"); } catch { return {}; }
   });
   const [showTargetEdit, setShowTargetEdit] = useState(false);
   const ESC_WARN_PCT = 20; // % escalation rate warning
@@ -1883,6 +1951,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
     const v=(schedule[emp.id]||{})[dayName];
     if (!v || v==="OFF" || v==="LEAVE" || v==="PH") return false;
     if (myShiftFilter && myShiftId && v !== myShiftId) return false;
+    if (perfSearch && !emp.name.toLowerCase().includes(perfSearch.toLowerCase())) return false;
     return true;
   });
 
@@ -1924,6 +1993,33 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
     <div>
       <div style={SBR()}>
         <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>⚡ Performance Tracker</span>
+        <input value={perfSearch} onChange={e=>setPerfSearch(e.target.value)}
+          style={{ ...I({width:160,padding:"5px 10px",fontSize:12}), marginLeft:8 }}
+          placeholder="🔍 Search..."/>
+        <button onClick={exportPerfExcel}
+          style={PBT("#10B981",{fontSize:12,padding:"5px 12px"})}>
+          📥 Excel
+        </button>
+        {/* Shift target quick display */}
+        {(() => {
+          const sh = shifts.find(s => dayEmps.length > 0 && s.id === (schedule[dayEmps[0]?.id]||{})[dayName]);
+          const shiftTarget = sh ? (shiftTargets[sh.id] || dailyTarget) : dailyTarget;
+          const totalClosed = dayEmps.reduce((s,e)=>s+((getPerf(e.id)?.closed)||0),0);
+          const pct = Math.min(100, Math.round((totalClosed/shiftTarget)*100));
+          return sh ? (
+            <div style={{display:"flex",alignItems:"center",gap:8,padding:"4px 10px",
+              background:_theme.surface,borderRadius:8,border:`1px solid ${_theme.cardBorder}`}}>
+              <div style={{fontSize:11,color:_theme.textMuted}}>Target</div>
+              <div style={{fontSize:13,fontWeight:800,color:pct>=100?"#10B981":pct>=70?"#F59E0B":"#EF4444"}}>
+                {totalClosed}/{shiftTarget}
+              </div>
+              <div style={{width:40,height:4,background:_theme.cardBorder,borderRadius:4}}>
+                <div style={{width:pct+"%",height:"100%",borderRadius:4,
+                  background:pct>=100?"#10B981":pct>=70?"#F59E0B":"#EF4444"}}/>
+              </div>
+            </div>
+          ) : null;
+        })()}
         <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
         <label style={{ display:"flex", alignItems:"center", gap:6, fontSize:13, cursor:"pointer", color:_theme.textSub }}>
           <input type="checkbox" checked={showQuality} onChange={e=>setShowQuality(e.target.checked)}/> Show Quality %
@@ -1940,6 +2036,13 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
               style={{ ...I({width:80}) }}
               onBlur={e=>{ const v=Number(e.target.value)||25;
                 setDailyTarget(v); localStorage.setItem("csops_perf_target",String(v));
+                // Sync to Supabase via notes
+                if (setNotes) setNotes(prev => {
+                  const arr = Array.isArray(prev)?prev.filter(n=>n.tag!=="Daily Target"):[];
+                  return [{id:"daily-target-global",ts:new Date().toISOString(),date:todayStr(),
+                    time:"00:00",tag:"Daily Target",text:String(v),
+                    from:session?.name||"",target:"all",msgType:"daily_target"},...arr];
+                });
                 setShowTargetEdit(false); }}
               autoFocus/>
           </div>
@@ -1985,7 +2088,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
             <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
-              {["Rank","Employee","Tasks","Shift","Closed","Escalations",...(showQuality?["Quality %"]:[])]
+              {["Rank","Employee","Tasks","Shift","Closed","Reopened","Escalations",...(showQuality?["Quality %"]:[])]
                 .map(h=><th key={h} style={{ padding:"10px 8px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>)}
             </tr>
           </thead>
@@ -2020,8 +2123,12 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
                       style={{ ...I({ width:70, border: p.closed>0?"2px solid #10B981":"1px solid #CBD5E1" })}} placeholder="0"/>
                   </td>
                   <td style={{ padding:"8px" }}>
+                    <input type="number" min="0" value={p.reopened||""} onChange={e=>setPerf(emp.id,"reopened",Number(e.target.value))}
+                      style={{ ...I({ width:65, border: p.reopened>0?"2px solid #F59E0B":"1px solid #CBD5E1" })}} placeholder="0"/>
+                  </td>
+                  <td style={{ padding:"8px" }}>
                     <input type="number" min="0" value={p.escalations||""} onChange={e=>setPerf(emp.id,"escalations",Number(e.target.value))}
-                      style={{ ...I({ width:70, border: p.escalations>0?"2px solid #F59E0B":"1px solid #CBD5E1" })}} placeholder="0"/>
+                      style={{ ...I({ width:70, border: p.escalations>0?"2px solid #EF4444":"1px solid #CBD5E1" })}} placeholder="0"/>
                   </td>
                   {showQuality && (
                     <td style={{ padding:"8px" }}>
@@ -2195,6 +2302,96 @@ function HeatMapPage({ queueLog, alertThresholdCritical, alertThresholdWarning }
 // ─── QUEUE PAGE ───────────────────────────────────────────────────────────────
 function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session }) {
   const todayKey = todayStr();
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploadMsg, setUploadMsg]   = useState("");
+  const [previewData, setPreviewData] = useState(null);
+
+  // ── Excel/CSV Upload Parser ────────────────────────────────────────────────
+  const QUEUE_KEYS_MAP = {
+    // key: [possible column names in Excel]
+    tga:     ["tga","t.g.a","tourism"],
+    ob:      ["ob","o.b","ob cases"],
+    oslo:    ["oslo"],
+    some:    ["some","ksa some"],
+    kwtT2:   ["kwt","kuwait","kwt t2"],
+    qatT2:   ["qat","qatar","qat t2"],
+    bahT2:   ["bah","bahrain","bah t2"],
+    uaeT2:   ["uae","emirates","uae t2"],
+    someKwt: ["some kwt","kwt some"],
+    someQat: ["some qat","qat some"],
+    someBah: ["some bah","bah some"],
+    someUae: ["some uae","uae some"],
+  };
+
+  function parseQueueFile(file) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const wb = XLSX.read(ev.target.result, { type:"array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:"", raw:false });
+        if (!rows.length) { setUploadMsg("❌ File is empty"); return; }
+
+        // Find header row
+        let headerIdx = -1;
+        let headerRow = [];
+        for (let i=0; i<Math.min(rows.length,10); i++) {
+          const r = rows[i].map(c=>String(c).toLowerCase().trim());
+          // Check if this row contains any queue key
+          const hasQueue = Object.values(QUEUE_KEYS_MAP).some(aliases =>
+            aliases.some(a => r.some(cell => cell.includes(a)))
+          );
+          if (hasQueue) { headerIdx=i; headerRow=r; break; }
+        }
+
+        if (headerIdx < 0) { setUploadMsg("❌ Could not detect queue columns. Expected columns like: TGA, OB, OSLO, KWT, QAT..."); return; }
+
+        // Find column indices for each queue key
+        const colMap = {};
+        Object.entries(QUEUE_KEYS_MAP).forEach(([key, aliases]) => {
+          const idx = headerRow.findIndex(h => aliases.some(a => h.includes(a)));
+          if (idx >= 0) colMap[key] = idx;
+        });
+
+        // Find "current" vs "base" row — look for row with "current" or use last data row
+        const dataRows = rows.slice(headerIdx+1).filter(r => r.some(c=>c!==""));
+        let currRow = dataRows[dataRows.length-1]; // default: last row
+        let baseRow = dataRows[0]; // default: first row
+
+        for (const r of dataRows) {
+          const label = String(r[0]||r[1]||"").toLowerCase();
+          if (label.includes("current") || label.includes("now")) currRow = r;
+          if (label.includes("base") || label.includes("start") || label.includes("open")) baseRow = r;
+        }
+
+        // Build preview
+        const preview = {};
+        Object.entries(colMap).forEach(([key, col]) => {
+          preview[key+"Curr"] = Number(currRow[col])||0;
+          preview[key+"Base"] = Number(baseRow[col])||0;
+        });
+
+        setPreviewData(preview);
+        setUploadMsg(`✅ Detected ${Object.keys(colMap).length} queue channels — review and confirm`);
+      } catch(err) {
+        setUploadMsg("❌ Error reading file: "+err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function applyPreview() {
+    if (!previewData) return;
+    const now = pad(new Date().getHours())+":"+pad(new Date().getMinutes());
+    const sid = sbApplied && sbShifts.length ? sbShifts[0] : autoShiftId;
+    const k = `${todayKey}_${sid}`;
+    setQueueLog(prev => ({
+      ...prev, [k]: { ...(prev[k]||{}), ...previewData, updTime: now }
+    }));
+    setPreviewData(null); setShowUpload(false);
+    setUploadMsg("✅ Queue data applied from file!");
+    setTimeout(()=>setUploadMsg(""),3000);
+  }
 
   // ── Auto-detect current shift from system clock ──────────────────────────────
   function detectShiftNow() {
@@ -2405,6 +2602,48 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session
           )}
         </div>
 
+        {/* ── File Upload Panel ── */}
+        {showUpload && canEdit && (
+          <div style={{...CRD({padding:14}),marginBottom:10,border:`1.5px solid #6366F130`}}>
+            <div style={{fontWeight:700,fontSize:13,color:_theme.text,marginBottom:8}}>
+              📂 Upload Queue File (Excel / CSV)
+            </div>
+            <div style={{fontSize:11,color:_theme.textMuted,marginBottom:8}}>
+              Columns: TGA, OB, OSLO, KWT, QAT, BAH, UAE, SOME
+            </div>
+            <input type="file" accept=".xlsx,.xls,.csv"
+              onChange={e=>{ if(e.target.files[0]) parseQueueFile(e.target.files[0]); }}
+              style={{fontSize:12,marginBottom:8,width:"100%"}}/>
+            {uploadMsg && (
+              <div style={{fontSize:12,fontWeight:600,padding:"6px 10px",borderRadius:8,marginBottom:8,
+                background:uploadMsg.startsWith("✅")?"#F0FDF4":"#FEF2F2",
+                color:uploadMsg.startsWith("✅")?"#166534":"#991B1B"}}>
+                {uploadMsg}
+              </div>
+            )}
+            {previewData && (
+              <div>
+                <div style={{fontWeight:700,fontSize:11,color:_theme.text,marginBottom:6}}>Preview:</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4,marginBottom:10}}>
+                  {[["tga","TGA"],["ob","OB"],["oslo","OSLO"],["some","SOME"],
+                    ["kwtT2","KWT"],["qatT2","QAT"],["bahT2","BAH"],["uaeT2","UAE"]
+                  ].filter(([k])=>previewData[k+"Curr"]!==undefined&&previewData[k+"Curr"]>0).map(([k,label])=>(
+                    <div key={k} style={{background:_theme.surface,borderRadius:6,padding:"5px 8px",
+                      border:`1px solid ${_theme.cardBorder}`,display:"flex",justifyContent:"space-between"}}>
+                      <span style={{fontSize:11,color:_theme.textMuted,fontWeight:600}}>{label}</span>
+                      <span style={{fontSize:13,fontWeight:800,color:_theme.primary}}>{previewData[k+"Curr"]}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{display:"flex",gap:6}}>
+                  <button onClick={applyPreview} style={PBT("#10B981",{flex:1,fontSize:12})}>✅ Apply</button>
+                  <button onClick={()=>setPreviewData(null)} style={PBT("#94A3B8",{fontSize:12,padding:"6px 10px"})}>✕</button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* ── Calculate Queue for Specific Shift(s) ── */}
         <div style={{ ...CRD({ padding:"14px 16px" }),
           border:`1.5px solid ${_theme.primary}30` }}>
@@ -2489,6 +2728,12 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session
         {/* ── Top bar: Title + Status badge only ─────────────────────────────── */}
         <div style={{ ...SBR({ marginBottom:14 }), alignItems:"center" }}>
           <span style={{ fontWeight:800, fontSize:16, color:_theme.text }}>📊 Queue Data</span>
+          {canEdit && (
+            <button onClick={()=>setShowUpload(p=>!p)}
+              style={PBT("#6366F1",{fontSize:12,padding:"5px 14px"})}>
+              📂 Upload Excel
+            </button>
+          )}
           {sbApplied && sbShifts.length>1 && (
             <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>
               Combined: {sbShifts.map(sid=>shifts.find(s=>s.id===sid)?.label).join(" + ")}
@@ -4133,6 +4378,7 @@ function ReportsPage({ employees, schedule, shifts, attendance, performance, hea
     const v=(schedule[emp.id]||{})[dayName];
     if (!v || v==="OFF" || v==="LEAVE" || v==="PH") return false;
     if (myShiftFilter && myShiftId && v !== myShiftId) return false;
+    if (perfSearch && !emp.name.toLowerCase().includes(perfSearch.toLowerCase())) return false;
     return true;
   });
     const attMap  = attendance[date]||{};
@@ -5181,7 +5427,7 @@ function AuditLogPage({ auditLog, session }) {
 function OwnerEmployeeManager({ employees, setEmployees, session }) {
   const [tab, setTab] = useState("roles"); // "roles" | "add" | "pages"
   const [search, setSearch] = useState("");
-  const [addForm, setAddForm] = useState({ name:"", role:"Agent", gender:"M", tasks:[] });
+  const [addForm, setAddForm] = useState({ name:"", role:"Agent", gender:"M", tasks:[], birthdate:"", joinDate:"", skills:{} });
   const [addDone, setAddDone] = useState("");
   const [expandedEmp, setExpandedEmp] = useState(null); // emp id with pages expanded
 
@@ -5214,7 +5460,8 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
     setEmployees(prev => [...prev, {
       id, name:addForm.name.trim(), role:addForm.role,
       gender:addForm.gender, tasks:addForm.tasks,
-      isAdmin:false, hiddenPages:[]
+      birthdate:addForm.birthdate||null, joinDate:addForm.joinDate||null,
+      skills:{}, isAdmin:false, hiddenPages:[]
     }]);
     setAddDone(`✅ Successfully added "${addForm.name.trim()}"`);
     setAddForm({ name:"", role:"Agent", gender:"M", tasks:[] });
@@ -5631,6 +5878,27 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
   const [msgType, setMsgType]     = useState("shoutout"); // "shoutout"|"motivation"|"reminder"
   const [msgSaved, setMsgSaved]   = useState(false);
 
+  // Absence pattern detection — employees absent on same day repeatedly
+  const absencePatterns = useMemo(() => {
+    const patterns = [];
+    employees.forEach(emp => {
+      const dayCounts = {};
+      Object.entries(attendance).forEach(([date, dayAtt]) => {
+        const a = dayAtt[emp.id];
+        if (a && isAbsent(a.status)) {
+          const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
+          dayCounts[dayName] = (dayCounts[dayName]||0) + 1;
+        }
+      });
+      Object.entries(dayCounts).forEach(([day, count]) => {
+        if (count >= 3) { // Absent 3+ times on same day = pattern
+          patterns.push({ empName:emp.name, day, count });
+        }
+      });
+    });
+    return patterns.sort((a,b)=>b.count-a.count);
+  }, [employees, attendance]);
+
   // Manager messages — only show messages for me, sent by me, or sent to all
   const managerMessages = useMemo(() =>
     (Array.isArray(notes) ? notes : [])
@@ -5868,6 +6136,32 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
       {/* ══════════ EMPLOYEE MANAGEMENT ══════════ */}
       <OwnerEmployeeManager employees={employees} setEmployees={setEmployees} session={session}/>
 
+
+      {/* ── Absence Pattern Detection ── */}
+      {absencePatterns.length > 0 && (
+        <div style={{ background:_theme.card, border:`1.5px solid #F59E0B30`,
+          borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+            <span style={{ fontSize:16 }}>🔍</span>
+            <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>Absence Pattern Detection</span>
+            <span style={{ fontSize:11, background:"#FEF9C3", color:"#92400E",
+              borderRadius:20, padding:"2px 10px", fontWeight:700 }}>
+              {absencePatterns.length} pattern{absencePatterns.length!==1?"s":""}
+            </span>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))", gap:8 }}>
+            {absencePatterns.slice(0,8).map((p,i) => (
+              <div key={i} style={{ background:"#FFFBEB", border:"1px solid #FDE68A",
+                borderRadius:8, padding:"10px 12px" }}>
+                <div style={{ fontWeight:700, fontSize:13, color:"#92400E" }}>{p.empName}</div>
+                <div style={{ fontSize:12, color:"#B45309", marginTop:2 }}>
+                  Absent on <strong>{p.day}</strong> · {p.count} times
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Weekly Team Review ── */}
       <div style={{ background:_theme.card, border:`1.5px solid ${_theme.primary}20`,
@@ -6143,6 +6437,45 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
           </div>
         )}
       </div>
+
+      {/* ── Upcoming Celebrations ── */}
+      {(() => {
+        const today = new Date();
+        const upcoming = employees.filter(e => {
+          const checkDate = (dateStr) => {
+            if (!dateStr) return false;
+            try {
+              const d = new Date(dateStr);
+              const thisYear = new Date(today.getFullYear(), d.getMonth(), d.getDate());
+              const diff = (thisYear - today) / (1000*60*60*24);
+              return diff >= 0 && diff <= 7;
+            } catch { return false; }
+          };
+          return checkDate(e.birthdate) || checkDate(e.joinDate);
+        });
+        if (upcoming.length === 0) return null;
+        return (
+          <div style={{background:_theme.card,border:`1.5px solid #F59E0B30`,
+            borderRadius:12,padding:"14px 18px",marginBottom:20}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+              <span style={{fontSize:16}}>🎉</span>
+              <span style={{fontWeight:800,fontSize:14,color:_theme.text}}>Upcoming Celebrations — Next 7 days</span>
+            </div>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+              {upcoming.map(e=>(
+                <div key={e.id} style={{background:"#FFFBEB",border:"1px solid #FDE68A",
+                  borderRadius:8,padding:"8px 12px",display:"flex",gap:8,alignItems:"center"}}>
+                  <span style={{fontSize:20}}>{e.birthdate?"🎂":"🎊"}</span>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:13,color:"#92400E"}}>{e.name}</div>
+                    <div style={{fontSize:11,color:"#B45309"}}>{e.birthdate?"Birthday":"Anniversary"}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Live Activity Panel ── */}
       <div style={{ marginBottom:20 }}>
@@ -7423,13 +7756,26 @@ function DonutChart({ value, max=100, color="#3B82F6", size=64, label="" }) {
 
 // ─── KPI DASHBOARD PAGE ───────────────────────────────────────────────────────
 // Supervisors set personal KPI targets; system tracks progress automatically
-function KPIDashboardPage({ employees, schedule, attendance, performance, session }) {
+function KPIDashboardPage({ employees, schedule, attendance, performance, session, notes, setNotes }) {
   const todayKey = todayStr();
+  // Load KPI targets: check notes (Supabase-backed) first, fallback to localStorage
   const [targets, setTargets] = useState(() => {
     try { return JSON.parse(localStorage.getItem("csops_kpi_targets")||"{}"); } catch { return {}; }
   });
   const [editMode, setEditMode] = useState(false);
   const [draft, setDraft]       = useState({});
+
+  // Sync targets from notes on mount (Supabase-backed)
+  useEffect(() => {
+    const kpiNote = (Array.isArray(notes)?notes:[]).find(n => n.tag === "KPI Targets");
+    if (kpiNote) {
+      try {
+        const t = JSON.parse(kpiNote.text||"{}");
+        setTargets(t);
+        localStorage.setItem("csops_kpi_targets", JSON.stringify(t));
+      } catch {}
+    }
+  }, [notes]);
 
   // Default KPI targets
   const DEFAULT_TARGETS = {
@@ -7460,6 +7806,15 @@ function KPIDashboardPage({ employees, schedule, attendance, performance, sessio
     setTargets(draft);
     localStorage.setItem("csops_kpi_targets", JSON.stringify(draft));
     setEditMode(false);
+    // Sync to Supabase via notes
+    if (setNotes) {
+      setNotes(prev => {
+        const arr = Array.isArray(prev) ? prev.filter(n => n.tag !== "KPI Targets") : [];
+        return [{ id:"kpi-targets-global", ts:new Date().toISOString(), date:todayStr(),
+          time:"00:00", tag:"KPI Targets", text:JSON.stringify(draft),
+          from:session?.name||"", target:"all", msgType:"kpi_targets" }, ...arr];
+      });
+    }
   }
 
   function openEdit() {
@@ -8421,7 +8776,7 @@ function BadgesDisplay({ badgeIds, size="normal" }) {
 
 // ── Gamification Page ──────────────────────────────────────────────────────────
 function GamificationPage({ employees, performance, attendance, schedule, notes, setNotes, session, canEdit }) {
-  const [tab, setTab]           = useState("leaderboard"); // leaderboard | badges | award
+  const [tab, setTab]           = useState("leaderboard"); // leaderboard | badges | award | kudos
   const [awardEmp, setAwardEmp] = useState("");
   const [awardBadge, setAwardBadge] = useState("");
   const [awardNote, setAwardNote]   = useState("");
@@ -8486,7 +8841,7 @@ function GamificationPage({ employees, performance, attendance, schedule, notes,
         <input value={search} onChange={e=>setSearch(e.target.value)}
           style={{ ...I({width:180}) }} placeholder="🔍 Search employee..."/>
         <div style={{ display:"flex", gap:6 }}>
-          {[["leaderboard","🏆 Leaderboard"],["badges","🎖️ All Badges"],canEdit?["award","🎁 Award Badge"]:null]
+          {[["leaderboard","🏆 Leaderboard"],["badges","🎖️ All Badges"],canEdit?["award","🎁 Award Badge"]:null,["kudos","👏 Kudos"]]
             .filter(Boolean).map(([k,l])=>(
             <button key={k} onClick={()=>setTab(k)}
               style={{ border:`2px solid ${tab===k?_theme.primary:"#CBD5E1"}`,
@@ -8698,6 +9053,49 @@ function GamificationPage({ employees, performance, attendance, schedule, notes,
             Some badges are automatically detected from performance data.
             Manual awards let you recognize exceptional moments that numbers don't capture.
           </div>
+        </div>
+      )}
+
+      {/* ── Kudos Wall ── */}
+      {tab==="kudos" && (
+        <div>
+          {/* Manual awards as kudos */}
+          {manualAwards.length === 0 ? (
+            <div style={{...CRD(),textAlign:"center",padding:40}}>
+              <div style={{fontSize:48,marginBottom:12}}>👏</div>
+              <div style={{fontWeight:700,fontSize:16,color:_theme.text}}>No kudos yet this week</div>
+              <div style={{fontSize:13,color:_theme.textMuted,marginTop:6}}>
+                Award badges to your team to celebrate their achievements here.
+              </div>
+            </div>
+          ) : (
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:12}}>
+              {manualAwards.slice(0,20).map(award => {
+                let d = {};
+                try { d = JSON.parse(award.text||"{}"); } catch {}
+                const badge = BADGES.find(b=>b.id===d.badgeId);
+                const emp = employees.find(e=>e.id===d.empId);
+                return (
+                  <div key={award.id} style={{...CRD({padding:0}),overflow:"hidden",
+                    border:`2px solid ${badge?.color||_theme.primary}30`}}>
+                    <div style={{padding:"14px 16px",background:`linear-gradient(135deg,${badge?.color||_theme.primary}18,transparent)`}}>
+                      <div style={{display:"flex",alignItems:"center",gap:12}}>
+                        <div style={{fontSize:36}}>{badge?.icon||"🏆"}</div>
+                        <div>
+                          <div style={{fontWeight:800,fontSize:14,color:_theme.text}}>{emp?.name||d.empId}</div>
+                          <div style={{fontSize:12,color:badge?.color||_theme.primary,fontWeight:700}}>{badge?.name||d.badgeId}</div>
+                          {d.note && <div style={{fontSize:11,color:_theme.textMuted,marginTop:2}}>{d.note}</div>}
+                        </div>
+                      </div>
+                      <div style={{fontSize:10,color:_theme.textMuted,marginTop:8}}>
+                        Awarded by {award.from} · {award.date}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -9711,7 +10109,7 @@ This will go to a supervisor for final approval.`
 
 // ─── HOME DASHBOARD — Personal per role ──────────────────────────────────────
 function HomeDashboard({ session, employees, schedule, attendance, performance,
-                         queueLog, notes, breakSchedule, shifts, auditLog,
+                         queueLog, notes, setNotes, breakSchedule, shifts, auditLog,
                          canEdit, isSuperAdmin, onNavigate }) {
   const todayKey  = todayStr();
   const dayName   = DAYS[new Date().getDay()];
@@ -9881,6 +10279,54 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
           sub={`of ${employees.length} total`} color="#6366F1"
           onClick={()=>onNavigate("Schedule")}/>
       </div>
+
+      {/* Daily Target Progress Bar */}
+      {(() => {
+        const dailyTarget = Number(localStorage.getItem("csops_perf_target")||"25");
+        const pct = dailyTarget > 0 ? Math.min(100, Math.round((totalClosed/dailyTarget)*100)) : 0;
+        const barColor = totalClosed>=dailyTarget?"#10B981":totalClosed>=dailyTarget*0.8?"#F59E0B":"#3B82F6";
+        // Countdown timer
+        const now2 = new Date();
+        const nowMin2 = now2.getHours()*60+now2.getMinutes();
+        const activeShifts = shifts.filter(s=>{
+          const st=toMin(s.start),en=toMin(s.end);
+          return en>st?nowMin2>=st&&nowMin2<en:nowMin2>=st||nowMin2<en;
+        });
+        const endMin = activeShifts.length>0?toMin(activeShifts[0].end):null;
+        let remaining = null;
+        if(endMin!==null){
+          remaining = endMin - nowMin2;
+          if(remaining<0) remaining+=1440;
+        }
+        return (
+          <div style={{ ...CRD({padding:"12px 16px"}), marginBottom:12,
+            display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
+            <div style={{ flex:1, minWidth:200 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                <span style={{ fontSize:12, fontWeight:700, color:_theme.textMuted }}>🎯 Daily Target Progress</span>
+                <span style={{ fontSize:12, fontWeight:800, color:barColor }}>
+                  {totalClosed}/{dailyTarget} ({pct}%) {totalClosed>=dailyTarget?"🎉":""}
+                </span>
+              </div>
+              <div style={{ background:_theme.surface, borderRadius:20, height:10, overflow:"hidden" }}>
+                <div style={{ height:"100%", borderRadius:20, width:pct+"%",
+                  background:barColor, transition:"width 0.8s ease" }}/>
+              </div>
+            </div>
+            {remaining!==null && (
+              <div style={{ textAlign:"center", padding:"4px 14px",
+                background:remaining<=30?"#FEF2F2":remaining<=60?"#FEF9C3":_theme.surface,
+                borderRadius:12, border:`1px solid ${remaining<=30?"#EF4444":remaining<=60?"#F59E0B":_theme.cardBorder}` }}>
+                <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>⏱ Shift Ends In</div>
+                <div style={{ fontSize:16, fontWeight:800,
+                  color:remaining<=30?"#EF4444":remaining<=60?"#F59E0B":_theme.text }}>
+                  {Math.floor(remaining/60)}h {remaining%60}m
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       <SectionTitle>⚡ Recent Activity</SectionTitle>
       <div style={{...CRD({padding:0}),overflow:"hidden"}}>
@@ -10134,6 +10580,31 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
               {myShift?myShift.label:myShiftId==="OFF"||!myShiftId?"Day Off":"—"}
             </div>
             {myShift&&<div style={{fontSize:11,color:_theme.textMuted}}>{myShift.start} – {myShift.end}</div>}
+            {myShift && (() => {
+              const nowM = now.getHours()*60+now.getMinutes();
+              const startM = toMin(myShift.start), endM = toMin(myShift.end);
+              let total = endM - startM; if(total<=0) total+=1440;
+              let elapsed = nowM - startM; if(elapsed<0) elapsed+=1440;
+              let remaining = total - elapsed;
+              if(remaining<0) remaining=0;
+              const pct = Math.min(100, Math.round((elapsed/total)*100));
+              const rh = Math.floor(remaining/60), rm = remaining%60;
+              return (
+                <div style={{marginTop:6}}>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:10,
+                    color:_theme.textMuted,marginBottom:3}}>
+                    <span>Progress</span>
+                    <span style={{fontWeight:700,color:remaining<60?"#EF4444":remaining<120?"#F59E0B":_theme.primary}}>
+                      {remaining>0?`${rh}h ${rm}m left`:"Shift ended"}
+                    </span>
+                  </div>
+                  <div style={{height:4,background:_theme.cardBorder,borderRadius:4,overflow:"hidden"}}>
+                    <div style={{height:"100%",width:pct+"%",borderRadius:4,transition:"width 1s",
+                      background:pct>90?"#EF4444":pct>70?"#F59E0B":"#10B981"}}/>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
           {myBreakStart&&myBreakEntry&&(
             <div>
@@ -10154,6 +10625,9 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
           )}
         </div>
       </div>
+
+      {/* Mood Check-in */}
+      <MoodCheckin session={session} notes={notes} setNotes={setNotes}/>
 
       {/* My performance today */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
@@ -11191,7 +11665,7 @@ function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose, session
       const myName = session?.name || "";
       if (n.tag === "Direct Message") { if (n.target !== myName && n.from !== myName) return; }
       else if (n.tag === "Manager Message" && n.target && n.target !== "all") { if (n.target !== myName && n.from !== myName) return; }
-      else if (["Short Break Request","Swap Request","Break Swap Request","Survey","Survey Response","Leave Request","Shift Handover"].includes(n.tag)) return;
+      else if (["Short Break Request","Swap Request","Break Swap Request","Survey","Survey Response","Leave Request","Shift Handover","Coaching Note","Announcement","KPI Targets","Daily Target"].includes(n.tag)) return;
       if (n.text?.toLowerCase().includes(q) || n.tag?.toLowerCase().includes(q)) {
         out.push({ type:"note", icon:"📝", label:n.text?.slice(0,60)||"Note",
           sub:`${n.date} · ${n.tag}`, color:"#8B5CF6", action:"Notes" });
@@ -11368,211 +11842,231 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
   }
 
   const dayTip = (DAILY_TIPS_EN)[new Date().getDay() % DAILY_TIPS_EN.length];
+  const tr = (key) => T.en[key] || key;
 
   return (
     <div dir="ltr" style={{
       minHeight:"100dvh",
-      background:"linear-gradient(135deg,#0A0F1E 0%,#0F2744 50%,#0A0F1E 100%)",
+      background:"linear-gradient(135deg,#0A0F1E 0%,#0D1B3E 50%,#0A0F1E 100%)",
       display:"flex", alignItems:"center", justifyContent:"center",
-      fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", padding:16,
+      fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", padding:20,
       position:"relative", overflow:"hidden"
     }}>
-      {/* Background decoration */}
-      <div style={{ position:"absolute", inset:0, overflow:"hidden", pointerEvents:"none" }}>
-        <div style={{ position:"absolute", top:"-20%", right:"-10%", width:400, height:400,
-          borderRadius:"50%", background:"radial-gradient(circle,#3B82F620 0%,transparent 70%)" }}/>
-        <div style={{ position:"absolute", bottom:"-10%", left:"-10%", width:300, height:300,
-          borderRadius:"50%", background:"radial-gradient(circle,#8B5CF620 0%,transparent 70%)" }}/>
+      {/* Background glows */}
+      <div style={{position:"absolute",inset:0,pointerEvents:"none"}}>
+        <div style={{position:"absolute",top:"-15%",right:"-5%",width:500,height:500,
+          borderRadius:"50%",background:"radial-gradient(circle,#3B82F615 0%,transparent 70%)"}}/>
+        <div style={{position:"absolute",bottom:"-15%",left:"-5%",width:400,height:400,
+          borderRadius:"50%",background:"radial-gradient(circle,#6366F115 0%,transparent 70%)"}}/>
+        <div style={{position:"absolute",top:"40%",left:"30%",width:300,height:300,
+          borderRadius:"50%",background:"radial-gradient(circle,#0EA5E910 0%,transparent 70%)"}}/>
       </div>
 
-      {/* Lang toggle top */}
-      <div style={{ position:"absolute", top:20, right:20 }}>
-        <button onClick={()=>{}}  style={{display:"none"}}
-          style={{ background:"rgba(59,130,246,0.2)", border:"1px solid #3B82F640",
-            color:"#93C5FD", borderRadius:20, padding:"6px 16px", cursor:"pointer",
-            fontSize:13, fontWeight:700, backdropFilter:"blur(4px)" }}>
-          "🌐 EN"
-        </button>
-      </div>
+      <div style={{width:"100%",maxWidth:480,zIndex:1}}>
 
-      <div style={{ width:"100%", maxWidth:460, zIndex:1 }}>
-        {/* Header card */}
-        <div style={{ background:"linear-gradient(135deg,#1F2937,#111827)",
-          border:"1px solid #374151", borderRadius:"16px 16px 0 0",
-          padding:"32px 32px 24px", textAlign:"center",
-          boxShadow:"0 4px 24px rgba(0,0,0,0.5)" }}>
-          <div style={{ fontSize:48, marginBottom:8 }}>🎯</div>
-          <div style={{ color:"#F9FAFB", fontWeight:800, fontSize:24, letterSpacing:-0.5 }}>
-            {tr("appName")}
+        {/* Logo + Title */}
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{
+            width:72,height:72,borderRadius:20,
+            background:"linear-gradient(135deg,#3B82F6,#6366F1)",
+            display:"inline-flex",alignItems:"center",justifyContent:"center",
+            fontSize:36,marginBottom:16,
+            boxShadow:"0 8px 32px rgba(99,102,241,0.4)"
+          }}>🎯</div>
+          <div style={{color:"#F9FAFB",fontWeight:800,fontSize:28,letterSpacing:-0.5}}>
+            CS Operations
           </div>
-          <div style={{ color:"#9CA3AF", fontSize:13, marginTop:4 }}>{tr("appSub")}</div>
-          <div style={{ marginTop:12, display:"inline-flex", alignItems:"center", gap:6,
-            background:"rgba(16,185,129,0.15)", border:"1px solid rgba(16,185,129,0.3)",
-            borderRadius:20, padding:"4px 14px" }}>
-            <div style={{ width:6, height:6, borderRadius:"50%", background:"#10B981" }}/>
-            <span style={{ fontSize:11, color:"#10B981", fontWeight:700 }}>
-              💾 {tr("autoSaved")} · Secure
+          <div style={{color:"#9CA3AF",fontSize:14,marginTop:4}}>Management System · v2.0</div>
+          <div style={{marginTop:10,display:"inline-flex",alignItems:"center",gap:6,
+            background:"rgba(16,185,129,0.12)",border:"1px solid rgba(16,185,129,0.3)",
+            borderRadius:20,padding:"4px 14px"}}>
+            <div style={{width:6,height:6,borderRadius:"50%",background:"#10B981",
+              boxShadow:"0 0 6px #10B981"}}/>
+            <span style={{fontSize:11,color:"#10B981",fontWeight:700,letterSpacing:0.5}}>
+              SECURE · AUTO-SAVED
             </span>
-          </div>
-          {/* Daily tip */}
-          <div style={{ marginTop:14, background:"rgba(59,130,246,0.1)", border:"1px solid #3B82F630",
-            borderRadius:8, padding:"8px 12px", fontSize:12, color:"#93C5FD",
-            textAlign: "left" }}>
-            {dayTip}
           </div>
         </div>
 
-        {/* Form card */}
-        <div style={{ background:"#111827", border:"1px solid #374151",
-          borderTop:"none", borderRadius:"0 0 16px 16px",
-          padding:"24px 28px 28px", boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }}>
+        {/* Main Card */}
+        <div style={{
+          background:"#ffffff",borderRadius:20,
+          padding:"28px 32px 32px",
+          boxShadow:"0 24px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)"
+        }}>
 
-          {/* Role picker */}
-          <div style={{ marginBottom:16 }}>
-            <label style={{ ...LBL, color:"#9CA3AF" }}>{tr("selectRole")}</label>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-              {Object.keys(ROLE_CAN_EDIT).map(role => (
-                <button key={role} onClick={()=>{ setSelectedRole(role); setSelectedName(""); setError(""); setPassword(""); setStep("login"); }}
-                  style={{ border:`2px solid ${selectedRole===role ? ROLE_COLORS[role] : "#374151"}`,
-                    borderRadius:10, padding:"10px 12px", cursor:"pointer",
-                    textAlign: "left", transition:"all 0.15s",
-                    background: selectedRole===role ? ROLE_COLORS[role]+"18" : "#1F2937",
-                    display:"flex", alignItems:"center", gap:8 }}>
-                  <span style={{ fontSize:18 }}>{ROLE_ICONS[role]}</span>
-                  <div>
-                    <div style={{ fontSize:12, fontWeight:700,
-                      color: selectedRole===role ? ROLE_COLORS[role] : "#F9FAFB" }}>{role}</div>
-                    <div style={{ fontSize:10, color:"#6B7280" }}>
-                      {false ? ROLE_DESC_EN[role] : ROLE_DESC_EN[role]}
+          {/* Role Picker */}
+          <div style={{marginBottom:20}}>
+            <label style={{fontSize:11,fontWeight:700,color:"#6B7280",
+              letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:10}}>
+              SELECT YOUR ROLE
+            </label>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              {Object.keys(ROLE_CAN_EDIT).map(role => {
+                const isSelected = selectedRole === role;
+                const rc = ROLE_COLORS[role];
+                return (
+                  <button key={role} onClick={()=>{setSelectedRole(role);setSelectedName("");setError("");setPassword("");setStep("login");}}
+                    style={{
+                      border:`2px solid ${isSelected ? rc : "#E5E7EB"}`,
+                      borderRadius:12, padding:"12px 14px", cursor:"pointer",
+                      textAlign:"left", transition:"all 0.15s",
+                      background: isSelected ? rc+"12" : "#F9FAFB",
+                      display:"flex", alignItems:"center", gap:10,
+                      boxShadow: isSelected ? `0 0 0 4px ${rc}18` : "none"
+                    }}>
+                    <span style={{fontSize:20}}>{ROLE_ICONS[role]}</span>
+                    <div>
+                      <div style={{fontSize:13,fontWeight:700,
+                        color: isSelected ? rc : "#374151"}}>{role}</div>
+                      <div style={{fontSize:10,color:"#9CA3AF",marginTop:1}}>
+                        {ROLE_DESC_EN[role]}
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Name selector */}
-          <div style={{ marginBottom:14 }}>
-            <label style={{ ...LBL, color:"#9CA3AF" }}>
-              {isAgent ? tr("agentNameLabel") : tr("yourName")}
+          <div style={{marginBottom:16}}>
+            <label style={{fontSize:11,fontWeight:700,color:"#6B7280",
+              letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:8}}>
+              YOUR NAME
             </label>
-            <select value={selectedName} onChange={e=>handleNameChange(e.target.value)}
-              style={{ background:"#1F2937", border:`1px solid ${error&&!selectedName?"#EF4444":"#374151"}`,
-                borderRadius:8, padding:"10px 14px", fontSize:14, color:"#F9FAFB",
-                outline:"none", width:"100%", cursor:"pointer" }}>
-              <option value="">-- {tr("selectName")} --</option>
-              {roleEmployees.map(e=><option key={e.id} value={e.name}>{e.name}</option>)}
-            </select>
+            <div style={{position:"relative"}}>
+              <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:16}}>
+                👤
+              </span>
+              <select value={selectedName} onChange={e=>handleNameChange(e.target.value)}
+                style={{
+                  background:"#F9FAFB", border:`1.5px solid ${error&&!selectedName?"#EF4444":"#E5E7EB"}`,
+                  borderRadius:10, padding:"11px 14px 11px 42px", fontSize:14, color:"#111827",
+                  outline:"none", width:"100%", cursor:"pointer", appearance:"none",
+                  boxSizing:"border-box"
+                }}>
+                <option value="">— Select your name —</option>
+                {employees.filter(e=>e.role===selectedRole).map(e=>(
+                  <option key={e.id} value={e.name}>{e.name}</option>
+                ))}
+              </select>
+              <span style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",
+                color:"#9CA3AF",pointerEvents:"none"}}>▾</span>
+            </div>
           </div>
 
-          {/* Agent info — password required like everyone else */}
-          {isAgent && !selectedName && (
-            <div style={{ background:"rgba(59,130,246,0.08)", border:"1px solid rgba(59,130,246,0.2)",
-              borderRadius:8, padding:"10px 14px", marginBottom:14,
-              fontSize:12, color:"#93C5FD", textAlign:"left" }}>
-              👁️ View access — password required on first login
+          {/* Owner badge */}
+          {selectedName && isOwnerUser({role:selectedRole,name:selectedName}) && (
+            <div style={{background:"#FFFBEB",border:"1px solid #F59E0B30",
+              borderRadius:10,padding:"10px 14px",marginBottom:14,
+              fontSize:12,color:"#92400E",fontWeight:600,textAlign:"center"}}>
+              👑 Owner — Direct access without password
             </div>
           )}
 
-          {/* Password setup */}
+          {/* Password Setup */}
           {selectedName && step==="setup" && (
-            <div style={{ background:"rgba(59,130,246,0.08)", border:"1px solid #3B82F630",
-              borderRadius:10, padding:"16px", marginBottom:14 }}>
-              <div style={{ fontWeight:700, color:"#60A5FA", fontSize:13, marginBottom:8 }}>
-                🔐 {tr("setPassword")}
+            <div style={{background:"#EFF6FF",border:"1px solid #BFDBFE",
+              borderRadius:12,padding:"16px",marginBottom:14}}>
+              <div style={{fontWeight:700,color:"#1D4ED8",fontSize:13,marginBottom:4}}>
+                🔐 Set Your Personal Password
               </div>
-              <div style={{ fontSize:12, color:"#6B7280", marginBottom:12 }}>
-                {tr("firstLogin")} — <strong style={{color:"#93C5FD"}}>{selectedName}</strong>
+              <div style={{fontSize:12,color:"#6B7280",marginBottom:12}}>
+                First time login — <strong style={{color:"#1D4ED8"}}>{selectedName}</strong>
               </div>
-              <label style={{ ...LBL, color:"#9CA3AF" }}>{tr("newPassword")}</label>
-              <div style={{ position:"relative", marginBottom:10 }}>
-                <input type={showPw?"text":"password"} value={newPw1}
-                  onChange={e=>{setNewPw1(e.target.value);setError("");}}
-                  onKeyDown={e=>e.key==="Enter"&&setupPassword()}
-                  style={{ background:"#1F2937", border:`1px solid ${error?"#EF4444":"#374151"}`,
-                    borderRadius:8, padding:"10px 42px 10px 14px", fontSize:14, color:"#F9FAFB",
-                    outline:"none", width:"100%", boxSizing:"border-box" }}
-                  placeholder="••••••••" autoFocus/>
-                <button onClick={()=>setShowPw(p=>!p)}
-                  style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
-                    background:"none", border:"none", cursor:"pointer", fontSize:15, color:"#6B7280" }}>
-                  {showPw?"🙈":"👁️"}
-                </button>
-              </div>
-              <label style={{ ...LBL, color:"#9CA3AF" }}>{tr("confirmPassword")}</label>
+              <input type={showPw?"text":"password"} value={newPw1}
+                onChange={e=>{setNewPw1(e.target.value);setError("");}}
+                onKeyDown={e=>e.key==="Enter"&&setupPassword()}
+                style={{background:"#fff",border:`1.5px solid ${error?"#EF4444":"#BFDBFE"}`,
+                  borderRadius:8,padding:"10px 14px",fontSize:14,color:"#111827",
+                  outline:"none",width:"100%",boxSizing:"border-box",marginBottom:8}}
+                placeholder="New password (min. 4 chars)" autoFocus/>
               <input type={showPw?"text":"password"} value={newPw2}
                 onChange={e=>{setNewPw2(e.target.value);setError("");}}
                 onKeyDown={e=>e.key==="Enter"&&setupPassword()}
-                style={{ background:"#1F2937", border:`1px solid ${error?"#EF4444":"#374151"}`,
-                  borderRadius:8, padding:"10px 14px", fontSize:14, color:"#F9FAFB",
-                  outline:"none", width:"100%", boxSizing:"border-box", marginBottom:10 }}
-                placeholder="••••••••"/>
-              {error && <div style={{ color:"#FCA5A5", fontSize:12, marginBottom:8 }}>⚠️ {error}</div>}
+                style={{background:"#fff",border:`1.5px solid ${error?"#EF4444":"#BFDBFE"}`,
+                  borderRadius:8,padding:"10px 14px",fontSize:14,color:"#111827",
+                  outline:"none",width:"100%",boxSizing:"border-box",marginBottom:10}}
+                placeholder="Confirm password"/>
+              {error && <div style={{color:"#EF4444",fontSize:12,marginBottom:8}}>⚠️ {error}</div>}
               <button onClick={setupPassword}
-                style={{ background:"#3B82F6", color:"#fff", border:"none", borderRadius:8,
-                  padding:"11px", fontSize:14, cursor:"pointer", fontWeight:700, width:"100%" }}>
-                🔐 {tr("setAndSignIn")}
+                style={{background:"linear-gradient(135deg,#3B82F6,#6366F1)",color:"#fff",
+                  border:"none",borderRadius:10,padding:"12px",fontSize:14,
+                  cursor:"pointer",fontWeight:700,width:"100%",
+                  boxShadow:"0 4px 16px rgba(99,102,241,0.4)"}}>
+                🔐 Set Password & Sign In
               </button>
             </div>
           )}
 
-          {/* Password login */}
-          {selectedName && step==="login" && (
-            <div style={{ marginBottom:16 }}>
-              <label style={{ ...LBL, color:"#9CA3AF" }}>{tr("password")}</label>
-              <div style={{ position:"relative" }}>
+          {/* Password Login */}
+          {selectedName && step==="login" && !isOwnerUser({role:selectedRole,name:selectedName}) && (
+            <div style={{marginBottom:16}}>
+              <label style={{fontSize:11,fontWeight:700,color:"#6B7280",
+                letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:8}}>
+                PASSWORD
+              </label>
+              <div style={{position:"relative"}}>
+                <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:16}}>
+                  🔒
+                </span>
                 <input type={showPw?"text":"password"} value={password}
                   onChange={e=>{setPassword(e.target.value);setError("");}}
                   onKeyDown={e=>e.key==="Enter"&&tryLogin()}
-                  style={{ background:"#1F2937", border:`1px solid ${error?"#EF4444":"#374151"}`,
-                    borderRadius:8, padding:"10px 42px 10px 14px", fontSize:14, color:"#F9FAFB",
-                    outline:"none", width:"100%", boxSizing:"border-box" }}
+                  style={{background:"#F9FAFB",border:`1.5px solid ${error?"#EF4444":"#E5E7EB"}`,
+                    borderRadius:10,padding:"11px 42px 11px 42px",fontSize:14,color:"#111827",
+                    outline:"none",width:"100%",boxSizing:"border-box"}}
                   placeholder="••••••••" autoFocus/>
                 <button onClick={()=>setShowPw(p=>!p)}
-                  style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
-                    background:"none", border:"none", cursor:"pointer", fontSize:15, color:"#6B7280" }}>
+                  style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",
+                    background:"none",border:"none",cursor:"pointer",fontSize:15,color:"#9CA3AF"}}>
                   {showPw?"🙈":"👁️"}
                 </button>
               </div>
-              {error && <div style={{ color:"#FCA5A5", fontSize:12, marginTop:6 }}>⚠️ {error}</div>}
+              {error && <div style={{color:"#EF4444",fontSize:12,marginTop:6}}>⚠️ {error}</div>}
             </div>
           )}
 
           {error && !selectedName && (
-            <div style={{ color:"#FCA5A5", fontSize:12, marginBottom:8 }}>⚠️ {error}</div>
+            <div style={{color:"#EF4444",fontSize:12,marginBottom:10}}>⚠️ {error}</div>
           )}
 
-          {/* Sign in button */}
-          {/* Owner bypass notice */}
-          {selectedName && isOwnerUser({role:selectedRole, name:selectedName}) && (
-            <div style={{ background:"rgba(245,158,11,0.1)", border:"1px solid rgba(245,158,11,0.3)",
-              borderRadius:8, padding:"10px 14px", marginBottom:10,
-              fontSize:12, color:"#F59E0B", fontWeight:600, textAlign:"center" }}>
-              👑 Owner — direct access
-            </div>
-          )}
-          {/* Owner accessing another account notice */}
-          {selectedName && !isOwnerUser({role:selectedRole, name:selectedName}) &&
-           step==="login" && !getUserPw(selectedName) === false && (
-            <div style={{ background:"rgba(239,68,68,0.06)", border:"1px solid rgba(239,68,68,0.2)",
-              borderRadius:8, padding:"8px 12px", marginBottom:8,
-              fontSize:11, color:"#FCA5A5", textAlign:"center" }}>
-              🔒 Password required — contact admin to reset
-            </div>
-          )}
-          {selectedName && !isOwnerUser({role:selectedRole, name:selectedName}) && (step==="login") && (
-            <button onClick={tryLogin}
-              style={{ background:`linear-gradient(135deg,${roleColor},${roleColor}CC)`,
-                color:"#fff", border:"none", borderRadius:10, padding:"13px",
-                fontSize:15, cursor:"pointer", fontWeight:700, width:"100%",
-                boxShadow:`0 4px 20px ${roleColor}40`, marginBottom:8 }}>
-              {ROLE_ICONS[selectedRole]} {isAgent ? `${tr("enterAs")} ${selectedName.split(" ")[0]}` : `${tr("signInAs")} ${selectedName.split(" ")[0]}`}
+          {/* Sign In Button */}
+          {selectedName && (
+            <button onClick={step==="setup"?setupPassword:tryLogin}
+              style={{
+                background: step==="setup"
+                  ? "linear-gradient(135deg,#3B82F6,#6366F1)"
+                  : `linear-gradient(135deg,${ROLE_COLORS[selectedRole]},${ROLE_COLORS[selectedRole]}CC)`,
+                color:"#fff",border:"none",borderRadius:12,padding:"14px",
+                fontSize:15,cursor:"pointer",fontWeight:700,width:"100%",
+                boxShadow:`0 4px 20px ${ROLE_COLORS[selectedRole]}50`,
+                marginTop: step==="setup"?0:0,
+                display: step==="setup"?"none":"block"
+              }}>
+              {ROLE_ICONS[selectedRole]} Sign In as {selectedName.split(" ")[0]} →
             </button>
           )}
 
-          <div style={{ textAlign:"center", fontSize:11, color:"#4B5563", marginTop:8 }}>
-            🔒 Secured by Supabase · Data saved automatically
+          {!selectedName && (
+            <button disabled
+              style={{background:"#F3F4F6",color:"#9CA3AF",border:"none",borderRadius:12,
+                padding:"14px",fontSize:15,width:"100%",cursor:"not-allowed",fontWeight:600}}>
+              Select your name to continue
+            </button>
+          )}
+
+          <div style={{textAlign:"center",fontSize:11,color:"#9CA3AF",marginTop:14}}>
+            Data is saved locally on this device · Never leaves your browser
           </div>
+        </div>
+
+        {/* Daily tip below card */}
+        <div style={{marginTop:16,background:"rgba(59,130,246,0.08)",
+          border:"1px solid rgba(59,130,246,0.15)",borderRadius:12,
+          padding:"10px 16px",fontSize:12,color:"#93C5FD",textAlign:"center"}}>
+          💡 {dayTip}
         </div>
       </div>
     </div>
@@ -11695,6 +12189,888 @@ function ReadOnlyBanner({ userName }) {
       <div style={{ fontSize:13, color:"#78350F" }}>
         <strong>View Only Mode</strong> -- Logged in as <strong>{userName||"Agent"}</strong>. You can browse all data but cannot make changes.
       </div>
+    </div>
+  );
+}
+
+
+// ─── DAILY MOOD CHECK-IN ──────────────────────────────────────────────────────
+function MoodCheckin({ session, notes, setNotes }) {
+  const todayKey = todayStr();
+  const myName = session?.name || "";
+  const todayMood = (Array.isArray(notes)?notes:[]).find(n =>
+    n.tag === "Mood Check-in" && n.date === todayKey && n.from === myName
+  );
+  const MOODS = [
+    { v:5, icon:"😄", label:"Great",    color:"#10B981" },
+    { v:4, icon:"🙂", label:"Good",     color:"#3B82F6" },
+    { v:3, icon:"😐", label:"Okay",     color:"#F59E0B" },
+    { v:2, icon:"😕", label:"Tired",    color:"#F97316" },
+    { v:1, icon:"😔", label:"Stressed", color:"#EF4444" },
+  ];
+  const [submitted, setSubmitted] = useState(!!todayMood);
+  const [selMood, setSelMood] = useState(null);
+
+  function submitMood(v) {
+    setSelMood(v);
+    const mood = MOODS.find(m=>m.v===v);
+    const entry = {
+      id:"mood"+Date.now(), ts:new Date().toISOString(), date:todayKey,
+      time:pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag:"Mood Check-in", text:JSON.stringify({mood:v,label:mood?.label}),
+      from:myName, target:myName, msgType:"mood",
+    };
+    setNotes(prev=>[entry,...(Array.isArray(prev)?prev:[]).filter(n=>!(n.tag==="Mood Check-in"&&n.date===todayKey&&n.from===myName))]);
+    setSubmitted(true);
+  }
+
+  if (submitted || todayMood) {
+    const mv = todayMood ? (()=>{try{return JSON.parse(todayMood.text||"{}").mood;}catch{return selMood;}})() : selMood;
+    const mood = MOODS.find(m=>m.v===mv);
+    return (
+      <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",
+        background:(mood?.color||"#10B981")+"15",border:`1px solid ${(mood?.color||"#10B981")}30`,
+        borderRadius:10,marginBottom:10}}>
+        <span style={{fontSize:20}}>{mood?.icon||"😊"}</span>
+        <div>
+          <div style={{fontSize:11,color:_theme.textMuted}}>Today's mood</div>
+          <div style={{fontSize:13,fontWeight:700,color:mood?.color||"#10B981"}}>{mood?.label||"Good"}</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{...CRD({padding:12}),marginBottom:10}}>
+      <div style={{fontSize:12,fontWeight:700,color:_theme.text,marginBottom:8}}>😊 How are you feeling today?</div>
+      <div style={{display:"flex",gap:6,justifyContent:"space-between"}}>
+        {MOODS.map(m=>(
+          <button key={m.v} onClick={()=>submitMood(m.v)}
+            style={{background:"none",border:`2px solid ${_theme.cardBorder}`,
+              borderRadius:10,padding:"6px 8px",cursor:"pointer",flex:1,textAlign:"center"}}>
+            <div style={{fontSize:22}}>{m.icon}</div>
+            <div style={{fontSize:9,color:_theme.textMuted,fontWeight:600}}>{m.label}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── EMPLOYEE PROFILE PAGE ────────────────────────────────────────────────────
+function EmployeeProfilePage({ employees, schedule, shifts, attendance, performance, notes, session, canEdit }) {
+  const [selEmp, setSelEmp] = useState(
+    session?.role==="Agent" ? (employees.find(e=>e.name===session?.name)?.id||"") : ""
+  );
+  const [activeTab, setActiveTab] = useState("overview");
+
+  const emp = employees.find(e=>e.id===selEmp);
+  const isAgent = session?.role === "Agent";
+
+  // Build stats across all dates
+  const allAttDates = Object.keys(attendance).sort().reverse();
+  const last30 = allAttDates.slice(0,30);
+
+  const attStats = (() => {
+    let present=0,absent=0,late=0,earlyLeave=0,totalLateMin=0,totalWork=0,workDays=0;
+    last30.forEach(d=>{
+      const a=(attendance[d]||{})[selEmp];
+      if(!a) return;
+      workDays++;
+      if(isPresent(a.status)) present++;
+      if(isAbsent(a.status)) absent++;
+      if(a.status==="Late") late++;
+      if(a.status==="Early Leave") earlyLeave++;
+      totalLateMin+=a.lateMin||0;
+      totalWork+=a.workDuration||0;
+    });
+    return {present,absent,late,earlyLeave,totalLateMin,totalWork,workDays,
+      attRate:workDays?Math.round((present/workDays)*100):0};
+  })();
+
+  const perfStats = (() => {
+    let closed=0,escs=0,reopened=0,days=0;
+    Object.keys(performance).sort().reverse().slice(0,30).forEach(d=>{
+      const p=(performance[d]||{})[selEmp];
+      if(!p) return;
+      days++;
+      closed+=p.closed||0;
+      escs+=p.escalations||0;
+      reopened+=p.reopened||0;
+    });
+    return {closed,escs,reopened,days,
+      avgClosed:days?Math.round(closed/days):0,
+      escRate:closed?Math.round((escs/closed)*100):0};
+  })();
+
+  // Coaching notes for this employee
+  const coachingNotes = (Array.isArray(notes)?notes:[])
+    .filter(n=>n.tag==="Coaching Note")
+    .filter(n=>{ try{return JSON.parse(n.text||"{}").empId===selEmp;}catch{return false;} })
+    .sort((a,b)=>b.ts.localeCompare(a.ts));
+
+  const badges = (Array.isArray(notes)?notes:[])
+    .filter(n=>n.tag==="Badge Award")
+    .filter(n=>{ try{return JSON.parse(n.text||"{}").empId===selEmp;}catch{return false;} });
+
+  const TABS = [
+    {k:"overview",icon:"👤",label:"Overview"},
+    {k:"attendance",icon:"📋",label:"Attendance"},
+    {k:"performance",icon:"⚡",label:"Performance"},
+    ...(!isAgent?[{k:"coaching",icon:"📝",label:"Coaching"}]:[]),
+  ];
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{fontSize:20}}>👤</span>
+        <span style={{fontWeight:800,fontSize:15,color:_theme.text}}>Employee Profile</span>
+        {!isAgent && (
+          <select value={selEmp} onChange={e=>setSelEmp(e.target.value)}
+            style={{...I({width:200,padding:"5px 10px",fontSize:12}),marginLeft:"auto"}}>
+            <option value="">— Select employee —</option>
+            {employees.map(e=><option key={e.id} value={e.id}>{e.name} ({e.role})</option>)}
+          </select>
+        )}
+      </div>
+
+      {!selEmp ? (
+        <div style={{...CRD(),textAlign:"center",padding:48}}>
+          <div style={{fontSize:48,marginBottom:12}}>👤</div>
+          <div style={{fontWeight:700,fontSize:16,color:_theme.text}}>Select an employee to view their profile</div>
+        </div>
+      ) : (
+        <div>
+          {/* Profile Header */}
+          <div style={{...CRD({padding:0}),overflow:"hidden",marginBottom:14}}>
+            <div style={{background:`linear-gradient(135deg,${_theme.primary},${_theme.accent})`,
+              padding:"24px 28px",display:"flex",alignItems:"center",gap:16}}>
+              <div style={{width:64,height:64,borderRadius:"50%",
+                background:"rgba(255,255,255,0.2)",
+                display:"flex",alignItems:"center",justifyContent:"center",
+                fontSize:28,fontWeight:800,color:"#fff",flexShrink:0}}>
+                {emp?.name?.charAt(0)||"?"}
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:20,fontWeight:800,color:"#fff"}}>{emp?.name}</div>
+                <div style={{fontSize:13,color:"rgba(255,255,255,0.8)",marginTop:2}}>
+                  {emp?.role} · {emp?.gender==="M"?"Male":"Female"}
+                </div>
+                <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
+                  {(emp?.tasks||[]).map(t=>(
+                    <span key={t} style={{background:"rgba(255,255,255,0.2)",color:"#fff",
+                      borderRadius:20,padding:"2px 8px",fontSize:11,fontWeight:700}}>{t}</span>
+                  ))}
+                </div>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:11,color:"rgba(255,255,255,0.7)"}}>30-day Attendance</div>
+                <div style={{fontSize:28,fontWeight:900,color:"#fff"}}>{attStats.attRate}%</div>
+              </div>
+            </div>
+
+            {/* Quick KPIs */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",
+              borderTop:`1px solid ${_theme.cardBorder}`}}>
+              {[
+                {icon:"📦",label:"Cases (30d)",val:perfStats.closed,color:"#10B981"},
+                {icon:"📈",label:"Avg/day",val:perfStats.avgClosed,color:"#3B82F6"},
+                {icon:"🔴",label:"Esc Rate",val:perfStats.escRate+"%",color:"#EF4444"},
+                {icon:"🏆",label:"Badges",val:badges.length,color:"#F59E0B"},
+              ].map(({icon,label,val,color},i)=>(
+                <div key={label} style={{padding:"14px",textAlign:"center",
+                  borderRight:i<3?`1px solid ${_theme.cardBorder}`:"none"}}>
+                  <div style={{fontSize:20}}>{icon}</div>
+                  <div style={{fontSize:22,fontWeight:800,color}}>{val}</div>
+                  <div style={{fontSize:10,color:_theme.textMuted,fontWeight:600}}>{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div style={{display:"flex",gap:4,marginBottom:14}}>
+            {TABS.map(t=>(
+              <button key={t.k} onClick={()=>setActiveTab(t.k)}
+                style={{border:`2px solid ${activeTab===t.k?_theme.primary:"#CBD5E1"}`,
+                  borderRadius:20,padding:"5px 16px",fontSize:12,cursor:"pointer",fontWeight:700,
+                  background:activeTab===t.k?_theme.primary:"transparent",
+                  color:activeTab===t.k?"#fff":_theme.textSub}}>
+                {t.icon} {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Overview Tab */}
+          {activeTab==="overview" && (
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+              <div style={CRD()}>
+                <div style={{fontWeight:700,color:_theme.text,marginBottom:12}}>📋 Attendance Summary (30 days)</div>
+                {[
+                  {l:"Work Days",v:attStats.workDays,c:"#3B82F6"},
+                  {l:"Present",v:attStats.present,c:"#10B981"},
+                  {l:"Absent",v:attStats.absent,c:"#EF4444"},
+                  {l:"Late",v:attStats.late,c:"#F59E0B"},
+                  {l:"Total Late",v:attStats.totalLateMin+"m",c:"#EC4899"},
+                  {l:"Attendance Rate",v:attStats.attRate+"%",c:attStats.attRate>=90?"#10B981":"#EF4444"},
+                ].map(({l,v,c})=>(
+                  <div key={l} style={{display:"flex",justifyContent:"space-between",
+                    padding:"7px 0",borderBottom:`1px solid ${_theme.cardBorder}`}}>
+                    <span style={{fontSize:13,color:_theme.textMuted}}>{l}</span>
+                    <span style={{fontSize:13,fontWeight:800,color:c}}>{v}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={CRD()}>
+                <div style={{fontWeight:700,color:_theme.text,marginBottom:12}}>⚡ Performance Summary (30 days)</div>
+                {[
+                  {l:"Total Closed",v:perfStats.closed,c:"#10B981"},
+                  {l:"Avg/Day",v:perfStats.avgClosed,c:"#3B82F6"},
+                  {l:"Escalations",v:perfStats.escs,c:"#EF4444"},
+                  {l:"Reopened",v:perfStats.reopened,c:"#F59E0B"},
+                  {l:"Esc Rate",v:perfStats.escRate+"%",c:perfStats.escRate<=5?"#10B981":"#EF4444"},
+                ].map(({l,v,c})=>(
+                  <div key={l} style={{display:"flex",justifyContent:"space-between",
+                    padding:"7px 0",borderBottom:`1px solid ${_theme.cardBorder}`}}>
+                    <span style={{fontSize:13,color:_theme.textMuted}}>{l}</span>
+                    <span style={{fontSize:13,fontWeight:800,color:c}}>{v}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Attendance Tab */}
+          {activeTab==="attendance" && (
+            <div style={CRD()}>
+              <div style={{fontWeight:700,color:_theme.text,marginBottom:12}}>Last 30 Days</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                {last30.map(d=>{
+                  const a=(attendance[d]||{})[selEmp];
+                  const s=a?.status||"—";
+                  const c=s==="Present"?"#10B981":s==="Absent"?"#EF4444":s==="Late"?"#F59E0B":isAbsent(s)?"#64748B":"#3B82F6";
+                  return (
+                    <div key={d} title={`${d}: ${s}`}
+                      style={{width:32,height:32,borderRadius:6,background:c+"22",
+                        border:`2px solid ${c}`,display:"flex",alignItems:"center",
+                        justifyContent:"center",fontSize:10,fontWeight:700,color:c,cursor:"default"}}>
+                      {new Date(d+"T12:00:00").getDate()}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Performance Tab */}
+          {activeTab==="performance" && (
+            <div style={CRD()}>
+              <div style={{fontWeight:700,color:_theme.text,marginBottom:12}}>Last 30 Days Performance</div>
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+                <thead>
+                  <tr style={{background:_theme.surface}}>
+                    {["Date","Closed","Escalations","Reopened","Quality"].map(h=>(
+                      <th key={h} style={{padding:"8px",textAlign:"left",fontWeight:700,
+                        color:_theme.text,borderBottom:`2px solid ${_theme.cardBorder}`}}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.keys(performance).sort().reverse().slice(0,30).map(d=>{
+                    const p=(performance[d]||{})[selEmp];
+                    if(!p||!p.closed) return null;
+                    return (
+                      <tr key={d} style={{borderBottom:`1px solid ${_theme.cardBorder}`}}>
+                        <td style={{padding:"8px",color:_theme.textMuted}}>{d}</td>
+                        <td style={{padding:"8px",fontWeight:700,color:"#10B981"}}>{p.closed||0}</td>
+                        <td style={{padding:"8px",fontWeight:700,color:"#EF4444"}}>{p.escalations||0}</td>
+                        <td style={{padding:"8px",fontWeight:700,color:"#F59E0B"}}>{p.reopened||0}</td>
+                        <td style={{padding:"8px",color:_theme.textSub}}>{p.quality?p.quality+"%":"—"}</td>
+                      </tr>
+                    );
+                  }).filter(Boolean)}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Coaching Tab */}
+          {activeTab==="coaching" && !isAgent && (
+            <div>
+              {coachingNotes.length===0 ? (
+                <div style={{...CRD(),textAlign:"center",padding:32}}>
+                  <div style={{fontSize:32,marginBottom:8}}>📝</div>
+                  <div style={{fontWeight:700,color:_theme.text}}>No coaching notes yet</div>
+                  <div style={{fontSize:13,color:_theme.textMuted,marginTop:4}}>
+                    Add notes from the Coaching Notes page.
+                  </div>
+                </div>
+              ) : coachingNotes.map(n=>{
+                let d={};try{d=JSON.parse(n.text||"{}");}catch{}
+                const CATS={development:{icon:"📈",color:"#3B82F6"},strength:{icon:"⭐",color:"#10B981"},
+                  concern:{icon:"⚠️",color:"#F59E0B"},pip:{icon:"🎯",color:"#EF4444"},praise:{icon:"🏆",color:"#6366F1"}};
+                const cat=CATS[d.category]||CATS.development;
+                return (
+                  <div key={n.id} style={{...CRD({padding:"12px 16px"}),marginBottom:10,
+                    borderLeft:`4px solid ${cat.color}`}}>
+                    <div style={{display:"flex",gap:8,marginBottom:6}}>
+                      <span style={{fontSize:11,background:cat.color+"18",color:cat.color,
+                        borderRadius:20,padding:"2px 8px",fontWeight:700}}>{cat.icon} {d.category}</span>
+                      <span style={{fontSize:11,color:_theme.textMuted}}>{n.date} · {n.from}</span>
+                    </div>
+                    <div style={{fontSize:13,color:_theme.text,lineHeight:1.6}}>{d.note}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SKILLS MATRIX PAGE ───────────────────────────────────────────────────────
+// Track employee skill levels across different tasks/queues
+// Stored in employee.skills field (saved to Supabase via employees table)
+function SkillsMatrixPage({ employees, setEmployees, schedule, session, canEdit }) {
+  const SKILL_LEVELS = [
+    { v:0, label:"—",           color:"#94A3B8", bg:"#F1F5F9" },
+    { v:1, label:"Learning",    color:"#F59E0B", bg:"#FEF9C3" },
+    { v:2, label:"Proficient",  color:"#3B82F6", bg:"#EFF6FF" },
+    { v:3, label:"Expert",      color:"#10B981", bg:"#F0FDF4" },
+    { v:4, label:"Trainer",     color:"#6366F1", bg:"#F5F3FF" },
+  ];
+
+  const dayName = DAYS[new Date().getDay()];
+  const activeEmps = employees.filter(e => {
+    const v = (schedule[e.id]||{})[dayName];
+    return v && v !== "OFF" && v !== "LEAVE" && v !== "PH";
+  });
+
+  // Get all unique skills across all employees
+  const allSkills = [...new Set(
+    employees.flatMap(e => Object.keys(e.skills||{}))
+  )].sort();
+
+  // Default skills if none defined
+  const DEFAULT_SKILLS = ["TGA","OB","OSLO","SOME","KWT T2","QAT T2","BAH T2","UAE T2","Email","Chat","Escalation"];
+  const skills = allSkills.length > 0 ? allSkills : DEFAULT_SKILLS;
+
+  const [newSkill, setNewSkill]     = useState("");
+  const [editMode, setEditMode]     = useState(false);
+  const [filterSkill, setFilterSkill] = useState("");
+
+  function setSkillLevel(empId, skill, level) {
+    if (!canEdit) return;
+    setEmployees(prev => prev.map(e => {
+      if (e.id !== empId) return e;
+      return { ...e, skills: { ...(e.skills||{}), [skill]: level } };
+    }));
+  }
+
+  function addSkill() {
+    if (!newSkill.trim()) return;
+    const sk = newSkill.trim().toUpperCase();
+    // Add skill with level 0 to all employees
+    setEmployees(prev => prev.map(e => ({
+      ...e, skills: { ...(e.skills||{}), [sk]: (e.skills||{})[sk]||0 }
+    })));
+    setNewSkill("");
+  }
+
+  function removeSkill(skill) {
+    if (!window.confirm(`Remove skill "${skill}" from all employees?`)) return;
+    setEmployees(prev => prev.map(e => {
+      const sk = { ...(e.skills||{}) };
+      delete sk[skill];
+      return { ...e, skills: sk };
+    }));
+  }
+
+  const displayEmps = filterSkill
+    ? activeEmps.filter(e => ((e.skills||{})[filterSkill]||0) > 0)
+    : activeEmps;
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{fontSize:20}}>🧠</span>
+        <span style={{fontWeight:800,fontSize:15,color:_theme.text}}>Skills Matrix</span>
+        <div style={{display:"flex",gap:8,marginLeft:"auto",alignItems:"center"}}>
+          {filterSkill && (
+            <button onClick={()=>setFilterSkill("")}
+              style={PBT("#94A3B8",{fontSize:11,padding:"4px 10px"})}>✕ Clear filter</button>
+          )}
+          {canEdit && (
+            <button onClick={()=>setEditMode(p=>!p)}
+              style={PBT(editMode?"#EF4444":_theme.primary,{fontSize:12,padding:"5px 14px"})}>
+              {editMode?"✓ Done":"✏️ Edit Skills"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Skill level legend */}
+      <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+        {SKILL_LEVELS.map(l=>(
+          <div key={l.v} style={{display:"flex",alignItems:"center",gap:5,
+            background:l.bg,border:`1px solid ${l.color}30`,
+            borderRadius:20,padding:"3px 10px",fontSize:11}}>
+            <div style={{width:8,height:8,borderRadius:"50%",background:l.color}}/>
+            <span style={{fontWeight:700,color:l.color}}>{l.label}</span>
+          </div>
+        ))}
+        {canEdit && editMode && (
+          <div style={{display:"flex",gap:6,alignItems:"center"}}>
+            <input value={newSkill} onChange={e=>setNewSkill(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&addSkill()}
+              style={{...I({width:120,padding:"4px 10px",fontSize:12})}}
+              placeholder="Add skill..."/>
+            <button onClick={addSkill} style={PBT("#10B981",{fontSize:12,padding:"4px 10px"})}>+ Add</button>
+          </div>
+        )}
+      </div>
+
+      {/* Matrix Table */}
+      <div style={{overflowX:"auto"}}>
+        <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+          <thead>
+            <tr style={{background:_theme.isDark?"#0D1117":"#F8FAFC"}}>
+              <th style={{padding:"10px 14px",textAlign:"left",fontWeight:700,
+                color:_theme.text,borderBottom:`2px solid ${_theme.cardBorder}`,
+                minWidth:160,position:"sticky",left:0,background:_theme.isDark?"#0D1117":"#F8FAFC",zIndex:2}}>
+                Employee
+              </th>
+              {skills.map(skill=>(
+                <th key={skill}
+                  onClick={()=>setFilterSkill(filterSkill===skill?"":skill)}
+                  style={{padding:"8px 6px",textAlign:"center",fontWeight:700,
+                    color:filterSkill===skill?_theme.primary:_theme.text,
+                    borderBottom:`2px solid ${_theme.cardBorder}`,
+                    minWidth:90,cursor:"pointer",whiteSpace:"nowrap",
+                    background:filterSkill===skill?_theme.primary+"08":undefined}}>
+                  <div>{skill}</div>
+                  {editMode && canEdit && (
+                    <button onClick={e=>{e.stopPropagation();removeSkill(skill);}}
+                      style={{background:"none",border:"none",cursor:"pointer",
+                        fontSize:10,color:"#EF4444"}}>✕ Remove</button>
+                  )}
+                </th>
+              ))}
+              <th style={{padding:"8px",textAlign:"center",fontWeight:700,
+                color:_theme.text,borderBottom:`2px solid ${_theme.cardBorder}`}}>
+                Avg Level
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {displayEmps.map((emp,ri)=>{
+              const empSkills = emp.skills||{};
+              const levels = skills.map(s=>empSkills[s]||0);
+              const avg = levels.length ? (levels.reduce((a,b)=>a+b,0)/levels.length).toFixed(1) : 0;
+              return (
+                <tr key={emp.id} style={{background:ri%2===0?_theme.card:_theme.surface}}>
+                  <td style={{padding:"10px 14px",fontWeight:700,color:_theme.text,
+                    borderBottom:`1px solid ${_theme.cardBorder}`,
+                    position:"sticky",left:0,background:ri%2===0?_theme.card:_theme.surface,zIndex:1}}>
+                    <div>{emp.name}</div>
+                    <div style={{fontSize:10,color:_theme.textMuted}}>{emp.role}</div>
+                  </td>
+                  {skills.map(skill=>{
+                    const lv = empSkills[skill]||0;
+                    const lvInfo = SKILL_LEVELS[lv];
+                    return (
+                      <td key={skill} style={{padding:"8px 4px",textAlign:"center",
+                        borderBottom:`1px solid ${_theme.cardBorder}`}}>
+                        {editMode && canEdit ? (
+                          <select value={lv}
+                            onChange={e=>setSkillLevel(emp.id,skill,Number(e.target.value))}
+                            style={{fontSize:11,padding:"2px 4px",borderRadius:6,
+                              background:lvInfo.bg,color:lvInfo.color,
+                              border:`1px solid ${lvInfo.color}50`,cursor:"pointer"}}>
+                            {SKILL_LEVELS.map(l=>(
+                              <option key={l.v} value={l.v}>{l.label}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span style={{background:lvInfo.bg,color:lvInfo.color,
+                            borderRadius:20,padding:"2px 8px",fontSize:11,fontWeight:700,
+                            display:"inline-block"}}>
+                            {lvInfo.label}
+                          </span>
+                        )}
+                      </td>
+                    );
+                  })}
+                  <td style={{padding:"8px",textAlign:"center",fontWeight:800,
+                    color:avg>=3?"#10B981":avg>=2?"#3B82F6":avg>=1?"#F59E0B":"#94A3B8",
+                    borderBottom:`1px solid ${_theme.cardBorder}`}}>
+                    {avg}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {displayEmps.length===0&&(
+        <div style={{...CRD(),textAlign:"center",padding:40,marginTop:12}}>
+          <div style={{fontSize:40,marginBottom:10}}>🧠</div>
+          <div style={{fontWeight:700,color:_theme.text}}>No employees match filter</div>
+        </div>
+      )}
+
+      {/* Summary: Top skills coverage */}
+      <div style={{...CRD(),marginTop:16}}>
+        <div style={{fontWeight:700,fontSize:14,color:_theme.text,marginBottom:12}}>
+          📊 Skills Coverage Summary
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:8}}>
+          {skills.map(skill=>{
+            const experts = activeEmps.filter(e=>((e.skills||{})[skill]||0)>=3).length;
+            const proficient = activeEmps.filter(e=>((e.skills||{})[skill]||0)>=2).length;
+            const pct = activeEmps.length ? Math.round((proficient/activeEmps.length)*100) : 0;
+            return (
+              <div key={skill} style={{background:_theme.surface,borderRadius:10,
+                padding:"10px 12px",border:`1px solid ${_theme.cardBorder}`}}>
+                <div style={{fontWeight:700,fontSize:12,color:_theme.text,marginBottom:6}}>{skill}</div>
+                <div style={{height:4,background:_theme.cardBorder,borderRadius:4,marginBottom:6}}>
+                  <div style={{height:"100%",width:pct+"%",borderRadius:4,
+                    background:pct>=80?"#10B981":pct>=50?"#3B82F6":"#F59E0B"}}/>
+                </div>
+                <div style={{fontSize:10,color:_theme.textMuted}}>
+                  {proficient} proficient · {experts} expert
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── COACHING NOTES PAGE ──────────────────────────────────────────────────────
+// Private development notes for each employee - hidden from agents
+// Stored in notes with tag: "Coaching Note"
+function CoachingNotesPage({ employees, performance, attendance, schedule, notes, setNotes, session, canEdit }) {
+  const [selEmp, setSelEmp]     = useState("");
+  const [noteText, setNoteText] = useState("");
+  const [category, setCategory] = useState("development");
+  const [saved, setSaved]       = useState("");
+  const [search, setSearch]     = useState("");
+
+  const CATEGORIES = [
+    { k:"development", icon:"📈", label:"Development",  color:"#3B82F6" },
+    { k:"strength",    icon:"⭐", label:"Strength",     color:"#10B981" },
+    { k:"concern",     icon:"⚠️", label:"Concern",      color:"#F59E0B" },
+    { k:"pip",         icon:"🎯", label:"PIP Action",   color:"#EF4444" },
+    { k:"praise",      icon:"🏆", label:"Praise",       color:"#6366F1" },
+  ];
+
+  // All coaching notes (supervisors only)
+  const allNotes = (Array.isArray(notes)?notes:[])
+    .filter(n => n.tag === "Coaching Note")
+    .sort((a,b) => b.ts.localeCompare(a.ts));
+
+  const filteredNotes = allNotes.filter(n => {
+    try {
+      const d = JSON.parse(n.text||"{}");
+      if (selEmp && d.empId !== selEmp) return false;
+      if (search && !n.text.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    } catch { return true; }
+  });
+
+  function addNote() {
+    if (!selEmp || !noteText.trim()) { setSaved("❌ Select employee and enter note"); return; }
+    const emp = employees.find(e=>e.id===selEmp);
+    const entry = {
+      id: "cn"+Date.now(), ts: new Date().toISOString(), date: todayStr(),
+      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag: "Coaching Note",
+      text: JSON.stringify({ empId:selEmp, empName:emp?.name||"", category, note:noteText.trim() }),
+      from: session?.name||"", target: selEmp, msgType: category,
+    };
+    setNotes(prev => [entry, ...(Array.isArray(prev)?prev:[])]);
+    setNoteText(""); setSaved("✅ Note saved");
+    setTimeout(()=>setSaved(""),2000);
+  }
+
+  function deleteNote(id) {
+    if (!window.confirm("Delete this coaching note?")) return;
+    setNotes(prev => (Array.isArray(prev)?prev:[]).filter(n=>n.id!==id));
+  }
+
+  // Build per-employee stats
+  const empStats = employees.map(emp => {
+    const empNotes = allNotes.filter(n => { try { return JSON.parse(n.text||"{}").empId===emp.id; } catch { return false; } });
+    const todayPerf = (performance[todayStr()]||{})[emp.id] || {};
+    const dayName = DAYS[new Date().getDay()];
+    const isWorking = (schedule[emp.id]||{})[dayName] && (schedule[emp.id]||{})[dayName]!=="OFF";
+    return { ...emp, noteCount: empNotes.length, lastNote: empNotes[0], todayPerf, isWorking };
+  }).filter(e => e.isWorking || e.noteCount > 0).sort((a,b)=>b.noteCount-a.noteCount);
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{fontSize:20}}>📋</span>
+        <span style={{fontWeight:800,fontSize:15,color:_theme.text}}>Coaching Notes</span>
+        <span style={{fontSize:12,color:_theme.textMuted,marginLeft:4}}>— Private · Supervisors only</span>
+        <input value={search} onChange={e=>setSearch(e.target.value)}
+          style={{...I({width:180,padding:"5px 10px",fontSize:12}),marginLeft:"auto"}}
+          placeholder="🔍 Search notes..."/>
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"320px 1fr",gap:16}}>
+
+        {/* Left: Employee list + Add note */}
+        <div>
+          {/* Add Note Form */}
+          <div style={CRD()}>
+            <div style={{fontWeight:700,fontSize:14,color:_theme.text,marginBottom:12}}>
+              ✍️ Add Coaching Note
+            </div>
+
+            <label style={LBL}>Employee</label>
+            <select value={selEmp} onChange={e=>setSelEmp(e.target.value)}
+              style={{...I(),marginBottom:10}}>
+              <option value="">— Select employee —</option>
+              {empStats.map(e=>(
+                <option key={e.id} value={e.id}>{e.name} ({e.role})</option>
+              ))}
+            </select>
+
+            <label style={LBL}>Category</label>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
+              {CATEGORIES.map(c=>(
+                <button key={c.k} onClick={()=>setCategory(c.k)}
+                  style={{border:`2px solid ${category===c.k?c.color:"#CBD5E1"}`,
+                    borderRadius:20,padding:"3px 10px",fontSize:11,cursor:"pointer",fontWeight:700,
+                    background:category===c.k?c.color+"18":"transparent",
+                    color:category===c.k?c.color:_theme.textMuted}}>
+                  {c.icon} {c.label}
+                </button>
+              ))}
+            </div>
+
+            <label style={LBL}>Note</label>
+            <textarea value={noteText} onChange={e=>setNoteText(e.target.value)} rows={4}
+              style={{...I({resize:"vertical",width:"100%",marginBottom:10})}}
+              placeholder="Write your coaching note here..."/>
+
+            {saved && (
+              <div style={{fontSize:12,fontWeight:600,padding:"6px 10px",borderRadius:8,marginBottom:8,
+                background:saved.startsWith("✅")?"#F0FDF4":"#FEF2F2",
+                color:saved.startsWith("✅")?"#166534":"#991B1B"}}>
+                {saved}
+              </div>
+            )}
+            <button onClick={addNote} style={PBT(_theme.primary,{width:"100%"})}>
+              💾 Save Note
+            </button>
+          </div>
+
+          {/* Employee Cards */}
+          <div style={{marginTop:12}}>
+            <div style={{fontWeight:700,fontSize:13,color:_theme.text,marginBottom:8}}>
+              Team ({empStats.length} employees)
+            </div>
+            {empStats.map(emp => {
+              const cat = emp.lastNote ? (() => { try { return JSON.parse(emp.lastNote.text||"{}").category; } catch { return "development"; } })() : null;
+              const catInfo = CATEGORIES.find(c=>c.k===cat);
+              return (
+                <div key={emp.id}
+                  onClick={()=>setSelEmp(selEmp===emp.id?"":emp.id)}
+                  style={{...CRD({padding:"10px 14px",marginBottom:6}),cursor:"pointer",
+                    border:`2px solid ${selEmp===emp.id?_theme.primary:_theme.cardBorder}`,
+                    background:selEmp===emp.id?_theme.primary+"08":_theme.card}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div>
+                      <div style={{fontWeight:700,fontSize:13,color:_theme.text}}>{emp.name}</div>
+                      <div style={{fontSize:11,color:_theme.textMuted}}>{emp.role}</div>
+                    </div>
+                    <div style={{textAlign:"right"}}>
+                      {emp.noteCount > 0 && (
+                        <div style={{fontSize:11,background:_theme.primary+"22",color:_theme.primary,
+                          borderRadius:20,padding:"2px 8px",fontWeight:700,marginBottom:2}}>
+                          {emp.noteCount} notes
+                        </div>
+                      )}
+                      {catInfo && (
+                        <div style={{fontSize:10,color:catInfo.color,fontWeight:600}}>{catInfo.icon} {catInfo.label}</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right: Notes timeline */}
+        <div>
+          {filteredNotes.length === 0 ? (
+            <div style={{...CRD(),textAlign:"center",padding:40}}>
+              <div style={{fontSize:48,marginBottom:12}}>📋</div>
+              <div style={{fontWeight:700,fontSize:16,color:_theme.text}}>
+                {selEmp ? "No notes for this employee yet" : "No coaching notes yet"}
+              </div>
+              <div style={{fontSize:13,color:_theme.textMuted,marginTop:6}}>
+                Select an employee and add your first coaching note.
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div style={{fontSize:12,color:_theme.textMuted,marginBottom:10}}>
+                {filteredNotes.length} note{filteredNotes.length!==1?"s":""}
+                {selEmp && ` for ${employees.find(e=>e.id===selEmp)?.name||""}`}
+              </div>
+              {filteredNotes.map(n => {
+                let d = {};
+                try { d = JSON.parse(n.text||"{}"); } catch {}
+                const cat = CATEGORIES.find(c=>c.k===d.category) || CATEGORIES[0];
+                return (
+                  <div key={n.id} style={{...CRD({padding:0}),marginBottom:10,overflow:"hidden"}}>
+                    <div style={{padding:"12px 16px",borderLeft:`4px solid ${cat.color}`,
+                      display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                      <div style={{flex:1}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                          <span style={{fontSize:12,background:cat.color+"18",color:cat.color,
+                            borderRadius:20,padding:"2px 10px",fontWeight:700}}>
+                            {cat.icon} {cat.label}
+                          </span>
+                          <span style={{fontSize:11,color:_theme.textMuted}}>
+                            {d.empName} · {n.date} · {n.from}
+                          </span>
+                        </div>
+                        <div style={{fontSize:13,color:_theme.text,lineHeight:1.6,whiteSpace:"pre-wrap"}}>
+                          {d.note}
+                        </div>
+                      </div>
+                      {canEdit && (
+                        <button onClick={()=>deleteNote(n.id)}
+                          style={{background:"none",border:"none",cursor:"pointer",
+                            color:_theme.textMuted,fontSize:14,padding:"2px 6px",marginLeft:8}}>
+                          🗑️
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── TEAM ANNOUNCEMENT BANNER ─────────────────────────────────────────────────
+// Urgent announcement that appears at top of screen for all users
+// Stored in notes with tag: "Announcement"
+function AnnouncementBanner({ notes, setNotes, session, canEdit }) {
+  const [showForm, setShowForm] = useState(false);
+  const [text, setText] = useState("");
+  const [urgency, setUrgency] = useState("info"); // info | warning | critical
+  const [dismissed, setDismissed] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem("csops_dismissed_announcements")||"[]"); } catch { return []; }
+  });
+
+  // Active announcements (last 24h)
+  const active = (Array.isArray(notes)?notes:[]).filter(n => {
+    if (n.tag !== "Announcement") return false;
+    const age = Date.now() - new Date(n.ts).getTime();
+    return age < 24*60*60*1000 && !dismissed.includes(n.id);
+  }).sort((a,b) => b.ts.localeCompare(a.ts));
+
+  function dismiss(id) {
+    const next = [...dismissed, id];
+    setDismissed(next);
+    try { sessionStorage.setItem("csops_dismissed_announcements", JSON.stringify(next)); } catch {}
+  }
+
+  function sendAnnouncement() {
+    if (!text.trim()) return;
+    const entry = {
+      id: "ann"+Date.now(), ts: new Date().toISOString(), date: todayStr(),
+      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag: "Announcement", text: text.trim(), from: session?.name||"",
+      target: "all", msgType: urgency,
+    };
+    setNotes(prev => [entry, ...(Array.isArray(prev)?prev:[])]);
+    setText(""); setShowForm(false);
+  }
+
+  const urgencyStyle = {
+    info:     { bg:"#EFF6FF", border:"#BFDBFE", color:"#1D4ED8", icon:"📢" },
+    warning:  { bg:"#FFFBEB", border:"#FDE68A", color:"#92400E", icon:"⚠️" },
+    critical: { bg:"#FEF2F2", border:"#FECACA", color:"#991B1B", icon:"🚨" },
+  };
+
+  if (!canEdit && active.length === 0) return null;
+
+  return (
+    <div>
+      {/* Active announcements */}
+      {active.map(ann => {
+        const u = ann.msgType || "info";
+        const st = urgencyStyle[u] || urgencyStyle.info;
+        return (
+          <div key={ann.id} style={{
+            background:st.bg, border:`1px solid ${st.border}`,
+            borderRadius:10, padding:"10px 16px", marginBottom:8,
+            display:"flex", alignItems:"center", gap:10
+          }}>
+            <span style={{fontSize:18}}>{st.icon}</span>
+            <div style={{flex:1}}>
+              <span style={{fontWeight:700,fontSize:13,color:st.color}}>{ann.text}</span>
+              <span style={{fontSize:11,color:st.color+"99",marginLeft:8}}>
+                — {ann.from} · {ann.time}
+              </span>
+            </div>
+            <button onClick={()=>dismiss(ann.id)}
+              style={{background:"none",border:"none",cursor:"pointer",
+                fontSize:16,color:st.color+"80",padding:"2px 6px"}}>✕</button>
+          </div>
+        );
+      })}
+
+      {/* Send announcement button (supervisors only) */}
+      {canEdit && (
+        <div>
+          {!showForm ? (
+            <button onClick={()=>setShowForm(true)}
+              style={{...PBT("#6366F1",{fontSize:12,padding:"5px 14px"})}}>
+              📢 Send Announcement
+            </button>
+          ) : (
+            <div style={{...CRD({padding:14}),marginBottom:8}}>
+              <div style={{display:"flex",gap:8,marginBottom:8}}>
+                {[["info","📢 Info","#3B82F6"],["warning","⚠️ Warning","#F59E0B"],["critical","🚨 Critical","#EF4444"]].map(([k,l,c])=>(
+                  <button key={k} onClick={()=>setUrgency(k)}
+                    style={{border:`2px solid ${urgency===k?c:"#CBD5E1"}`,borderRadius:8,
+                      padding:"4px 12px",fontSize:11,fontWeight:700,cursor:"pointer",
+                      background:urgency===k?c+"18":"transparent",color:urgency===k?c:_theme.textMuted}}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+              <textarea value={text} onChange={e=>setText(e.target.value)} rows={2}
+                style={{...I({resize:"none",width:"100%",marginBottom:8})}}
+                placeholder="Type announcement for all team members..." autoFocus/>
+              <div style={{display:"flex",gap:8}}>
+                <button onClick={sendAnnouncement} style={PBT("#10B981",{flex:1,fontSize:12})}>📤 Send to All</button>
+                <button onClick={()=>{setShowForm(false);setText("");}}
+                  style={PBT("#94A3B8",{fontSize:12,padding:"7px 14px"})}>Cancel</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -12851,6 +14227,7 @@ export default function App() {
   // Not logged in → show login
 
   const [criticalAlerts, setCriticalAlerts]   = useState([]);
+  const [prev30secTotal, setPrev30secTotal]   = useState(0);
   const [alertDismissed, setAlertDismissed]   = useState(false);
   const [dismissedQueueTotal, setDismissedQueueTotal] = useState(0); // track what was dismissed
   const [lastAlertCheck, setLastAlertCheck]   = useState(0);
@@ -12878,6 +14255,18 @@ export default function App() {
       // Only show if NOT dismissed, or if queue has grown significantly (50+) since last dismiss
       const shouldShow = !isDismissedRef || (totalCurr > dismissedTotalRef + 50);
       if (!shouldShow) return;
+
+      // Queue velocity check — warn if growing fast even below threshold
+      if (totalCurr > 0 && prev30secTotal > 0 && totalCurr - prev30secTotal > 15) {
+        // Queue grew by 15+ cases in 30 seconds = velocity alert
+        const velocity = totalCurr - prev30secTotal;
+        if (totalCurr < alertThresholdWarning) { // only if not already warning/critical
+          setCriticalAlerts([{ icon:"📈", title:`Queue Growing Fast — +${velocity} cases/30s`,
+            detail:`Queue velocity alert: rose from ${prev30secTotal} to ${totalCurr} rapidly.`, total:totalCurr }]);
+          setAlertDismissed(false);
+        }
+      }
+      setPrev30secTotal(totalCurr);
 
       if (totalCurr > alertThresholdCritical) {
         setCriticalAlerts([{ icon:"🚨", title:`Queue Critical — ${totalCurr} cases`, detail:`Exceeded critical threshold (${alertThresholdCritical}+). Immediate action required.`, total:totalCurr }]);
@@ -12947,6 +14336,28 @@ export default function App() {
     }, 10 * 60 * 1000); // every 10 minutes
     return () => clearInterval(hb);
   }, [session, page]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Session Timeout: auto-logout after 4 hours of inactivity ──
+  useEffect(() => {
+    if (!session) return;
+    const TIMEOUT_MS = 4 * 60 * 60 * 1000; // 4 hours
+    let timer = setTimeout(() => {
+      if (session && !isOwnerUser(session)) {
+        try { localStorage.removeItem("csops_session"); } catch {}
+        window.location.reload();
+      }
+    }, TIMEOUT_MS);
+    const reset = () => { clearTimeout(timer); timer = setTimeout(() => { if(session&&!isOwnerUser(session)){try{localStorage.removeItem("csops_session");}catch{} window.location.reload();}}, TIMEOUT_MS); };
+    window.addEventListener("mousemove", reset);
+    window.addEventListener("keydown", reset);
+    window.addEventListener("touchstart", reset);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("mousemove", reset);
+      window.removeEventListener("keydown", reset);
+      window.removeEventListener("touchstart", reset);
+    };
+  }, [session]);
 
   if (loading) {
     return (
@@ -13102,7 +14513,7 @@ export default function App() {
 
   const pageComponents = {
     "Messages":    wrap(<DirectMessagesPanel employees={employees} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
-    "Home":        wrap(<HomeDashboard session={session} employees={employees} schedule={schedule} attendance={attendance} performance={performance} queueLog={queueLog} notes={notes} breakSchedule={breakSchedule} shifts={shifts} auditLog={auditLog} canEdit={canEdit} isSuperAdmin={isSuperAdmin} onNavigate={navigateLogged}/>),
+    "Home":        wrap(<HomeDashboard session={session} employees={employees} schedule={schedule} attendance={attendance} performance={performance} queueLog={queueLog} notes={notes} setNotes={setNotes} breakSchedule={breakSchedule} shifts={shifts} auditLog={auditLog} canEdit={canEdit} isSuperAdmin={isSuperAdmin} onNavigate={navigateLogged}/>),
     Schedule:      wrap(<SchedulePage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} canEdit={canEdit} notes={notes} setNotes={setNotes} session={session}/>),
     Attendance:    wrap(<AttendancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} setSchedule={SC} shifts={shifts} attendance={attendance} setAttendance={AT} notes={notes} setNotes={setNotes} session={session} myShiftFilter={myShiftOnly}/>),
     Queue:         wrap(<QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL} setHeatmap={HM} canEdit={canEdit} session={session}/>),
@@ -13113,14 +14524,17 @@ export default function App() {
     "Audit Log":   wrap(<AuditLogPage auditLog={auditLog} session={session}/>),
     Notes:         wrap(<NotesPage notes={notes} setNotes={canEdit?setNotes:noop} session={session}/>),
     Shifts:        wrap(<ShiftsPage shifts={shifts} setShifts={SH}/>),
-    Performance:   wrap(<PerformancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF} myShiftFilter={myShiftOnly} session={session}/>),
+    Performance:   wrap(<PerformancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF} myShiftFilter={myShiftOnly} session={session} notes={notes} setNotes={setNotes}/>),
     Reports:       wrap(<ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog} session={session} canEdit={canEdit} myShiftFilter={myShiftOnly}/>),
     "Owner Analytics": wrap(<OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} setEmployees={setEmployees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>),
     Leaderboard:   wrap(<LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} setNotes={setNotes} canEdit={canEdit}/>),
     "Attendance History": wrap(<AttendanceHistoryPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance}/>),
-    "KPI Dashboard": wrap(<KPIDashboardPage employees={employees} schedule={schedule} attendance={attendance} performance={performance} session={session}/>),
+    "KPI Dashboard": wrap(<KPIDashboardPage employees={employees} schedule={schedule} attendance={attendance} performance={performance} session={session} notes={notes} setNotes={setNotes}/>),
     "Surveys":       wrap(<SurveysPage employees={employees} notes={notes} setNotes={canEdit?setNotes:noop} session={session} canEdit={canEdit}/>),
     "Gamification":  wrap(<GamificationPage employees={employees} performance={performance} attendance={attendance} schedule={schedule} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
+    "Employee Profile": wrap(<EmployeeProfilePage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} notes={notes} session={session} canEdit={canEdit}/>),
+    "Skills Matrix":  wrap(<SkillsMatrixPage employees={employees} setEmployees={E} schedule={schedule} session={session} canEdit={canEdit}/>),
+    "Coaching Notes": wrap(<CoachingNotesPage employees={employees} performance={performance} attendance={attendance} schedule={schedule} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
     "Shift Handover": wrap(<ShiftHandoverPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
   };
 
@@ -13128,7 +14542,7 @@ export default function App() {
   const PAGE_ICONS = {
     "Home":"🏠","Messages":"💬","Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
     "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍","Notes":"📝",
-    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️","Leaderboard":"🏆","Attendance History":"📆","KPI Dashboard":"🎯","Surveys":"📋","Gamification":"🏅","Shift Handover":"🔄"
+    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️","Leaderboard":"🏆","Attendance History":"📆","KPI Dashboard":"🎯","Surveys":"📋","Gamification":"🏅","Shift Handover":"🔄","Coaching Notes":"📋","Skills Matrix":"🧠","Employee Profile":"👤"
   };
 
   const PAGE_LABELS = {
@@ -13144,7 +14558,10 @@ export default function App() {
     "KPI Dashboard": "KPI Dashboard",
     "Surveys": "Surveys",
     "Gamification": "Gamification",
-    "Shift Handover": "Shift Handover"
+    "Shift Handover": "Shift Handover",
+    "Coaching Notes": "Coaching Notes",
+    "Skills Matrix": "Skills Matrix",
+    "Employee Profile": "Employee Profile"
   };
 
   const safeCurrentPage = visiblePages.includes(page) ? page : visiblePages[0];
@@ -13566,6 +14983,8 @@ export default function App() {
       )}
 
       <div key={safeCurrentPage} className="page-content">
+        {/* Announcement Banner */}
+        <AnnouncementBanner notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>
         {pageComponents[safeCurrentPage]}
       </div>
       </div>
