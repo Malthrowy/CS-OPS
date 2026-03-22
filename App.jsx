@@ -117,9 +117,9 @@ function statusIcon(status) {
   };
   return map[status] || "⚪";
 }
-const ALL_PAGES = ["Home","Messages","Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard","Attendance History","KPI Dashboard","Surveys","Gamification","Shift Handover","Coaching Notes","Skills Matrix","Employee Profile"];
+const ALL_PAGES = ["Home","Messages","Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard","Attendance History","KPI Dashboard","Surveys","Gamification","Shift Handover","Coaching Notes","Skills Matrix","Employee Profile","Overtime","Incident Log","Executive Dashboard","Shrinkage"];
 const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics"); // Home + Leaderboard visible to all roles
-const AGENT_PAGES = ["Home","Messages","Schedule","Live Floor","Break","Performance","Queue","Leaderboard","Surveys","Gamification","Employee Profile"];
+const AGENT_PAGES = ["Home","Messages","Schedule","Live Floor","Break","Performance","Queue","Leaderboard","Surveys","Gamification","Employee Profile","Overtime","Incident Log","Executive Dashboard","Shrinkage"];
 // ─── ROLE CONFIG ──────────────────────────────────────────────────────────────
 const ROLE_CAN_EDIT = {
   "Team Lead":    true,
@@ -392,7 +392,9 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
   // Drag & Drop order — stored as array of employee IDs
   const [empOrder, setEmpOrder] = useState(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem("csops_empOrder")||"null");
+      // Try notes first (Supabase), fallback to localStorage
+      const empOrderNote = (Array.isArray(window.__csops_notes_cache)||[]).find(n=>n.tag==="Employee Order");
+      const saved = empOrderNote ? JSON.parse(empOrderNote.text||"null") : JSON.parse(localStorage.getItem("csops_empOrder")||"null");
       if (saved) return saved;
       // Default order from employee list (matches Excel sheet order)
       return null; // will use DEFAULT_EMPLOYEES order
@@ -417,6 +419,15 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
     const ids = newOrder.map(e => e.id);
     setEmpOrder(ids);
     try { localStorage.setItem("csops_empOrder", JSON.stringify(ids)); } catch {}
+    // Sync order to Supabase via notes
+    if (typeof setNotes === "function") {
+      setNotes(prev => {
+        const arr = Array.isArray(prev) ? prev.filter(n => n.tag !== "Employee Order") : [];
+        return [{ id:"emp-order-global", ts:new Date().toISOString(), date:todayStr(),
+          time:"00:00", tag:"Employee Order", text:JSON.stringify(ids),
+          from:"system", target:"all", msgType:"emp_order" }, ...arr];
+      });
+    }
     // Also persist in employees array order via setEmployees
     setEmployees(newOrder);
   }
@@ -1799,7 +1810,7 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
             <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
-              {["#","Employee","Status","Check-in","Check-out","Late","Work Duration","Early Leave","Notes"].map(h=>(
+              {["#","Employee","Shift","Status","Check-in","Check-out","Late","Work Duration","Early Leave","Notes"].map(h=>(
                 <th key={h} style={{ padding:"10px 8px", textAlign:"left", fontWeight:700,
                   color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
               ))}
@@ -1919,12 +1930,12 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
   const [perfSearch, setPerfSearch] = useState("");
 
   function exportPerfExcel() {
-    const rows = [["Employee","Role","Shift","Closed","Reopened","Escalations","Quality %","Esc Rate %"]];
+    const rows = [["Employee","Role","Shift","Closed","Reopened","Escalations","Avg CRT (min)","Quality %","Esc Rate %"]];
     dayEmps.forEach(emp => {
       const p = getPerf(emp.id);
       const escRate = p.closed > 0 ? ((p.escalations/p.closed)*100).toFixed(1) : 0;
       rows.push([emp.name, emp.role, getShiftLabel(emp.id),
-        p.closed||0, p.reopened||0, p.escalations||0, p.quality||"", escRate]);
+        p.closed||0, p.reopened||0, p.escalations||0, p.avgCRT||"", p.quality||"", escRate]);
     });
     const ws = XLSX.utils.aoa_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -1956,7 +1967,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
   });
 
   function getPerf(empId) {
-    return ((performance[date]||{})[empId]) || { closed:0, reopened:0, escalations:0, quality:"" };
+    return ((performance[date]||{})[empId]) || { closed:0, reopened:0, escalations:0, quality:"", caseStart:"", avgCRT:0, crtSum:0, crtCount:0 };
   }
   function setPerf(empId, field, val) {
     setPerformance(prev => {
@@ -2088,7 +2099,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
           <thead>
             <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
-              {["Rank","Employee","Tasks","Shift","Closed","Reopened","Escalations",...(showQuality?["Quality %"]:[])]
+              {["Rank","Employee","Tasks","Shift","Closed","Reopened","Escalations","Avg CRT",...(showQuality?["Quality %"]:[])]
                 .map(h=><th key={h} style={{ padding:"10px 8px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>)}
             </tr>
           </thead>
@@ -2129,6 +2140,13 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
                   <td style={{ padding:"8px" }}>
                     <input type="number" min="0" value={p.escalations||""} onChange={e=>setPerf(emp.id,"escalations",Number(e.target.value))}
                       style={{ ...I({ width:70, border: p.escalations>0?"2px solid #EF4444":"1px solid #CBD5E1" })}} placeholder="0"/>
+                  </td>
+                  <td style={{ padding:"8px" }}>
+                    <div style={{ display:"flex", gap:4, alignItems:"center" }}>
+                      <input type="number" min="0" value={p.avgCRT||""} onChange={e=>setPerf(emp.id,"avgCRT",Number(e.target.value))}
+                        style={{ ...I({ width:65, border: p.avgCRT>0?"2px solid #8B5CF6":"1px solid #CBD5E1" })}} placeholder="min"/>
+                      {p.avgCRT>0 && <span style={{fontSize:10,color:p.avgCRT<=15?"#10B981":p.avgCRT<=30?"#F59E0B":"#EF4444",fontWeight:700}}>{p.avgCRT}m</span>}
+                    </div>
                   </td>
                   {showQuality && (
                     <td style={{ padding:"8px" }}>
@@ -2303,6 +2321,12 @@ function HeatMapPage({ queueLog, alertThresholdCritical, alertThresholdWarning }
 function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session }) {
   const todayKey = todayStr();
   const [showUpload, setShowUpload] = useState(false);
+  const [queueAge, setQueueAge]     = useState({}); // queueKey → {channel → lastUpdated}
+  const [showAging, setShowAging]   = useState(false);
+  const [slaTargets, setSlaTargets] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("csops_sla_targets")||"{}"); } catch { return {}; }
+  });
+  const [showSLA, setShowSLA]       = useState(false);
   const [uploadMsg, setUploadMsg]   = useState("");
   const [previewData, setPreviewData] = useState(null);
 
@@ -2644,6 +2668,125 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session
           </div>
         )}
 
+        {/* ── SLA Tracker ── */}
+        {showSLA && (
+          <div style={{...CRD({padding:14}),marginBottom:10,border:`1.5px solid #10B98130`}}>
+            <div style={{fontWeight:700,fontSize:13,color:_theme.text,marginBottom:8}}>
+              🎯 SLA Tracker
+            </div>
+            <div style={{fontSize:11,color:_theme.textMuted,marginBottom:10}}>
+              Set target SLA % per channel. Green = meeting SLA.
+            </div>
+            {(() => {
+              const ALL_FIELDS = [...KSA_FIELDS,...GCC_FIELDS,...SOME_FIELDS];
+              const entries = Object.entries(queueLog||{}).filter(([k])=>k.startsWith(todayKey));
+              const latest  = entries.length ? entries.reduce((b,[,v])=>(v.updTime||"")>(b.updTime||"")?v:b,entries[0][1]) : null;
+              return ALL_FIELDS.map(f => {
+                const curr = Number(latest?.[f.key+"Curr"]||0);
+                const target = Number(slaTargets[f.key] || 90);
+                // SLA% = how many cases are being handled vs threshold
+                // Simple: green if queue is low, red if high
+                const threshold = 30; // if more than 30 cases, SLA at risk
+                const slaOK = curr <= threshold;
+                const slaPct = curr === 0 ? 100 : Math.max(0, Math.round((1 - curr/100)*100));
+                return (
+                  <div key={f.key} style={{marginBottom:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                      <span style={{fontSize:11,fontWeight:700,color:f.color}}>
+                        {f.flag} {f.label}
+                      </span>
+                      <span style={{fontSize:11,fontWeight:800,
+                        color:slaOK?"#10B981":"#EF4444"}}>
+                        {curr} open · {slaOK?"✅":"⚠️"}
+                      </span>
+                    </div>
+                    <div style={{height:5,background:_theme.cardBorder,borderRadius:4}}>
+                      <div style={{height:"100%",borderRadius:4,
+                        width:Math.min(100,(curr/50)*100)+"%",
+                        background:curr>40?"#EF4444":curr>20?"#F59E0B":"#10B981",
+                        transition:"width 0.5s"}}/>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+            <div style={{marginTop:10,borderTop:`1px solid ${_theme.cardBorder}`,paddingTop:10}}>
+              <div style={{fontSize:11,fontWeight:700,color:_theme.text,marginBottom:6}}>SLA Alert Threshold</div>
+              {KSA_FIELDS.slice(0,2).map(f=>(
+                <div key={f.key} style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                  <span style={{fontSize:11,color:f.color,fontWeight:700,width:50}}>{f.label}</span>
+                  <input type="number" min="0" max="200"
+                    value={slaTargets[f.key]||30}
+                    onChange={e=>{
+                      const next={...slaTargets,[f.key]:Number(e.target.value)};
+                      setSlaTargets(next);
+                      try{localStorage.setItem("csops_sla_targets",JSON.stringify(next));}catch{}
+                    }}
+                    style={{...I({width:60,padding:"3px 8px",fontSize:12})}}/>
+                  <span style={{fontSize:10,color:_theme.textMuted}}>max cases</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Queue Aging Tracker ── */}
+        {showAging && (
+          <div style={{...CRD({padding:14}),marginBottom:10,border:`1.5px solid #F59E0B30`}}>
+            <div style={{fontWeight:700,fontSize:13,color:_theme.text,marginBottom:8}}>
+              ⏳ Queue Aging Tracker
+            </div>
+            <div style={{fontSize:11,color:_theme.textMuted,marginBottom:10}}>
+              Time since last update per channel. Red = stale (&gt;30 min).
+            </div>
+            {(() => {
+              const entries = Object.entries(queueLog||{})
+                .filter(([k])=>k.startsWith(todayKey))
+                .sort((a,b)=>(b[1].updTime||"").localeCompare(a[1].updTime||""));
+              const latest = entries[0]?.[1];
+              if (!latest) return <div style={{fontSize:12,color:_theme.textMuted}}>No data yet</div>;
+              const updTime = latest.updTime||"";
+              const [uh,um] = updTime.split(":").map(Number);
+              const updMin = uh*60+um;
+              const nowMin = new Date().getHours()*60+new Date().getMinutes();
+              const ageMin = nowMin - updMin;
+              const ALL_FIELDS = [...KSA_FIELDS,...GCC_FIELDS,...SOME_FIELDS];
+              return (
+                <div>
+                  <div style={{marginBottom:8,padding:"6px 10px",borderRadius:8,
+                    background:ageMin>30?"#FEF2F2":ageMin>15?"#FEF9C3":"#F0FDF4",
+                    border:`1px solid ${ageMin>30?"#FCA5A5":ageMin>15?"#FDE68A":"#BBF7D0"}`}}>
+                    <span style={{fontSize:12,fontWeight:700,
+                      color:ageMin>30?"#991B1B":ageMin>15?"#92400E":"#166534"}}>
+                      {ageMin>30?"🔴":"ageMin>15"?"🟡":"🟢"} Last update: {updTime} ({ageMin}m ago)
+                    </span>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
+                    {ALL_FIELDS.filter(f=>Number(latest[f.key+"Curr"]||0)>0).map(f=>{
+                      const curr = Number(latest[f.key+"Curr"]||0);
+                      const base = Number(latest[f.key+"Base"]||0);
+                      const delta = curr - base;
+                      return (
+                        <div key={f.key} style={{background:_theme.surface,borderRadius:6,
+                          padding:"5px 8px",border:`1px solid ${f.color}30`,
+                          display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                          <span style={{fontSize:11,fontWeight:700,color:f.color}}>{f.flag} {f.label}</span>
+                          <div style={{textAlign:"right"}}>
+                            <div style={{fontSize:13,fontWeight:800,color:curr>50?"#EF4444":curr>20?"#F59E0B":"#10B981"}}>{curr}</div>
+                            {delta!==0&&<div style={{fontSize:9,color:delta>0?"#EF4444":"#10B981",fontWeight:700}}>
+                              {delta>0?"+":""}{delta}
+                            </div>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
         {/* ── Calculate Queue for Specific Shift(s) ── */}
         <div style={{ ...CRD({ padding:"14px 16px" }),
           border:`1.5px solid ${_theme.primary}30` }}>
@@ -2734,6 +2877,14 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session
               📂 Upload Excel
             </button>
           )}
+          <button onClick={()=>setShowAging(p=>!p)}
+            style={PBT("#F59E0B",{fontSize:12,padding:"5px 14px"})}>
+            ⏳ Aging
+          </button>
+          <button onClick={()=>setShowSLA(p=>!p)}
+            style={PBT("#10B981",{fontSize:12,padding:"5px 14px"})}>
+            🎯 SLA
+          </button>
           {sbApplied && sbShifts.length>1 && (
             <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>
               Combined: {sbShifts.map(sid=>shifts.find(s=>s.id===sid)?.label).join(" + ")}
@@ -3513,9 +3664,34 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
 }
 
 // ─── LIVE FLOOR PAGE ──────────────────────────────────────────────────────────
-function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance, breakSchedule, setBreakSchedule, queueLog, canEdit, session }) {
+function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance, breakSchedule, setBreakSchedule, queueLog, canEdit, session, notes, setNotes }) {
   const [now, setNow] = useState(new Date());
-  const [shortBreaks, setShortBreaks] = useState({}); // empId → [{start, durationMin}] -- Short Breaks
+
+  // Short Breaks - read from notes (Supabase-backed) for real-time sync
+  const todayKeyLF = new Date().toISOString().slice(0,10);
+  const shortBreaksFromNotes = useMemo(() => {
+    const result = {};
+    (Array.isArray(notes)?notes:[])
+      .filter(n => n.tag === "Short Break Record" && n.date === todayKeyLF)
+      .forEach(n => {
+        try {
+          const d = JSON.parse(n.text||"{}");
+          if (!result[d.empId]) result[d.empId] = [];
+          result[d.empId].push({ start: d.start, durationMin: d.durationMin, id: n.id });
+        } catch {}
+      });
+    return result;
+  }, [notes, todayKeyLF]);
+
+  // Local state as fallback/optimistic update
+  const [shortBreaksLocal, setShortBreaksLocal] = useState({});
+  const shortBreaks = useMemo(() => {
+    const merged = { ...shortBreaksLocal };
+    Object.entries(shortBreaksFromNotes).forEach(([empId, breaks]) => {
+      merged[empId] = breaks;
+    });
+    return merged;
+  }, [shortBreaksLocal, shortBreaksFromNotes]);
   const [showShortModal, setShowShortModal] = useState(null);
   const [shortStart, setShortStart]   = useState("");
   const [shortDur, setShortDur]       = useState(15);
@@ -3526,6 +3702,28 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
   const nowMin  = now.getHours()*60 + now.getMinutes();
   const todayD  = now.toISOString().slice(0,10);
   const dayName = DAYS[now.getDay()];
+
+  // ── Real-time Capacity Calculation ──────────────────────────────────────────
+  const capacity = useMemo(() => {
+    const scheduled  = workingNow.length;
+    const onBreak    = workingNow.filter(emp => {
+      const br = getScheduledBreak(emp);
+      if (!br) return false;
+      const bStart = toMin(br.start);
+      const bEnd   = (bStart + br.durationMin) % 1440;
+      if (bEnd > bStart) return nowMin >= bStart && nowMin < bEnd;
+      return nowMin >= bStart || nowMin < bEnd;
+    }).length;
+    const available  = Math.max(0, scheduled - onBreak);
+    // Latest queue total
+    const QKEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
+    const entries = Object.entries(queueLog||{}).filter(([k])=>k.startsWith(todayD)).map(([,v])=>v);
+    const latestQ = entries.length ? entries.reduce((b,e)=>(e.updTime||"")>(b.updTime||"")?e:b,entries[0]) : null;
+    const totalQ  = latestQ ? QKEYS.reduce((s,k)=>s+Number(latestQ[k+"Curr"]||0),0) : 0;
+    const caseLoad = available > 0 ? (totalQ / available).toFixed(1) : "∞";
+    const status   = available === 0 ? "critical" : Number(caseLoad) > 15 ? "warning" : "ok";
+    return { scheduled, onBreak, available, totalQ, caseLoad, status };
+  }, [workingNow, nowMin, queueLog, todayD]);
 
   // Employees working right now
   const workingNow = employees.filter(emp => {
@@ -3560,12 +3758,26 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
   function getShortBreaks(empId) { return shortBreaks[empId]||[]; }
 
   function addShortBreak(empId) {
-    if (!canEdit) { setShowShortModal(null); return; } // double-lock
+    if (!canEdit) { setShowShortModal(null); return; }
     if (!shortStart) return;
-    setShortBreaks(prev=>({
+    const entry = { start:shortStart, durationMin:Number(shortDur) };
+    // Optimistic local update
+    setShortBreaksLocal(prev=>({
       ...prev,
-      [empId]: [...(prev[empId]||[]), { start:shortStart, durationMin:Number(shortDur) }]
+      [empId]: [...(prev[empId]||[]), entry]
     }));
+    // Sync to Supabase via notes
+    if (setNotes) {
+      const noteEntry = {
+        id: "sbr"+Date.now(), ts: new Date().toISOString(), date: todayKeyLF,
+        time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+        tag: "Short Break Record",
+        text: JSON.stringify({ empId, empName: employees.find(e=>e.id===empId)?.name||"",
+          start: shortStart, durationMin: Number(shortDur) }),
+        from: session?.name||"", target: empId, msgType: "short_break",
+      };
+      setNotes(prev => [noteEntry, ...(Array.isArray(prev)?prev:[])]);
+    }
     setShortStart(""); setShortDur(15); setShowShortModal(null);
   }
 
@@ -4199,6 +4411,7 @@ function ShiftsPage({ shifts, setShifts }) {
 // ─── REPORTS PAGE ─────────────────────────────────────────────────────────────
 function ReportsPage({ employees, schedule, shifts, attendance, performance, heatmap, kg, queueLog, session, canEdit, myShiftFilter=false }) {
   const [reportType, setReportType]   = useState("ops");
+  const [showCharts, setShowCharts]   = useState(false);
   const [date, setDate]               = useState(todayStr());
   const [month, setMonth]             = useState(new Date().toISOString().slice(0,7));
   const [selectedShifts, setSelectedShifts] = useState([]);
@@ -4535,6 +4748,10 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
 
       <div style={SBR({ flexWrap:"wrap" })}>
         <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>📑 Reports</span>
+        <button onClick={()=>setShowCharts(p=>!p)}
+          style={PBT(showCharts?"#6366F1":"#94A3B8",{fontSize:12,padding:"5px 14px"})}>
+          {showCharts?"📊 Charts ON":"📊 Charts"}
+        </button>
         <div style={{ display:"flex", gap:6 }}>
           {[["ops","📊 Ops Report"],["monthly","📅 Monthly"],["scorecard","🎯 Scorecard"],["trend","📈 Trends"]].map(([k,l])=>(
             <button key={k} onClick={()=>setReportType(k)}
@@ -4675,7 +4892,71 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
       })()}
 
       {/* ── OPS REPORT BUILDER ── */}
-      {reportType==="ops" && (
+      {/* Trend Charts */}
+      {showCharts && (
+        <div style={CRD()}>
+          <div style={{fontWeight:700,fontSize:14,color:_theme.text,marginBottom:12}}>📈 30-Day Trends</div>
+          {(() => {
+            const last30 = Array.from({length:30},(_,i)=>{
+              const d=new Date(); d.setDate(d.getDate()-29+i);
+              const key=d.toISOString().slice(0,10);
+              const perf=performance[key]||{}, att=attendance[key]||{};
+              const dn=DAYS[d.getDay()];
+              const sched=employees.filter(e=>{const v=(schedule[e.id]||{})[dn];return v&&v!=="OFF"&&v!=="LEAVE";}).length;
+              return {key,day:d.toLocaleDateString("en-GB",{day:"numeric",month:"short"}),
+                closed:Object.values(perf).reduce((s,p)=>s+(p.closed||0),0),
+                escs:Object.values(perf).reduce((s,p)=>s+(p.escalations||0),0),
+                present:Object.values(att).filter(a=>isPresent(a.status)).length,
+                sched, attRate:sched?Math.round(Object.values(att).filter(a=>isPresent(a.status)).length/sched*100):0};
+            });
+            const maxC=Math.max(...last30.map(d=>d.closed),1);
+            const maxE=Math.max(...last30.map(d=>d.escs),1);
+            const thisWk=last30.slice(-7).reduce((s,d)=>s+d.closed,0);
+            const lastWk=last30.slice(-14,-7).reduce((s,d)=>s+d.closed,0);
+            const wkDiff=lastWk>0?Math.round((thisWk-lastWk)/lastWk*100):0;
+            return (<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+              {[
+                {title:"📦 Cases Closed",data:last30.map(d=>d.closed),max:maxC,colors:d=>d>0?_theme.primary:_theme.cardBorder},
+                {title:"👥 Attendance %",data:last30.map(d=>d.attRate),max:100,colors:d=>d>=90?"#10B981":d>=75?"#F59E0B":"#EF4444"},
+                {title:"🔴 Escalations",data:last30.map(d=>d.escs),max:maxE,colors:d=>d===0?"#10B981":d<=3?"#F59E0B":"#EF4444"},
+              ].map(({title,data,max,colors})=>(
+                <div key={title}>
+                  <div style={{fontSize:12,fontWeight:700,color:_theme.text,marginBottom:6}}>{title}</div>
+                  <div style={{display:"flex",gap:1,alignItems:"flex-end",height:60}}>
+                    {data.map((v,i)=>(
+                      <div key={i} title={`${last30[i].day}: ${v}`}
+                        style={{flex:1,minWidth:2,height:Math.max(2,Math.round((v/max)*60))+"px",
+                          background:colors(v),borderRadius:"2px 2px 0 0"}}/>
+                    ))}
+                  </div>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:_theme.textMuted,marginTop:2}}>
+                    <span>{last30[0]?.day}</span><span>Today</span>
+                  </div>
+                </div>
+              ))}
+              <div>
+                <div style={{fontSize:12,fontWeight:700,color:_theme.text,marginBottom:8}}>📊 Week vs Week</div>
+                {[{l:"This Week",v:thisWk,c:_theme.primary},{l:"Last Week",v:lastWk,c:_theme.textMuted}].map(({l,v,c})=>(
+                  <div key={l} style={{marginBottom:6}}>
+                    <div style={{display:"flex",justifyContent:"space-between",fontSize:11,marginBottom:2}}>
+                      <span style={{color:_theme.textMuted}}>{l}</span>
+                      <span style={{fontWeight:700,color:c}}>{v}</span>
+                    </div>
+                    <div style={{height:5,background:_theme.cardBorder,borderRadius:4}}>
+                      <div style={{height:"100%",width:Math.min(100,Math.round(v/Math.max(thisWk,lastWk,1)*100))+"%",background:c,borderRadius:4}}/>
+                    </div>
+                  </div>
+                ))}
+                <div style={{marginTop:6,fontSize:12,fontWeight:700,color:wkDiff>0?"#10B981":wkDiff<0?"#EF4444":"#94A3B8"}}>
+                  {wkDiff>0?"▲":"▼"} {Math.abs(wkDiff)}% vs last week
+                </div>
+              </div>
+            </div>);
+          })()}
+        </div>
+      )}
+
+            {reportType==="ops" && (
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
 
           {/* Left: Header + Queue Data */}
@@ -5878,6 +6159,55 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
   const [msgType, setMsgType]     = useState("shoutout"); // "shoutout"|"motivation"|"reminder"
   const [msgSaved, setMsgSaved]   = useState(false);
 
+  // Mood Analytics — today's team mood summary
+  const moodSummary = useMemo(() => {
+    const todayKey = todayStr();
+    const todayMoods = (Array.isArray(notes)?notes:[])
+      .filter(n => n.tag === "Mood Check-in" && n.date === todayKey)
+      .map(n => { try { return JSON.parse(n.text||"{}").mood; } catch { return null; } })
+      .filter(Boolean);
+    if (!todayMoods.length) return null;
+    const avg = todayMoods.reduce((s,v)=>s+v,0) / todayMoods.length;
+    const dist = {5:0,4:0,3:0,2:0,1:0};
+    todayMoods.forEach(m => { dist[m]=(dist[m]||0)+1; });
+    return { avg: avg.toFixed(1), count: todayMoods.length, dist,
+      label: avg>=4?"😄 Great":avg>=3?"🙂 Good":avg>=2?"😐 Mixed":"😔 Low",
+      color: avg>=4?"#10B981":avg>=3?"#3B82F6":avg>=2?"#F59E0B":"#EF4444" };
+  }, [notes]);
+
+  // Team Pulse — single health indicator combining attendance + performance + queue
+  const teamPulse = useMemo(() => {
+    const todayKey = todayStr();
+    const dayName  = DAYS[new Date().getDay()];
+    const todayEmps= employees.filter(e=>{const v=(schedule[e.id]||{})[dayName];return v&&v!=="OFF";});
+    const todayAtt = attendance[todayKey]||{};
+    const todayPerf= performance[todayKey]||{};
+    const QKEYS    = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2"];
+    const todayQ   = Object.entries(queueLog||{}).filter(([k])=>k.startsWith(todayKey)).map(([,v])=>v);
+    const latestQ  = todayQ.length?todayQ.reduce((b,e)=>(e.updTime||"")>(b.updTime||"")?e:b,todayQ[0]):null;
+    const totalQ   = latestQ?QKEYS.reduce((s,k)=>s+Number(latestQ[k+"Curr"]||0),0):0;
+
+    const present  = Object.values(todayAtt).filter(a=>isPresent(a.status)).length;
+    const attRate  = todayEmps.length?Math.round((present/todayEmps.length)*100):100;
+    const closed   = Object.values(todayPerf).reduce((s,p)=>s+(p.closed||0),0);
+    const escs     = Object.values(todayPerf).reduce((s,p)=>s+(p.escalations||0),0);
+    const escRate  = closed>0?Math.round((escs/closed)*100):0;
+
+    let score = 100;
+    if (attRate < 90) score -= (90-attRate)*0.5;
+    if (escRate > 5)  score -= (escRate-5)*2;
+    if (totalQ > 200) score -= Math.min(30,(totalQ-200)*0.1);
+    score = Math.max(0,Math.min(100,Math.round(score)));
+
+    return {
+      score,
+      label: score>=80?"Excellent":score>=60?"Good":score>=40?"Moderate":"Critical",
+      color: score>=80?"#10B981":score>=60?"#3B82F6":score>=40?"#F59E0B":"#EF4444",
+      icon:  score>=80?"🟢":score>=60?"🔵":score>=40?"🟡":"🔴",
+      attRate, escRate, totalQ, present, total:todayEmps.length
+    };
+  }, [employees, schedule, attendance, performance, queueLog]);
+
   // Absence pattern detection — employees absent on same day repeatedly
   const absencePatterns = useMemo(() => {
     const patterns = [];
@@ -6437,6 +6767,74 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
           </div>
         )}
       </div>
+
+      {/* ── Team Pulse ── */}
+      <div style={{...CRD({padding:0}),overflow:"hidden",marginBottom:20}}>
+        <div style={{padding:"16px 20px",
+          background:`linear-gradient(135deg,${teamPulse.color}18,transparent)`,
+          borderBottom:`1px solid ${_theme.cardBorder}`,
+          display:"flex",alignItems:"center",gap:16}}>
+          <div style={{fontSize:48}}>{teamPulse.icon}</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:11,color:_theme.textMuted,fontWeight:600,
+              textTransform:"uppercase",letterSpacing:0.5}}>Team Pulse</div>
+            <div style={{fontSize:28,fontWeight:900,color:teamPulse.color}}>{teamPulse.label}</div>
+            <div style={{fontSize:12,color:_theme.textMuted,marginTop:2}}>
+              Overall health score: {teamPulse.score}/100
+            </div>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{width:80,height:80,borderRadius:"50%",
+              border:`6px solid ${teamPulse.color}`,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              background:teamPulse.color+"12"}}>
+              <span style={{fontSize:22,fontWeight:900,color:teamPulse.color}}>
+                {teamPulse.score}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)"}}>
+          {[
+            {l:"Present",v:`${teamPulse.present}/${teamPulse.total}`,c:teamPulse.attRate>=90?"#10B981":"#EF4444"},
+            {l:"Att. Rate",v:teamPulse.attRate+"%",c:teamPulse.attRate>=90?"#10B981":"#EF4444"},
+            {l:"Esc. Rate",v:teamPulse.escRate+"%",c:teamPulse.escRate<=5?"#10B981":"#EF4444"},
+            {l:"Queue",v:teamPulse.totalQ,c:teamPulse.totalQ<=150?"#10B981":teamPulse.totalQ<=300?"#F59E0B":"#EF4444"},
+          ].map(({l,v,c},i)=>(
+            <div key={l} style={{padding:"12px",textAlign:"center",
+              borderRight:i<3?`1px solid ${_theme.cardBorder}`:"none"}}>
+              <div style={{fontSize:20,fontWeight:800,color:c}}>{v}</div>
+              <div style={{fontSize:10,color:_theme.textMuted,fontWeight:600,marginTop:2}}>{l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Team Mood Today ── */}
+      {moodSummary && (
+        <div style={{...CRD({padding:"14px 18px"}),marginBottom:16,
+          display:"flex",alignItems:"center",gap:14}}>
+          <div style={{fontSize:32}}>{moodSummary.label.split(" ")[0]}</div>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:700,fontSize:14,color:_theme.text}}>
+              Team Mood Today — {moodSummary.label.split(" ").slice(1).join(" ")}
+            </div>
+            <div style={{fontSize:12,color:_theme.textMuted}}>
+              {moodSummary.count} employees checked in · avg {moodSummary.avg}/5
+            </div>
+          </div>
+          <div style={{display:"flex",gap:6}}>
+            {[[5,"😄"],[4,"🙂"],[3,"😐"],[2,"😕"],[1,"😔"]].map(([v,icon])=>(
+              moodSummary.dist[v]>0 && (
+                <div key={v} style={{textAlign:"center"}}>
+                  <div style={{fontSize:16}}>{icon}</div>
+                  <div style={{fontSize:11,fontWeight:700,color:_theme.text}}>{moodSummary.dist[v]}</div>
+                </div>
+              )
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Upcoming Celebrations ── */}
       {(() => {
@@ -8690,14 +9088,16 @@ function calcEmployeePoints(empId, performance, attendance) {
     pts += (p.closed||0) * 10;                          // 10 pts per closed case
     pts += (p.quality||0) >= 90 ? 50 : (p.quality||0) >= 75 ? 20 : 0; // quality bonus
     pts -= (p.escalations||0) * 5;                      // -5 per escalation
+    pts -= (p.reopened||0) * 3;                         // -3 per reopened case
   });
   const attDates = Object.keys(attendance||{});
   attDates.forEach(date => {
     const a = (attendance[date]||{})[empId];
     if (!a) return;
-    if (a.status === "Present") pts += 5;               // 5 pts presence
+    if (isPresent(a.status)) pts += 5;                  // 5 pts all present statuses
     if (a.lateMin === 0 && a.status === "Present") pts += 3; // bonus on-time
-    if (isAbsent(a.status)) pts -= 10;               // -10 absent
+    if (a.status === "Late") pts -= 2;                  // small penalty for late
+    if (isAbsent(a.status)) pts -= 10;                  // -10 absent/day off
   });
   return Math.max(0, pts);
 }
@@ -11665,7 +12065,7 @@ function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose, session
       const myName = session?.name || "";
       if (n.tag === "Direct Message") { if (n.target !== myName && n.from !== myName) return; }
       else if (n.tag === "Manager Message" && n.target && n.target !== "all") { if (n.target !== myName && n.from !== myName) return; }
-      else if (["Short Break Request","Swap Request","Break Swap Request","Survey","Survey Response","Leave Request","Shift Handover","Coaching Note","Announcement","KPI Targets","Daily Target"].includes(n.tag)) return;
+      else if (["Short Break Request","Short Break Record","Swap Request","Break Swap Request","Survey","Survey Response","Leave Request","Shift Handover","Coaching Note","Announcement","KPI Targets","Daily Target"].includes(n.tag)) return;
       if (n.text?.toLowerCase().includes(q) || n.tag?.toLowerCase().includes(q)) {
         out.push({ type:"note", icon:"📝", label:n.text?.slice(0,60)||"Note",
           sub:`${n.date} · ${n.tag}`, color:"#8B5CF6", action:"Notes" });
@@ -12964,6 +13364,684 @@ function CoachingNotesPage({ employees, performance, attendance, schedule, notes
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SHRINKAGE CALCULATOR ────────────────────────────────────────────────────
+// Calculate actual shrinkage from real attendance + break data
+function ShrinkageCalculatorPage({ employees, schedule, attendance, breakSchedule, shifts, session }) {
+  const [month, setMonth] = useState(new Date().toISOString().slice(0,7));
+
+  const dayName = DAYS[new Date().getDay()];
+
+  // Calculate shrinkage for the selected month
+  const shrinkageData = (() => {
+    const dates = Object.keys(attendance).filter(d => d.startsWith(month));
+    if (!dates.length) return null;
+
+    let totalScheduled = 0, totalPresent = 0, totalAbsent = 0,
+        totalLateMin = 0, totalEarlyMin = 0, totalBreakMin = 0;
+
+    dates.forEach(date => {
+      const dn = DAYS[new Date(date+"T12:00:00").getDay()];
+      employees.forEach(emp => {
+        const sid = (schedule[emp.id]||{})[dn];
+        if (!sid || sid==="OFF" || sid==="LEAVE" || sid==="PH") return;
+        const sh = shifts.find(s=>s.id===sid);
+        if (!sh) return;
+
+        let shiftLen = toMin(sh.end) - toMin(sh.start);
+        if (shiftLen <= 0) shiftLen += 1440;
+        totalScheduled += shiftLen;
+
+        const a = (attendance[date]||{})[emp.id];
+        if (!a) { totalAbsent += shiftLen; return; }
+
+        if (isAbsent(a.status)) { totalAbsent += shiftLen; return; }
+
+        totalPresent += shiftLen;
+        totalLateMin += (a.lateMin||0);
+        totalEarlyMin += (a.earlyMin||0);
+
+        // Break time
+        const bKey = `${date}_${sid}`;
+        const bEntry = (breakSchedule[bKey]||{})[emp.id];
+        if (bEntry?.durationMin) totalBreakMin += Number(bEntry.durationMin)||0;
+      });
+    });
+
+    const totalLost = totalAbsent + totalLateMin + totalEarlyMin + totalBreakMin;
+    const shrinkagePct = totalScheduled > 0 ? ((totalLost/totalScheduled)*100).toFixed(1) : 0;
+    const attendancePct = totalScheduled > 0 ? ((totalPresent/totalScheduled)*100).toFixed(1) : 0;
+
+    return {
+      totalScheduledH: (totalScheduled/60).toFixed(0),
+      totalPresentH:   (totalPresent/60).toFixed(0),
+      totalAbsentH:    (totalAbsent/60).toFixed(0),
+      totalLateH:      (totalLateMin/60).toFixed(1),
+      totalEarlyH:     (totalEarlyMin/60).toFixed(1),
+      totalBreakH:     (totalBreakMin/60).toFixed(1),
+      totalLostH:      (totalLost/60).toFixed(1),
+      shrinkagePct,
+      attendancePct,
+      effectiveCapacityH: ((totalPresent - totalLateMin - totalEarlyMin - totalBreakMin)/60).toFixed(0),
+    };
+  })();
+
+  const s = shrinkageData;
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{fontSize:20}}>📉</span>
+        <span style={{fontWeight:800,fontSize:15,color:_theme.text}}>Shrinkage Calculator</span>
+        <input type="month" value={month} onChange={e=>setMonth(e.target.value)}
+          style={{...I({width:160,fontSize:12,padding:"5px 10px"})}}/>
+      </div>
+
+      {!s ? (
+        <div style={{...CRD(),textAlign:"center",padding:40}}>
+          <div style={{fontSize:40,marginBottom:10}}>📊</div>
+          <div style={{fontWeight:700,color:_theme.text}}>No attendance data for {month}</div>
+        </div>
+      ) : (
+        <div>
+          {/* Main Shrinkage KPI */}
+          <div style={{...CRD({padding:0}),overflow:"hidden",marginBottom:14}}>
+            <div style={{padding:"20px 24px",
+              background:`linear-gradient(135deg,${Number(s.shrinkagePct)>25?"#EF4444":Number(s.shrinkagePct)>15?"#F59E0B":"#10B981"},transparent)`,
+              borderBottom:`1px solid ${_theme.cardBorder}`}}>
+              <div style={{fontSize:13,fontWeight:600,color:_theme.textMuted,marginBottom:4,textTransform:"uppercase",letterSpacing:0.5}}>
+                Monthly Shrinkage Rate
+              </div>
+              <div style={{display:"flex",alignItems:"baseline",gap:8}}>
+                <div style={{fontSize:52,fontWeight:900,
+                  color:Number(s.shrinkagePct)>25?"#EF4444":Number(s.shrinkagePct)>15?"#F59E0B":"#10B981"}}>
+                  {s.shrinkagePct}%
+                </div>
+                <div style={{fontSize:14,color:_theme.textMuted}}>
+                  {Number(s.shrinkagePct)>25?"🔴 High — needs attention":
+                   Number(s.shrinkagePct)>15?"🟡 Moderate — monitor":
+                   "🟢 Healthy — within range"}
+                </div>
+              </div>
+              <div style={{marginTop:12}}>
+                <div style={{height:8,background:"rgba(0,0,0,0.1)",borderRadius:8,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:Math.min(100,Number(s.shrinkagePct))+"%",
+                    background:Number(s.shrinkagePct)>25?"#EF4444":Number(s.shrinkagePct)>15?"#F59E0B":"#10B981",
+                    borderRadius:8,transition:"width 0.5s"}}/>
+                </div>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:10,
+                  color:_theme.textMuted,marginTop:3}}>
+                  <span>0%</span><span>15% target max</span><span>25%+</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Breakdown */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))"}}>
+              {[
+                {label:"Scheduled",  val:s.totalScheduledH+"h",   color:"#3B82F6",  icon:"📅"},
+                {label:"Present",    val:s.totalPresentH+"h",     color:"#10B981",  icon:"✅"},
+                {label:"Absent",     val:s.totalAbsentH+"h",      color:"#EF4444",  icon:"❌"},
+                {label:"Late Time",  val:s.totalLateH+"h",        color:"#F59E0B",  icon:"⏰"},
+                {label:"Early Leave",val:s.totalEarlyH+"h",       color:"#8B5CF6",  icon:"🔆"},
+                {label:"Breaks",     val:s.totalBreakH+"h",       color:"#6366F1",  icon:"☕"},
+                {label:"Total Lost", val:s.totalLostH+"h",        color:"#EF4444",  icon:"📉"},
+                {label:"Effective",  val:s.effectiveCapacityH+"h",color:"#10B981",  icon:"⚡"},
+              ].map(({label,val,color,icon},i)=>(
+                <div key={label} style={{padding:"14px",textAlign:"center",
+                  borderRight:i%4<3?`1px solid ${_theme.cardBorder}`:"none",
+                  borderBottom:`1px solid ${_theme.cardBorder}`}}>
+                  <div style={{fontSize:18}}>{icon}</div>
+                  <div style={{fontSize:20,fontWeight:800,color,marginTop:4}}>{val}</div>
+                  <div style={{fontSize:10,color:_theme.textMuted,fontWeight:600,marginTop:2}}>{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Attendance Rate */}
+          <div style={CRD()}>
+            <div style={{fontWeight:700,fontSize:14,color:_theme.text,marginBottom:12}}>
+              📊 Attendance Rate: <span style={{color:Number(s.attendancePct)>=90?"#10B981":"#EF4444"}}>
+                {s.attendancePct}%
+              </span>
+            </div>
+            <div style={{height:12,background:_theme.cardBorder,borderRadius:6,overflow:"hidden"}}>
+              <div style={{height:"100%",width:s.attendancePct+"%",borderRadius:6,
+                background:Number(s.attendancePct)>=90?"#10B981":Number(s.attendancePct)>=80?"#F59E0B":"#EF4444",
+                transition:"width 0.5s"}}/>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:11,
+              color:_theme.textMuted,marginTop:6}}>
+              <span>Target: ≥ 90%</span>
+              <span>Effective Capacity: {s.effectiveCapacityH}h / {s.totalScheduledH}h</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── EXECUTIVE DASHBOARD ─────────────────────────────────────────────────────
+// Simplified high-level view for management — 5 KPIs only
+function ExecutiveDashboardPage({ employees, schedule, attendance, performance, queueLog, shifts, session }) {
+  const todayKey = todayStr();
+  const dayName  = DAYS[new Date().getDay()];
+
+  const todayEmps = employees.filter(e => {
+    const v = (schedule[e.id]||{})[dayName];
+    return v && v !== "OFF" && v !== "LEAVE" && v !== "PH";
+  });
+  const todayAtt  = attendance[todayKey]||{};
+  const todayPerf = performance[todayKey]||{};
+
+  const present    = Object.values(todayAtt).filter(a=>isPresent(a.status)).length;
+  const absent     = Object.values(todayAtt).filter(a=>isAbsent(a.status)).length;
+  const totalClosed= Object.values(todayPerf).reduce((s,p)=>s+(p.closed||0),0);
+  const totalEsc   = Object.values(todayPerf).reduce((s,p)=>s+(p.escalations||0),0);
+  const attRate    = todayEmps.length ? Math.round((present/todayEmps.length)*100) : 0;
+  const escRate    = totalClosed > 0 ? Math.round((totalEsc/totalClosed)*100) : 0;
+
+  const QKEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2"];
+  const todayQ = Object.entries(queueLog||{}).filter(([k])=>k.startsWith(todayKey)).map(([,v])=>v);
+  const latestQ = todayQ.length ? todayQ.reduce((b,e)=>(e.updTime||"")>(b.updTime||"")?e:b,todayQ[0]) : null;
+  const totalQueue = latestQ ? QKEYS.reduce((s,k)=>s+Number(latestQ[k+"Curr"]||0),0) : 0;
+
+  // 7-day trend
+  const last7 = Array.from({length:7},(_,i)=>{
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    const perf = performance[key]||{};
+    const att  = attendance[key]||{};
+    return {
+      date: key,
+      dayLabel: d.toLocaleDateString("en-GB",{weekday:"short"}),
+      closed: Object.values(perf).reduce((s,p)=>s+(p.closed||0),0),
+      present: Object.values(att).filter(a=>isPresent(a.status)).length,
+    };
+  }).reverse();
+
+  const maxClosed = Math.max(...last7.map(d=>d.closed), 1);
+
+  const KPIs = [
+    { icon:"👥", label:"Scheduled Today", val:todayEmps.length, color:"#3B82F6", sub:"employees" },
+    { icon:"✅", label:"Attendance Rate",  val:attRate+"%", color:attRate>=90?"#10B981":"#EF4444",
+      sub:present+" present · "+absent+" absent",
+      status: attRate>=90?"✅ On Target":"⚠️ Below Target" },
+    { icon:"📦", label:"Cases Closed",     val:totalClosed, color:"#10B981", sub:"today" },
+    { icon:"🔴", label:"Escalation Rate",  val:escRate+"%", color:escRate<=5?"#10B981":"#EF4444",
+      sub:totalEsc+" escalations",
+      status: escRate<=5?"✅ Healthy":escRate<=15?"⚠️ Watch":"🚨 Critical" },
+    { icon:"📋", label:"Queue Open",       val:totalQueue, color:totalQueue>300?"#EF4444":totalQueue>150?"#F59E0B":"#10B981",
+      sub:"cases in queue",
+      status: totalQueue>300?"🚨 Critical":totalQueue>150?"⚠️ High":"✅ Normal" },
+  ];
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{fontSize:20}}>📊</span>
+        <span style={{fontWeight:800,fontSize:15,color:_theme.text}}>Executive Dashboard</span>
+        <span style={{fontSize:12,color:_theme.textMuted}}>
+          {new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}
+        </span>
+      </div>
+
+      {/* 5 KPI Cards */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:14,marginBottom:20}}>
+        {KPIs.map(kpi=>(
+          <div key={kpi.label} style={{...CRD({padding:"20px 18px"}),
+            borderLeft:`4px solid ${kpi.color}`}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+              <div>
+                <div style={{fontSize:11,fontWeight:600,color:_theme.textMuted,
+                  textTransform:"uppercase",letterSpacing:0.5,marginBottom:8}}>{kpi.label}</div>
+                <div style={{fontSize:36,fontWeight:900,color:kpi.color,lineHeight:1}}>{kpi.val}</div>
+                <div style={{fontSize:12,color:_theme.textMuted,marginTop:4}}>{kpi.sub}</div>
+              </div>
+              <div style={{fontSize:32,opacity:0.15}}>{kpi.icon}</div>
+            </div>
+            {kpi.status&&(
+              <div style={{marginTop:10,fontSize:12,fontWeight:700,color:kpi.color}}>{kpi.status}</div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* 7-Day Trend */}
+      <div style={CRD()}>
+        <div style={{fontWeight:700,fontSize:14,color:_theme.text,marginBottom:16}}>
+          📈 7-Day Performance Trend
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:8,alignItems:"end"}}>
+          {last7.map(d=>(
+            <div key={d.date} style={{textAlign:"center"}}>
+              <div style={{fontSize:11,fontWeight:700,color:_theme.text,marginBottom:4}}>
+                {d.closed>0?d.closed:"—"}
+              </div>
+              <div style={{
+                height:Math.max(4,Math.round((d.closed/maxClosed)*80))+"px",
+                background:d.date===todayKey?_theme.primary:_theme.primary+"60",
+                borderRadius:"4px 4px 0 0",transition:"height 0.3s"
+              }}/>
+              <div style={{fontSize:10,color:_theme.textMuted,marginTop:4,fontWeight:600}}>
+                {d.dayLabel}
+              </div>
+              {d.date===todayKey&&(
+                <div style={{fontSize:9,color:_theme.primary,fontWeight:700}}>TODAY</div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div style={{marginTop:12,display:"flex",gap:8,alignItems:"center",
+          fontSize:12,color:_theme.textMuted,borderTop:`1px solid ${_theme.cardBorder}`,paddingTop:10}}>
+          <span>7-day total:</span>
+          <strong style={{color:_theme.text}}>{last7.reduce((s,d)=>s+d.closed,0)} cases closed</strong>
+          <span>·</span>
+          <strong style={{color:_theme.text}}>avg {Math.round(last7.reduce((s,d)=>s+d.closed,0)/7)}/day</strong>
+        </div>
+      </div>
+
+      {/* Top Performers Today */}
+      <div style={{...CRD(),marginTop:14}}>
+        <div style={{fontWeight:700,fontSize:14,color:_theme.text,marginBottom:12}}>
+          🏆 Top Performers Today
+        </div>
+        {todayEmps
+          .map(e=>({...e,closed:(todayPerf[e.id]||{}).closed||0}))
+          .filter(e=>e.closed>0)
+          .sort((a,b)=>b.closed-a.closed)
+          .slice(0,5)
+          .map((e,i)=>(
+            <div key={e.id} style={{display:"flex",alignItems:"center",gap:12,
+              padding:"8px 0",borderBottom:i<4?`1px solid ${_theme.cardBorder}`:"none"}}>
+              <div style={{width:28,height:28,borderRadius:"50%",
+                background:i===0?"#F59E0B":i===1?"#94A3B8":i===2?"#CD7C3F":_theme.surface,
+                display:"flex",alignItems:"center",justifyContent:"center",
+                fontWeight:800,fontSize:13,color:i<=2?"#fff":_theme.textMuted,flexShrink:0}}>
+                {i+1}
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,fontSize:13,color:_theme.text}}>{e.name}</div>
+                <div style={{fontSize:11,color:_theme.textMuted}}>{e.role}</div>
+              </div>
+              <div style={{fontWeight:800,fontSize:18,color:"#10B981"}}>{e.closed}</div>
+              <div style={{fontSize:11,color:_theme.textMuted}}>cases</div>
+            </div>
+          ))}
+        {todayEmps.every(e=>!(todayPerf[e.id]||{}).closed)&&(
+          <div style={{textAlign:"center",color:_theme.textMuted,padding:20,fontSize:13}}>
+            No performance data yet today
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── INCIDENT LOG PAGE ───────────────────────────────────────────────────────
+// Dedicated incident tracking - separate from Notes
+// Stored in notes with tag: "Incident"
+function IncidentLogPage({ employees, session, notes, setNotes, canEdit }) {
+  const [showForm, setShowForm]   = useState(false);
+  const [incType, setIncType]     = useState("system");
+  const [severity, setSeverity]   = useState("medium");
+  const [title, setTitle]         = useState("");
+  const [desc, setDesc]           = useState("");
+  const [affected, setAffected]   = useState("");
+  const [resolution, setResolution] = useState("");
+  const [saved, setSaved]         = useState("");
+  const [filterSev, setFilterSev] = useState("all");
+  const [filterType, setFilterType] = useState("all");
+
+  const TYPES = [
+    { k:"system",    icon:"💻", label:"System Issue",   color:"#6366F1" },
+    { k:"queue",     icon:"📊", label:"Queue Spike",    color:"#EF4444" },
+    { k:"staffing",  icon:"👥", label:"Staffing Issue", color:"#F59E0B" },
+    { k:"quality",   icon:"⭐", label:"Quality Issue",  color:"#3B82F6" },
+    { k:"escalation",icon:"🔴", label:"Major Escalation",color:"#DC2626"},
+    { k:"other",     icon:"📌", label:"Other",          color:"#64748B" },
+  ];
+  const SEVERITIES = [
+    { k:"low",      label:"Low",      color:"#10B981", bg:"#F0FDF4" },
+    { k:"medium",   label:"Medium",   color:"#F59E0B", bg:"#FEF9C3" },
+    { k:"high",     label:"High",     color:"#EF4444", bg:"#FEF2F2" },
+    { k:"critical", label:"Critical", color:"#991B1B", bg:"#FEE2E2" },
+  ];
+
+  const allIncidents = (Array.isArray(notes)?notes:[])
+    .filter(n => n.tag === "Incident")
+    .map(n => { try { return { ...n, data: JSON.parse(n.text||"{}") }; } catch { return { ...n, data:{} }; } })
+    .sort((a,b) => b.ts.localeCompare(a.ts));
+
+  const filtered = allIncidents.filter(i => {
+    if (filterSev !== "all" && i.data.severity !== filterSev) return false;
+    if (filterType !== "all" && i.data.incType !== filterType) return false;
+    return true;
+  });
+
+  function submitIncident() {
+    if (!title.trim()) { setSaved("❌ Title required"); return; }
+    const entry = {
+      id: "inc"+Date.now(), ts: new Date().toISOString(), date: todayStr(),
+      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag: "Incident",
+      text: JSON.stringify({ incType, severity, title:title.trim(),
+        desc:desc.trim(), affected:affected.trim(), resolution:resolution.trim(),
+        status: resolution.trim() ? "resolved" : "open" }),
+      from: session?.name||"", target:"all", msgType:"incident",
+    };
+    setNotes(prev => [entry, ...(Array.isArray(prev)?prev:[])]);
+    setTitle(""); setDesc(""); setAffected(""); setResolution("");
+    setSaved("✅ Incident logged"); setShowForm(false);
+    setTimeout(()=>setSaved(""),2000);
+  }
+
+  function resolveIncident(id, resText) {
+    setNotes(prev => (Array.isArray(prev)?prev:[]).map(n => {
+      if (n.id !== id) return n;
+      try {
+        const d = JSON.parse(n.text||"{}");
+        return { ...n, text: JSON.stringify({...d, resolution:resText, status:"resolved"}) };
+      } catch { return n; }
+    }));
+  }
+
+  const openCount    = allIncidents.filter(i=>i.data.status!=="resolved").length;
+  const criticalCount= allIncidents.filter(i=>i.data.severity==="critical"&&i.data.status!=="resolved").length;
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{fontSize:20}}>🚨</span>
+        <span style={{fontWeight:800,fontSize:15,color:_theme.text}}>Incident Log</span>
+        {criticalCount>0&&(
+          <span style={{background:"#FEE2E2",color:"#991B1B",borderRadius:20,
+            padding:"3px 12px",fontSize:12,fontWeight:700}}>
+            🚨 {criticalCount} Critical Open
+          </span>
+        )}
+        <div style={{display:"flex",gap:8,marginLeft:"auto"}}>
+          <select value={filterSev} onChange={e=>setFilterSev(e.target.value)}
+            style={{...I({fontSize:11,padding:"4px 8px"})}}>
+            <option value="all">All Severities</option>
+            {SEVERITIES.map(s=><option key={s.k} value={s.k}>{s.label}</option>)}
+          </select>
+          <select value={filterType} onChange={e=>setFilterType(e.target.value)}
+            style={{...I({fontSize:11,padding:"4px 8px"})}}>
+            <option value="all">All Types</option>
+            {TYPES.map(t=><option key={t.k} value={t.k}>{t.label}</option>)}
+          </select>
+          {canEdit&&(
+            <button onClick={()=>setShowForm(p=>!p)}
+              style={PBT("#EF4444",{fontSize:12,padding:"5px 14px"})}>
+              {showForm?"✕ Cancel":"+ Log Incident"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:14}}>
+        {[
+          {label:"Open",val:openCount,color:"#EF4444"},
+          {label:"Critical",val:criticalCount,color:"#991B1B"},
+          {label:"Resolved",val:allIncidents.filter(i=>i.data.status==="resolved").length,color:"#10B981"},
+          {label:"Total",val:allIncidents.length,color:"#6366F1"},
+        ].map(({label,val,color})=>(
+          <div key={label} style={{...CRD({padding:"12px"}),textAlign:"center"}}>
+            <div style={{fontSize:24,fontWeight:800,color}}>{val}</div>
+            <div style={{fontSize:11,color:_theme.textMuted,fontWeight:600}}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Log Incident Form */}
+      {showForm&&canEdit&&(
+        <div style={{...CRD(),marginBottom:14}}>
+          <div style={{fontWeight:700,fontSize:14,color:_theme.text,marginBottom:12}}>🚨 Log New Incident</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+            <div>
+              <label style={LBL}>Type</label>
+              <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
+                {TYPES.map(t=>(
+                  <button key={t.k} onClick={()=>setIncType(t.k)}
+                    style={{border:`2px solid ${incType===t.k?t.color:"#CBD5E1"}`,borderRadius:20,
+                      padding:"3px 10px",fontSize:11,cursor:"pointer",fontWeight:700,
+                      background:incType===t.k?t.color+"18":"transparent",
+                      color:incType===t.k?t.color:_theme.textMuted}}>
+                    {t.icon} {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label style={LBL}>Severity</label>
+              <div style={{display:"flex",gap:5}}>
+                {SEVERITIES.map(s=>(
+                  <button key={s.k} onClick={()=>setSeverity(s.k)}
+                    style={{border:`2px solid ${severity===s.k?s.color:"#CBD5E1"}`,borderRadius:20,
+                      padding:"3px 10px",fontSize:11,cursor:"pointer",fontWeight:700,
+                      background:severity===s.k?s.bg:"transparent",color:s.color}}>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <label style={LBL}>Title *</label>
+          <input value={title} onChange={e=>setTitle(e.target.value)}
+            style={{...I({width:"100%",marginBottom:10})}} placeholder="Brief incident title..."/>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+            <div>
+              <label style={LBL}>Description</label>
+              <textarea value={desc} onChange={e=>setDesc(e.target.value)} rows={3}
+                style={{...I({resize:"none",width:"100%"})}} placeholder="What happened?"/>
+            </div>
+            <div>
+              <label style={LBL}>Affected (employees/systems)</label>
+              <textarea value={affected} onChange={e=>setAffected(e.target.value)} rows={3}
+                style={{...I({resize:"none",width:"100%"})}} placeholder="Who/what was affected?"/>
+            </div>
+          </div>
+          <label style={LBL}>Resolution (optional — leave blank if still open)</label>
+          <textarea value={resolution} onChange={e=>setResolution(e.target.value)} rows={2}
+            style={{...I({resize:"none",width:"100%",marginBottom:10})}}
+            placeholder="How was it resolved?"/>
+          {saved&&<div style={{fontSize:12,color:saved.startsWith("✅")?"#166534":"#991B1B",
+            marginBottom:8,fontWeight:600}}>{saved}</div>}
+          <button onClick={submitIncident} style={PBT("#EF4444",{width:"100%"})}>
+            🚨 Log Incident
+          </button>
+        </div>
+      )}
+
+      {/* Incidents List */}
+      {filtered.length===0?(
+        <div style={{...CRD(),textAlign:"center",padding:40}}>
+          <div style={{fontSize:48,marginBottom:12}}>✅</div>
+          <div style={{fontWeight:700,fontSize:16,color:_theme.text}}>No incidents logged</div>
+          <div style={{fontSize:13,color:_theme.textMuted,marginTop:6}}>
+            All clear! Log incidents to track issues and resolutions.
+          </div>
+        </div>
+      ):(
+        filtered.map(inc=>{
+          const t = TYPES.find(x=>x.k===inc.data.incType)||TYPES[5];
+          const sv= SEVERITIES.find(x=>x.k===inc.data.severity)||SEVERITIES[1];
+          const isOpen = inc.data.status!=="resolved";
+          return (
+            <div key={inc.id} style={{...CRD({padding:0}),marginBottom:10,overflow:"hidden",
+              borderLeft:`4px solid ${sv.color}`}}>
+              <div style={{padding:"12px 16px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
+                  <span style={{fontSize:18}}>{t.icon}</span>
+                  <span style={{fontWeight:800,fontSize:14,color:_theme.text}}>{inc.data.title}</span>
+                  <span style={{background:sv.bg,color:sv.color,borderRadius:20,
+                    padding:"2px 10px",fontSize:11,fontWeight:700}}>{sv.label}</span>
+                  <span style={{background:t.color+"18",color:t.color,borderRadius:20,
+                    padding:"2px 8px",fontSize:11,fontWeight:700}}>{t.label}</span>
+                  <span style={{marginLeft:"auto",background:isOpen?"#FEF2F2":"#F0FDF4",
+                    color:isOpen?"#EF4444":"#10B981",borderRadius:20,
+                    padding:"2px 10px",fontSize:11,fontWeight:700}}>
+                    {isOpen?"🔴 Open":"✅ Resolved"}
+                  </span>
+                </div>
+                <div style={{fontSize:11,color:_theme.textMuted,marginBottom:6}}>
+                  {inc.date} · {inc.time} · Logged by {inc.from}
+                </div>
+                {inc.data.desc&&<div style={{fontSize:13,color:_theme.text,marginBottom:4}}>{inc.data.desc}</div>}
+                {inc.data.affected&&<div style={{fontSize:12,color:_theme.textMuted}}>
+                  👥 Affected: {inc.data.affected}
+                </div>}
+                {inc.data.resolution&&(
+                  <div style={{marginTop:8,padding:"8px 12px",background:"#F0FDF4",
+                    borderRadius:8,border:"1px solid #BBF7D0",fontSize:12,color:"#166534"}}>
+                    ✅ Resolution: {inc.data.resolution}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
+// ─── OVERTIME TRACKER ────────────────────────────────────────────────────────
+function OvertimeTrackerPage({ employees, schedule, shifts, attendance, session, canEdit }) {
+  const [month, setMonth] = useState(new Date().toISOString().slice(0,7));
+  const [search, setSearch] = useState("");
+
+  const STANDARD_HOURS = 8; // standard shift hours
+  const OVERTIME_LIMIT  = 40; // weekly overtime alert threshold (hours)
+
+  // Calculate overtime per employee for the month
+  const empData = employees.map(emp => {
+    const dates = Object.keys(attendance).filter(d => d.startsWith(month));
+    let totalWork = 0, totalOT = 0, otDays = [];
+
+    dates.forEach(date => {
+      const a = (attendance[date]||{})[emp.id];
+      if (!a || !a.workDuration) return;
+      const worked = Number(a.workDuration) || 0; // in minutes
+      const standard = STANDARD_HOURS * 60;
+      if (worked > standard) {
+        const ot = worked - standard;
+        totalOT += ot;
+        otDays.push({ date, ot, worked });
+      }
+      totalWork += worked;
+    });
+
+    const weeklyOT = totalOT / 60; // convert to hours
+    return {
+      ...emp,
+      totalWorkH:  Math.round(totalWork / 60 * 10) / 10,
+      totalOTH:    Math.round(totalOT  / 60 * 10) / 10,
+      otDays,
+      workDays:    dates.filter(d => (attendance[d]||{})[emp.id]?.workDuration).length,
+      alert:       weeklyOT > OVERTIME_LIMIT
+    };
+  }).filter(e => {
+    const dayName = DAYS[new Date().getDay()];
+    // Show all who worked this month
+    return e.workDays > 0 || Object.keys(attendance).some(d => d.startsWith(month) && (attendance[d]||{})[e.id]);
+  }).sort((a,b) => b.totalOTH - a.totalOTH);
+
+  const filtered = empData.filter(e =>
+    !search || e.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalOTAll = empData.reduce((s,e)=>s+e.totalOTH,0);
+  const alertCount = empData.filter(e=>e.alert).length;
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{fontSize:20}}>⏱️</span>
+        <span style={{fontWeight:800,fontSize:15,color:_theme.text}}>Overtime Tracker</span>
+        <input type="month" value={month} onChange={e=>setMonth(e.target.value)}
+          style={{...I({width:160,fontSize:12,padding:"5px 10px"})}}/>
+        <input value={search} onChange={e=>setSearch(e.target.value)}
+          style={{...I({width:150,fontSize:12,padding:"5px 10px"})}}
+          placeholder="🔍 Search..."/>
+      </div>
+
+      {/* Summary Cards */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:12,marginBottom:16}}>
+        {[
+          {icon:"⏱️", label:"Total OT Hours", val:totalOTAll.toFixed(1)+"h", color:"#6366F1"},
+          {icon:"👥", label:"Employees with OT", val:empData.filter(e=>e.totalOTH>0).length, color:"#3B82F6"},
+          {icon:"🚨", label:"Exceeded Limit", val:alertCount, color:"#EF4444"},
+          {icon:"📅", label:"Avg OT/Employee", val:(empData.length?totalOTAll/empData.length:0).toFixed(1)+"h", color:"#F59E0B"},
+        ].map(({icon,label,val,color})=>(
+          <div key={label} style={{...CRD({padding:"14px 16px"}),textAlign:"center"}}>
+            <div style={{fontSize:24,marginBottom:4}}>{icon}</div>
+            <div style={{fontSize:22,fontWeight:800,color}}>{val}</div>
+            <div style={{fontSize:11,color:_theme.textMuted,fontWeight:600}}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Overtime Table */}
+      <div style={{...CRD({padding:0}),overflowX:"auto"}}>
+        <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+          <thead>
+            <tr style={{background:_theme.isDark?"#0D1117":"#F8FAFC"}}>
+              {["Employee","Role","Work Days","Total Hours","OT Hours","OT Days","Status"].map(h=>(
+                <th key={h} style={{padding:"10px 14px",textAlign:"left",fontWeight:700,
+                  color:_theme.text,borderBottom:`2px solid ${_theme.cardBorder}`}}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((emp,ri)=>(
+              <tr key={emp.id} style={{
+                background:emp.alert?"rgba(239,68,68,0.05)":ri%2===0?_theme.card:_theme.surface,
+                borderBottom:`1px solid ${_theme.cardBorder}`}}>
+                <td style={{padding:"10px 14px",fontWeight:700,color:_theme.text}}>
+                  <div>{emp.name}</div>
+                </td>
+                <td style={{padding:"10px 14px",color:_theme.textMuted,fontSize:12}}>{emp.role}</td>
+                <td style={{padding:"10px 14px",fontWeight:600,color:_theme.text}}>{emp.workDays}</td>
+                <td style={{padding:"10px 14px",fontWeight:700,color:"#3B82F6"}}>{emp.totalWorkH}h</td>
+                <td style={{padding:"10px 14px"}}>
+                  <span style={{fontWeight:800,
+                    color:emp.totalOTH>OVERTIME_LIMIT?"#EF4444":emp.totalOTH>20?"#F59E0B":emp.totalOTH>0?"#6366F1":"#94A3B8"}}>
+                    {emp.totalOTH>0?"+"+emp.totalOTH+"h":"—"}
+                  </span>
+                </td>
+                <td style={{padding:"10px 14px",color:_theme.textMuted,fontSize:12}}>
+                  {emp.otDays.length > 0 ? emp.otDays.length+" days" : "—"}
+                </td>
+                <td style={{padding:"10px 14px"}}>
+                  {emp.alert ? (
+                    <span style={{background:"#FEF2F2",color:"#EF4444",borderRadius:20,
+                      padding:"3px 10px",fontSize:11,fontWeight:700}}>🚨 Exceeded Limit</span>
+                  ) : emp.totalOTH > 0 ? (
+                    <span style={{background:"#F5F3FF",color:"#6366F1",borderRadius:20,
+                      padding:"3px 10px",fontSize:11,fontWeight:700}}>⏱️ Has OT</span>
+                  ) : (
+                    <span style={{background:_theme.surface,color:_theme.textMuted,borderRadius:20,
+                      padding:"3px 10px",fontSize:11}}>Normal</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filtered.length===0&&(
+          <div style={{textAlign:"center",padding:32,color:_theme.textMuted}}>
+            No overtime data for {month}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -14321,6 +15399,17 @@ export default function App() {
         if (e.key === "a" && !isAgent) { e.preventDefault(); navigateLogged("Attendance"); }
         if (e.key === "p") { e.preventDefault(); navigateLogged("Performance"); }
         if (e.key === "q") { e.preventDefault(); navigateLogged("Queue"); }
+        if (e.key === "l") { e.preventDefault(); navigateLogged("Live Floor"); }
+        if (e.key === "n") { e.preventDefault(); navigateLogged("Notes"); }
+        if (e.key === "r") { e.preventDefault(); navigateLogged("Reports"); }
+        if (e.key === "s") { e.preventDefault(); navigateLogged("Schedule"); }
+        // Number keys 1-9 for quick page navigation
+        const pages = visiblePages;
+        const num = parseInt(e.key);
+        if (!isNaN(num) && num >= 1 && num <= 9 && pages[num-1]) {
+          e.preventDefault();
+          navigateLogged(pages[num-1]);
+        }
       }
     };
     window.addEventListener("keydown", handler);
@@ -14336,6 +15425,70 @@ export default function App() {
     }, 10 * 60 * 1000); // every 10 minutes
     return () => clearInterval(hb);
   }, [session, page]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── End-of-Shift Notification: alert 15 min before shift ends ──
+  useEffect(() => {
+    if (!session) return;
+    const checkShiftEnd = () => {
+      const now = new Date();
+      const nowMin = now.getHours()*60 + now.getMinutes();
+      const dayName = DAYS[now.getDay()];
+      const myEmp = employees.find(e=>e.name===session.name);
+      if (!myEmp) return;
+      const myShiftId = (schedule[myEmp.id]||{})[dayName];
+      if (!myShiftId || myShiftId==="OFF") return;
+      const myShift = shifts.find(s=>s.id===myShiftId);
+      if (!myShift) return;
+      let endMin = toMin(myShift.end);
+      let diff = endMin - nowMin;
+      if (diff < 0) diff += 1440;
+      // Notify at exactly 15 min before
+      if (diff === 15) {
+        sendPushNotification(
+          `⏰ Shift ends in 15 minutes`,
+          `${myShift.label} ends at ${myShift.end} — wrap up your cases`,
+          "shift-end"
+        );
+        showToast("⏰ Your shift ends in 15 minutes!", "warning");
+      }
+    };
+    const t = setInterval(checkShiftEnd, 60000); // check every minute
+    checkShiftEnd(); // check immediately
+    return () => clearInterval(t);
+  }, [session, employees, schedule, shifts]);
+
+  // ── End-of-Shift Notification: alert 15 min before shift ends ──
+  useEffect(() => {
+    if (!session) return;
+    const checkShiftEnd = () => {
+      const emp = employees.find(e => e.name === session?.name);
+      if (!emp) return;
+      const dayName = DAYS[new Date().getDay()];
+      const sid = (schedule[emp.id]||{})[dayName];
+      if (!sid || sid === "OFF" || sid === "LEAVE") return;
+      const sh = shifts.find(s => s.id === sid);
+      if (!sh) return;
+      const nowMin = new Date().getHours()*60 + new Date().getMinutes();
+      let endMin = toMin(sh.end);
+      let remaining = endMin - nowMin;
+      if (remaining < 0) remaining += 1440;
+      // 15 min warning
+      if (remaining === 15) {
+        sendPushNotification(
+          `⏰ Shift ending in 15 minutes`,
+          `Your shift (${sh.label}) ends at ${sh.end}. Prepare for handover.`,
+          "shift-end"
+        );
+        showToast(`⏰ Shift ends in 15 minutes (${sh.end})`, "warning");
+      }
+      // 5 min warning
+      if (remaining === 5) {
+        showToast(`🚨 Shift ends in 5 minutes!`, "danger");
+      }
+    };
+    const interval = setInterval(checkShiftEnd, 60 * 1000); // check every minute
+    return () => clearInterval(interval);
+  }, [session, employees, schedule, shifts]);
 
   // ── Session Timeout: auto-logout after 4 hours of inactivity ──
   useEffect(() => {
@@ -14518,7 +15671,7 @@ export default function App() {
     Attendance:    wrap(<AttendancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} setSchedule={SC} shifts={shifts} attendance={attendance} setAttendance={AT} notes={notes} setNotes={setNotes} session={session} myShiftFilter={myShiftOnly}/>),
     Queue:         wrap(<QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL} setHeatmap={HM} canEdit={canEdit} session={session}/>),
     "Daily Tasks": wrap(<DailyTasksPage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} auditLog={auditLog} setAuditLog={AL} session={session}/>),
-    "Live Floor":  wrap(<LiveFloorPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} queueLog={queueLog} canEdit={canEdit} session={session}/>),
+    "Live Floor":  wrap(<LiveFloorPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} queueLog={queueLog} canEdit={canEdit} session={session} notes={notes} setNotes={setNotes}/>),
     Break:         wrap(<BreakPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={canEdit} addAudit={addAudit} session={session} notes={notes} setNotes={setNotes} myShiftFilter={myShiftOnly} queueLog={queueLog}/>),
     "Heat Map":    wrap(<HeatMapPage queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning}/>),
     "Audit Log":   wrap(<AuditLogPage auditLog={auditLog} session={session}/>),
@@ -14532,6 +15685,10 @@ export default function App() {
     "KPI Dashboard": wrap(<KPIDashboardPage employees={employees} schedule={schedule} attendance={attendance} performance={performance} session={session} notes={notes} setNotes={setNotes}/>),
     "Surveys":       wrap(<SurveysPage employees={employees} notes={notes} setNotes={canEdit?setNotes:noop} session={session} canEdit={canEdit}/>),
     "Gamification":  wrap(<GamificationPage employees={employees} performance={performance} attendance={attendance} schedule={schedule} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
+    "Shrinkage":           wrap(<ShrinkageCalculatorPage employees={employees} schedule={schedule} attendance={attendance} breakSchedule={breakSchedule} shifts={shifts} session={session}/>),
+    "Executive Dashboard": wrap(<ExecutiveDashboardPage employees={employees} schedule={schedule} attendance={attendance} performance={performance} queueLog={queueLog} shifts={shifts} session={session}/>),
+    "Incident Log":    wrap(<IncidentLogPage employees={employees} session={session} notes={notes} setNotes={setNotes} canEdit={canEdit}/>),
+    "Overtime":         wrap(<OvertimeTrackerPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} session={session} canEdit={canEdit}/>),
     "Employee Profile": wrap(<EmployeeProfilePage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} notes={notes} session={session} canEdit={canEdit}/>),
     "Skills Matrix":  wrap(<SkillsMatrixPage employees={employees} setEmployees={E} schedule={schedule} session={session} canEdit={canEdit}/>),
     "Coaching Notes": wrap(<CoachingNotesPage employees={employees} performance={performance} attendance={attendance} schedule={schedule} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
@@ -14542,7 +15699,7 @@ export default function App() {
   const PAGE_ICONS = {
     "Home":"🏠","Messages":"💬","Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
     "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍","Notes":"📝",
-    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️","Leaderboard":"🏆","Attendance History":"📆","KPI Dashboard":"🎯","Surveys":"📋","Gamification":"🏅","Shift Handover":"🔄","Coaching Notes":"📋","Skills Matrix":"🧠","Employee Profile":"👤"
+    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️","Leaderboard":"🏆","Attendance History":"📆","KPI Dashboard":"🎯","Surveys":"📋","Gamification":"🏅","Shift Handover":"🔄","Coaching Notes":"📋","Skills Matrix":"🧠","Employee Profile":"👤","Overtime":"⏱️","Incident Log":"🚨","Executive Dashboard":"📊","Shrinkage":"📉"
   };
 
   const PAGE_LABELS = {
@@ -14561,7 +15718,11 @@ export default function App() {
     "Shift Handover": "Shift Handover",
     "Coaching Notes": "Coaching Notes",
     "Skills Matrix": "Skills Matrix",
-    "Employee Profile": "Employee Profile"
+    "Employee Profile": "Employee Profile",
+    "Overtime": "Overtime",
+    "Incident Log": "Incident Log",
+    "Executive Dashboard": "Executive Dashboard",
+    "Shrinkage": "Shrinkage"
   };
 
   const safeCurrentPage = visiblePages.includes(page) ? page : visiblePages[0];
