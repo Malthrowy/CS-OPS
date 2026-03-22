@@ -12885,9 +12885,7 @@ export default function App() {
       if (!shouldShow) return;
 
       if (totalCurr > alertThresholdCritical) {
-        setCriticalAlerts([{ icon:"🚨", title:`Queue Critical — ${totalCurr} cases`, detail:`Total cases exceeded critical threshold (${alertThresholdCritical}+).`
-          }]);
-          detail:`Exceeded critical threshold (${alertThresholdCritical}+). Immediate action required.`, total:totalCurr }]);
+        setCriticalAlerts([{ icon:"🚨", title:`Queue Critical — ${totalCurr} cases`, detail:`Exceeded critical threshold (${alertThresholdCritical}+). Immediate action required.`, total:totalCurr }]);
         setAlertDismissed(false);
         playAlertSound("critical"); // 🔊 urgent triple beep
         sendPushNotification(
@@ -12896,9 +12894,7 @@ export default function App() {
           "queue-critical"
         );
       } else if (totalCurr > alertThresholdWarning) {
-        setCriticalAlerts([{ icon:"⚠️", title:`Queue Warning — ${totalCurr} cases`, detail:`In warning zone (${alertThresholdWarning}+). Monitor closely.`
-          }]);
-          detail:`In warning zone (${alertThresholdWarning}+). Monitor closely.`, total:totalCurr }]);
+        setCriticalAlerts([{ icon:"⚠️", title:`Queue Warning — ${totalCurr} cases`, detail:`In warning zone (${alertThresholdWarning}+). Monitor closely.`, total:totalCurr }]);
         setAlertDismissed(false);
         playAlertSound("warning"); // 🔊 gentle double ping
         sendPushNotification(
