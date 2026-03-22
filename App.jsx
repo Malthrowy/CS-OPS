@@ -12444,7 +12444,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
           )}
 
           {/* Password Login */}
-          {selectedName && step==="login" && !isOwnerUser({role:selectedRole,name:selectedName}) && (
+          {selectedName && step==="login" && (
             <div style={{marginBottom:16}}>
               <label style={{fontSize:11,fontWeight:700,color:"#6B7280",
                 letterSpacing:1,textTransform:"uppercase",display:"block",marginBottom:8}}>
