@@ -35,45 +35,12 @@ const T = {
       "Recognition boosts productivity — acknowledge good work daily."
     ]
   },
-  ar: {
-    appName: "عمليات خدمة العملاء", appSub: "نظام إدارة العمليات",
-    selectRole: "حدد صلاحيتك", yourName: "اسمك",
-    selectName: "اختر اسمك", agentNameLabel: "اختر اسمك",
-    agentHint: "صلاحية عرض فقط — تحتاج كلمة مرور عند أول دخول",
-    password: "كلمة المرور", signIn: "تسجيل الدخول", signInAs: "دخول بصفة",
-    enterAs: "دخول كـ",
-    setPassword: "إنشاء كلمة مرور شخصية", firstLogin: "أول تسجيل دخول",
-    newPassword: "كلمة المرور الجديدة (4 أحرف على الأقل)", confirmPassword: "تأكيد كلمة المرور",
-    setAndSignIn: "حفظ كلمة المرور والدخول",
-    incorrectPassword: "كلمة المرور غير صحيحة. يُرجى المحاولة مجدداً.",
-    selectYourName: "يُرجى اختيار اسمك أولاً.",
-    personalPassword: "كلمة مرور شخصية", viewOnly: "عرض فقط",
-    autoSaved: "تم الحفظ تلقائياً", saved: "محفوظ",
-    signOut: "تسجيل الخروج", history: "السجل",
-    readOnlyMode: "وضع العرض فقط",
-    readOnlyDesc: "يمكنك استعراض البيانات دون إجراء أي تعديلات.",
-    schedule: "الجدول الزمني", attendance: "الحضور والانصراف", queue: "قائمة الانتظار",
-    dailyTasks: "المهام اليومية", liveFloor: "الطابق المباشر", breakPage: "الاستراحات",
-    heatMap: "خريطة التحميل", auditLog: "سجل العمليات", notes: "الملاحظات",
-    shifts: "الشفتات", performance: "الأداء", reports: "التقارير",
-    ownerAnalytics: "تحليلات المشرف العام",
-    today: "اليوم", employee: "الموظف", role: "الصلاحية",
-    theme: "المظهر", language: "اللغة",
-    dailyTipTitle: "نصيحة اليوم",
-    tips: [
-      "ابدأ كل شفت بجلسة توافق سريعة مع الفريق لتوحيد الأولويات.",
-      "وثّق التصعيدات فور حدوثها — التفاصيل تُنسى بسرعة.",
-      "جدولة الاستراحات بشكل استباقي تُقلل الأخطاء التشغيلية بنسبة 30%.",
-      "بيانات قائمة الانتظار الدقيقة = قرارات توظيف أفضل للغد.",
-      "التقدير والاعتراف يرفعان الإنتاجية — احتفل بالإنجازات يومياً."
-    ]
-  }
 };
 
 // ─── THEMES ───────────────────────────────────────────────────────────────────
 const THEMES = {
   dark: {
-    name: "Dark Pro", nameAr: "داكن احترافي",
+    name: "Dark Pro",
     bg: "#0D1117", surface: "#161B22", card: "#1C2333",
     cardBorder: "#30363D", header: "#090D15",
     text: "#E6EDF3", textSub: "#8B949E", textMuted: "#6E7681",
@@ -84,7 +51,7 @@ const THEMES = {
     isDark: true
   },
   navy: {
-    name: "Navy & Gold", nameAr: "بحري وذهبي",
+    name: "Navy & Gold",
     bg: "#0B1A2E", surface: "#112240", card: "#172A46",
     cardBorder: "#1E3A5F", header: "#071222",
     text: "#CDD9E5", textSub: "#7EB4E2", textMuted: "#5899C8",
@@ -95,7 +62,7 @@ const THEMES = {
     isDark: true
   },
   light: {
-    name: "Clean Light", nameAr: "فاتح نظيف",
+    name: "Clean Light",
     bg: "#F3F6FA", surface: "#E8EDF5", card: "#FFFFFF",
     cardBorder: "#D0D7DE", header: "#0F2744",
     text: "#1C2128", textSub: "#424A53", textMuted: "#6E7781",
@@ -106,7 +73,7 @@ const THEMES = {
     isDark: false
   },
   purple: {
-    name: "Midnight Purple", nameAr: "بنفسجي غامق",
+    name: "Midnight Purple",
     bg: "#0E0B1A", surface: "#16112B", card: "#1E1838",
     cardBorder: "#2D2455", header: "#080614",
     text: "#DDD8F0", textSub: "#A89BD4", textMuted: "#7B6EA8",
@@ -123,7 +90,38 @@ const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Satur
 const TASK_LIST = ["KFOOD","KEEMRT"];
 const TASK_LIST_ASSIGN = ["KFOOD","KEEMRT"];
 const TASK_COLORS = ["#10B981","#3B82F6","#6366F1","#0EA5E9","#F59E0B","#10B981","#EF4444","#8B5CF6","#EC4899","#14B8A6","#F97316","#06B6D4","#84CC16","#A855F7","#E11D48"];
-const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Day Off"];
+const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Annual Leave","Sick Leave","Work From Home","On Training","Business Trip","Day Off"];
+// Statuses that count as "present" for KPI calculations
+const STATUS_PRESENT = new Set(["Present","Late","Early Leave","Annual Leave","Sick Leave","Work From Home","On Training","Business Trip"]);
+const STATUS_ABSENT  = new Set(["Absent","Day Off"]);
+function isPresent(status) { return STATUS_PRESENT.has(status); }
+function isAbsent(status)  { return STATUS_ABSENT.has(status); }
+// Statuses that count as "present" (employee is available/working)
+const PRESENT_STATUSES = new Set(["Present","Late","Early Leave","Work From Home","On Training","Business Trip"]);
+// Statuses that count as "absent" 
+const ABSENT_STATUSES  = new Set(["Absent"]);
+// Statuses that are planned leave (not counted as absent)
+const LEAVE_STATUSES   = new Set(["Annual Leave","Sick Leave","Day Off"]);
+function isPresent(status)  { return PRESENT_STATUSES.has(status); }
+function isAbsent(status)   { return ABSENT_STATUSES.has(status); }
+function isOnLeave(status)  { return LEAVE_STATUSES.has(status); }
+function statusColor(status) {
+  const map = {
+    "Present":"#10B981","Late":"#F59E0B","Early Leave":"#8B5CF6",
+    "Absent":"#EF4444","Annual Leave":"#0EA5E9","Sick Leave":"#EC4899",
+    "Work From Home":"#6366F1","On Training":"#14B8A6","Business Trip":"#F97316",
+    "Day Off":"#64748B"
+  };
+  return map[status] || "#64748B";
+}
+function statusIcon(status) {
+  const map = {
+    "Present":"✅","Late":"🟡","Early Leave":"🟣","Absent":"❌",
+    "Annual Leave":"🏖️","Sick Leave":"🏥","Work From Home":"🏠",
+    "On Training":"📚","Business Trip":"✈️","Day Off":"🔘"
+  };
+  return map[status] || "⚪";
+}
 const ALL_PAGES = ["Home","Messages","Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard","Attendance History","KPI Dashboard","Surveys","Gamification"];
 const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics"); // Home + Leaderboard visible to all roles
 const AGENT_PAGES = ["Home","Messages","Schedule","Live Floor","Break","Performance","Queue","Leaderboard","Surveys","Gamification"];
@@ -147,12 +145,7 @@ const ROLE_DESC_EN = {
   "SME":          "Full access · Password required",
   "Agent":        "View only · Password on first login",
 };
-const ROLE_DESC_AR = {
-  "Team Lead":    "وصول كامل · يلزم كلمة مرور",
-  "Shift Leader": "وصول كامل · يلزم كلمة مرور",
-  "SME":          "وصول كامل · يلزم كلمة مرور",
-  "Agent":        "عرض فقط · لا يلزم رقم سري",
-};
+
 
 
 // Super Admin — protected by name AND role
@@ -350,7 +343,7 @@ function TaskPicker({ selected=[], onChange }) {
         })}
       </div>
       <div style={{ fontSize:11, color:_theme.textMuted, marginTop:4 }}>
-        المهام المتاحة للتعيين: KFOOD · KEEMRT
+        Available tasks: KFOOD · KEEMRT
       </div>
     </div>
   );
@@ -460,7 +453,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
 
   // Copy Week function
   function doCopyWeek() {
-    if (!copyFromWeek || !copyToWeek) { setCopyDone("❌ اختر الأسبوعين"); return; }
+    if (!copyFromWeek || !copyToWeek) { setCopyDone("❌ Select both weeks"); return; }
     const fromStart = new Date(copyFromWeek);
     const toStart   = new Date(copyToWeek);
     // For each employee, copy their week pattern
@@ -477,13 +470,13 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
       newSched[emp.id] = empSched;
     });
     setSchedule(newSched);
-    setCopyDone(`✅ تم نسخ الجدول من أسبوع ${copyFromWeek} إلى ${copyToWeek}`);
+    setCopyDone(`✅ Schedule copied from week ${copyFromWeek} to ${copyToWeek}`);
     setTimeout(() => { setCopyDone(""); setShowCopyWeek(false); }, 3000);
   }
 
   function doSwap() {
     if (!swapEmp1 || !swapEmp2 || swapEmp1===swapEmp2) {
-      alert("اختر موظفين مختلفين."); return;
+      alert("Please select two different employees."); return;
     }
     const s1 = (schedule[swapEmp1]||{})[swapDay] || "OFF";
     const s2 = (schedule[swapEmp2]||{})[swapDay] || "OFF";
@@ -497,7 +490,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
     const sh1 = shifts.find(s=>s.id===s1);
     const sh2 = shifts.find(s=>s.id===s2);
     setSwapDone(
-      `✅ تم التبديل يوم ${swapDay}:\n` +
+      `✅ Swap done for ${swapDay}:\n` +
       `${e1?.name}: ${sh1?.label||"Day Off"} ↔ ${sh2?.label||"Day Off"}\n` +
       `${e2?.name}: ${sh2?.label||"Day Off"} ↔ ${sh1?.label||"Day Off"}`
     );
@@ -608,11 +601,11 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
         const wb   = XLSX.read(ev.target.result, { type:"array", cellDates:false });
         const ws   = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:"", raw:true });
-        if (!rows.length) { alert("الملف فارغ."); return; }
+        if (!rows.length) { alert("File is empty."); return; }
         parseScheduleRows(rows);
       } catch(err) {
         console.error("Excel import error:", err);
-        alert("خطأ في قراءة الملف:\n" + err.message);
+        alert("Error reading file:\n" + err.message);
       }
     };
     reader.readAsArrayBuffer(file);
@@ -654,7 +647,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
         }
 
         function isNameHeader(cell) {
-          return /name|employee|موظف|اسم|الموظف|الاسم/i.test(String(cell).trim());
+          return /name|employee|staff/i.test(String(cell).trim());
         }
 
         function isNumOrEmpty(cell) {
@@ -744,11 +737,11 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
 
         if (preview.length === 0) {
           alert(
-            "⚠️ لم يتم العثور على بيانات.\n\n" +
-            "تأكد من أن الملف يحتوي على:\n" +
-            "• صف يحتوي على أيام الأسبوع (Sunday, Monday... أو الأحد, الاثنين...)\n" +
-            "• عمود يحتوي على أسماء الموظفين\n" +
-            "• قيم الشفتات: وقت مثل 08:00-17:00 أو OFF"
+            "⚠️ No data found.\n\n" +
+            "Please ensure the file contains:\n" +
+            "• A row with day names (Sunday, Monday...)\n" +
+            "• A column with employee names\n" +
+            "• Shift values: time like 08:00-17:00 or OFF"
           );
           return;
         }
@@ -910,11 +903,11 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
     <div>
       {/* ── Main Toolbar ── */}
       <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:10, alignItems:"center" }}>
-        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>📅 الجدول الأسبوعي</span>
+        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>📅 Weekly Schedule</span>
         <input value={searchEmp} onChange={e=>setSearchEmp(e.target.value)}
-          style={{ ...I({width:180}) }} placeholder="🔍 ابحث عن موظف..."/>
+          style={{ ...I({width:180}) }} placeholder="🔍 Search employee..."/>
         <div style={{ display:"flex", gap:0 }}>
-          {[["week","📅 أسبوعي"],["day","📋 يومي"]].map(([k,l])=>(
+          {[["week","📅 Weekly"],["day","📋 Daily"]].map(([k,l])=>(
             <button key={k} onClick={()=>setViewMode(k)}
               style={{ background:viewMode===k?_theme.primary:"transparent",
                 color:viewMode===k?"#fff":_theme.textSub,
@@ -924,23 +917,23 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
           ))}
         </div>
         <div style={{ marginLeft:"auto", display:"flex", gap:6, flexWrap:"wrap" }}>
-          {canEdit && <button style={PBT("#2563EB",{fontSize:12})} onClick={()=>setShowAdd(true)}>+ موظف</button>}
+          {canEdit && <button style={PBT("#2563EB",{fontSize:12})} onClick={()=>setShowAdd(true)}>+ employees</button>}
           <button style={PBT("#475569",{fontSize:12})} onClick={()=>fileRef.current.click()}>📥 Import</button>
           <button style={PBT("#10B981",{fontSize:12})} onClick={downloadCSV}>⬇️ CSV</button>
           {canEdit && <button style={PBT("#8B5CF6",{fontSize:12})} onClick={()=>{ setShowSwap(true); setSwapDone(""); }}>🔄 Swap</button>}
-          {canEdit && <button style={PBT("#F59E0B",{fontSize:12})} onClick={()=>setShowCopyWeek(true)}>📋 نسخ أسبوع</button>}
+          {canEdit && <button style={PBT("#F59E0B",{fontSize:12})} onClick={()=>setShowCopyWeek(true)}>📋 Copy Week</button>}
         </div>
         <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" style={{display:"none"}} onChange={handleFile}/>
       </div>
 
       {/* ── Quick Shift Filter + View Options ── */}
       <div style={{ display:"flex", gap:6, marginBottom:10, flexWrap:"wrap", alignItems:"center" }}>
-        <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>الشفت السريع:</span>
+        <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>Quick Shift:</span>
         <button onClick={()=>setQuickShift("")}
           style={{ border:`1.5px solid ${!quickShift?_theme.primary:"#CBD5E1"}`,
             borderRadius:20, padding:"3px 12px", fontSize:11, cursor:"pointer",
             background:!quickShift?_theme.primary+"22":"transparent",
-            color:!quickShift?_theme.primary:_theme.textMuted, fontWeight:700 }}>الكل</button>
+            color:!quickShift?_theme.primary:_theme.textMuted, fontWeight:700 }}>All</button>
         {shifts.map(sh=>(
           <button key={sh.id} onClick={()=>setQuickShift(quickShift===sh.id?"":sh.id)}
             style={{ border:`1.5px solid ${quickShift===sh.id?sh.color:"#CBD5E1"}`,
@@ -956,12 +949,12 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
               borderRadius:20, padding:"3px 12px", fontSize:11, cursor:"pointer",
               background:groupByShift?_theme.accent+"22":"transparent",
               color:groupByShift?_theme.accent:_theme.textMuted, fontWeight:700 }}>
-            {groupByShift?"✅ مجمّع":"⊞ تجميع حسب الشفت"}
+            {groupByShift?"✅ Grouped":"⊞ Group by Shift"}
           </button>
           <button onClick={()=>setShowRoles(r=>!r)}
             style={{ border:"1.5px solid #CBD5E1", borderRadius:20, padding:"3px 12px",
               fontSize:11, cursor:"pointer", color:_theme.textMuted, fontWeight:700 }}>
-            🏷️ {showRoles?"إخفاء الأدوار":"إظهار الأدوار"}
+            🏷️ {showRoles?"Hide Roles":"Show Roles"}
           </button>
         </div>
       </div>
@@ -971,7 +964,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
         <div style={{ ...CRD({padding:"8px 14px"}), display:"flex", gap:10, alignItems:"center",
           flex:1, flexWrap:"wrap" }}>
           <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:700 }}>
-            👥 إجمالي: {employees.length}
+            👥 Total: {employees.length}
           </span>
           {shifts.map(sh=>(
             <span key={sh.id} style={{ background:sh.color+"22", color:sh.color,
@@ -987,7 +980,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
           </span>
           {searchEmp && (
             <span style={{ color:_theme.primary, fontSize:11, fontWeight:700 }}>
-              🔍 {filteredEmps.length} نتيجة
+              🔍 {filteredEmps.length} results
             </span>
           )}
         </div>
@@ -996,14 +989,14 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
       {/* ── Copy Week Modal ── */}
       {showCopyWeek && (
         <div style={{ ...CRD(), marginBottom:16, border:`2px solid #F59E0B` }}>
-          <div style={{ fontWeight:700, color:_theme.text, marginBottom:10 }}>📋 نسخ جدول أسبوع كامل</div>
+          <div style={{ fontWeight:700, color:_theme.text, marginBottom:10 }}>📋 Copy Full Week Schedule</div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
             <div>
-              <label style={LBL}>من تاريخ (بداية الأسبوع)</label>
+              <label style={LBL}>From (week start)</label>
               <input type="date" value={copyFromWeek} onChange={e=>setCopyFromWeek(e.target.value)} style={I()}/>
             </div>
             <div>
-              <label style={LBL}>إلى تاريخ (بداية الأسبوع)</label>
+              <label style={LBL}>To (week start)</label>
               <input type="date" value={copyToWeek} onChange={e=>setCopyToWeek(e.target.value)} style={I()}/>
             </div>
           </div>
@@ -1012,9 +1005,9 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
               fontWeight:600, marginBottom:8 }}>{copyDone}</div>
           )}
           <div style={{ display:"flex", gap:8 }}>
-            <button onClick={doCopyWeek} style={PBT("#F59E0B",{flex:1})}>📋 نسخ الجدول</button>
+            <button onClick={doCopyWeek} style={PBT("#F59E0B",{flex:1})}>📋 Copy Schedule</button>
             <button onClick={()=>setShowCopyWeek(false)}
-              style={PBT("#94A3B8",{padding:"8px 16px"})}>إلغاء</button>
+              style={PBT("#94A3B8",{padding:"8px 16px"})}>Cancel</button>
           </div>
         </div>
       )}
@@ -1046,7 +1039,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                     borderTop:`3px solid ${sh?sh.color:"#94A3B8"}` }}>
                     <div style={{ fontWeight:800, fontSize:12,
                       color:sh?sh.color:"#94A3B8", marginBottom:8 }}>
-                      {sh?sh.label:"OFF / إجازة"} ({emps.length})
+                      {sh?sh.label:"OFF / Leave"} ({emps.length})
                     </div>
                     {emps.map(e=>(
                       <div key={e.id} style={{ fontSize:12, color:_theme.text,
@@ -1081,7 +1074,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
               <th style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:_theme.text,
                 borderBottom:`2px solid ${_theme.cardBorder}`, minWidth:180,
                 position:"sticky", left:0, background:_theme.isDark?"#0D1117":"#F8FAFC",
-                zIndex:2 }}>الموظف</th>
+                zIndex:2 }}>Employee</th>
               {DAYS.map((day, di) => {
                 const now2   = new Date();
                 const diff   = di - now2.getDay();
@@ -1182,7 +1175,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                       borderTop:`2px solid ${sh?sh.color:"#94A3B8"}`,
                       fontWeight:800, fontSize:12,
                       color:sh?sh.color:_theme.textMuted }}>
-                      {sh?sh.label:"OFF / إجازة"} — {empList.length} موظف
+                      {sh?sh.label:"OFF / Leave"} — {empList.length} employees
                     </td>
                   </tr>
                 );
@@ -1326,13 +1319,13 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
 
       {/* Swap Shift Modal */}
       {showSwap && (
-        <Modal title="🔄 Swap Shift -- تبديل الشفتات" onClose={()=>setShowSwap(false)} width={480}>
+        <Modal title="🔄 Swap Shifts" onClose={()=>setShowSwap(false)} width={480}>
           <div style={{ background:"#F3E8FF", border:"1px solid #C4B5FD", borderRadius:8,
             padding:"10px 14px", marginBottom:14, fontSize:12, color:"#5B21B6" }}>
-            اختر موظفين واليوم المراد تبديل شفتاتهم -- سيتم التبديل فوراً وحفظه تلقائياً.
+            Select two employees and the day to swap shifts.
           </div>
 
-          <label style={LBL}>اليوم</label>
+          <label style={LBL}>Day</label>
           <select value={swapDay} onChange={e=>{ setSwapDay(e.target.value); setSwapDone(""); }}
             style={{ ...I(), marginBottom:12 }}>
             {DAYS.map(d => <option key={d}>{d}</option>)}
@@ -1340,10 +1333,10 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
 
           <div style={{ display:"grid", gridTemplateColumns:"1fr auto 1fr", gap:10, alignItems:"end", marginBottom:14 }}>
             <div>
-              <label style={LBL}>الموظف الأول</label>
+              <label style={LBL}>Employee 1</label>
               <select value={swapEmp1} onChange={e=>{ setSwapEmp1(e.target.value); setSwapDone(""); }}
                 style={I()}>
-                <option value="">-- اختر --</option>
+                <option value="">-- Select --</option>
                 {employees.map(e => {
                   const sid = (schedule[e.id]||{})[swapDay];
                   const sh = shifts.find(s=>s.id===sid);
@@ -1357,10 +1350,10 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
             </div>
             <div style={{ paddingBottom:8, fontSize:22, textAlign:"center", color:"#8B5CF6" }}>⇄</div>
             <div>
-              <label style={LBL}>الموظف الثاني</label>
+              <label style={LBL}>Employee 2</label>
               <select value={swapEmp2} onChange={e=>{ setSwapEmp2(e.target.value); setSwapDone(""); }}
                 style={I()}>
-                <option value="">-- اختر --</option>
+                <option value="">-- Select --</option>
                 {employees.filter(e=>e.id!==swapEmp1).map(e => {
                   const sid = (schedule[e.id]||{})[swapDay];
                   const sh = shifts.find(s=>s.id===sid);
@@ -1382,7 +1375,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
             const s2 = shifts.find(s=>s.id===(schedule[swapEmp2]||{})[swapDay]);
             return (
               <div style={{ background:_theme.isDark?"#0D1117":"#F8FAFC", borderRadius:8, padding:"10px 14px", marginBottom:14, fontSize:12 }}>
-                <div style={{ fontWeight:700, color:_theme.text, marginBottom:6 }}>معاينة التبديل -- {swapDay}</div>
+                <div style={{ fontWeight:700, color:_theme.text, marginBottom:6 }}>Swap Preview {swapDay}</div>
                 <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
                   <div style={{ background: s1?.color+"20"||"#F1F5F9", border:`1px solid ${s1?.color||"#CBD5E1"}`,
                     borderRadius:6, padding:"4px 10px", fontSize:11, fontWeight:700, color:s1?.color||"#64748B" }}>
@@ -1407,10 +1400,10 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
           <div style={{ display:"flex", gap:8 }}>
             <button style={PBT("#8B5CF6",{flex:1, padding:"10px"})} onClick={doSwap}
               disabled={!swapEmp1||!swapEmp2}>
-              🔄 تأكيد التبديل
+              🔄 Confirm Swap
             </button>
             <button style={PBT("#94A3B8",{flex:"none", padding:"10px 16px"})}
-              onClick={()=>setShowSwap(false)}>إغلاق</button>
+              onClick={()=>setShowSwap(false)}>Close</button>
           </div>
         </Modal>
       )}
@@ -1681,8 +1674,8 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
   const allAtt = allDayEmps.map(e => getAtt(e.id));
   const kpis = {
     working:   allDayEmps.length,
-    present:   allAtt.filter(a=>a.status==="Present").length,
-    absent:    allAtt.filter(a=>a.status==="Absent").length,
+    present:   allAtt.filter(a=>isPresent(a.status)).length,
+    absent:    allAtt.filter(a=>isAbsent(a.status)).length,
     late:      allAtt.filter(a=>a.status==="Late").length,
     early:     allAtt.filter(a=>a.status==="Early Leave").length,
     totalLate: allAtt.reduce((s,a)=>s+(a.lateMin||0),0)
@@ -1754,12 +1747,12 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
             <button style={PBT("#EF4444",{padding:"5px 12px",fontSize:12})} onClick={()=>bulkSet("Absent")}>🔴 All Absent</button>
           <button style={PBT("#3B82F6",{padding:"5px 12px",fontSize:12})} onClick={()=>{
             const now=new Date(); const hh=pad(now.getHours()), mm=pad(now.getMinutes());
-            if (!window.confirm(`تسجيل حضور ${shiftEmployees.length} موظف الآن (${hh}:${mm})؟`)) return;
+            if (!window.confirm(`Check in ${shiftEmployees.length} employees now (${hh}:${mm})?`)) return;
             shiftEmployees.forEach(emp=>{
               setAtt(emp.id,"status","Present");
               setAtt(emp.id,"checkIn",`${hh}:${mm}`);
             });
-          }}>⚡ تسجيل جماعي الآن</button>
+          }}>⚡ Bulk Check-in Now</button>
           </div>
         </div>
       )}
@@ -1782,10 +1775,14 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
               const isSlightLate = att.lateMin > 0 && att.lateMin < 7;
               const dur = att.workDuration !== "" && att.workDuration !== undefined ? att.workDuration : calcWorkDuration(att.checkIn, att.checkOut);
               const isEarlyLeave = att.status === "Early Leave";
+              const isOnLeaveStatus = isOnLeave(att.status);
+              const isWFH = att.status === "Work From Home";
+              const isTraining = att.status === "On Training";
+              const isBizTrip = att.status === "Business Trip";
               return (
                 <tr key={emp.id} style={{
-                  background: isLate ? "#FEF9C3" : ri%2===0?_theme.card:_theme.surface,
-                  borderLeft: isLate ? "3px solid #F59E0B" : isEarlyLeave ? "3px solid #8B5CF6" : "3px solid transparent"
+                  background: isLate ? "#FEF9C3" : isOnLeaveStatus ? "#EFF6FF" : isWFH ? "#F5F3FF" : ri%2===0?_theme.card:_theme.surface,
+                  borderLeft: isLate ? "3px solid #F59E0B" : isEarlyLeave ? "3px solid #8B5CF6" : isOnLeaveStatus ? "3px solid #0EA5E9" : isWFH ? "3px solid #6366F1" : isBizTrip ? "3px solid #F97316" : "3px solid transparent"
                 }}>
                   <td style={{ padding:"8px", color:_theme.textMuted, fontWeight:600 }}>{ri+1}</td>
                   <td style={{ padding:"8px", fontWeight:600, color:_theme.text }}>
@@ -1793,15 +1790,20 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
                       {emp.name}
                       {isLate && <span style={{ fontSize:10, fontWeight:800, background:"#FEF3C7",
                         color:"#B45309", border:"1px solid #FCD34D",
-                        borderRadius:20, padding:"1px 7px" }}>متأخر {att.lateMin}m</span>}
+                        borderRadius:20, padding:"1px 7px" }}>Late {att.lateMin}m</span>}
                     </div>
                     <div style={{ fontSize:11, color:_theme.textMuted }}>{emp.role}</div>
                   </td>
                   <td style={{ padding:"8px" }}>
                     <select value={att.status} onChange={e=>setAtt(emp.id,"status",e.target.value)}
                       style={{ ...I({ width:120, border:`1.5px solid ${
-                        att.status==="Present"?"#10B981":att.status==="Absent"?"#EF4444":
-                        att.status==="Late"?"#F59E0B":"#8B5CF6"}` }) }}>
+                        att.status==="Present"?"#10B981":isAbsent(att.status)?"#EF4444":
+                        att.status==="Late"?"#F59E0B":
+                        att.status==="Annual Leave"?"#0EA5E9":
+                        att.status==="Sick Leave"?"#EC4899":
+                        att.status==="Work From Home"?"#6366F1":
+                        att.status==="On Training"?"#14B8A6":
+                        att.status==="Business Trip"?"#F97316":"#8B5CF6"}` }) }}>
                       {STATUS_OPTIONS.map(s=><option key={s}>{s}</option>)}
                     </select>
                   </td>
@@ -1936,7 +1938,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
       {/* Daily Target Bar */}
       <div style={{ ...CRD({padding:"10px 16px"}), marginBottom:10, display:"flex",
         alignItems:"center", gap:12, flexWrap:"wrap" }}>
-        <span style={{ fontSize:12, fontWeight:700, color:_theme.text }}>🎯 هدف اليوم:</span>
+        <span style={{ fontSize:12, fontWeight:700, color:_theme.text }}>🎯 Daily Target:</span>
         {showTargetEdit ? (
           <div style={{ display:"flex", gap:6, alignItems:"center" }}>
             <input type="number" min="1" max="500" defaultValue={dailyTarget}
@@ -1948,7 +1950,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
           </div>
         ) : (
           <span style={{ fontWeight:800, fontSize:16, color:_theme.primary, cursor:"pointer" }}
-            onClick={()=>setShowTargetEdit(true)}>{dailyTarget} حالة ✏️</span>
+            onClick={()=>setShowTargetEdit(true)}>{dailyTarget} cases ✏️</span>
         )}
         <div style={{ flex:1, background:_theme.surface, borderRadius:20, height:12,
           overflow:"hidden", minWidth:120 }}>
@@ -2007,7 +2009,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
                         return escPct >= ESC_WARN_PCT && p.escalations > 0 ? (
                           <span style={{ fontSize:10, fontWeight:800, background:"#FEF2F2",
                             color:"#EF4444", border:"1px solid #FCA5A5",
-                            borderRadius:20, padding:"1px 7px" }}>⚠️ تصعيد {escPct}%</span>
+                            borderRadius:20, padding:"1px 7px" }}>⚠️ Esc {escPct}%</span>
                         ) : null;
                       })()}
                     </div>
@@ -2167,7 +2169,7 @@ function HeatMapPage({ queueLog, alertThresholdCritical, alertThresholdWarning }
       <div style={{ ...CRD(), padding:16 }}>
         {total === 0 && (
           <div style={{ textAlign:"center", padding:"24px 0", color:_theme.textMuted, fontSize:13 }}>
-            📭 No data yet -- enter Queue data and click <strong>احسب</strong> to populate this chart.
+            📭 No data yet -- enter Queue data and click <strong>Calculate</strong> to populate this chart.
           </div>
         )}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:8 }}>
@@ -2505,7 +2507,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session
           </div>
         </div>
 
-        {/* ── Time bar: Baseline + Update + Duration + احسب ──────────────────── */}
+        {/* ── Time bar: Baseline + Update + Duration + Calculate ──────────────────── */}
         <div style={{ ...CRD({ padding:"12px 16px" }), marginBottom:16,
           display:"flex", gap:16, alignItems:"center", flexWrap:"wrap" }}>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -2530,7 +2532,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session
               { padding:"8px 22px", fontSize:13, marginLeft:"auto",
                 boxShadow:calcDone?"none":`0 0 0 3px ${_theme.primary}30`,
                 transition:"all 0.2s" }) }}>
-            {calcDone ? "✅ Saved to Heat Map" : "🧮 احسب"}
+            {calcDone ? "✅ Saved to Heat Map" : "🧮 Calculate"}
           </button>
         </div>
 
@@ -2677,7 +2679,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session
 
 
 // ─── NOTES PAGE ───────────────────────────────────────────────────────────────
-function NotesPage({ notes, setNotes }) {
+function NotesPage({ notes, setNotes, session }) {
   const [date, setDate] = useState(todayStr());
   const [time, setTime] = useState(() => { const n=new Date(); return pad(n.getHours())+":"+pad(n.getMinutes()); });
   const [text, setText] = useState("");
@@ -2689,18 +2691,18 @@ function NotesPage({ notes, setNotes }) {
   // ── Voice Notes via Web Speech API ──────────────────────────────────────────
   function startVoiceNote() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { setRecMsg("⚠️ متصفحك لا يدعم التعرف على الصوت"); setTimeout(()=>setRecMsg(""),3000); return; }
+    if (!SR) { setRecMsg("⚠️ Your browser does not support voice recognition"); setTimeout(()=>setRecMsg(""),3000); return; }
     const rec = new SR();
-    rec.lang = "ar-SA";
+    rec.lang = "en-US";
     rec.continuous = false;
     rec.interimResults = false;
     rec.onstart  = () => setRecording(true);
     rec.onend    = () => setRecording(false);
-    rec.onerror  = (e) => { setRecording(false); setRecMsg("خطأ في التسجيل: "+e.error); setTimeout(()=>setRecMsg(""),3000); };
+    rec.onerror  = (e) => { setRecording(false); setRecMsg("Recording error: "+e.error); setTimeout(()=>setRecMsg(""),3000); };
     rec.onresult = (e) => {
       const transcript = Array.from(e.results).map(r=>r[0].transcript).join(" ");
       setText(prev => prev ? prev+" "+transcript : transcript);
-      setRecMsg("✅ تم التعرف: "+transcript.slice(0,40));
+      setRecMsg("✅ Recognized: "+transcript.slice(0,40));
       setTimeout(()=>setRecMsg(""),3000);
     };
     rec.start();
@@ -2713,6 +2715,18 @@ function NotesPage({ notes, setNotes }) {
 
   const allNotes = useMemo(()=>{
     let list = Array.isArray(notes) ? [...notes] : [];
+    // Hide private Direct Messages and targeted Manager Messages from Notes page
+    // Only show general notes, not personal messages
+    list = list.filter(n => {
+      if (n.tag === "Direct Message") return false; // Always hidden - use Messages page
+      if (n.tag === "Manager Message") return !n.target || n.target === "all"; // Only show broadcast messages
+      if (n.tag === "Short Break Request") return false;
+      if (n.tag === "Swap Request") return false;
+      if (n.tag === "Break Swap Request") return false;
+      if (n.tag === "Survey") return false;
+      if (n.tag === "Survey Response") return false;
+      return true;
+    });
     if (filterTag !== "All") list = list.filter(n=>n.tag===filterTag);
     if (filterFrom) list = list.filter(n=>n.date>=filterFrom);
     if (filterTo)   list = list.filter(n=>n.date<=filterTo);
@@ -2735,22 +2749,22 @@ function NotesPage({ notes, setNotes }) {
       </div>
       {/* Filter bar */}
       <div style={{ display:"flex", gap:8, marginBottom:12, flexWrap:"wrap", alignItems:"center" }}>
-        <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>فلتر:</span>
+        <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>Filter:</span>
         <select value={filterTag} onChange={e=>setFilterTag(e.target.value)}
           style={{ ...I({width:160}) }}>
-          <option value="All">كل الأنواع</option>
+          <option value="All">All Types</option>
           {TAGS.map(t=><option key={t} value={t}>{t}</option>)}
         </select>
         <input type="date" value={filterFrom} onChange={e=>setFilterFrom(e.target.value)}
-          style={{ ...I({width:140}) }} placeholder="من تاريخ"/>
+          style={{ ...I({width:140}) }} placeholder="From date"/>
         <input type="date" value={filterTo} onChange={e=>setFilterTo(e.target.value)}
-          style={{ ...I({width:140}) }} placeholder="إلى تاريخ"/>
+          style={{ ...I({width:140}) }} placeholder="To date"/>
         {(filterTag!=="All"||filterFrom||filterTo) && (
           <button onClick={()=>{setFilterTag("All");setFilterFrom("");setFilterTo("");}}
-            style={{ ...PBT("#94A3B8",{padding:"5px 10px",fontSize:11}) }}>✕ مسح الفلتر</button>
+            style={{ ...PBT("#94A3B8",{padding:"5px 10px",fontSize:11}) }}>✕ Clear</button>
         )}
         <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>
-          {allNotes.length} ملاحظة
+          {allNotes.length} notes
         </span>
       </div>
       <div style={{ ...CRD(), marginBottom:16 }}>
@@ -2776,7 +2790,7 @@ function NotesPage({ notes, setNotes }) {
               style={{ background:recording?"#EF4444":"#6366F1", color:"#fff", border:"none",
                 borderRadius:8, padding:"8px 16px", fontSize:13, cursor:"pointer", fontWeight:600,
                 display:"flex", alignItems:"center", gap:5 }}>
-              {recording ? "⏹ جارٍ التسجيل..." : "🎙️ تسجيل صوتي"}
+              {recording ? "⏹ Recording..." : "🎙️ Voice Note"}
             </button>
           ) : null}
         </div>
@@ -2807,7 +2821,7 @@ function getDefaultBreakDuration(dateStr) {
   return d >= cutoff ? 60 : 30;
 }
 
-// ─── BREAK PAGE ── نظام الإدخال الرقمي (ساعات من بداية الشفت) ────────────────
+// ─── BREAK PAGE ─────────────────────────────────────────────────────────────────
 function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedule, canEdit, addAudit, session, notes, setNotes, myShiftFilter }) {
   const [date, setDate]     = useState(todayStr());
   // If myShiftFilter is on, auto-select my shift
@@ -3009,7 +3023,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
       {!canEdit && (
         <div style={{ background:"rgba(245,158,11,0.08)", border:"1px solid rgba(245,158,11,0.2)",
           borderRadius:8, padding:"10px 16px", marginBottom:14, fontSize:12, color:_theme.textSub }}>
-          👁️ عرض فقط — صلاحية التعديل للمشرفين فقط.
+          👁️ View only — editing requires supervisor access.
         </div>
       )}
 
@@ -3619,9 +3633,9 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
       {showShortModal && canEdit && (
         <Modal title={`⚡ Short Break -- ${employees.find(e=>e.id===showShortModal)?.name}`}
           onClose={()=>setShowShortModal(null)} width={380}>
-          <label style={LBL}>وقت البداية</label>
+          <label style={LBL}>Start Time</label>
           <input type="time" value={shortStart} onChange={e=>setShortStart(e.target.value)} style={{ ...I(), marginBottom:12 }}/>
-          <label style={LBL}>المدة (دقيقة)</label>
+          <label style={LBL}>Duration (min)</label>
           <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
             {[5,10,15,20,30].map(d=>(
               <button key={d} onClick={()=>setShortDur(d)}
@@ -3807,7 +3821,7 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
       {showAdd && (
         <Modal title={`Add Employee to ${sh?.label||""} · ${dayName}`} onClose={()=>setShowAdd(false)}>
           <div style={{ background:"#EFF6FF", borderRadius:6, padding:"8px 12px", marginBottom:14, fontSize:12, color:"#1D4ED8" }}>
-            سيتم تعيين الموظف تلقائياً على شفت <strong>{sh?.label} ({sh?.start}-{sh?.end})</strong> يوم <strong>{dayName}</strong>
+            Employee will be assigned to shift <strong>{sh?.label} ({sh?.start}-{sh?.end})</strong> on <strong>{dayName}</strong>
           </div>
           <label style={LBL}>Name</label>
           <input style={{ ...I(), marginBottom:12 }} value={newEmp.name} onChange={e=>setNewEmp(p=>({...p,name:e.target.value}))} placeholder="Full name" autoFocus/>
@@ -3957,7 +3971,7 @@ function ReportsPage({ employees, schedule, shifts, attendance, performance, hea
     const title   = reportType==="scorecard" ? "Scorecard Report" :
                     reportType==="monthly"   ? "Monthly Report"   : "Operations Report";
     const win = window.open("", "_blank", "width=900,height=700");
-    if (!win) { alert("اسمح بالـ Popup في المتصفح لفتح نافذة الطباعة."); return; }
+    if (!win) { alert("Allow popups in your browser to open the print window."); return; }
     win.document.write(`<!DOCTYPE html>
 <html dir="ltr" lang="en">
 <head>
@@ -4086,7 +4100,7 @@ function ReportsPage({ employees, schedule, shifts, attendance, performance, hea
         const perf = ((performance[d]||{})[emp.id]) || {};
         const s = stats[emp.id];
         s.workDays++;
-        if (att.status==="Absent") s.abs++;
+        if (isAbsent(att.status)) s.abs++;
         if (att.status==="Late" || (att.lateMin||0)>=7) { s.lateCount++; s.lateMin += att.lateMin||0; }
         if (att.status==="Early Leave") s.earlyCount++;
         s.closed       += perf.closed||0;
@@ -4127,7 +4141,7 @@ function ReportsPage({ employees, schedule, shifts, attendance, performance, hea
     return true;
   });
     const attMap  = attendance[date]||{};
-    const present = dayEmps.filter(e=>(attMap[e.id]?.status||"Present")==="Present").length;
+    const present = dayEmps.filter(e=>isPresent(attMap[e.id]?.status||"Present")).length;
     const absent  = dayEmps.filter(e=>attMap[e.id]?.status==="Absent");
     const late    = dayEmps.filter(e=>attMap[e.id]?.status==="Late");
     const totalClosed = dayEmps.reduce((s,e)=>s+((performance[date]||{})[e.id]?.closed||0),0);
@@ -4148,7 +4162,7 @@ function ReportsPage({ employees, schedule, shifts, attendance, performance, hea
     const ksaCritical = n(ksaOBCurr)>400 || n(ksaOsloCurr)>10;
     const gccStatus   = gccT2Net<=0 ? "🟢 GCC Queue [STABLE & IMPROVING]" : "🟡 GCC Queue [MONITOR]";
 
-    return `Date: ${new Date(date+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Riyadh"})}
+    return `Date: ${new Date(date+"T12:00:00").toLocaleDateString("en-GB",{weekday:"long",year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Riyadh"})}
 Time of Update: ${opsUpdTime} (Comparative Analysis: ${opsBaseTime} vs ${opsUpdTime})
 Subject: Operations Performance, Productivity Analysis & Shift Allocation
 Overall Operations Status: ${opsStatus}${opsStatusNote ? ` (${opsStatusNote})` : ""}
@@ -4257,7 +4271,7 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
 
   function shareWhatsApp() {
     const text = getReportText();
-    if (!text) { alert("لا يوجد تقرير لمشاركته. اختر نوع التقرير أولاً."); return; }
+    if (!text) { alert("No report to share. Select a report type first."); return; }
     const encoded = encodeURIComponent(text.slice(0,1800)); // WhatsApp limit
     window.open("https://wa.me/?text="+encoded, "_blank");
   }
@@ -4296,7 +4310,7 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
           style={{ background:"#7C3AED", color:"#fff", border:"none", borderRadius:8,
             padding:"8px 14px", fontSize:13, cursor:"pointer", fontWeight:600,
             display:"flex", alignItems:"center", gap:5 }}>
-          🖨️ PDF / طباعة
+          🖨️ PDF / Print
         </button>
         {(reportType==="ops"||reportType==="monthly") && (
           <button onClick={shareWhatsApp}
@@ -4307,7 +4321,7 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
               <path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.395 5.61L0 24l6.555-1.371A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.028-1.385l-.36-.214-3.732.98.997-3.648-.235-.374A9.818 9.818 0 1112 21.818z"/>
             </svg>
-            واتساب
+            WhatsApp
           </button>
         )}
       </div>
@@ -4346,10 +4360,10 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
             {/* Trend summary cards */}
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))", gap:10, marginBottom:20 }}>
               {[
-                { label:"إجمالي الإغلاق", cur:curr.totClosed, dlt:delta(curr.totClosed,prev?.totClosed), color:"#10B981" },
-                { label:"التصعيدات",       cur:curr.totEsc,    dlt:delta(curr.totEsc,prev?.totEsc),    color:"#F59E0B" },
-                { label:"الغيابات",        cur:curr.totAbs,    dlt:delta(curr.totAbs,prev?.totAbs),    color:"#EF4444" },
-                { label:"التأخيرات",       cur:curr.totLate,   dlt:delta(curr.totLate,prev?.totLate),  color:"#8B5CF6" },
+                { label:"Total Closed", cur:curr.totClosed, dlt:delta(curr.totClosed,prev?.totClosed), color:"#10B981" },
+                { label:"Escalations",       cur:curr.totEsc,    dlt:delta(curr.totEsc,prev?.totEsc),    color:"#F59E0B" },
+                { label:"Absences",        cur:curr.totAbs,    dlt:delta(curr.totAbs,prev?.totAbs),    color:"#EF4444" },
+                { label:"Late Arrivals",       cur:curr.totLate,   dlt:delta(curr.totLate,prev?.totLate),  color:"#8B5CF6" },
               ].map(({label,cur,dlt,color})=>(
                 <div key={label} style={{ ...CRD({padding:"14px 16px"}), borderTop:`3px solid ${color}` }}>
                   <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>{label}</div>
@@ -4359,7 +4373,7 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
                       color: color==="EF4444"||color==="#EF4444"||color==="#8B5CF6"
                         ? (dlt.up?"#EF4444":"#10B981")
                         : (dlt.up?"#10B981":"#EF4444") }}>
-                      {dlt.up?"▲":"▼"} {Math.abs(dlt.pct)}% vs الشهر الماضي
+                      {dlt.up?"▲":"▼"} {Math.abs(dlt.pct)}% vs last month
                     </div>
                   )}
                 </div>
@@ -4369,7 +4383,7 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
             {/* Bar chart comparison */}
             <div style={{ ...CRD(), marginBottom:14 }}>
               <div style={{ fontWeight:700, color:_theme.text, marginBottom:14, fontSize:13 }}>
-                📈 مقارنة الإغلاق — آخر 4 أشهر
+                📈 Closure Comparison — Last 4 months
               </div>
               <div style={{ display:"flex", gap:12, alignItems:"flex-end", height:120 }}>
                 {monthData.map((d,i)=>{
@@ -4393,7 +4407,7 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
               <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
                 <thead>
                   <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
-                    {["الشهر","الإغلاق","التصعيدات","الغيابات","التأخيرات"].map(h=>(
+                    {["Month","Closed","Escalations","Absences","Late Arrivals"].map(h=>(
                       <th key={h} style={{ padding:"10px 12px", textAlign:"right", fontWeight:700,
                         color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
                     ))}
@@ -4507,20 +4521,20 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
             <div style={CRD()}>
               <div style={{ fontWeight:700, color:_theme.text, marginBottom:12, fontSize:14 }}>👥 Workforce Allocation</div>
               <div style={{ fontSize:12, color:_theme.textMuted, marginBottom:10 }}>
-                أدخل اسم الفريق والموظفين (سطر لكل موظف)
+                Enter team name and employees (one per line)
               </div>
               {allocRows.map((row, i) => (
                 <div key={i} style={{ marginBottom:12, background:_theme.isDark?"#0D1117":"#F8FAFC", borderRadius:8, padding:"10px 12px" }}>
                   <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:6 }}>
                     <input value={row.team} onChange={e=>updateAllocRow(i,"team",e.target.value)}
-                      style={{ ...I({ flex:1 })}} placeholder="اسم الفريق / المهمة"/>
+                      style={{ ...I({ flex:1 })}} placeholder="Team / Task name"/>
                     <button onClick={()=>removeAllocRow(i)}
                       style={{ background:"none", border:"1px solid #FCA5A5", color:"#EF4444",
                         borderRadius:6, padding:"4px 8px", cursor:"pointer", fontSize:12, flexShrink:0 }}>✕</button>
                   </div>
                   <textarea value={row.agents} onChange={e=>updateAllocRow(i,"agents",e.target.value)}
                     rows={3} style={{ ...I(), resize:"vertical", fontSize:12 }}
-                    placeholder={"اسم الموظف (+ المهمة)\nاسم الموظف\nاسم الموظف"}/>
+                    placeholder={"Employee name (+task)\nEmployee name\nEmployee name"}/>
                 </div>
               ))}
               <button onClick={addAllocRow} style={PBT("#10B981",{width:"100%",padding:"7px",fontSize:12})}>+ Add Team</button>
@@ -4948,7 +4962,7 @@ function AuditLogPage({ auditLog, session }) {
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
             <span style={{ fontSize:16 }}>🔒</span>
             <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>Data Edit History</span>
-            <span style={{ fontSize:12, color:_theme.textMuted }}>-- جميع التعديلات على البيانات مسجّلة · لا يمكن حذفها</span>
+            <span style={{ fontSize:12, color:_theme.textMuted }}>— All data changes are logged</span>
           </div>
 
           {/* Edit counts per user */}
@@ -4976,7 +4990,7 @@ function AuditLogPage({ auditLog, session }) {
               );
             })}
             {Object.keys(userEditCounts).length === 0 && (
-              <div style={{ color:_theme.textMuted, fontSize:13, padding:8 }}>لا توجد تعديلات مسجّلة بعد.</div>
+              <div style={{ color:_theme.textMuted, fontSize:13, padding:8 }}>No changes recorded yet.</div>
             )}
           </div>
 
@@ -4985,11 +4999,11 @@ function AuditLogPage({ auditLog, session }) {
             <div>
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
                 <span style={{ fontWeight:700, fontSize:13, color:"#6366F1" }}>
-                  📋 تعديلات {showHistoryFor}
+                  📋 Changes for {showHistoryFor}
                 </span>
                 <button onClick={()=>{ setShowHistoryFor(null); setFilterUser(""); }}
                   style={{ background:"none", border:"1px solid #CBD5E1", borderRadius:6,
-                    padding:"2px 8px", fontSize:12, cursor:"pointer", color:_theme.textMuted }}>✕ إغلاق</button>
+                    padding:"2px 8px", fontSize:12, cursor:"pointer", color:_theme.textMuted }}>✕ Close</button>
               </div>
               <div style={{ maxHeight:260, overflowY:"auto" }}>
                 {editHistory.filter(l=>l.by===showHistoryFor).map((log,i) => (
@@ -5194,20 +5208,20 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
   }
 
   function deleteEmployee(emp) {
-    if (emp.name === session?.name) { alert("لا يمكنك حذف حسابك الخاص."); return; }
-    if (!window.confirm(`⚠️ حذف الموظف "${emp.name}" نهائياً من النظام؟\nسيُحذف من الجداول والحضور وكل السجلات.`)) return;
+    if (emp.name === session?.name) { alert("You cannot delete your own account."); return; }
+    if (!window.confirm(`⚠️ Delete employee "${emp.name}" permanently?\nThis will remove them from all records.`)) return;
     setEmployees(prev => prev.filter(e => e.id !== emp.id));
   }
 
   function addEmployee() {
-    if (!addForm.name.trim()) { setAddDone("❌ الاسم مطلوب"); return; }
+    if (!addForm.name.trim()) { setAddDone("❌ Name is required"); return; }
     const id = "e" + Date.now();
     setEmployees(prev => [...prev, {
       id, name:addForm.name.trim(), role:addForm.role,
       gender:addForm.gender, tasks:addForm.tasks,
       isAdmin:false, hiddenPages:[]
     }]);
-    setAddDone(`✅ تمت إضافة "${addForm.name.trim()}" بنجاح`);
+    setAddDone(`✅ Successfully added "${addForm.name.trim()}"`);
     setAddForm({ name:"", role:"Agent", gender:"M", tasks:[] });
     setTimeout(() => setAddDone(""), 3000);
   }
@@ -5219,16 +5233,16 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
   }
 
   function toggleAdmin(emp) {
-    if (emp.name === session?.name) { alert("لا يمكنك تعديل صلاحياتك الخاصة."); return; }
+    if (emp.name === session?.name) { alert("You cannot edit your own permissions."); return; }
     const next = !emp.isAdmin;
-    if (!window.confirm(`${next?"منح":"إزالة"} صلاحية Admin من "${emp.name}"؟`)) return;
+    if (!window.confirm(`${next?"Grant":"Remove"} Admin access for "${emp.name}"?`)) return;
     updateEmp(emp.id, { isAdmin: next });
   }
 
   const tabs = [
-    { k:"roles", icon:"🔑", label:"الأدوار والصلاحيات" },
-    { k:"pages", icon:"🗂️", label:"تحكم الصفحات" },
-    { k:"add",   icon:"➕", label:"إضافة موظف" },
+    { k:"roles", icon:"🔑", label:"Roles & Permissions" },
+    { k:"pages", icon:"🗂️", label:"Page Access Control" },
+    { k:"add",   icon:"➕", label:"Add Employees" },
   ];
 
   return (
@@ -5238,8 +5252,8 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, flexWrap:"wrap" }}>
         <span style={{ fontSize:18 }}>👑</span>
-        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>إدارة الموظفين والصلاحيات</span>
-        <span style={{ fontSize:12, color:_theme.textMuted }}>— حصري للـ Owner</span>
+        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>Employee & Permissions Management</span>
+        <span style={{ fontSize:12, color:_theme.textMuted }}>— Owner only</span>
         <span style={{ background:"#EF444420", color:"#EF4444", border:"1px solid #EF444440",
           borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>
           👑 Owner Only
@@ -5249,7 +5263,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
             style={{ background:_theme.input, border:`1px solid ${_theme.inputBorder}`,
               borderRadius:8, padding:"6px 12px", fontSize:12, color:_theme.inputText,
               outline:"none", width:200 }}
-            placeholder="🔍 بحث عن موظف..."/>
+            placeholder="🔍 Search employees..."/>
         </div>
       </div>
 
@@ -5272,7 +5286,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
           <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
             <thead>
               <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
-                {["الموظف","الجنس","الدور الحالي","تغيير الدور","Admin","المهام","حذف"].map(h=>(
+                {["Employee","Gender","Current Role","Change Role","Admin","Tasks","Delete"].map(h=>(
                   <th key={h} style={{ padding:"10px 10px", textAlign:"right", fontWeight:700,
                     color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
                 ))}
@@ -5290,7 +5304,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
                       <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                         {emp.isAdmin && <span title="Admin" style={{ fontSize:12 }}>⚡</span>}
                         {emp.name}
-                        {isSelf && <span style={{ fontSize:10, color:_theme.textMuted }}>(أنت)</span>}
+                        {isSelf && <span style={{ fontSize:10, color:_theme.textMuted }}>(You)</span>}
                       </div>
                       <div style={{ fontSize:10, color:_theme.textMuted }}>{emp.id}</div>
                     </td>
@@ -5328,8 +5342,8 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
                         {Object.keys(ROLE_CAN_EDIT).map(role => (
                           <button key={role}
                             onClick={()=>{
-                              if (isSelf) { alert("لا يمكنك تغيير دورك الخاص."); return; }
-                              if (!window.confirm(`تغيير دور "${emp.name}" إلى "${role}"؟`)) return;
+                              if (isSelf) { alert("You cannot change your own role."); return; }
+                              if (!window.confirm(`Change role for "${emp.name}" to "${role}"?`)) return;
                               updateEmp(emp.id, { role });
                             }}
                             style={{ border:`1.5px solid ${emp.role===role?(ROLE_COLORS[role]||"#64748B"):"#CBD5E1"}`,
@@ -5345,7 +5359,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
                     {/* Admin toggle */}
                     <td style={{ padding:"8px 10px", textAlign:"center" }}>
                       <button onClick={()=>toggleAdmin(emp)}
-                        title={emp.isAdmin?"إزالة Admin":"منح Admin"}
+                        title={emp.isAdmin?"Remove Admin":"Grant Admin"}
                         style={{ border:`2px solid ${emp.isAdmin?"#F59E0B":"#CBD5E1"}`,
                           borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer",
                           fontWeight:800,
@@ -5383,7 +5397,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
                     <td style={{ padding:"8px 10px", textAlign:"center" }}>
                       <button onClick={()=>deleteEmployee(emp)}
                         disabled={isSelf}
-                        title="حذف الموظف نهائياً"
+                        title="Delete employee permanently"
                         style={{ background:isSelf?"transparent":"#FEF2F2",
                           border:`1px solid ${isSelf?"#CBD5E1":"#FCA5A5"}`,
                           color:isSelf?"#CBD5E1":"#EF4444", borderRadius:6,
@@ -5397,7 +5411,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
               })}
               {filtered.length===0 && (
                 <tr><td colSpan={7} style={{ padding:24, textAlign:"center", color:_theme.textMuted }}>
-                  لا توجد نتائج للبحث
+                  No search results
                 </td></tr>
               )}
             </tbody>
@@ -5410,8 +5424,8 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
         <div>
           <div style={{ fontSize:12, color:_theme.textMuted, marginBottom:12, padding:"8px 12px",
             background:_theme.surface, borderRadius:8, border:`1px solid ${_theme.cardBorder}` }}>
-            💡 اضغط على اسم الموظف لإظهار/إخفاء الصفحات الخاصة به. الصفحات المحجوبة لن تظهر في نافذة التنقل.
-            الـ Owner دائماً يرى كل الصفحات بغض النظر عن هذا الإعداد.
+            💡 Click an employee name to toggle their page visibility.
+            Owner always sees all pages regardless of this setting.
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {filtered.map(emp => {
@@ -5433,13 +5447,13 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
                     {hidden.length > 0 && (
                       <span style={{ background:"#FEF2F2", color:"#EF4444", border:"1px solid #FCA5A5",
                         borderRadius:20, padding:"1px 8px", fontSize:10, fontWeight:700, marginLeft:"auto" }}>
-                        {hidden.length} صفحة محجوبة
+                        {hidden.length} pages hidden
                       </span>
                     )}
                     {hidden.length === 0 && (
                       <span style={{ background:"#F0FDF4", color:"#10B981", border:"1px solid #86EFAC",
                         borderRadius:20, padding:"1px 8px", fontSize:10, fontWeight:700, marginLeft:"auto" }}>
-                        ✅ كل الصفحات مرئية
+                        ✅ All pages visible
                       </span>
                     )}
                   </div>
@@ -5448,7 +5462,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
                     <div style={{ padding:"10px 14px", borderTop:`1px solid ${_theme.cardBorder}` }}>
                       {isSelf && (
                         <div style={{ fontSize:12, color:"#F59E0B", marginBottom:8 }}>
-                          ⚠️ لا يمكن تعديل صفحاتك الخاصة كـ Owner
+                          ⚠️ Cannot edit your own pages as Owner
                         </div>
                       )}
                       <div style={{ display:"flex", gap:8, marginBottom:10, flexWrap:"wrap" }}>
@@ -5457,14 +5471,14 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
                           style={{ border:"1.5px solid #10B981", borderRadius:8, padding:"4px 12px",
                             fontSize:11, cursor:isSelf?"default":"pointer", fontWeight:700,
                             background:"#F0FDF4", color:"#10B981", opacity:isSelf?0.5:1 }}>
-                          ✅ إظهار الكل
+                          ✅ Show All
                         </button>
                         <button onClick={()=>!isSelf&&updateEmp(emp.id,{hiddenPages:[...ALL_MANAGEABLE]})}
                           disabled={isSelf}
                           style={{ border:"1.5px solid #EF4444", borderRadius:8, padding:"4px 12px",
                             fontSize:11, cursor:isSelf?"default":"pointer", fontWeight:700,
                             background:"#FEF2F2", color:"#EF4444", opacity:isSelf?0.5:1 }}>
-                          🚫 إخفاء الكل
+                          🚫 Hide All
                         </button>
                       </div>
                       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))", gap:6 }}>
@@ -5504,7 +5518,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
         <div style={{ maxWidth:500 }}>
           <div style={{ fontSize:12, color:_theme.textMuted, marginBottom:16, padding:"8px 12px",
             background:_theme.surface, borderRadius:8, border:`1px solid ${_theme.cardBorder}` }}>
-            ➕ إضافة موظف جديد للنظام — سيظهر فوراً في كل الصفحات ويمكن تخصيصه من تبويب الأدوار.
+            ➕ Add new employee to the system — appears immediately in all pages.
           </div>
 
           {addDone && (
@@ -5520,10 +5534,10 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
             {/* Name */}
             <div>
               <label style={{ fontSize:11, fontWeight:700, color:_theme.textSub, display:"block", marginBottom:5 }}>
-                الاسم الكامل *
+                Full Name *
               </label>
               <input value={addForm.name} onChange={e=>setAddForm(p=>({...p,name:e.target.value}))}
-                placeholder="أدخل الاسم الكامل..."
+                placeholder="Enter full name..."
                 style={{ background:_theme.input, border:`1px solid ${_theme.inputBorder}`,
                   borderRadius:8, padding:"9px 12px", fontSize:13, color:_theme.inputText,
                   outline:"none", width:"100%" }}/>
@@ -5532,7 +5546,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
             {/* Role */}
             <div>
               <label style={{ fontSize:11, fontWeight:700, color:_theme.textSub, display:"block", marginBottom:5 }}>
-                الدور
+                Role
               </label>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
                 {Object.keys(ROLE_CAN_EDIT).map(role => (
@@ -5554,10 +5568,10 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
             {/* Gender */}
             <div>
               <label style={{ fontSize:11, fontWeight:700, color:_theme.textSub, display:"block", marginBottom:5 }}>
-                الجنس
+                Gender
               </label>
               <div style={{ display:"flex", gap:8 }}>
-                {[["M","👨 ذكر","#1D4ED8","#EFF6FF"],["F","👩 أنثى","#BE185D","#FCE7F3"]].map(([v,l,c,bg])=>(
+                {[["M","👨 Male","#1D4ED8","#EFF6FF"],["F","👩 Female","#BE185D","#FCE7F3"]].map(([v,l,c,bg])=>(
                   <button key={v} onClick={()=>setAddForm(p=>({...p,gender:v}))}
                     style={{ flex:1, border:`2px solid ${addForm.gender===v?c:"#CBD5E1"}`,
                       borderRadius:8, padding:"9px", cursor:"pointer",
@@ -5572,7 +5586,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
             {/* Tasks */}
             <div>
               <label style={{ fontSize:11, fontWeight:700, color:_theme.textSub, display:"block", marginBottom:5 }}>
-                المهام (اختياري)
+                Tasks (optional)
               </label>
               <div style={{ display:"flex", gap:8 }}>
                 {["KFOOD","KEEMRT"].map(task => {
@@ -5596,7 +5610,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
               style={{ background:_theme.primary, color:"#fff", border:"none", borderRadius:10,
                 padding:"12px", fontSize:14, cursor:"pointer", fontWeight:700,
                 boxShadow:`0 4px 14px ${_theme.primary}40`, marginTop:4 }}>
-              ➕ إضافة الموظف للنظام
+              ➕ Add Employee
             </button>
           </div>
         </div>
@@ -5622,12 +5636,19 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
   const [msgType, setMsgType]     = useState("shoutout"); // "shoutout"|"motivation"|"reminder"
   const [msgSaved, setMsgSaved]   = useState(false);
 
-  // All manager messages = notes with tag "Manager Message"
+  // Manager messages — only show messages for me, sent by me, or sent to all
   const managerMessages = useMemo(() =>
     (Array.isArray(notes) ? notes : [])
-      .filter(n => n.tag === "Manager Message")
+      .filter(n => {
+        if (n.tag !== "Manager Message") return false;
+        const isAll     = !n.target || n.target === "all";
+        const isForMe   = n.target === session?.name;
+        const fromMe    = n.from === session?.name;
+        // Supervisors can see all messages they sent; agents only see theirs
+        return isAll || isForMe || fromMe;
+      })
       .sort((a,b) => b.ts.localeCompare(a.ts))
-  , [notes]);
+  , [notes, session]);
 
   function sendManagerMessage() {
     if (!msgText.trim()) return;
@@ -5639,7 +5660,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
       time: pad(now.getHours())+":"+pad(now.getMinutes()),
       tag:  "Manager Message",
       text: msgText.trim(),
-      from: session?.name || "المشرف",
+      from: session?.name || "Supervisor",
       target: msgTarget,
       msgType,
     };
@@ -5735,8 +5756,8 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
     return v && v !== "OFF";
   }).length;
   const todayAttendance = attendance[todayKey] || {};
-  const presentToday = Object.values(todayAttendance).filter(a => a.status === "Present" || a.status === "Late").length;
-  const absentToday  = Object.values(todayAttendance).filter(a => a.status === "Absent").length;
+  const presentToday = Object.values(todayAttendance).filter(a => isPresent(a.status)).length;
+  const absentToday  = Object.values(todayAttendance).filter(a => isAbsent(a.status)).length;
 
   const signInsToday = logs.filter(l => l.ts?.startsWith(todayKey) && l.action === "Sign In").length;
   const editsToday   = logs.filter(l => l.ts?.startsWith(todayKey) && l.action !== "Page View" && l.action !== "Sign In" && l.action !== "Sign Out").length;
@@ -5785,10 +5806,10 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
           style={{ background:"#10B981", color:"#fff", border:"none", borderRadius:8,
             padding:"9px 18px", fontSize:13, cursor:"pointer", fontWeight:700,
             display:"flex", alignItems:"center", gap:6 }}>
-          💾 تصدير نسخة احتياطية
+          💾 Export Backup
         </button>
         <div style={{ fontSize:11, color:_theme.textMuted }}>
-          يُصدّر كل البيانات ملف JSON واحد — احتفظ به كنسخة احتياطية يومية.
+          Exports all data as a single JSON file — keep as a daily backup.
         </div>
       </div>
 
@@ -5797,13 +5818,13 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
         borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
           <span style={{ fontSize:16 }}>🔔</span>
-          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>إعدادات عتبة التنبيهات</span>
-          <span style={{ fontSize:12, color:_theme.textMuted }}>— تخصيص حدود Critical Alert</span>
+          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>Alert Threshold Settings</span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>— Customize alert limits</span>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr auto", gap:12, alignItems:"flex-end" }}>
           <div>
             <label style={{ fontSize:11, fontWeight:700, color:"#EF4444", display:"block", marginBottom:6 }}>
-              🚨 حد CRITICAL (افتراضي: 400 حالة)
+              🚨 CRITICAL Threshold (default: 400 cases)
             </label>
             <div style={{ display:"flex", alignItems:"center", gap:6 }}>
               <button onClick={()=>setEditCritical(v=>Math.max(editWarning+10, v-10))}
@@ -5820,7 +5841,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
           </div>
           <div>
             <label style={{ fontSize:11, fontWeight:700, color:"#F59E0B", display:"block", marginBottom:6 }}>
-              ⚠️ حد WARNING (افتراضي: 200 حالة)
+              ⚠️ WARNING Threshold (default: 200 cases)
             </label>
             <div style={{ display:"flex", alignItems:"center", gap:6 }}>
               <button onClick={()=>setEditWarning(v=>Math.max(10, v-10))}
@@ -5839,12 +5860,12 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
             onClick={()=>saveAlertThresholds(editCritical, editWarning)}
             style={{ background:_theme.primary, color:"#fff", border:"none", borderRadius:8,
               padding:"9px 20px", fontSize:13, cursor:"pointer", fontWeight:700, whiteSpace:"nowrap" }}>
-            💾 حفظ العتبات
+            💾 Save Thresholds
           </button>
         </div>
         <div style={{ marginTop:10, fontSize:11, color:_theme.textMuted }}>
-          الإعدادات الحالية: Critical عند <strong style={{color:"#EF4444"}}>{alertThresholdCritical}</strong> حالة ·
-          Warning عند <strong style={{color:"#F59E0B"}}>{alertThresholdWarning}</strong> حالة
+          Current: Critical at <strong style={{color:"#EF4444"}}>{alertThresholdCritical}</strong> cases ·
+          Warning at <strong style={{color:"#F59E0B"}}>{alertThresholdWarning}</strong> cases
         </div>
       </div>
 
@@ -5858,8 +5879,8 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
         borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
           <span style={{ fontSize:16 }}>📊</span>
-          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>مراجعة الفريق الأسبوعية</span>
-          <span style={{ fontSize:12, color:_theme.textMuted }}>— آخر 7 أيام</span>
+          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>Weekly Team Review</span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>— Last 7 days</span>
         </div>
         {(() => {
           const last7days = Array.from({length:7},(_,i)=>{
@@ -5871,8 +5892,8 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
             const perfMap = performance[date]||{};
             const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
             const scheduled = employees.filter(e=>{const v=(schedule[e.id]||{})[dayName];return v&&v!=="OFF";});
-            const present   = Object.values(attMap).filter(a=>a.status==="Present"||a.status==="Late").length;
-            const absent    = Object.values(attMap).filter(a=>a.status==="Absent").length;
+            const present   = Object.values(attMap).filter(a=>isPresent(a.status)).length;
+            const absent    = Object.values(attMap).filter(a=>isAbsent(a.status)).length;
             const closed    = Object.values(perfMap).reduce((s,p)=>s+(p.closed||0),0);
             const esc       = Object.values(perfMap).reduce((s,p)=>s+(p.escalations||0),0);
             return {label,date,scheduled:scheduled.length,present,absent,closed,esc};
@@ -5884,17 +5905,17 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
             <div>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:14 }}>
                 <div style={{ ...CRD({padding:"10px 12px"}), borderTop:"3px solid #10B981" }}>
-                  <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>إجمالي الإغلاق 7 أيام</div>
+                  <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>Total Closed 7 days</div>
                   <div style={{ fontSize:24, fontWeight:800, color:"#10B981" }}>{totalClosed7}</div>
                   <SparkBar values={weekStats.map(d=>d.closed)} color="#10B981" height={32} width={100}/>
                 </div>
                 <div style={{ ...CRD({padding:"10px 12px"}), borderTop:"3px solid #F59E0B" }}>
-                  <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>إجمالي التصعيدات 7 أيام</div>
+                  <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>Total Escalations 7 days</div>
                   <div style={{ fontSize:24, fontWeight:800, color:"#F59E0B" }}>{totalEsc7}</div>
                   <SparkLine values={weekStats.map(d=>d.esc)} color="#F59E0B" height={32} width={100}/>
                 </div>
                 <div style={{ ...CRD({padding:"10px 12px"}), borderTop:"3px solid #3B82F6" }}>
-                  <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>متوسط الحضور اليومي</div>
+                  <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>Avg Daily Attendance</div>
                   <div style={{ fontSize:24, fontWeight:800, color:"#3B82F6" }}>{avgPresent}</div>
                   <SparkBar values={weekStats.map(d=>d.present)} color="#3B82F6" height={32} width={100}/>
                 </div>
@@ -5903,7 +5924,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
                 <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
                   <thead>
                     <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
-                      {["اليوم","المجدولون","حاضر","غائب","مغلق","تصعيد"].map(h=>(
+                      {["Day","Scheduled","Present","Absent","Closed","Esc"].map(h=>(
                         <th key={h} style={{ padding:"8px 10px", textAlign:"right", fontWeight:700,
                           color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
                       ))}
@@ -5932,13 +5953,13 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
         borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, flexWrap:"wrap" }}>
           <span style={{ fontSize:16 }}>💬</span>
-          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>رسائل الإدارة للفريق</span>
-          <span style={{ fontSize:12, color:_theme.textMuted }}>— تظهر في لوحة المتصدرين للموظفين</span>
+          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>Team Messages</span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>— Shown on employee leaderboard</span>
           {managerMessages.length > 0 && (
             <span style={{ background:_theme.accent+"22", color:_theme.accent,
               border:`1px solid ${_theme.accent}40`, borderRadius:20,
               padding:"2px 10px", fontSize:11, fontWeight:700 }}>
-              {managerMessages.length} رسالة
+              {managerMessages.length} messages
             </span>
           )}
         </div>
@@ -5952,9 +5973,9 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
             {/* Type buttons */}
             <div style={{ display:"flex", gap:6 }}>
               {[
-                { k:"shoutout",    icon:"🌟", label:"تقدير" },
-                { k:"motivation",  icon:"🚀", label:"تحفيز" },
-                { k:"reminder",    icon:"📌", label:"تذكير" },
+                { k:"shoutout",    icon:"🌟", label:"Recognition" },
+                { k:"motivation",  icon:"🚀", label:"Motivation" },
+                { k:"reminder",    icon:"📌", label:"Reminder" },
               ].map(({k,icon,label}) => (
                 <button key={k} onClick={()=>setMsgType(k)}
                   style={{ border:`1.5px solid ${msgType===k?_theme.accent:_theme.cardBorder}`,
@@ -5969,7 +5990,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
             {/* Target selector */}
             <select value={msgTarget} onChange={e=>setMsgTarget(e.target.value)}
               style={{ ...I({ width:180, marginBottom:0, fontSize:12 }) }}>
-              <option value="all">👥 للفريق كله</option>
+              <option value="all">👥 Entire Team</option>
               {employees.filter(e=>e.role!=="Agent"||true).map(e=>(
                 <option key={e.id} value={e.name}>{e.name}</option>
               ))}
@@ -5982,9 +6003,9 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
             onChange={e=>setMsgText(e.target.value)}
             rows={3}
             placeholder={
-              msgType==="shoutout"   ? "أحسنت! اكتب كلمة شكر وتقدير للفريق أو لموظف محدد..." :
-              msgType==="motivation" ? "اكتب رسالة تحفيزية لرفع الهمة وتعزيز الإنتاجية..." :
-                                      "اكتب تذكيراً بمهمة أو هدف أو إجراء مطلوب..."
+              msgType==="shoutout"   ? "Write a recognition message..." :
+              msgType==="motivation" ? "Write a motivational message..." :
+                                      "Write a reminder..."
             }
             style={{ ...I(), resize:"vertical", marginBottom:10, fontSize:13 }}
             onKeyDown={e=>{ if(e.ctrlKey&&e.key==="Enter") sendManagerMessage(); }}
@@ -5992,7 +6013,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
 
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:11, color:_theme.textMuted }}>
-              Ctrl+Enter للإرسال السريع
+              Ctrl+Enter to send
             </span>
             <button onClick={sendManagerMessage} disabled={!msgText.trim()}
               style={{ background: msgSaved?"#10B981":msgText.trim()?_theme.accent:"#374151",
@@ -6000,7 +6021,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
                 fontSize:13, cursor:msgText.trim()?"pointer":"default",
                 fontWeight:700, transition:"all 0.2s",
                 opacity: msgText.trim()?1:0.5 }}>
-              {msgSaved ? "✅ تم الإرسال!" : "📤 إرسال للفريق"}
+              {msgSaved ? "✅ Sent!" : "📤 Send"}
             </button>
           </div>
         </div>
@@ -6010,10 +6031,10 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
           <div style={{ display:"flex", flexDirection:"column", gap:8, maxHeight:320, overflowY:"auto" }}>
             {managerMessages.slice(0,10).map(m => {
               const typeConfig = {
-                shoutout:   { icon:"🌟", color:"#F59E0B", label:"تقدير" },
-                motivation: { icon:"🚀", color:_theme.primary, label:"تحفيز" },
-                reminder:   { icon:"📌", color:"#8B5CF6", label:"تذكير" },
-              }[m.msgType||"shoutout"] || { icon:"💬", color:_theme.accent, label:"رسالة" };
+                shoutout:   { icon:"🌟", color:"#F59E0B", label:"Recognition" },
+                motivation: { icon:"🚀", color:_theme.primary, label:"Motivation" },
+                reminder:   { icon:"📌", color:"#8B5CF6", label:"Reminder" },
+              }[m.msgType||"shoutout"] || { icon:"💬", color:_theme.accent, label:"Message" };
 
               return (
                 <div key={m.id} style={{ background:_theme.surface,
@@ -6029,11 +6050,11 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
                         background:typeConfig.color+"22", color:typeConfig.color,
                         borderRadius:6, padding:"1px 8px" }}>{typeConfig.label}</span>
                       <span style={{ fontSize:11, fontWeight:700, color:_theme.text }}>
-                        {m.from || "المشرف"}
+                        {m.from || "Supervisor"}
                       </span>
                       <span style={{ fontSize:11, color:_theme.textMuted }}>→</span>
                       <span style={{ fontSize:11, color:typeConfig.color, fontWeight:600 }}>
-                        {m.target==="all"?"👥 الفريق كله":m.target}
+                        {m.target==="all"?"👥 Entire Team":m.target}
                       </span>
                       <span style={{ fontSize:10, color:_theme.textMuted, marginLeft:"auto" }}>
                         {m.date} · {m.time}
@@ -6053,7 +6074,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
         ) : (
           <div style={{ textAlign:"center", padding:"20px", color:_theme.textMuted, fontSize:13 }}>
             <div style={{ fontSize:28, marginBottom:6 }}>💬</div>
-            لم تُرسل أي رسائل بعد — ابدأ بتحفيز فريقك!
+            No messages sent yet — start motivating your team!
           </div>
         )}
       </div>
@@ -6063,8 +6084,8 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
         border:`2px solid #6366F130`, marginBottom:20 }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
           <span style={{ fontSize:16 }}>🔒</span>
-          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>سجل التعديلات على البيانات</span>
-          <span style={{ fontSize:12, color:_theme.textMuted }}>— جميع التعديلات مسجّلة · لا يمكن حذفها</span>
+          <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>Data Change Log</span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>— All changes logged · Cannot be deleted</span>
         </div>
 
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))", gap:8, marginBottom:14 }}>
@@ -6080,18 +6101,18 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
                   {ROLE_ICONS[lastEntry?.role]||"👤"} {lastEntry?.role}
                 </div>
                 <div style={{ fontSize:12, color:"#6366F1", fontWeight:700, marginTop:4 }}>
-                  {count} تعديل{count!==1?"":""}
+                  {count} changes
                 </div>
                 {lastEntry && (
                   <div style={{ fontSize:10, color:_theme.textMuted, marginTop:2 }}>
-                    آخر تعديل: {new Date(lastEntry.ts).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"Asia/Riyadh"})} {new Date(lastEntry.ts).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
+                    Last edit: {new Date(lastEntry.ts).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"Asia/Riyadh"})} {new Date(lastEntry.ts).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
                   </div>
                 )}
               </div>
             );
           })}
           {Object.keys(userEditCounts).length === 0 && (
-            <div style={{ color:_theme.textMuted, fontSize:13, padding:8 }}>لا توجد تعديلات مسجّلة بعد.</div>
+            <div style={{ color:_theme.textMuted, fontSize:13, padding:8 }}>No changes recorded yet.</div>
           )}
         </div>
 
@@ -6099,11 +6120,11 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
               <span style={{ fontWeight:700, fontSize:13, color:"#6366F1" }}>
-                📋 تعديلات {showHistoryFor}
+                📋 Changes for {showHistoryFor}
               </span>
               <button onClick={()=>{ setShowHistoryFor(null); setFilterUser(""); }}
                 style={{ background:"none", border:`1px solid ${_theme.cardBorder}`, borderRadius:6,
-                  padding:"2px 8px", fontSize:12, cursor:"pointer", color:_theme.textMuted }}>✕ إغلاق</button>
+                  padding:"2px 8px", fontSize:12, cursor:"pointer", color:_theme.textMuted }}>✕ Close</button>
             </div>
             <div style={{ maxHeight:260, overflowY:"auto" }}>
               {editHistory.filter(l=>l.by===showHistoryFor).map((log,i) => (
@@ -6132,23 +6153,23 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
       <div style={{ marginBottom:20 }}>
         <div style={{ fontWeight:700, fontSize:14, color:_theme.text, marginBottom:10,
           display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
-          👥 نشاط المستخدمين المباشر
-          <span style={{ fontSize:11, fontWeight:400, color:_theme.textMuted }}>— بناءً على آخر إجراء مسجّل</span>
+          👥 Live User Activity
+          <span style={{ fontSize:11, fontWeight:400, color:_theme.textMuted }}>— Based on last recorded action</span>
           <select value={activityFilter} onChange={e=>setActivityFilter(e.target.value)}
             style={{ background:_theme.input, border:`1px solid ${_theme.inputBorder}`,
               borderRadius:6, padding:"5px 9px", fontSize:11, color:_theme.inputText,
               outline:"none", cursor:"pointer", marginLeft:"auto" }}>
-            <option value="All">جميع المستخدمين</option>
-            <option value="Online">🟢 نشط (≤15 دقيقة)</option>
-            <option value="Offline">⚫ غير نشط</option>
+            <option value="All">All Users</option>
+            <option value="Online">🟢 Active (≤15 min)</option>
+            <option value="Offline">⚫ Inactive</option>
           </select>
         </div>
         {lastActivity.length === 0 ? (
           <div style={{ background:_theme.card, border:`1px solid ${_theme.cardBorder}`,
             borderRadius:12, padding:"32px 20px", textAlign:"center", color:_theme.textMuted, fontSize:13 }}>
             <div style={{ fontSize:32, marginBottom:10 }}>📭</div>
-            <div style={{ fontWeight:600 }}>لا يوجد نشاط مسجّل بعد</div>
-            <div style={{ fontSize:12, marginTop:6 }}>ستظهر البيانات فور تسجيل دخول أعضاء الفريق</div>
+            <div style={{ fontWeight:600 }}>No activity recorded yet</div>
+            <div style={{ fontSize:12, marginTop:6 }}>Data appears once team members sign in</div>
           </div>
         ) : (
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))", gap:10 }}>
@@ -6180,7 +6201,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
                   </div>
                   {pg && (
                     <div style={{ fontSize:11, color:_theme.textMuted, marginBottom:4 }}>
-                      📄 آخر صفحة: <strong style={{color:_theme.primary}}>{pg.target}</strong>
+                      📄 Last page: <strong style={{color:_theme.primary}}>{pg.target}</strong>
                     </div>
                   )}
                   <div style={{ fontSize:11, color:_theme.textMuted, marginTop:4, display:"flex", alignItems:"center", gap:4 }}>
@@ -6199,17 +6220,17 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
       <div style={{ background:_theme.surface, borderRadius:10, padding:"12px 16px",
         marginBottom:14, display:"flex", alignItems:"center", gap:10, flexWrap:"wrap",
         border:`1px solid ${_theme.cardBorder}` }}>
-        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🔍 سجل المراجعة الكامل</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🔍 Full Audit Log</span>
         <select value={filterUser} onChange={e=>setFilterUser(e.target.value)}
           style={{ background:_theme.input, border:`1px solid ${_theme.inputBorder}`, borderRadius:6,
             padding:"7px 11px", fontSize:13, color:_theme.inputText, outline:"none", width:180 }}>
-          <option value="">جميع المستخدمين</option>
+          <option value="">All Users</option>
           {users.map(u=><option key={u}>{u}</option>)}
         </select>
         <select value={filterAction} onChange={e=>setFilterAction(e.target.value)}
           style={{ background:_theme.input, border:`1px solid ${_theme.inputBorder}`, borderRadius:6,
             padding:"7px 11px", fontSize:13, color:_theme.inputText, outline:"none", width:180 }}>
-          <option value="">جميع الإجراءات</option>
+          <option value="">All Actions</option>
           {actions.map(a=><option key={a}>{a}</option>)}
         </select>
         <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)}
@@ -6218,21 +6239,21 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
         {(filterUser||filterAction||filterDate) && (
           <button onClick={()=>{setFilterUser("");setFilterAction("");setFilterDate("");}}
             style={{ background:"#94A3B8", color:"#fff", border:"none", borderRadius:8,
-              padding:"7px 12px", fontSize:12, cursor:"pointer", fontWeight:600 }}>✕ مسح</button>
+              padding:"7px 12px", fontSize:12, cursor:"pointer", fontWeight:600 }}>✕ Clear</button>
         )}
         <label style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, color:_theme.textMuted, cursor:"pointer" }}>
           <input type="checkbox" checked={hidePageViews} onChange={e=>setHidePageViews(e.target.checked)}/>
-          إخفاء مشاهدات الصفحات
+          Hide page views
         </label>
-        <span style={{ fontSize:12, color:_theme.textMuted, marginLeft:"auto" }}>{filtered.length} سجل</span>
+        <span style={{ fontSize:12, color:_theme.textMuted, marginLeft:"auto" }}>{filtered.length} records</span>
       </div>
 
       {filtered.length === 0 ? (
         <div style={{ background:_theme.card, border:`1px solid ${_theme.cardBorder}`,
           borderRadius:12, textAlign:"center", padding:"48px 20px", color:_theme.textMuted }}>
           <div style={{ fontSize:32, marginBottom:12 }}>📭</div>
-          <div style={{ fontWeight:600, fontSize:14 }}>لا توجد سجلات تطابق الفلتر</div>
-          <div style={{ fontSize:12, marginTop:6 }}>يظهر النشاط هنا فور قيام المستخدمين بإجراء تغييرات</div>
+          <div style={{ fontWeight:600, fontSize:14 }}>No records match the filter</div>
+          <div style={{ fontSize:12, marginTop:6 }}>Activity appears once users make changes</div>
         </div>
       ) : (
         <div style={{ background:_theme.card, border:`1px solid ${_theme.cardBorder}`,
@@ -6285,10 +6306,10 @@ function CriticalAlertPopup({ onDismiss, alerts }) {
           <div style={{ fontSize:36, animation:"pulse 1s infinite" }}>🚨</div>
           <div>
             <div style={{ color:"#FEF2F2", fontWeight:800, fontSize:18, letterSpacing:-0.3 }}>
-              تنبيه عاجل — Critical Alert
+              Critical Alert
             </div>
             <div style={{ color:"#FCA5A5", fontSize:12, marginTop:2 }}>
-              يستلزم تدخلاً فورياً من المشرف
+              Requires immediate supervisor action
             </div>
           </div>
           <div style={{ marginLeft:"auto", background:"rgba(255,255,255,0.15)",
@@ -6316,13 +6337,13 @@ function CriticalAlertPopup({ onDismiss, alerts }) {
             style={{ flex:1, background:"#EF4444", color:"#fff", border:"none",
               borderRadius:8, padding:"11px", fontSize:14, cursor:"pointer",
               fontWeight:700 }}>
-            ✓ تم الاطلاع — Acknowledged
+            ✓ Acknowledged
           </button>
           <button onClick={onDismiss}
             style={{ background:_theme.surface, color:_theme.textMuted,
               border:`1px solid ${_theme.cardBorder}`, borderRadius:8,
               padding:"11px 16px", fontSize:13, cursor:"pointer" }}>
-            تجاهل
+            Dismiss
           </button>
         </div>
       </div>
@@ -6387,10 +6408,10 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
     .slice(0, 10);
 
   const typeConfig = (t) => ({
-    shoutout:   { icon:"🌟", color:"#F59E0B", label:"تقدير" },
-    motivation: { icon:"🚀", color:_theme.primary, label:"تحفيز" },
-    reminder:   { icon:"📌", color:"#8B5CF6", label:"تذكير" },
-  }[t||"shoutout"] || { icon:"💬", color:_theme.accent, label:"رسالة" });
+    shoutout:   { icon:"🌟", color:"#F59E0B", label:"Recognition" },
+    motivation: { icon:"🚀", color:_theme.primary, label:"Motivation" },
+    reminder:   { icon:"📌", color:"#8B5CF6", label:"Reminder" },
+  }[t||"shoutout"] || { icon:"💬", color:_theme.accent, label:"Message" });
 
   return (
     <div>
@@ -6400,15 +6421,15 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
         padding:"24px 28px", marginBottom:20, textAlign:"center" }}>
         <div style={{ fontSize:40, marginBottom:8 }}>🏆</div>
         <div style={{ fontWeight:800, fontSize:22, color:_theme.text, marginBottom:4 }}>
-          لوحة المتصدرين — Today's Leaderboard
+          Today's Leaderboard
         </div>
         <div style={{ fontSize:13, color:_theme.textMuted }}>
           {new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",timeZone:"Asia/Riyadh"})}
-          &nbsp;·&nbsp; {todayEmps.length} موظف مجدول · {totalClosed} حالة مُغلقة
+          &nbsp;·&nbsp; {todayEmps.length} employees scheduled · {totalClosed} cases closed
         </div>
         {/* Period tabs */}
         <div style={{ display:"flex", gap:6, marginTop:12, justifyContent:"center" }}>
-          {[["today","📅 اليوم"],["week","📈 الأسبوع"],["month","🗓️ الشهر"]].map(([k,l])=>(
+          {[["today","📅 Today"],["week","📈 Week"],["month","🗓️ Month"]].map(([k,l])=>(
             <button key={k} onClick={()=>setLbPeriod(k)}
               style={{ border:`2px solid ${lbPeriod===k?_theme.primary:"#CBD5E1"}`,
                 borderRadius:20, padding:"5px 16px", fontSize:12, cursor:"pointer", fontWeight:700,
@@ -6424,11 +6445,11 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
             borderRadius:20, padding:"6px 18px" }}>
             <span style={{ fontSize:18 }}>{medals[myRank-1]||"🎯"}</span>
             <span style={{ fontSize:13, fontWeight:700, color:_theme.primary }}>
-              مرتبتك اليوم: #{myRank}
+              Your Rank Today: #{myRank}
             </span>
             {myData?.perf?.closed > 0 && (
               <span style={{ fontSize:12, color:_theme.textMuted }}>
-                · {myData.perf.closed} حالة مُغلقة
+                · {myData.perf.closed} cases closed
               </span>
             )}
           </div>
@@ -6462,10 +6483,10 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
                     {isPersonal && (
                       <span style={{ fontSize:11, fontWeight:700,
                         background:_theme.primary+"22", color:_theme.primary,
-                        borderRadius:20, padding:"2px 10px" }}>🎯 لك شخصياً</span>
+                        borderRadius:20, padding:"2px 10px" }}>🎯 Personal</span>
                     )}
                     <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>
-                      من {m.from||"الإدارة"}
+                      From: {m.from||"Management"}
                     </span>
                     <span style={{ fontSize:10, color:_theme.textMuted, marginLeft:"auto" }}>
                       {m.time}
@@ -6481,10 +6502,10 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
                 {(canEdit || m.from === session?.name) && setNotes && (
                   <button
                     onClick={()=>{
-                      if (!window.confirm("حذف هذه الرسالة؟")) return;
+                      if (!window.confirm("Delete this message?")) return;
                       setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==m.id));
                     }}
-                    title="حذف الرسالة"
+                    title="Delete message"
                     style={{ background:"none", border:"none", color:"#94A3B8",
                       cursor:"pointer", fontSize:16, padding:"4px", flexShrink:0,
                       alignSelf:"flex-start" }}>🗑️</button>
@@ -6521,10 +6542,10 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
                 <div style={{ fontSize:isMe?18:14, fontWeight:700,
                   color: isMe?_theme.primary:_theme.text, marginBottom:4 }}>
                   {medals[rank-1]} {e.name.split(" ")[0]}
-                  {isMe && <span style={{ fontSize:11, color:_theme.primary }}> (أنت)</span>}
+                  {isMe && <span style={{ fontSize:11, color:_theme.primary }}> (You)</span>}
                 </div>
                 <div style={{ fontSize:11, color:_theme.textMuted, marginBottom:6 }}>
-                  {e.perf.closed} حالة
+                  {e.perf.closed} cases
                 </div>
                 <div style={{ height:podiumH, background:`linear-gradient(180deg,${podiumC},${podiumC}88)`,
                   borderRadius:"8px 8px 0 0", display:"flex", alignItems:"center",
@@ -6542,7 +6563,7 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
       {/* Full ranking table */}
       <div style={CRD()}>
         <div style={{ fontWeight:700, fontSize:14, color:_theme.text, marginBottom:14 }}>
-          📋 الترتيب الكامل اليوم
+          📋 Full Ranking Today
         </div>
         {sorted.map((e, ri) => {
           const isMe    = e.name === session?.name;
@@ -6589,7 +6610,7 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
                   color: e.perf.closed>0?(isMe?_theme.primary:"#10B981"):_theme.textMuted }}>
                   {e.perf.closed||0}
                 </div>
-                <div style={{ fontSize:10, color:_theme.textMuted }}>حالة</div>
+                <div style={{ fontSize:10, color:_theme.textMuted }}>Cases</div>
               </div>
             </div>
           );
@@ -6597,8 +6618,8 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
         {sorted.every(e=>!e.perf.closed) && (
           <div style={{ textAlign:"center", padding:"32px 20px", color:_theme.textMuted }}>
             <div style={{ fontSize:32, marginBottom:8 }}>🎯</div>
-            <div style={{ fontWeight:600 }}>لم تُسجَّل حالات مُغلقة بعد لهذا اليوم</div>
-            <div style={{ fontSize:12, marginTop:4 }}>تظهر نتائجك هنا فور إدخالها من قبل المشرف</div>
+            <div style={{ fontWeight:600 }}>No closed cases recorded today</div>
+            <div style={{ fontSize:12, marginTop:4 }}>Results appear once entered by supervisor</div>
           </div>
         )}
       </div>
@@ -6657,8 +6678,8 @@ function sendPushNotification(title, body, tag = "cs-ops-alert") {
         requireInteraction: true,  // stays until user taps
         data: { url: "/" },
         actions: [
-          { action: "view", title: "فتح التطبيق" },
-          { action: "dismiss", title: "تجاهل" },
+          { action: "view", title: "Open App" },
+          { action: "dismiss", title: "Dismiss" },
         ]
       });
     }).catch(() => {
@@ -6924,15 +6945,7 @@ const DAILY_TIPS_EN = [
   "🔄 Review yesterday's performance before today's planning.",
   "📱 Keep the team informed — communication prevents most issues.",
 ];
-const DAILY_TIPS_AR = [
-  "💡 ابدأ كل شفت بفحص سريع للفريق لمواءمة الأولويات.",
-  "📊 وثّق التصعيدات فوراً — التفاصيل تُنسى بسرعة.",
-  "☕ جدولة الاستراحات بشكل استباقي تقلل الأخطاء بنسبة 30%.",
-  "🎯 بيانات قائمة الانتظار الواضحة = قرارات توظيف أفضل غداً.",
-  "⭐ التقدير يرفع الإنتاجية — اعترف بالعمل الجيد يومياً.",
-  "🔄 راجع أداء الأمس قبل تخطيط اليوم.",
-  "📱 أبقِ الفريق على اطلاع — التواصل يمنع معظم المشاكل.",
-];
+
 
 // ─── LOGIN SCREEN ─────────────────────────────────────────────────────────────
 
@@ -6961,10 +6974,10 @@ function AttendanceHistoryPage({ employees, schedule, shifts, attendance }) {
       if (!sid || sid==="OFF" || sid==="LEAVE" || sid==="PH") { dayOff++; return; }
       workDays++;
       const att = ((attendance[d]||{})[emp.id]) || { status:"Present" };
-      if      (att.status==="Present")     present++;
-      else if (att.status==="Absent")      absent++;
-      else if (att.status==="Late")        { late++; present++; }
-      else if (att.status==="Early Leave") { earlyLeave++; present++; }
+      if      (isPresent(att.status))      present++;
+      else if (isAbsent(att.status))       absent++;
+      // Late already counted in isPresent
+      else if (att.status==="Early Leave") earlyLeave++;
       totalLateMin  += att.lateMin||0;
       totalWorkMin  += Number(att.workDuration)||0;
     });
@@ -6992,9 +7005,9 @@ function AttendanceHistoryPage({ employees, schedule, shifts, attendance }) {
     <div>
       {/* Toolbar */}
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>📆 سجل الحضور الفردي</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>📆 Individual Attendance History</span>
         <input value={search} onChange={e=>setSearch(e.target.value)}
-          style={{ ...I({width:200}) }} placeholder="🔍 ابحث عن موظف..."/>
+          style={{ ...I({width:200}) }} placeholder="🔍 Search employee..."/>
         <input type="month" value={month} onChange={e=>setMonth(e.target.value)}
           style={{ ...I({width:160}) }}/>
       </div>
@@ -7004,7 +7017,7 @@ function AttendanceHistoryPage({ employees, schedule, shifts, attendance }) {
         <div style={{ ...CRD({padding:0}), overflow:"hidden", maxHeight:"80vh", overflowY:"auto" }}>
           <div style={{ padding:"10px 14px", fontWeight:700, fontSize:12,
             color:_theme.textMuted, borderBottom:`1px solid ${_theme.cardBorder}` }}>
-            {filtered.length} موظف
+            {filtered.length} employees
           </div>
           {filtered.map(e => (
             <div key={e.id} onClick={()=>setSelectedEmp(e.id)}
@@ -7023,7 +7036,7 @@ function AttendanceHistoryPage({ employees, schedule, shifts, attendance }) {
         {!emp ? (
           <div style={{ ...CRD(), textAlign:"center", padding:"60px 20px", color:_theme.textMuted }}>
             <div style={{ fontSize:40, marginBottom:12 }}>👤</div>
-            <div style={{ fontWeight:600 }}>اختر موظفاً من القائمة لعرض سجل حضوره</div>
+            <div style={{ fontWeight:600 }}>Select an employee to view attendance history</div>
           </div>
         ) : (
           <div>
@@ -7040,14 +7053,14 @@ function AttendanceHistoryPage({ employees, schedule, shifts, attendance }) {
             {stats && (
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))", gap:8, marginBottom:14 }}>
                 {[
-                  ["أيام العمل",  stats.workDays,                        "#3B82F6"],
-                  ["حاضر",        stats.present,                         "#10B981"],
-                  ["غائب",        stats.absent,                          "#EF4444"],
-                  ["متأخر",       stats.late,                            "#F59E0B"],
-                  ["مغادرة مبكرة",stats.earlyLeave,                     "#8B5CF6"],
-                  ["نسبة الحضور", stats.attRate+"%",                     "#0EA5E9"],
-                  ["إجمالي التأخير", stats.totalLateMin+"m",            "#EC4899"],
-                  ["متوسط العمل", Math.floor(stats.avgWork/60)+"h "+stats.avgWork%60+"m", "#14B8A6"],
+                  ["Work Days",  stats.workDays,                        "#3B82F6"],
+                  ["Present",        stats.present,                         "#10B981"],
+                  ["Absent",        stats.absent,                          "#EF4444"],
+                  ["Late",        stats.late,                            "#F59E0B"],
+                  ["Early Leave", stats.earlyLeave,                     "#8B5CF6"],
+                  ["Attendance Rate", stats.attRate+"%",                     "#0EA5E9"],
+                  ["Total Late", stats.totalLateMin+"m",            "#EC4899"],
+                  ["Avg Work", Math.floor(stats.avgWork/60)+"h "+stats.avgWork%60+"m", "#14B8A6"],
                 ].map(([l,v,c])=>(
                   <div key={l} style={{ ...CRD({padding:"10px 12px"}), borderTop:`3px solid ${c}` }}>
                     <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600, marginBottom:2 }}>{l}</div>
@@ -7062,7 +7075,7 @@ function AttendanceHistoryPage({ employees, schedule, shifts, attendance }) {
               <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
                 <thead>
                   <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
-                    {["التاريخ","اليوم","الشفت","الحالة","حضور","انصراف","تأخير","مدة العمل","ملاحظة"].map(h=>(
+                    {["Date","Day","Shift","Status","In","Out","Late","Duration","Note"].map(h=>(
                       <th key={h} style={{ padding:"9px 8px", textAlign:"right", fontWeight:700,
                         color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
                     ))}
@@ -7076,7 +7089,7 @@ function AttendanceHistoryPage({ employees, schedule, shifts, attendance }) {
                     const isOff   = !sid || sid==="OFF";
                     const isWknd  = dayName==="Friday" || dayName==="Saturday";
                     const att     = ((attendance[d]||{})[emp.id]) || null;
-                    const status  = att?.status || (isOff?"يوم إجازة":"Present");
+                    const status  = att?.status || (isOff?"Day Off":"Present");
                     const today   = d === todayStr();
                     return (
                       <tr key={d} style={{
@@ -7166,8 +7179,8 @@ function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, 
   // Only canSubmitLeave users can submit
   function submitRequest() {
     if (!canSubmitLeave) return;
-    if (!startDate || !endDate || !reason.trim()) { setSaved("❌ أدخل التاريخ والسبب"); return; }
-    if (endDate < startDate) { setSaved("❌ تاريخ الانتهاء قبل البداية"); return; }
+    if (!startDate || !endDate || !reason.trim()) { setSaved("❌ Enter date and reason"); return; }
+    if (endDate < startDate) { setSaved("❌ End date before start date"); return; }
     const req = {
       id: "lr"+Date.now(), ts: new Date().toISOString(),
       date: startDate, time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
@@ -7178,7 +7191,7 @@ function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, 
       msgType: "leave",
     };
     setNotes(prev => [req, ...(Array.isArray(prev)?prev:[])]);
-    setSaved("✅ تم إرسال الطلب — في انتظار الموافقة");
+    setSaved("✅ Request sent — awaiting approval");
     setReason(""); setShowForm(false);
     setTimeout(() => setSaved(""), 3000);
   }
@@ -7214,9 +7227,9 @@ function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, 
 
   function statusBadge(status) {
     const map = {
-      pending:  { bg:"#FEF3C7", color:"#B45309", label:"قيد الانتظار ⏳" },
-      approved: { bg:"#F0FDF4", color:"#166534", label:"موافق عليه ✅" },
-      rejected: { bg:"#FEF2F2", color:"#991B1B", label:"مرفوض ❌" },
+      pending:  { bg:"#FEF3C7", color:"#B45309", label:"Pending ⏳" },
+      approved: { bg:"#F0FDF4", color:"#166534", label:"Approved ✅" },
+      rejected: { bg:"#FEF2F2", color:"#991B1B", label:"Rejected ❌" },
     };
     const cfg = map[status] || map.pending;
     return (
@@ -7231,18 +7244,18 @@ function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, 
     <div style={{ ...CRD(), marginTop:16 }}>
       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
         <span style={{ fontSize:16 }}>🏖️</span>
-        <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>طلبات الإجازة</span>
+        <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>Leave Requests</span>
         {pending.length > 0 && (
           <span style={{ background:"#FEF3C7", color:"#B45309", border:"1px solid #FCD34D",
             borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>
-            {pending.length} طلب معلّق
+            {pending.length} pending
           </span>
         )}
         <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
           {canSubmitLeave && (
             <button onClick={()=>setShowForm(s=>!s)}
               style={{ ...PBT("#10B981",{padding:"6px 14px",fontSize:12}) }}>
-              {showForm ? "✕ إغلاق" : "+ طلب إجازة جديد"}
+              {showForm ? "✕ Close" : "+ New Leave Request"}
             </button>
           )}
         </div>
@@ -7254,20 +7267,20 @@ function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, 
           marginBottom:14, border:`1px solid ${_theme.cardBorder}` }}>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
             <div>
-              <label style={{ ...LBL }}>من تاريخ</label>
+              <label style={{ ...LBL }}>From</label>
               <input type="date" value={startDate} onChange={e=>setStartDate(e.target.value)} style={I()}/>
             </div>
             <div>
-              <label style={{ ...LBL }}>إلى تاريخ</label>
+              <label style={{ ...LBL }}>To</label>
               <input type="date" value={endDate} onChange={e=>setEndDate(e.target.value)} style={I()}/>
             </div>
           </div>
-          <label style={{ ...LBL }}>سبب الإجازة</label>
+          <label style={{ ...LBL }}>Leave Reason</label>
           <textarea value={reason} onChange={e=>setReason(e.target.value)} rows={2}
             style={{ ...I({resize:"vertical",marginBottom:10}) }}
-            placeholder="اذكر سبب الإجازة..."/>
+            placeholder="State leave reason..."/>
           <button onClick={submitRequest} style={{ ...PBT("#10B981",{width:"100%"}) }}>
-            📤 إرسال الطلب
+            📤 Submit
           </button>
           {saved && <div style={{ marginTop:8, fontSize:12, color:saved.startsWith("✅")?"#10B981":"#EF4444",
             fontWeight:600 }}>{saved}</div>}
@@ -7277,7 +7290,7 @@ function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, 
       {/* Pending requests (supervisors see approve/reject) */}
       {pending.length > 0 && (
         <div style={{ marginBottom:14 }}>
-          <div style={{ fontSize:12, fontWeight:700, color:"#B45309", marginBottom:8 }}>⏳ معلّقة ({pending.length})</div>
+          <div style={{ fontSize:12, fontWeight:700, color:"#B45309", marginBottom:8 }}>⏳ Pending ({pending.length})</div>
           {pending.map(r => (
             <div key={r.id} style={{ background:"#FEF3C720", border:"1px solid #FCD34D",
               borderRadius:10, padding:"12px 14px", marginBottom:8 }}>
@@ -7288,16 +7301,16 @@ function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, 
                   </div>
                   <div style={{ fontSize:11, color:_theme.textMuted, marginTop:3 }}>
                     📅 {r.leaveStart} → {r.leaveEnd}
-                    {r.leaveStart !== r.leaveEnd && ` (${Math.ceil((new Date(r.leaveEnd)-new Date(r.leaveStart))/(864e5))+1} أيام)`}
+                    {r.leaveStart !== r.leaveEnd && ` (${Math.ceil((new Date(r.leaveEnd)-new Date(r.leaveStart))/(864e5))+1} days)`}
                   </div>
                   <div style={{ fontSize:12, color:_theme.text, marginTop:5 }}>{r.text}</div>
                 </div>
                 {canEdit && (
                   <div style={{ display:"flex", gap:6, flexShrink:0 }}>
                     <button onClick={()=>approveRequest(r)}
-                      style={{ ...PBT("#10B981",{padding:"5px 12px",fontSize:12}) }}>✅ موافقة</button>
+                      style={{ ...PBT("#10B981",{padding:"5px 12px",fontSize:12}) }}>✅ Approve</button>
                     <button onClick={()=>rejectRequest(r)}
-                      style={{ ...PBT("#EF4444",{padding:"5px 12px",fontSize:12}) }}>❌ رفض</button>
+                      style={{ ...PBT("#EF4444",{padding:"5px 12px",fontSize:12}) }}>❌ Reject</button>
                   </div>
                 )}
               </div>
@@ -7309,7 +7322,7 @@ function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, 
       {/* History */}
       {[...approved, ...rejected].length > 0 && (
         <div>
-          <div style={{ fontSize:12, fontWeight:700, color:_theme.textMuted, marginBottom:8 }}>السجل</div>
+          <div style={{ fontSize:12, fontWeight:700, color:_theme.textMuted, marginBottom:8 }}>History</div>
           {[...approved, ...rejected].slice(0,10).map(r => (
             <div key={r.id} style={{ display:"flex", alignItems:"center", gap:10,
               padding:"8px 12px", borderBottom:`1px solid ${_theme.cardBorder}20`,
@@ -7336,7 +7349,7 @@ function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, 
       {visibleRequests.length === 0 && (
         <div style={{ textAlign:"center", padding:"24px", color:_theme.textMuted, fontSize:13 }}>
           <div style={{ fontSize:32, marginBottom:8 }}>🏖️</div>
-          لا توجد طلبات إجازة {canEdit ? "" : "— اضغط + لتقديم طلب جديد"}
+          No leave requests {canEdit ? "" : "— click + to request leave"}
         </div>
       )}
     </div>
@@ -7441,8 +7454,8 @@ function KPIDashboardPage({ employees, schedule, attendance, performance, sessio
 
   const totalClosed   = Object.values(todayPerf).reduce((s,p)=>s+(p.closed||0),0);
   const totalEsc      = Object.values(todayPerf).reduce((s,p)=>s+(p.escalations||0),0);
-  const presentCount  = Object.values(todayAtt).filter(a=>a.status==="Present"||a.status==="Late").length;
-  const absentCount   = Object.values(todayAtt).filter(a=>a.status==="Absent").length;
+  const presentCount  = Object.values(todayAtt).filter(a=>isPresent(a.status)).length;
+  const absentCount   = Object.values(todayAtt).filter(a=>isAbsent(a.status)).length;
   const lateArr       = Object.values(todayAtt).filter(a=>a.lateMin>0);
   const avgLate       = lateArr.length > 0 ? Math.round(lateArr.reduce((s,a)=>s+(a.lateMin||0),0)/lateArr.length) : 0;
   const attRate       = todayEmps.length > 0 ? Math.round((presentCount/todayEmps.length)*100) : 100;
@@ -7461,28 +7474,28 @@ function KPIDashboardPage({ employees, schedule, attendance, performance, sessio
 
   const kpis = [
     {
-      id:"dailyClosed", label:"الحالات المغلقة اليوم", icon:"✅",
-      actual:totalClosed, target:T.dailyClosed, unit:"حالة",
+      id:"dailyClosed", label:"Daily Closed Cases", icon:"✅",
+      actual:totalClosed, target:T.dailyClosed, unit:"cases",
       color:"#10B981", higherBetter:true,
     },
     {
-      id:"maxEscRate", label:"نسبة التصعيد", icon:"⚠️",
+      id:"maxEscRate", label:"Escalation Rate", icon:"⚠️",
       actual:escRate, target:T.maxEscRate, unit:"%",
       color:"#F59E0B", higherBetter:false,
     },
     {
-      id:"minAttRate", label:"نسبة الحضور", icon:"👥",
+      id:"minAttRate", label:"Attendance Rate", icon:"👥",
       actual:attRate, target:T.minAttRate, unit:"%",
       color:"#3B82F6", higherBetter:true,
     },
     {
-      id:"maxAvgLate", label:"متوسط التأخير", icon:"⏰",
-      actual:avgLate, target:T.maxAvgLate, unit:"دقيقة",
+      id:"maxAvgLate", label:"Avg Late", icon:"⏰",
+      actual:avgLate, target:T.maxAvgLate, unit:"min",
       color:"#8B5CF6", higherBetter:false,
     },
     {
-      id:"maxAbsent", label:"عدد الغائبين اليوم", icon:"❌",
-      actual:absentCount, target:T.maxAbsent, unit:"موظف",
+      id:"maxAbsent", label:"Daily Absences", icon:"❌",
+      actual:absentCount, target:T.maxAbsent, unit:"employees",
       color:"#EF4444", higherBetter:false,
     },
   ];
@@ -7493,9 +7506,9 @@ function KPIDashboardPage({ employees, schedule, attendance, performance, sessio
   }
 
   const statusConfig = {
-    achieved: { color:"#10B981", bg:"#F0FDF4", label:"✅ محقق",   ring:"#10B981" },
-    close:    { color:"#F59E0B", bg:"#FEF9C3", label:"⚡ قريب",    ring:"#F59E0B" },
-    behind:   { color:"#EF4444", bg:"#FEF2F2", label:"❌ متأخر",   ring:"#EF4444" },
+    achieved: { color:"#10B981", bg:"#F0FDF4", label:"✅ Achieved",   ring:"#10B981" },
+    close:    { color:"#F59E0B", bg:"#FEF9C3", label:"⚡ Close",    ring:"#F59E0B" },
+    behind:   { color:"#EF4444", bg:"#FEF2F2", label:"❌ Behind",   ring:"#EF4444" },
   };
 
   const achieved = kpis.filter(k=>getStatus(k)==="achieved").length;
@@ -7504,18 +7517,18 @@ function KPIDashboardPage({ employees, schedule, attendance, performance, sessio
     <div>
       {/* Header */}
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🎯 لوحة مؤشرات الأداء (KPI)</span>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🎯 KPI Dashboard</span>
         <span style={{ fontSize:12, color:_theme.textMuted }}>
           {new Date().toLocaleDateString("ar-SA",{weekday:"long",year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Riyadh"})}
         </span>
         <div style={{ marginLeft:"auto", display:"flex", gap:8, alignItems:"center" }}>
           <span style={{ background:"#F0FDF4", color:"#10B981", border:"1px solid #86EFAC",
             borderRadius:20, padding:"3px 12px", fontSize:12, fontWeight:700 }}>
-            {achieved}/{kpis.length} محقق
+            {achieved}/{kpis.length} achieved
           </span>
           <button onClick={openEdit}
             style={{ ...PBT("#6366F1",{padding:"6px 14px",fontSize:12}) }}>
-            ⚙️ تعديل الأهداف
+            ⚙️ Edit Targets
           </button>
         </div>
       </div>
@@ -7523,12 +7536,12 @@ function KPIDashboardPage({ employees, schedule, attendance, performance, sessio
       {/* Edit targets modal */}
       {editMode && (
         <div style={{ ...CRD(), marginBottom:16, border:`2px solid #6366F1` }}>
-          <div style={{ fontWeight:700, color:_theme.text, marginBottom:12 }}>⚙️ تعديل أهداف KPI</div>
+          <div style={{ fontWeight:700, color:_theme.text, marginBottom:12 }}>⚙️ Edit KPI Targets</div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))", gap:12, marginBottom:14 }}>
             {kpis.map(k=>(
               <div key={k.id}>
                 <label style={{ fontSize:11, fontWeight:700, color:_theme.textSub, display:"block", marginBottom:4 }}>
-                  {k.icon} {k.label} (هدف)
+                  {k.icon} {k.label} (target)
                 </label>
                 <input type="number" min="0" value={draft[k.id]||""}
                   onChange={e=>setDraft(p=>({...p,[k.id]:Number(e.target.value)}))}
@@ -7537,8 +7550,8 @@ function KPIDashboardPage({ employees, schedule, attendance, performance, sessio
             ))}
           </div>
           <div style={{ display:"flex", gap:8 }}>
-            <button onClick={saveTargets} style={{ ...PBT("#10B981",{flex:1}) }}>💾 حفظ الأهداف</button>
-            <button onClick={()=>setEditMode(false)} style={{ ...PBT("#94A3B8",{padding:"8px 16px"}) }}>إلغاء</button>
+            <button onClick={saveTargets} style={{ ...PBT("#10B981",{flex:1}) }}>💾 Save Targets</button>
+            <button onClick={()=>setEditMode(false)} style={{ ...PBT("#94A3B8",{padding:"8px 16px"}) }}>Cancel</button>
           </div>
         </div>
       )}
@@ -7562,7 +7575,7 @@ function KPIDashboardPage({ employees, schedule, attendance, performance, sessio
                     {kpi.actual}<span style={{ fontSize:13, fontWeight:600, marginRight:3 }}>{kpi.unit}</span>
                   </div>
                   <div style={{ fontSize:11, color:"#6B7280", marginTop:4 }}>
-                    الهدف: {kpi.target} {kpi.unit}
+                    Target: {kpi.target} {kpi.unit}
                   </div>
                 </div>
                 <DonutChart value={pct} max={100} color={cfg.ring} size={60}/>
@@ -7580,7 +7593,7 @@ function KPIDashboardPage({ employees, schedule, attendance, performance, sessio
       {/* Top performers today */}
       <div style={{ ...CRD() }}>
         <div style={{ fontWeight:700, color:_theme.text, marginBottom:12, fontSize:13 }}>
-          ⚡ أفضل الأداء اليوم
+          ⚡ Top Performer Today
         </div>
         {(() => {
           const ranked = todayEmps
@@ -7590,7 +7603,7 @@ function KPIDashboardPage({ employees, schedule, attendance, performance, sessio
             .slice(0,5);
           if (ranked.length===0) return (
             <div style={{ color:_theme.textMuted, textAlign:"center", padding:"16px", fontSize:13 }}>
-              لا توجد بيانات أداء بعد — أضف الحالات المغلقة في صفحة الأداء
+              No performance data yet
             </div>
           );
           return ranked.map((e,i)=>(
@@ -7601,7 +7614,7 @@ function KPIDashboardPage({ employees, schedule, attendance, performance, sessio
                 <div style={{ fontWeight:700, fontSize:13, color:_theme.text }}>{e.name}</div>
                 <div style={{ fontSize:11, color:ROLE_COLORS[e.role]||_theme.textMuted }}>{e.role}</div>
               </div>
-              <div style={{ fontWeight:800, fontSize:16, color:"#10B981" }}>{e.closed} حالة</div>
+              <div style={{ fontWeight:800, fontSize:16, color:"#10B981" }}>{e.closed} cases</div>
               <SparkBar values={[e.closed]} color="#10B981" height={28} width={40}/>
             </div>
           ));
@@ -7623,7 +7636,7 @@ class ErrorBoundary extends React.Component {
         <div style={{ padding:32, textAlign:"center", maxWidth:500, margin:"40px auto" }}>
           <div style={{ fontSize:48, marginBottom:16 }}>⚠️</div>
           <div style={{ fontWeight:800, fontSize:18, color:"#EF4444", marginBottom:8 }}>
-            حدث خطأ غير متوقع
+            An unexpected error occurred
           </div>
           <div style={{ fontSize:13, color:"#6B7280", marginBottom:8, fontFamily:"monospace",
             background:"#FEF2F2", border:"1px solid #FCA5A5", borderRadius:8,
@@ -7631,18 +7644,18 @@ class ErrorBoundary extends React.Component {
             {this.state.error?.message || "Unknown error"}
           </div>
           <div style={{ fontSize:12, color:"#9CA3AF", marginBottom:20 }}>
-            الصفحة الحالية واجهت مشكلة. يمكنك العودة أو إعادة التحميل.
+            This page encountered a problem. You can go back or reload.
           </div>
           <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
             <button onClick={()=>this.setState({error:null,info:null})}
               style={{ background:"#2563EB", color:"#fff", border:"none", borderRadius:8,
                 padding:"10px 20px", fontSize:13, cursor:"pointer", fontWeight:700 }}>
-              🔄 حاول مجدداً
+              🔄 Try Again
             </button>
             <button onClick={()=>window.location.reload()}
               style={{ background:"#6B7280", color:"#fff", border:"none", borderRadius:8,
                 padding:"10px 20px", fontSize:13, cursor:"pointer", fontWeight:700 }}>
-              ↺ إعادة تحميل
+              ↺ Reload
             </button>
           </div>
         </div>
@@ -7654,10 +7667,10 @@ class ErrorBoundary extends React.Component {
 
 
 // ─── SURVEYS & POLLS SYSTEM ──────────────────────────────────────────────────
-// إنشاء استبيانات واستطلاعات رأي داخل النظام
-// البيانات مخزنة في جدول notes مع tag="Survey"
+// Survey & Polls System
+// Data stored in notes table with tag="Survey"
 
-// ── Survey Builder (للمشرفين) ─────────────────────────────────────────────────
+// ── Survey Builder (for supervisors) ─────────────────────────────────────────────
 function SurveyBuilderModal({ employees, session, setNotes, onClose }) {
   const [title, setTitle]           = useState("");
   const [type, setType]             = useState("poll"); // poll | quiz | shift_review | peer | blocker
@@ -7666,29 +7679,29 @@ function SurveyBuilderModal({ employees, session, setNotes, onClose }) {
   const [saved, setSaved]           = useState("");
 
   const TYPE_CONFIG = {
-    poll:         { icon:"📊", label:"استطلاع رأي",     desc:"سؤال واحد سريع مع خيارات", multiQ:false },
-    quiz:         { icon:"📝", label:"اختبار معرفة",    desc:"أسئلة متعددة مع إجابة صحيحة", multiQ:true },
-    shift_review: { icon:"⭐", label:"تقييم المناوبة",  desc:"تقييم تجربة الشفت", multiQ:false },
-    peer:         { icon:"🤝", label:"تقدير الزملاء",   desc:"الموظف يختار زميلاً أبهره", multiQ:false },
-    blocker:      { icon:"🚧", label:"تشخيص العوائق",   desc:"ما الذي أبطأ عملك؟", multiQ:false },
+    poll:         { icon:"📊", label:"Poll",     desc:"Quick single-question poll", multiQ:false },
+    quiz:         { icon:"📝", label:"Knowledge Quiz",    desc:"Multiple questions with correct answers", multiQ:true },
+    shift_review: { icon:"⭐", label:"Shift Review",  desc:"Rate the shift experience", multiQ:false },
+    peer:         { icon:"🤝", label:"Peer Recognition",   desc:"Employee picks a standout colleague", multiQ:false },
+    blocker:      { icon:"🚧", label:"Blocker Diagnosis",   desc:"What slowed your work?", multiQ:false },
   };
 
   // Default questions per type
   function applyTemplate(t) {
     setType(t);
     if (t==="shift_review") {
-      setTitle("تقييم المناوبة — " + new Date().toLocaleDateString("ar-SA",{weekday:"long",timeZone:"Asia/Riyadh"}));
+      setTitle("Shift Review — " + new Date().toLocaleDateString("en-GB",{weekday:"long",timeZone:"Asia/Riyadh"}));
       setQuestions([
-        { text:"كيف كان ضغط العمل خلال الشفت؟", options:["خفيف 🟢","متوسط 🟡","ثقيل 🔴","شديد جداً ⛔"], correct:null },
-        { text:"كيف تقيّم تعاون الفريق اليوم؟", options:["ممتاز ⭐⭐⭐⭐⭐","جيد جداً ⭐⭐⭐⭐","جيد ⭐⭐⭐","يحتاج تحسين ⭐⭐"], correct:null },
-        { text:"هل واجهت أي تحدٍّ يحتاج متابعة؟", options:["لا، كل شيء سلس","نعم — مشكلة تقنية","نعم — ضغط عالٍ","نعم — سأذكره في الملاحظات"], correct:null },
+        { text:"How was the workload this shift?", options:["Light 🟢","Moderate 🟡","Heavy 🔴","Very Heavy ⛔"], correct:null },
+        { text:"How was team collaboration today?", options:["Excellent ⭐⭐⭐⭐⭐","Very Good ⭐⭐⭐⭐","Good ⭐⭐⭐","Needs Improvement ⭐⭐"], correct:null },
+        { text:"Did you face any challenge needing follow-up?", options:["No, all good","Yes — technical issue","Yes — high workload","Yes — I'll note it"], correct:null },
       ]);
     } else if (t==="blocker") {
-      setTitle("ما الذي أبطأ عملك هذا الأسبوع؟");
-      setQuestions([{ text:"اختر العائق الرئيسي", options:["مشكلة تقنية 💻","نقص معلومات 📋","ضغط عالٍ 📈","صعوبة في التواصل 💬","لا يوجد — كل شيء سلس ✅"], correct:null }]);
+      setTitle("What slowed your work this week?");
+      setQuestions([{ text:"Select the main blocker", options:["Technical issue 💻","Lack of info 📋","High workload 📈","Communication difficulty 💬","None — all good ✅"], correct:null }]);
     } else if (t==="peer") {
-      setTitle("نجم الأسبوع — تقدير الزملاء");
-      setQuestions([{ text:"من أبهرك أداؤه هذا الأسبوع؟", options:[], correct:null, isPeer:true }]);
+      setTitle("Star of the Week — Peer Recognition");
+      setQuestions([{ text:"Who impressed you most this week?", options:[], correct:null, isPeer:true }]);
     } else if (t==="poll") {
       setTitle(""); setQuestions([{ text:"", options:["","",""], correct:null }]);
     } else if (t==="quiz") {
@@ -7712,8 +7725,8 @@ function SurveyBuilderModal({ employees, session, setNotes, onClose }) {
   }
 
   function saveSurvey() {
-    if (!title.trim()) { setSaved("❌ العنوان مطلوب"); return; }
-    if (!questions[0]?.text?.trim()) { setSaved("❌ أدخل السؤال الأول"); return; }
+    if (!title.trim()) { setSaved("❌ Title required"); return; }
+    if (!questions[0]?.text?.trim()) { setSaved("❌ Enter first question"); return; }
     const survey = {
       id: "sv"+Date.now(),
       ts: new Date().toISOString(),
@@ -7726,17 +7739,17 @@ function SurveyBuilderModal({ employees, session, setNotes, onClose }) {
       msgType: "survey",
     };
     setNotes(prev=>[survey,...(Array.isArray(prev)?prev:[])]);
-    setSaved("✅ تم إنشاء الاستبيان وإرساله!");
+    setSaved("✅ Survey created and sent!");
     setTimeout(()=>{ setSaved(""); onClose(); }, 1500);
   }
 
   const cfg = TYPE_CONFIG[type];
 
   return (
-    <Modal title={`${cfg.icon} إنشاء ${cfg.label}`} onClose={onClose} width={620}>
+    <Modal title={`${cfg.icon} Create ${cfg.label}`} onClose={onClose} width={620}>
       {/* Type selector */}
       <div style={{ marginBottom:14 }}>
-        <label style={LBL}>نوع الاستبيان</label>
+        <label style={LBL}>Survey Type</label>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6 }}>
           {Object.entries(TYPE_CONFIG).map(([k,v])=>(
             <button key={k} onClick={()=>applyTemplate(k)}
@@ -7755,36 +7768,36 @@ function SurveyBuilderModal({ employees, session, setNotes, onClose }) {
 
       {/* Title */}
       <div style={{ marginBottom:12 }}>
-        <label style={LBL}>عنوان الاستبيان</label>
+        <label style={LBL}>Survey Title</label>
         <input value={title} onChange={e=>setTitle(e.target.value)}
-          style={{ ...I({width:"100%"}) }} placeholder="مثال: كيف تقيّم الشفت اليوم؟"/>
+          style={{ ...I({width:"100%"}) }} placeholder="e.g. How was today's shift?"/>
       </div>
 
       {/* Target audience */}
       <div style={{ marginBottom:14 }}>
-        <label style={LBL}>الجمهور المستهدف</label>
+        <label style={LBL}>Target Audience</label>
         <select value={targetRole} onChange={e=>setTargetRole(e.target.value)}
           style={{ ...I({width:"100%"}) }}>
-          <option value="all">الجميع</option>
-          <option value="Agent">Agents فقط</option>
-          <option value="Team Lead">Team Leads فقط</option>
-          <option value="Shift Leader">Shift Leaders فقط</option>
-          <option value="SME">SMEs فقط</option>
+          <option value="all">Everyone</option>
+          <option value="Agent">Agents only</option>
+          <option value="Team Lead">Team Leads only</option>
+          <option value="Shift Leader">Shift Leaders only</option>
+          <option value="SME">SMEs only</option>
         </select>
       </div>
 
       {/* Questions */}
       <div style={{ marginBottom:14 }}>
-        <label style={LBL}>الأسئلة</label>
+        <label style={LBL}>Questions</label>
         {questions.map((q,qi)=>(
           <div key={qi} style={{ background:_theme.surface, borderRadius:10,
             padding:"12px 14px", marginBottom:10, border:`1px solid ${_theme.cardBorder}` }}>
             <div style={{ display:"flex", gap:8, marginBottom:8, alignItems:"flex-start" }}>
               <span style={{ fontSize:12, fontWeight:700, color:_theme.primary,
                 background:_theme.primary+"18", borderRadius:20,
-                padding:"2px 8px", flexShrink:0 }}>سؤال {qi+1}</span>
+                padding:"2px 8px", flexShrink:0 }}>Q{qi+1}</span>
               <input value={q.text} onChange={e=>updateQ(qi,"text",e.target.value)}
-                style={{ ...I({flex:1}) }} placeholder="نص السؤال..."/>
+                style={{ ...I({flex:1}) }} placeholder="Question text..."/>
               {questions.length > 1 && (
                 <button onClick={()=>removeQuestion(qi)}
                   style={{ background:"#FEF2F2", border:"1px solid #FCA5A5",
@@ -7798,14 +7811,14 @@ function SurveyBuilderModal({ employees, session, setNotes, onClose }) {
                   <div key={oi} style={{ display:"flex", gap:6, marginBottom:5, alignItems:"center" }}>
                     {type==="quiz" && (
                       <button onClick={()=>updateQ(qi,"correct",oi)}
-                        title="الإجابة الصحيحة"
+                        title="Correct answer"
                         style={{ width:22, height:22, borderRadius:"50%", flexShrink:0,
                           border:`2px solid ${q.correct===oi?"#10B981":"#CBD5E1"}`,
                           background:q.correct===oi?"#10B981":"transparent",
                           cursor:"pointer" }}/>
                     )}
                     <input value={opt} onChange={e=>updateOpt(qi,oi,e.target.value)}
-                      style={{ ...I({flex:1}) }} placeholder={`خيار ${oi+1}`}/>
+                      style={{ ...I({flex:1}) }} placeholder={`Option ${oi+1}`}/>
                     {q.options.length > 2 && (
                       <button onClick={()=>removeOption(qi,oi)}
                         style={{ background:"none", border:"none", color:"#94A3B8",
@@ -7816,18 +7829,18 @@ function SurveyBuilderModal({ employees, session, setNotes, onClose }) {
                 {q.options.length < 6 && (
                   <button onClick={()=>addOption(qi)}
                     style={{ fontSize:11, color:_theme.primary, background:"none",
-                      border:"none", cursor:"pointer", fontWeight:600 }}>+ إضافة خيار</button>
+                      border:"none", cursor:"pointer", fontWeight:600 }}>+ Add option</button>
                 )}
                 {type==="quiz" && (
                   <div style={{ fontSize:10, color:"#10B981", marginTop:4 }}>
-                    ✅ الإجابة الصحيحة: الخيار {(q.correct||0)+1}
+                    ✅ Correct answer: Option {(q.correct||0)+1}
                   </div>
                 )}
               </div>
             )}
             {q.isPeer && (
               <div style={{ fontSize:11, color:_theme.textMuted, fontStyle:"italic" }}>
-                ⚡ القائمة ستُولَّد تلقائياً من أسماء الموظفين المجدولين اليوم
+                ⚡ List auto-generated from scheduled employees today
               </div>
             )}
           </div>
@@ -7835,7 +7848,7 @@ function SurveyBuilderModal({ employees, session, setNotes, onClose }) {
         {TYPE_CONFIG[type].multiQ && questions.length < 10 && (
           <button onClick={addQuestion}
             style={{ ...PBT("#6366F1",{fontSize:12,padding:"6px 14px"}) }}>
-            + إضافة سؤال
+            + Add Question
           </button>
         )}
       </div>
@@ -7848,13 +7861,13 @@ function SurveyBuilderModal({ employees, session, setNotes, onClose }) {
       )}
 
       <button onClick={saveSurvey} style={{ ...PBT(_theme.primary,{width:"100%",padding:"12px"}) }}>
-        🚀 إطلاق الاستبيان
+        🚀 Launch Survey
       </button>
     </Modal>
   );
 }
 
-// ── Survey Answer Card (للموظفين) ─────────────────────────────────────────────
+// ── Survey Answer Card (for employees) ───────────────────────────────────────────
 function SurveyAnswerCard({ survey, session, employees, notes, setNotes }) {
   let data = {};
   try { data = JSON.parse(survey.text||"{}"); } catch {}
@@ -7877,7 +7890,7 @@ function SurveyAnswerCard({ survey, session, employees, notes, setNotes }) {
 
   function submit() {
     if (Object.keys(answers).length < questions.length) {
-      setError("❌ أجب على جميع الأسئلة"); return;
+      setError("❌ Please answer all questions"); return;
     }
     const response = {
       id: "sr"+Date.now(),
@@ -7903,7 +7916,7 @@ function SurveyAnswerCard({ survey, session, employees, notes, setNotes }) {
           <span style={{ fontSize:20 }}>✅</span>
           <div>
             <div style={{ fontWeight:700, fontSize:13, color:"#166534" }}>{title}</div>
-            <div style={{ fontSize:11, color:"#4ADE80" }}>تم إرسال إجابتك — شكراً!</div>
+            <div style={{ fontSize:11, color:"#4ADE80" }}>Response submitted — Thank you!</div>
           </div>
         </div>
       </div>
@@ -7922,12 +7935,12 @@ function SurveyAnswerCard({ survey, session, employees, notes, setNotes }) {
         <div style={{ flex:1 }}>
           <div style={{ fontWeight:800, fontSize:14, color:_theme.text }}>{title}</div>
           <div style={{ fontSize:11, color:_theme.textMuted }}>
-            من {createdBy} · {new Date(survey.ts).toLocaleString("ar-SA",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
+            From {createdBy} · {new Date(survey.ts).toLocaleString("ar-SA",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
           </div>
         </div>
         <span style={{ background:_theme.primary+"22", color:_theme.primary,
           border:`1px solid ${_theme.primary}40`, borderRadius:20,
-          padding:"2px 10px", fontSize:10, fontWeight:700 }}>جديد 🔴</span>
+          padding:"2px 10px", fontSize:10, fontWeight:700 }}>New 🔴</span>
       </div>
 
       {/* Questions */}
@@ -7969,13 +7982,13 @@ function SurveyAnswerCard({ survey, session, employees, notes, setNotes }) {
 
       <button onClick={submit}
         style={{ ...PBT(_theme.primary,{width:"100%",padding:"11px",fontSize:13})}}>
-        📤 إرسال الإجابة
+        📤 Submit Answer
       </button>
     </div>
   );
 }
 
-// ── Survey Results Panel (للمشرفين) ───────────────────────────────────────────
+// ── Survey Results Panel (for supervisors) ────────────────────────────────────────
 function SurveyResultsPanel({ survey, notes, employees, session, setNotes }) {
   let data = {};
   try { data = JSON.parse(survey.text||"{}"); } catch {}
@@ -7987,8 +8000,8 @@ function SurveyResultsPanel({ survey, notes, employees, session, setNotes }) {
     .filter(n => n.tag==="Survey Response" && n.target===survey.id);
 
   const TYPE_ICONS = { poll:"📊", quiz:"📝", shift_review:"⭐", peer:"🤝", blocker:"🚧" };
-  const TYPE_LABELS = { poll:"استطلاع رأي", quiz:"اختبار معرفة",
-    shift_review:"تقييم المناوبة", peer:"تقدير الزملاء", blocker:"تشخيص العوائق" };
+  const TYPE_LABELS = { poll:"Poll", quiz:"Knowledge Quiz",
+    shift_review:"Shift Review", peer:"Peer Recognition", blocker:"Blocker Diagnosis" };
 
   // Calculate results per question
   function getResults(qi) {
@@ -8008,7 +8021,7 @@ function SurveyResultsPanel({ survey, notes, employees, session, setNotes }) {
   }
 
   function closeSurvey() {
-    if (!window.confirm("إغلاق الاستبيان؟ لن يتمكن الموظفون من الإجابة بعد الإغلاق.")) return;
+    if (!window.confirm("Close this survey? Employees cannot respond after closing.")) return;
     setNotes(prev=>(Array.isArray(prev)?prev:[]).map(n=>{
       if (n.id !== survey.id) return n;
       try {
@@ -8019,7 +8032,7 @@ function SurveyResultsPanel({ survey, notes, employees, session, setNotes }) {
   }
 
   function deleteSurvey() {
-    if (!window.confirm("حذف الاستبيان وجميع إجاباته؟")) return;
+    if (!window.confirm("Delete this survey and all responses?")) return;
     const ids = new Set([survey.id, ...responses.map(r=>r.id)]);
     setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>!ids.has(n.id)));
   }
@@ -8038,7 +8051,7 @@ function SurveyResultsPanel({ survey, notes, employees, session, setNotes }) {
           <div style={{ fontWeight:800, fontSize:13, color:_theme.text }}>{title}</div>
           <div style={{ fontSize:11, color:_theme.textMuted }}>
             {TYPE_LABELS[type]} · {new Date(survey.ts).toLocaleDateString("ar-SA",{timeZone:"Asia/Riyadh"})}
-            · إلى: {targetRole==="all"?"الجميع":targetRole}
+            · To: {targetRole==="all"?"Everyone":targetRole}
           </div>
         </div>
         <div style={{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
@@ -8046,20 +8059,20 @@ function SurveyResultsPanel({ survey, notes, employees, session, setNotes }) {
             color:responses.length>0?"#10B981":"#94A3B8",
             border:`1px solid ${responses.length>0?"#86EFAC":"#E2E8F0"}`,
             borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>
-            {responses.length} إجابة
+            {responses.length} responses
           </span>
           <span style={{ background:isClosed?"#F1F5F9":"#FEF9C3",
             color:isClosed?"#64748B":"#B45309",
             borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>
-            {isClosed?"🔒 مغلق":"🟢 نشط"}
+            {isClosed?"🔒 Closed":"🟢 Active"}
           </span>
           <button onClick={()=>setShowDetails(s=>!s)}
             style={{ ...PBT("#6366F1",{fontSize:11,padding:"4px 10px"}) }}>
-            {showDetails?"▲ إخفاء":"▼ النتائج"}
+            {showDetails?"▲ Hide":"▼ Results"}
           </button>
           {!isClosed && createdBy===session?.name && (
             <button onClick={closeSurvey}
-              style={{ ...PBT("#F59E0B",{fontSize:11,padding:"4px 10px"}) }}>🔒 إغلاق</button>
+              style={{ ...PBT("#F59E0B",{fontSize:11,padding:"4px 10px"}) }}>🔒 Close</button>
           )}
           {createdBy===session?.name && (
             <button onClick={deleteSurvey}
@@ -8073,7 +8086,7 @@ function SurveyResultsPanel({ survey, notes, employees, session, setNotes }) {
         <div style={{ borderTop:`1px solid ${_theme.cardBorder}`, paddingTop:12 }}>
           {responses.length === 0 ? (
             <div style={{ textAlign:"center", color:_theme.textMuted, fontSize:12, padding:"16px" }}>
-              لا توجد إجابات بعد
+              No responses yet
             </div>
           ) : (
             <div>
@@ -8115,7 +8128,7 @@ function SurveyResultsPanel({ survey, notes, employees, session, setNotes }) {
                     })}
                     {type==="quiz" && (
                       <div style={{ fontSize:11, color:"#10B981", marginTop:6, fontWeight:600 }}>
-                        نسبة الإجابات الصحيحة: {Math.round((counts[q.correct]||0)/total*100)}%
+                        Correct rate: {Math.round((counts[q.correct]||0)/total*100)}%
                       </div>
                     )}
                   </div>
@@ -8125,7 +8138,7 @@ function SurveyResultsPanel({ survey, notes, employees, session, setNotes }) {
               {/* Respondents list */}
               <div style={{ marginTop:10, borderTop:`1px solid ${_theme.cardBorder}`, paddingTop:8 }}>
                 <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600, marginBottom:6 }}>
-                  المشاركون ({responses.length}):
+                  Participants ({responses.length}):
                 </div>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
                   {responses.map(r=>(
@@ -8176,25 +8189,25 @@ function SurveysPage({ employees, notes, setNotes, session, canEdit }) {
   });
 
   const tabs = canEdit
-    ? [["manage","📊 الإدارة والنتائج"],["answer","📝 الإجابة"]]
-    : [["answer","📝 الاستبيانات"]];
+    ? [["manage","📊 Manage & Results"],["answer","📝 Answer"]]
+    : [["answer","📝 Surveys"]];
 
   return (
     <div>
       {/* Header */}
       <div style={SBR()}>
-        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>📋 الاستبيانات والاختبارات</span>
+        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>📋 Surveys & Quizzes</span>
         {unanswered.length > 0 && (
           <span style={{ background:"#EF444418", color:"#EF4444",
             border:"1px solid #FCA5A5", borderRadius:20,
             padding:"3px 12px", fontSize:12, fontWeight:700 }}>
-            🔴 {unanswered.length} استبيان بانتظار إجابتك
+            🔴 {unanswered.length} surveys pending
           </span>
         )}
         {canEdit && (
           <button onClick={()=>setShowBuilder(true)}
             style={{ ...PBT(_theme.primary,{fontSize:12}) }}>
-            ➕ إنشاء استبيان
+            ➕ Create Survey
           </button>
         )}
       </div>
@@ -8218,13 +8231,13 @@ function SurveysPage({ employees, notes, setNotes, session, canEdit }) {
         <div>
           {/* Active */}
           <div style={{ fontWeight:700, color:_theme.text, fontSize:13, marginBottom:10 }}>
-            🟢 الاستبيانات النشطة ({activeSurveys.length})
+            🟢 Active Surveys ({activeSurveys.length})
           </div>
           {activeSurveys.length===0 && (
             <div style={{ ...CRD({padding:"32px 20px"}), textAlign:"center",
               color:_theme.textMuted, marginBottom:16 }}>
               <div style={{ fontSize:36, marginBottom:8 }}>📋</div>
-              لا توجد استبيانات نشطة — اضغط "إنشاء استبيان" للبدء
+              No active surveys yet
             </div>
           )}
           {activeSurveys.map(sv=>(
@@ -8235,7 +8248,7 @@ function SurveysPage({ employees, notes, setNotes, session, canEdit }) {
           {closedSurveys.length > 0 && (
             <div>
               <div style={{ fontWeight:700, color:_theme.textMuted, fontSize:12, marginBottom:8, marginTop:16 }}>
-                🔒 المغلقة ({closedSurveys.length})
+                🔒 Closed ({closedSurveys.length})
               </div>
               {closedSurveys.map(sv=>(
                 <SurveyResultsPanel key={sv.id} survey={sv} notes={notes}
@@ -8254,15 +8267,15 @@ function SurveysPage({ employees, notes, setNotes, session, canEdit }) {
               color:_theme.textMuted }}>
               <div style={{ fontSize:48, marginBottom:12 }}>✅</div>
               <div style={{ fontWeight:700, fontSize:15, marginBottom:6 }}>
-                لا توجد استبيانات حالياً
+                No surveys currently
               </div>
-              <div style={{ fontSize:13 }}>ستظهر هنا الاستبيانات الجديدة فور إطلاقها</div>
+              <div style={{ fontSize:13 }}>New surveys appear here once launched</div>
             </div>
           )}
           {unanswered.length > 0 && (
             <div>
               <div style={{ fontWeight:700, color:"#EF4444", fontSize:13, marginBottom:10 }}>
-                ⏳ بانتظار إجابتك ({unanswered.length})
+                ⏳ Awaiting response ({unanswered.length})
               </div>
               {unanswered.map(sv=>(
                 <SurveyAnswerCard key={sv.id} survey={sv} session={session}
@@ -8273,7 +8286,7 @@ function SurveysPage({ employees, notes, setNotes, session, canEdit }) {
           {activeSurveys.filter(sv=>!unanswered.includes(sv)).length > 0 && (
             <div style={{ marginTop:16 }}>
               <div style={{ fontWeight:700, color:"#10B981", fontSize:13, marginBottom:10 }}>
-                ✅ أجبت عليها ({activeSurveys.length - unanswered.length})
+                ✅ Answered ({activeSurveys.length - unanswered.length})
               </div>
               {activeSurveys.filter(sv=>!unanswered.includes(sv)).map(sv=>(
                 <SurveyAnswerCard key={sv.id} survey={sv} session={session}
@@ -8334,7 +8347,7 @@ function calcEmployeePoints(empId, performance, attendance) {
     if (!a) return;
     if (a.status === "Present") pts += 5;               // 5 pts presence
     if (a.lateMin === 0 && a.status === "Present") pts += 3; // bonus on-time
-    if (a.status === "Absent") pts -= 10;               // -10 absent
+    if (isAbsent(a.status)) pts -= 10;               // -10 absent
   });
   return Math.max(0, pts);
 }
@@ -8360,8 +8373,8 @@ function detectBadges(empId, performance, attendance, employees, notes) {
   if (maxZero >= 7)  earned.push("fastest_response");
 
   // Attendance Star: present every working day in a month (≥20 present)
-  const presentDays = allAtt.filter(a => a.status==="Present" || a.status==="Late").length;
-  const absentDays  = allAtt.filter(a => a.status==="Absent").length;
+  const presentDays = allAtt.filter(a => isPresent(a.status)).length;
+  const absentDays  = allAtt.filter(a => isAbsent(a.status)).length;
   if (presentDays >= 20 && absentDays === 0) earned.push("attendance_star");
 
   // Early Bird: 20 consecutive on-time arrivals
@@ -8727,8 +8740,8 @@ function AIReportAssistant({ employees, schedule, attendance, performance, queue
     const todayAtt  = attendance[todayKey] || {};
     const todayPerf = performance[todayKey] || {};
 
-    const present  = Object.values(todayAtt).filter(a=>a.status==="Present"||a.status==="Late").length;
-    const absent   = Object.values(todayAtt).filter(a=>a.status==="Absent").length;
+    const present  = Object.values(todayAtt).filter(a=>isPresent(a.status)).length;
+    const absent   = Object.values(todayAtt).filter(a=>isAbsent(a.status)).length;
     const late     = Object.values(todayAtt).filter(a=>a.lateMin>=7).length;
     const closed   = Object.values(todayPerf).reduce((s,p)=>s+(p.closed||0),0);
     const escalations = Object.values(todayPerf).reduce((s,p)=>s+(p.escalations||0),0);
@@ -8754,7 +8767,7 @@ function AIReportAssistant({ employees, schedule, attendance, performance, queue
       .map(e=>`${e.name} (${e.closed} cases)`).join(", ");
 
     return {
-      date: new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Riyadh"}),
+      date: new Date().toLocaleDateString("en-GB",{weekday:"long",year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Riyadh"}),
       time: new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"}),
       scheduled: todayEmps.length,
       present, absent, late,
@@ -9720,8 +9733,8 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
   });
   const todayAtt  = attendance[todayKey]||{};
   const todayPerf = performance[todayKey]||{};
-  const presentCnt= Object.values(todayAtt).filter(a=>a.status==="Present"||a.status==="Late").length;
-  const absentCnt = Object.values(todayAtt).filter(a=>a.status==="Absent").length;
+  const presentCnt= Object.values(todayAtt).filter(a=>isPresent(a.status)).length;
+  const absentCnt = Object.values(todayAtt).filter(a=>isAbsent(a.status)).length;
   const lateCnt   = Object.values(todayAtt).filter(a=>(a.lateMin||0)>=7).length;
   const totalClosed= Object.values(todayPerf).reduce((s,p)=>s+(p.closed||0),0);
   const totalEsc  = Object.values(todayPerf).reduce((s,p)=>s+(p.escalations||0),0);
@@ -11155,7 +11168,7 @@ function QuickNoteFAB({ currentName, setNotes, theme }) {
   );
 }
 // ─── GLOBAL SEARCH ───────────────────────────────────────────────────────────
-function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose }) {
+function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose, session }) {
   const [query, setQuery] = useState("");
   const inputRef = useRef(null);
 
@@ -11177,8 +11190,13 @@ function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose }) {
       }
     });
 
-    // Search notes
+    // Search notes — skip private messages
     (Array.isArray(notes)?notes:[]).forEach(n => {
+      // Privacy: only show notes accessible to current user
+      const myName = session?.name || "";
+      if (n.tag === "Direct Message") { if (n.target !== myName && n.from !== myName) return; }
+      else if (n.tag === "Manager Message" && n.target && n.target !== "all") { if (n.target !== myName && n.from !== myName) return; }
+      else if (["Short Break Request","Swap Request","Break Swap Request","Survey","Survey Response","Leave Request"].includes(n.tag)) return;
       if (n.text?.toLowerCase().includes(q) || n.tag?.toLowerCase().includes(q)) {
         out.push({ type:"note", icon:"📝", label:n.text?.slice(0,60)||"Note",
           sub:`${n.date} · ${n.tag}`, color:"#8B5CF6", action:"Notes" });
@@ -11215,11 +11233,11 @@ function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose }) {
             value={query}
             onChange={e=>setQuery(e.target.value)}
             onKeyDown={e=>{ if(e.key==="Escape") onClose(); }}
-            placeholder="ابحث عن موظف، ملاحظة، إجراء... (2 حرف على الأقل)"
+            placeholder="Search employees, notes, actions... (2+ chars)"
             style={{ flex:1, background:"transparent", border:"none", outline:"none",
               fontSize:15, color:_theme.text, fontFamily:"inherit" }}
           />
-          <span style={{ fontSize:11, color:_theme.textMuted, whiteSpace:"nowrap" }}>ESC للإغلاق</span>
+          <span style={{ fontSize:11, color:_theme.textMuted, whiteSpace:"nowrap" }}>ESC to close</span>
         </div>
 
         {/* Results */}
@@ -11228,13 +11246,13 @@ function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose }) {
             <div style={{ padding:"28px 20px", textAlign:"center",
               color:_theme.textMuted, fontSize:13 }}>
               <div style={{ fontSize:32, marginBottom:8 }}>🔍</div>
-              اكتب كلمتين أو أكثر للبحث في الموظفين، الملاحظات، وسجل العمليات
+              Type 2+ chars to search employees, notes, and audit log
             </div>
           )}
           {q.length >= 2 && results.length === 0 && (
             <div style={{ padding:"28px 20px", textAlign:"center",
               color:_theme.textMuted, fontSize:13 }}>
-              لا توجد نتائج لـ "<strong>{query}</strong>"
+              No results for "<strong>{query}</strong>"
             </div>
           )}
           {results.map((r, i) => (
@@ -11256,7 +11274,7 @@ function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose }) {
               </div>
               <div style={{ fontSize:10, color:r.color, fontWeight:700,
                 background:r.color+"18", borderRadius:6, padding:"2px 8px",
-                flexShrink:0 }}>{r.type==="employee"?"موظف":r.type==="note"?"ملاحظة":"سجل"}</div>
+                flexShrink:0 }}>{r.type==="employee"?"employee":r.type==="note"?"note":"log"}</div>
             </div>
           ))}
         </div>
@@ -11266,7 +11284,7 @@ function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose }) {
           <div style={{ padding:"8px 16px", fontSize:11, color:_theme.textMuted,
             borderTop:`1px solid ${_theme.cardBorder}`,
             background:_theme.surface }}>
-            {results.length} نتيجة — اضغط على أي نتيجة للانتقال للصفحة
+            {results.length} results — click to navigate
           </div>
         )}
       </div>
@@ -11284,8 +11302,8 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
   const [showPw, setShowPw]             = useState(false);
   const [step, setStep]                 = useState("login");
 
-  const isRTL = lang === "ar";
-  const tr = (key) => T[lang]?.[key] || T.en[key] || key;
+  const isRTL = false;
+  const tr = (key) => T.en[key] || key;
   const isAgent = selectedRole === "Agent";
   const roleColor = ROLE_COLORS[selectedRole];
   const roleEmployees = employees.filter(e => e.role === selectedRole);
@@ -11354,10 +11372,10 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
     onLogin({ role:selectedRole, name:selectedName });
   }
 
-  const dayTip = (lang === "ar" ? DAILY_TIPS_AR : DAILY_TIPS_EN)[new Date().getDay() % DAILY_TIPS_EN.length];
+  const dayTip = (DAILY_TIPS_EN)[new Date().getDay() % DAILY_TIPS_EN.length];
 
   return (
-    <div dir={isRTL?"rtl":"ltr"} style={{
+    <div dir="ltr" style={{
       minHeight:"100dvh",
       background:"linear-gradient(135deg,#0A0F1E 0%,#0F2744 50%,#0A0F1E 100%)",
       display:"flex", alignItems:"center", justifyContent:"center",
@@ -11374,11 +11392,11 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
 
       {/* Lang toggle top */}
       <div style={{ position:"absolute", top:20, right:20 }}>
-        <button onClick={()=>setLang(lang==="en"?"ar":"en")}
+        <button onClick={()=>{}}  style={{display:"none"}}
           style={{ background:"rgba(59,130,246,0.2)", border:"1px solid #3B82F640",
             color:"#93C5FD", borderRadius:20, padding:"6px 16px", cursor:"pointer",
             fontSize:13, fontWeight:700, backdropFilter:"blur(4px)" }}>
-          {lang==="en"?"🌐 العربية":"🌐 English"}
+          "🌐 EN"
         </button>
       </div>
 
@@ -11404,7 +11422,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
           {/* Daily tip */}
           <div style={{ marginTop:14, background:"rgba(59,130,246,0.1)", border:"1px solid #3B82F630",
             borderRadius:8, padding:"8px 12px", fontSize:12, color:"#93C5FD",
-            textAlign: isRTL ? "right" : "left" }}>
+            textAlign: "left" }}>
             {dayTip}
           </div>
         </div>
@@ -11422,7 +11440,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
                 <button key={role} onClick={()=>{ setSelectedRole(role); setSelectedName(""); setError(""); setPassword(""); setStep("login"); }}
                   style={{ border:`2px solid ${selectedRole===role ? ROLE_COLORS[role] : "#374151"}`,
                     borderRadius:10, padding:"10px 12px", cursor:"pointer",
-                    textAlign: isRTL ? "right" : "left", transition:"all 0.15s",
+                    textAlign: "left", transition:"all 0.15s",
                     background: selectedRole===role ? ROLE_COLORS[role]+"18" : "#1F2937",
                     display:"flex", alignItems:"center", gap:8 }}>
                   <span style={{ fontSize:18 }}>{ROLE_ICONS[role]}</span>
@@ -11430,7 +11448,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
                     <div style={{ fontSize:12, fontWeight:700,
                       color: selectedRole===role ? ROLE_COLORS[role] : "#F9FAFB" }}>{role}</div>
                     <div style={{ fontSize:10, color:"#6B7280" }}>
-                      {lang==="ar" ? ROLE_DESC_AR[role] : ROLE_DESC_EN[role]}
+                      {false ? ROLE_DESC_EN[role] : ROLE_DESC_EN[role]}
                     </div>
                   </div>
                 </button>
@@ -11456,8 +11474,8 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
           {isAgent && !selectedName && (
             <div style={{ background:"rgba(59,130,246,0.08)", border:"1px solid rgba(59,130,246,0.2)",
               borderRadius:8, padding:"10px 14px", marginBottom:14,
-              fontSize:12, color:"#93C5FD", textAlign:isRTL?"right":"left" }}>
-              👁️ صلاحية عرض — يلزم كلمة مرور عند أول دخول
+              fontSize:12, color:"#93C5FD", textAlign:"left" }}>
+              👁️ View access — password required on first login
             </div>
           )}
 
@@ -11535,7 +11553,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
             <div style={{ background:"rgba(245,158,11,0.1)", border:"1px solid rgba(245,158,11,0.3)",
               borderRadius:8, padding:"10px 14px", marginBottom:10,
               fontSize:12, color:"#F59E0B", fontWeight:600, textAlign:"center" }}>
-              👑 Owner — دخول مباشر بدون كلمة مرور
+              👑 Owner — direct access
             </div>
           )}
           {/* Owner accessing another account notice */}
@@ -11544,7 +11562,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
             <div style={{ background:"rgba(239,68,68,0.06)", border:"1px solid rgba(239,68,68,0.2)",
               borderRadius:8, padding:"8px 12px", marginBottom:8,
               fontSize:11, color:"#FCA5A5", textAlign:"center" }}>
-              🔒 الدخول يتطلب كلمة المرور — أو تواصل مع المسؤول لإعادة التعيين
+              🔒 Password required — contact admin to reset
             </div>
           )}
           {selectedName && !isOwnerUser({role:selectedRole, name:selectedName}) && (step==="login") && (
@@ -11587,29 +11605,29 @@ function PasswordResetModal({ employees, session, onClose }) {
 
   async function doReset(emp) {
     const confirm1 = window.confirm(
-      `⚠️ إعادة تعيين كلمة مرور "${emp.name}"؟
+      `⚠️ Reset password for "${emp.name}"?
 
-سيتم حذف كلمة المرور الحالية. عند دخوله التالي سيُطلب منه إنشاء كلمة مرور جديدة بنفسه.`
+Their password will be cleared. They will set a new one on next login.`
     );
     if (!confirm1) return;
     // DELETE the password entirely — do NOT set a new one
     await resetUserPw(emp.name);
-    setDone(`✅ تم مسح كلمة مرور "${emp.name}" — سيُطلب منه إنشاء كلمة جديدة عند دخوله التالي`);
+    setDone(`✅ Password cleared for "${emp.name}" — they will set a new one on next login`);
     setTimeout(() => setDone(""), 5000);
   }
 
   return (
-    <Modal title="🔑 إعادة تعيين كلمة المرور" onClose={onClose} width={520}>
+    <Modal title="🔑 Reset Password" onClose={onClose} width={520}>
       {/* Privacy note */}
       <div style={{ background:"rgba(59,130,246,0.08)", border:"1px solid rgba(59,130,246,0.2)",
         borderRadius:8, padding:"10px 14px", marginBottom:14, fontSize:12, color:_theme.textSub }}>
-        <div style={{ fontWeight:700, marginBottom:4 }}>🔒 خصوصية محمية</div>
-        إعادة التعيين تمسح كلمة المرور الحالية فقط — لا أحد يعرف الكلمة الجديدة.
-        الموظف وحده يضع كلمة المرور الجديدة عند دخوله التالي.
+        <div style={{ fontWeight:700, marginBottom:4 }}>🔒 Privacy Protected</div>
+        Reset only clears the current password — no one sees the new one.
+        The employee sets their own new password on next login.
       </div>
 
       <input value={search} onChange={e=>setSearch(e.target.value)}
-        style={{ ...I(), marginBottom:12 }} placeholder="🔍 ابحث عن اسم..."/>
+        style={{ ...I(), marginBottom:12 }} placeholder="🔍 Search name..."/>
 
       {done && (
         <div style={{ background:"#F0FDF4", border:"1px solid #86EFAC",
@@ -11630,20 +11648,20 @@ function PasswordResetModal({ employees, session, onClose }) {
                 </div>
                 <div style={{ fontSize:11, marginTop:2 }}>
                   {hasPw
-                    ? <span style={{ color:"#10B981" }}>✅ لديه كلمة مرور</span>
-                    : <span style={{ color:"#F59E0B" }}>⚠️ لم يضع كلمة مرور بعد</span>}
+                    ? <span style={{ color:"#10B981" }}>✅ Has password</span>
+                    : <span style={{ color:"#F59E0B" }}>⚠️ No password yet</span>}
                 </div>
               </div>
               {hasPw ? (
                 <button onClick={()=>doReset(emp)}
                   style={{ ...PBT("#EF4444",{ padding:"7px 14px", fontSize:12 }) }}>
-                  🔄 مسح الكلمة
+                  🔄 Clear Password
                 </button>
               ) : (
                 <span style={{ fontSize:11, color:_theme.textMuted,
                   background:_theme.surface, borderRadius:6,
                   padding:"6px 12px", border:`1px solid ${_theme.cardBorder}` }}>
-                  لا يوجد
+                  None
                 </span>
               )}
             </div>
@@ -11651,7 +11669,7 @@ function PasswordResetModal({ employees, session, onClose }) {
         })}
         {visibleEmps.length === 0 && (
           <div style={{ color:_theme.textMuted, textAlign:"center", padding:24 }}>
-            لا توجد نتائج
+            No results
           </div>
         )}
       </div>
@@ -11665,11 +11683,11 @@ function OwnerAccessBanner({ targetName, onExit }) {
       borderRadius:0, padding:"6px 16px", textAlign:"center", fontSize:12,
       color:"#F59E0B", fontWeight:700, display:"flex", alignItems:"center",
       justifyContent:"center", gap:10 }}>
-      👑 Owner يتصفح حساب: {targetName}
+      👑 Owner browsing: {targetName}
       <button onClick={onExit}
         style={{ background:"rgba(245,158,11,0.2)", border:"1px solid rgba(245,158,11,0.4)",
           color:"#F59E0B", borderRadius:6, padding:"2px 10px", cursor:"pointer",
-          fontSize:11, fontWeight:700 }}>خروج</button>
+          fontSize:11, fontWeight:700 }}>Exit</button>
     </div>
   );
 }
@@ -11704,7 +11722,7 @@ export default function App() {
     try { return localStorage.getItem("csops_theme") || "dark"; } catch { return "dark"; }
   });
   const [lang, setLang] = useState(() => {
-    try { return localStorage.getItem("csops_lang") || "en"; } catch { return "en"; }
+    return "en";
   });
   const [zoom, setZoom] = useState(() => {
     try { return Number(localStorage.getItem("csops_zoom")) || 100; } catch { return 100; }
@@ -11715,8 +11733,8 @@ export default function App() {
   const theme = THEMES[themeKey] || THEMES.dark;
   setGlobalTheme(theme);
   setGlobalLang(lang);
-  const isRTL = lang === "ar";
-  const tr = (key) => T[lang]?.[key] || T.en[key] || key;
+  const isRTL = false;
+  const tr = (key) => T.en[key] || key;
 
   // ── Session ────────────────────────────────────────────────────────────────
   const [session, _setSession] = useState(() => {
@@ -11784,10 +11802,7 @@ export default function App() {
     const t = setInterval(checkAutoTheme, 5*60*1000);
     return () => clearInterval(t);
   }, []);
-  function changeLang(l) {
-    setLang(l);
-    try { localStorage.setItem("csops_lang", l); } catch {}
-  }
+  function changeLang(l) { /* English only */ }
   function changeZoom(z) {
     const clamped = Math.min(200, Math.max(50, z));
     setZoom(clamped);
@@ -11890,7 +11905,7 @@ export default function App() {
                   const tgt = payload.new?.target;
                   const myN = session?.name || "";
                   if (tgt === "all" || !tgt || tgt === myN) {
-                    showToast("📢 رسالة جديدة من المشرف", "info", 5000);
+                    showToast("📢 New message from supervisor", "info", 5000);
                   }
                 }
                 // Ding when a Direct Message arrives for me
@@ -12480,21 +12495,25 @@ export default function App() {
       if (!shouldShow) return;
 
       if (totalCurr > alertThresholdCritical) {
-        setCriticalAlerts([{ icon:"🚨", title:`Queue Critical — ${totalCurr} cases`, detail:`إجمالي الحالات تجاوز الحد الحرج (${alertThresholdCritical}+). يتطلب تدخلاً فورياً وإعادة توزيع الطاقم.`, total:totalCurr }]);
+        setCriticalAlerts([{ icon:"🚨", title:`Queue Critical — ${totalCurr} cases`, detail:`Total cases exceeded critical threshold (${alertThresholdCritical}+).`
+          }]);
+          detail:`Exceeded critical threshold (${alertThresholdCritical}+). Immediate action required.`, total:totalCurr }]);
         setAlertDismissed(false);
         playAlertSound("critical"); // 🔊 urgent triple beep
         sendPushNotification(
-          `🚨 Queue Critical — ${totalCurr} حالة`,
-          `تجاوز الحد الحرج (${alertThresholdCritical}+). يتطلب تدخلاً فورياً.`,
+          `🚨 Queue Critical — ${totalCurr} cases`,
+          `Exceeded critical threshold (${alertThresholdCritical}+). Requires immediate action.`,
           "queue-critical"
         );
       } else if (totalCurr > alertThresholdWarning) {
-        setCriticalAlerts([{ icon:"⚠️", title:`Queue Warning — ${totalCurr} cases`, detail:`إجمالي الحالات في منطقة التحذير (${alertThresholdWarning}+). راقب الوضع عن كثب.`, total:totalCurr }]);
+        setCriticalAlerts([{ icon:"⚠️", title:`Queue Warning — ${totalCurr} cases`, detail:`In warning zone (${alertThresholdWarning}+). Monitor closely.`
+          }]);
+          detail:`In warning zone (${alertThresholdWarning}+). Monitor closely.`, total:totalCurr }]);
         setAlertDismissed(false);
         playAlertSound("warning"); // 🔊 gentle double ping
         sendPushNotification(
-          `⚠️ Queue Warning — ${totalCurr} حالة`,
-          `في منطقة التحذير (${alertThresholdWarning}+). راقب الوضع.`,
+          `⚠️ Queue Warning — ${totalCurr} cases`,
+          `In warning zone (${alertThresholdWarning}+). Monitor closely.`,
           "queue-warning"
         );
       }
@@ -12711,7 +12730,7 @@ export default function App() {
     Break:         wrap(<BreakPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={canEdit} addAudit={addAudit} session={session} notes={notes} setNotes={setNotes} myShiftFilter={myShiftOnly} queueLog={queueLog}/>),
     "Heat Map":    wrap(<HeatMapPage queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning}/>),
     "Audit Log":   wrap(<AuditLogPage auditLog={auditLog} session={session}/>),
-    Notes:         wrap(<NotesPage notes={notes} setNotes={canEdit?setNotes:noop}/>),
+    Notes:         wrap(<NotesPage notes={notes} setNotes={canEdit?setNotes:noop} session={session}/>),
     Shifts:        wrap(<ShiftsPage shifts={shifts} setShifts={SH}/>),
     Performance:   wrap(<PerformancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF} myShiftFilter={myShiftOnly} session={session}/>),
     Reports:       wrap(<ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog} session={session} canEdit={canEdit} myShiftFilter={myShiftOnly}/>),
@@ -12738,17 +12757,17 @@ export default function App() {
     "Notes": tr("notes"), "Shifts": tr("shifts"),
     "Performance": tr("performance"), "Reports": tr("reports"),
     "Owner Analytics": tr("ownerAnalytics"),
-    "Leaderboard": lang==="ar"?"لوحة المتصدرين":"Leaderboard",
-    "Attendance History": lang==="ar"?"سجل الحضور":"Attendance History",
-    "KPI Dashboard": lang==="ar"?"لوحة المؤشرات":"KPI Dashboard",
-    "Surveys": lang==="ar"?"الاستبيانات":"Surveys",
+    "Leaderboard": "Leaderboard",
+    "Attendance History": "Attendance History",
+    "KPI Dashboard": "KPI Dashboard",
+    "Surveys": "Surveys",
     "Gamification": "Gamification"
   };
 
   const safeCurrentPage = visiblePages.includes(page) ? page : visiblePages[0];
 
   return (
-    <div dir={isRTL?"rtl":"ltr"} style={{
+    <div dir="ltr" style={{
       minHeight:"100dvh", background:theme.bg,
       fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif",
       color:theme.text
@@ -12932,7 +12951,7 @@ export default function App() {
 
               {/* Global Search button */}
               <button onClick={()=>setShowSearch(true)}
-                title="بحث عالمي (Ctrl+K)"
+                title="Global Search (Ctrl+K)"
                 style={{ background:theme.surface, border:`1px solid ${theme.cardBorder}`,
                   color:theme.textSub, borderRadius:7, padding:"5px 9px",
                   fontSize:11, cursor:"pointer", fontWeight:600,
@@ -12941,7 +12960,7 @@ export default function App() {
               </button>
 
               {/* Lang */}
-              <button onClick={()=>changeLang(lang==="en"?"ar":"en")}
+              <button onClick={()=>changeLang("en")}
                 style={{ background:theme.surface, border:`1px solid ${theme.cardBorder}`,
                   color:theme.textSub, borderRadius:7, padding:"5px 9px",
                   fontSize:11, cursor:"pointer", fontWeight:700 }}>
@@ -12955,7 +12974,7 @@ export default function App() {
                   color:theme.textSub, borderRadius:7, padding:"5px 7px",
                   fontSize:11, cursor:"pointer", outline:"none" }}>
                 {Object.entries(THEMES).map(([k,v])=>(
-                  <option key={k} value={k}>{lang==="ar"?v.nameAr:v.name}</option>
+                  <option key={k} value={k}>{false?v.nameAr:v.name}</option>
                 ))}
               </select>
 
@@ -12999,12 +13018,12 @@ export default function App() {
               {/* Sound mute toggle */}
               {!isAgent && (
                 <button
-                  title="تبديل صوت التنبيهات"
+                  title="Toggle alert sounds"
                   onClick={()=>{
                     const muted = localStorage.getItem("csops_mute")==="1";
                     localStorage.setItem("csops_mute", muted?"0":"1");
-                    if (!muted) alert("🔕 تم كتم صوت التنبيهات");
-                    else { alert("🔔 تم تفعيل صوت التنبيهات"); playSoftDing(); }
+                    if (!muted) alert("🔕 Alert sounds muted");
+                    else { alert("🔔 Alert sounds enabled"); playSoftDing(); }
                   }}
                   style={{ background:localStorage.getItem("csops_mute")==="1"?"rgba(239,68,68,0.1)":theme.surface,
                     color:localStorage.getItem("csops_mute")==="1"?theme.danger:theme.textSub,
@@ -13055,16 +13074,16 @@ export default function App() {
               {/* Push Notification toggle — supervisors only */}
               {!isAgent && "Notification" in window && (
                 <button
-                  title={Notification.permission==="granted"?"إشعارات Push مفعّلة — اضغط للمعلومات":"تفعيل إشعارات Push"}
+                  title={Notification.permission==="granted"?"Push notifications enabled — click for info":"Enable push notifications"}
                   onClick={async()=>{
                     if (Notification.permission==="granted") {
-                      alert("✅ إشعارات Push مفعّلة\nستصلك تنبيهات Queue حتى لو التطبيق مغلق.");
+                      alert("✅ Push notifications enabled\nYou'll receive alerts even when the app is closed.");
                     } else if (Notification.permission==="denied") {
-                      alert("🚫 الإشعارات محجوبة من إعدادات المتصفح.\nافتح إعدادات المتصفح وأعد السماح للموقع.");
+                      alert("🚫 Notifications blocked. Open browser settings and allow this site.");
                     } else {
                       const res = await askPushPermission();
-                      if (res==="granted") alert("✅ تم تفعيل إشعارات Push بنجاح!");
-                      else alert("⚠️ لم يتم السماح بالإشعارات.");
+                      if (res==="granted") alert("✅ Push notifications enabled!");
+                      else alert("⚠️ Notification permission denied.");
                     }
                   }}
                   style={{
@@ -13100,7 +13119,7 @@ export default function App() {
               {PAGE_ICONS[safeCurrentPage]} {PAGE_LABELS[safeCurrentPage]||safeCurrentPage}
             </h1>
             <div style={{ fontSize:11, color:theme.textMuted, marginTop:2 }}>
-              {new Date().toLocaleDateString(lang==="ar"?"ar-SA":"en-US",
+              {new Date().toLocaleDateString(false?"ar-SA":"en-US",
                 {weekday:"long",year:"numeric",month:"long",day:"numeric"})}
             </div>
           </div>
@@ -13224,7 +13243,7 @@ export default function App() {
               </span>
             </button>
           ))}
-          <button onClick={()=>changeLang(lang==="en"?"ar":"en")}
+          <button onClick={()=>changeLang("en")}
             style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:1,
               background:"transparent", border:"none", cursor:"pointer", padding:"4px 6px",
               borderRadius:8, minWidth:42, flexShrink:0 }}>
@@ -13255,6 +13274,7 @@ export default function App() {
           auditLog={auditLog}
           onNavigate={p=>navigateLogged(p)}
           onClose={()=>setShowSearch(false)}
+          session={session}
         />
       )}
 
@@ -13296,13 +13316,13 @@ export default function App() {
               {tr("dailyTipTitle")}
             </div>
             <div style={{ fontSize:15, color:theme.textSub, lineHeight:1.8, marginBottom:24 }}>
-              {(lang==="ar" ? DAILY_TIPS_AR : DAILY_TIPS_EN)[new Date().getDay() % 7]}
+              {(false ? DAILY_TIPS_EN : DAILY_TIPS_EN)[new Date().getDay() % 7]}
             </div>
             <button onClick={()=>setShowTip(false)}
               style={{ background:theme.primary, color:"#fff", border:"none", borderRadius:10,
                 padding:"12px 40px", fontSize:15, cursor:"pointer", fontWeight:700,
                 boxShadow:`0 4px 16px ${theme.primary}60` }}>
-              {lang==="ar" ? "ابدأ العمل 🚀" : "Let's Go 🚀"}
+              {"Let's Go 🚀"}
             </button>
           </div>
         </div>
