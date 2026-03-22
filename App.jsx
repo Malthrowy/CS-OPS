@@ -7203,9 +7203,7 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
         </div>
       )}
 
-
-        </div>
-        {/* Period tabs */}
+      {/* Period tabs */}
         <div style={{ display:"flex", gap:6, marginTop:12, justifyContent:"center" }}>
           {[["today","📅 Today"],["week","📈 Week"],["month","🗓️ Month"]].map(([k,l])=>(
             <button key={k} onClick={()=>setLbPeriod(k)}
@@ -15449,11 +15447,12 @@ export default function App() {
         if (e.key === "r") { e.preventDefault(); navigateLogged("Reports"); }
         if (e.key === "s") { e.preventDefault(); navigateLogged("Schedule"); }
         // Number keys 1-9 for quick page navigation
-        const pages = visiblePages;
         const num = parseInt(e.key);
-        if (!isNaN(num) && num >= 1 && num <= 9 && pages[num-1]) {
+        if (!isNaN(num) && num >= 1 && num <= 9) {
           e.preventDefault();
-          navigateLogged(pages[num-1]);
+          // Navigate to page by number (computed inline to avoid TDZ)
+          const allP = isSuperAdmin ? [...PAGES, "Owner Analytics"] : isAgent ? AGENT_PAGES : PAGES;
+          if (allP[num-1]) navigateLogged(allP[num-1]);
         }
       }
     };
@@ -16258,13 +16257,7 @@ export default function App() {
               </span>
             </button>
           ))}
-          <button onClick={()=>changeLang("en")}
-            style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:1,
-              background:"transparent", border:"none", cursor:"pointer", padding:"4px 6px",
-              borderRadius:8, minWidth:42, flexShrink:0 }}>
-            <span style={{ fontSize:18 }}>🌐</span>
-            <span style={{ fontSize:8, color:theme.textMuted }}>{lang==="en"?"AR":"EN"}</span>
-          </button>
+
         </div>
       </div>
 
