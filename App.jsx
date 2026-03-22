@@ -91,11 +91,6 @@ const TASK_LIST = ["KFOOD","KEEMRT"];
 const TASK_LIST_ASSIGN = ["KFOOD","KEEMRT"];
 const TASK_COLORS = ["#10B981","#3B82F6","#6366F1","#0EA5E9","#F59E0B","#10B981","#EF4444","#8B5CF6","#EC4899","#14B8A6","#F97316","#06B6D4","#84CC16","#A855F7","#E11D48"];
 const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Annual Leave","Sick Leave","Work From Home","On Training","Business Trip","Day Off"];
-// Statuses that count as "present" for KPI calculations
-const STATUS_PRESENT = new Set(["Present","Late","Early Leave","Annual Leave","Sick Leave","Work From Home","On Training","Business Trip"]);
-const STATUS_ABSENT  = new Set(["Absent","Day Off"]);
-function isPresent(status) { return STATUS_PRESENT.has(status); }
-function isAbsent(status)  { return STATUS_ABSENT.has(status); }
 // Statuses that count as "present" (employee is available/working)
 const PRESENT_STATUSES = new Set(["Present","Late","Early Leave","Work From Home","On Training","Business Trip"]);
 // Statuses that count as "absent" 
