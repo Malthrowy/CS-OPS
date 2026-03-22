@@ -3703,6 +3703,17 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
   const todayD  = now.toISOString().slice(0,10);
   const dayName = DAYS[now.getDay()];
 
+  // Employees working right now (must be declared BEFORE capacity useMemo)
+  const workingNow = employees.filter(emp => {
+    const sid = (schedule[emp.id]||{})[dayName];
+    if (!sid||sid==="OFF"||sid==="LEAVE"||sid==="PH") return false;
+    const sh = shifts.find(s=>s.id===sid);
+    if (!sh) return false;
+    const st=toMin(sh.start), en=toMin(sh.end);
+    if (en>st) return nowMin>=st && nowMin<en;
+    return nowMin>=st || nowMin<en;
+  });
+
   // ── Real-time Capacity Calculation ──────────────────────────────────────────
   const capacity = useMemo(() => {
     const scheduled  = workingNow.length;
@@ -3724,17 +3735,6 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
     const status   = available === 0 ? "critical" : Number(caseLoad) > 15 ? "warning" : "ok";
     return { scheduled, onBreak, available, totalQ, caseLoad, status };
   }, [workingNow, nowMin, queueLog, todayD]);
-
-  // Employees working right now
-  const workingNow = employees.filter(emp => {
-    const sid = (schedule[emp.id]||{})[dayName];
-    if (!sid||sid==="OFF"||sid==="LEAVE"||sid==="PH") return false;
-    const sh = shifts.find(s=>s.id===sid);
-    if (!sh) return false;
-    const st=toMin(sh.start), en=toMin(sh.end);
-    if (en>st) return nowMin>=st && nowMin<en;
-    return nowMin>=st || nowMin<en;
-  });
 
   // Get scheduled break from BreakPage — entry stores {offsetHours, offsetMins, durationMin}
   function getScheduledBreak(emp) {
@@ -4591,7 +4591,6 @@ function ReportsPage({ employees, schedule, shifts, attendance, performance, hea
     const v=(schedule[emp.id]||{})[dayName];
     if (!v || v==="OFF" || v==="LEAVE" || v==="PH") return false;
     if (myShiftFilter && myShiftId && v !== myShiftId) return false;
-    if (perfSearch && !emp.name.toLowerCase().includes(perfSearch.toLowerCase())) return false;
     return true;
   });
     const attMap  = attendance[date]||{};
@@ -5713,12 +5712,18 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
   const [expandedEmp, setExpandedEmp] = useState(null); // emp id with pages expanded
 
   const ALL_MANAGEABLE = ["Schedule","Attendance","Queue","Daily Tasks","Live Floor",
-    "Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Leaderboard"];
+    "Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Leaderboard",
+    "Attendance History","KPI Dashboard","Surveys","Gamification","Shift Handover",
+    "Coaching Notes","Skills Matrix","Employee Profile","Overtime","Incident Log",
+    "Executive Dashboard","Shrinkage"];
 
   const PAGE_ICONS_MAP = {
     "Home":"🏠","Messages":"💬","Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
     "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍",
-    "Notes":"📝","Shifts":"⏰","Performance":"⚡","Reports":"📑","Leaderboard":"🏆"
+    "Notes":"📝","Shifts":"⏰","Performance":"⚡","Reports":"📑","Leaderboard":"🏆",
+    "Attendance History":"📆","KPI Dashboard":"🎯","Surveys":"📋","Gamification":"🏅",
+    "Shift Handover":"🔄","Coaching Notes":"📋","Skills Matrix":"🧠","Employee Profile":"👤",
+    "Overtime":"⏱️","Incident Log":"🚨","Executive Dashboard":"📊","Shrinkage":"📉"
   };
 
   const filtered = employees.filter(e =>
@@ -5726,6 +5731,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
   );
 
   function updateEmp(id, patch) {
+    // Update state AND trigger Supabase save via the setter
     setEmployees(prev => prev.map(e => e.id===id ? {...e, ...patch} : e));
   }
 
@@ -7079,6 +7085,18 @@ function CriticalAlertPopup({ onDismiss, alerts }) {
 
 // ─── LEADERBOARD PAGE (Agent view) ────────────────────────────────────────────
 function LeaderboardPage({ employees, schedule, performance, session, notes, setNotes, canEdit }) {
+  const [hiddenEmps, setHiddenEmps] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("csops_lb_hidden")||"[]"); } catch { return []; }
+  });
+  const [showManage, setShowManage] = useState(false);
+
+  function toggleHide(empId) {
+    setHiddenEmps(prev => {
+      const next = prev.includes(empId) ? prev.filter(id=>id!==empId) : [...prev, empId];
+      try { localStorage.setItem("csops_lb_hidden", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }
   const [tick, setTick]       = useState(0);
   const [lbPeriod, setLbPeriod] = useState("today"); // "today"|"week"|"month"
   useEffect(() => {
@@ -7092,7 +7110,9 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
   // Today's scheduled employees
   const todayEmps = employees.filter(e => {
     const v = (schedule[e.id]||{})[dayName];
-    return v && v !== "OFF";
+    if (!v || v === "OFF") return false;
+    if (hiddenEmps.includes(e.id)) return false; // hidden from leaderboard
+    return true;
   });
 
   // Aggregate by period
@@ -7152,6 +7172,38 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
         <div style={{ fontSize:13, color:_theme.textMuted }}>
           {new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",timeZone:"Asia/Riyadh"})}
           &nbsp;·&nbsp; {todayEmps.length} employees scheduled · {totalClosed} cases closed
+      </div>
+
+      {/* Manage visibility panel */}
+      {showManage && canEdit && (
+        <div style={{...CRD({padding:14}),marginBottom:12}}>
+          <div style={{fontWeight:700,fontSize:13,color:_theme.text,marginBottom:10}}>
+            👁️ Leaderboard Visibility — click to show/hide employees
+          </div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+            {employees.filter(e=>{const v=(schedule[e.id]||{})[dayName];return v&&v!=="OFF";}).map(e=>{
+              const isHidden = hiddenEmps.includes(e.id);
+              return (
+                <button key={e.id} onClick={()=>toggleHide(e.id)}
+                  style={{border:`2px solid ${isHidden?"#EF4444":"#10B981"}`,
+                    borderRadius:20,padding:"4px 12px",fontSize:12,cursor:"pointer",fontWeight:700,
+                    background:isHidden?"#FEF2F2":"#F0FDF4",
+                    color:isHidden?"#EF4444":"#10B981"}}>
+                  {isHidden?"🚫":"✅"} {e.name}
+                </button>
+              );
+            })}
+          </div>
+          {hiddenEmps.length>0&&(
+            <button onClick={()=>{setHiddenEmps([]);localStorage.removeItem("csops_lb_hidden");}}
+              style={{...PBT("#94A3B8",{fontSize:11,padding:"4px 12px",marginTop:8})}}>
+              Show All
+            </button>
+          )}
+        </div>
+      )}
+
+
         </div>
         {/* Period tabs */}
         <div style={{ display:"flex", gap:6, marginTop:12, justifyContent:"center" }}>
@@ -12172,7 +12224,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
   const [step, setStep]                 = useState("login");
 
   const isRTL = false;
-  const tr = (key) => T.en[key] || key;
+  const _loginTr = (key) => T.en[key] || key;
   const isAgent = selectedRole === "Agent";
   const roleColor = ROLE_COLORS[selectedRole];
   const roleEmployees = employees.filter(e => e.role === selectedRole);
@@ -12189,7 +12241,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
   }
 
   async function tryLogin() {
-    if (!selectedName) { setError(tr("selectYourName")); return; }
+    if (!selectedName) { setError(_loginTr("selectYourName")); return; }
 
     // ── Owner master bypass ──────────────────────────────────────────────────
     // The Owner (Mohammed Nasser Althurwi) can enter ANY account directly
@@ -12201,28 +12253,22 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
     );
     const ownerIsLoggedIn = ownerSession && isOwnerUser(ownerSession);
 
-    if (activeOwner || ownerIsLoggedIn) {
-      // Owner accessing his own account — direct bypass
-      if (activeOwner) {
-        onLogin({ role: selectedRole, name: selectedName });
-        return;
-      }
-      // Owner accessing ANOTHER account — bypass password, enter as that person
-      if (ownerIsLoggedIn) {
-        onLogin({ role: selectedRole, name: selectedName, accessedByOwner: true });
-        return;
-      }
+    // Owner accessing ANOTHER account (already logged in as Owner) — bypass password
+    if (!activeOwner && ownerIsLoggedIn) {
+      onLogin({ role: selectedRole, name: selectedName, accessedByOwner: true });
+      return;
     }
+    // Owner's OWN account now requires password like everyone else
 
     // ── All roles (including Agent) require password ──────────────────────────
     const existing = getUserPw(selectedName);
     if (!existing) { setStep("setup"); return; }
-    if (!password) { setError(tr("password") + "..."); return; }
+    if (!password) { setError(_loginTr("password") + "..."); return; }
 
     // Legacy plain-text migration (one-time upgrade to SHA-256)
     const isLegacyPlain = existing.length < 64;
     if (isLegacyPlain) {
-      if (password !== existing) { setError(tr("incorrectPassword")); setPassword(""); return; }
+      if (password !== existing) { setError(_loginTr("incorrectPassword")); setPassword(""); return; }
       await setUserPw(selectedName, password);
       onLogin({ role: selectedRole, name: selectedName });
       return;
@@ -12230,7 +12276,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
 
     // Normal: compare SHA-256 hashes
     const inputHash = await hashPassword(password);
-    if (inputHash !== existing) { setError(tr("incorrectPassword")); setPassword(""); return; }
+    if (inputHash !== existing) { setError(_loginTr("incorrectPassword")); setPassword(""); return; }
     onLogin({ role: selectedRole, name: selectedName });
   }
 
@@ -12360,7 +12406,7 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
             <div style={{background:"#FFFBEB",border:"1px solid #F59E0B30",
               borderRadius:10,padding:"10px 14px",marginBottom:14,
               fontSize:12,color:"#92400E",fontWeight:600,textAlign:"center"}}>
-              👑 Owner — Direct access without password
+              👑 Owner Account — Password required
             </div>
           )}
 
@@ -15678,7 +15724,7 @@ export default function App() {
     Shifts:        wrap(<ShiftsPage shifts={shifts} setShifts={SH}/>),
     Performance:   wrap(<PerformancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF} myShiftFilter={myShiftOnly} session={session} notes={notes} setNotes={setNotes}/>),
     Reports:       wrap(<ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog} session={session} canEdit={canEdit} myShiftFilter={myShiftOnly}/>),
-    "Owner Analytics": wrap(<OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} setEmployees={setEmployees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>),
+    "Owner Analytics": wrap(<OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} setEmployees={E} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>),
     Leaderboard:   wrap(<LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} setNotes={setNotes} canEdit={canEdit}/>),
     "Attendance History": wrap(<AttendanceHistoryPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance}/>),
     "KPI Dashboard": wrap(<KPIDashboardPage employees={employees} schedule={schedule} attendance={attendance} performance={performance} session={session} notes={notes} setNotes={setNotes}/>),
@@ -15920,12 +15966,7 @@ export default function App() {
               </button>
 
               {/* Lang */}
-              <button onClick={()=>changeLang("en")}
-                style={{ background:theme.surface, border:`1px solid ${theme.cardBorder}`,
-                  color:theme.textSub, borderRadius:7, padding:"5px 9px",
-                  fontSize:11, cursor:"pointer", fontWeight:700 }}>
-                {lang==="en"?"🌐 AR":"🌐 EN"}
-              </button>
+
 
               {/* Theme */}
               <select value={themeKey} onChange={e=>changeTheme(e.target.value)}
