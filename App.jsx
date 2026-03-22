@@ -122,7 +122,7 @@ function statusIcon(status) {
   };
   return map[status] || "⚪";
 }
-const ALL_PAGES = ["Home","Messages","Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard","Attendance History","KPI Dashboard","Surveys","Gamification"];
+const ALL_PAGES = ["Home","Messages","Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard","Attendance History","KPI Dashboard","Surveys","Gamification","Shift Handover"];
 const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics"); // Home + Leaderboard visible to all roles
 const AGENT_PAGES = ["Home","Messages","Schedule","Live Floor","Break","Performance","Queue","Leaderboard","Surveys","Gamification"];
 // ─── ROLE CONFIG ──────────────────────────────────────────────────────────────
@@ -11196,7 +11196,7 @@ function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose, session
       const myName = session?.name || "";
       if (n.tag === "Direct Message") { if (n.target !== myName && n.from !== myName) return; }
       else if (n.tag === "Manager Message" && n.target && n.target !== "all") { if (n.target !== myName && n.from !== myName) return; }
-      else if (["Short Break Request","Swap Request","Break Swap Request","Survey","Survey Response","Leave Request"].includes(n.tag)) return;
+      else if (["Short Break Request","Swap Request","Break Swap Request","Survey","Survey Response","Leave Request","Shift Handover"].includes(n.tag)) return;
       if (n.text?.toLowerCase().includes(q) || n.tag?.toLowerCase().includes(q)) {
         out.push({ type:"note", icon:"📝", label:n.text?.slice(0,60)||"Note",
           sub:`${n.date} · ${n.tag}`, color:"#8B5CF6", action:"Notes" });
@@ -11700,6 +11700,396 @@ function ReadOnlyBanner({ userName }) {
       <div style={{ fontSize:13, color:"#78350F" }}>
         <strong>View Only Mode</strong> -- Logged in as <strong>{userName||"Agent"}</strong>. You can browse all data but cannot make changes.
       </div>
+    </div>
+  );
+}
+
+// ─── SHIFT HANDOVER PAGE ──────────────────────────────────────────────────────
+// Formal shift handover between supervisors
+// Stored in notes with tag: "Shift Handover"
+function ShiftHandoverPage({ employees, schedule, shifts, attendance, performance, queueLog, notes, setNotes, session, canEdit }) {
+  const [tab, setTab]           = useState("new");     // "new" | "history"
+  const [selShift, setSelShift] = useState("");
+  const [pending, setPending]   = useState("");        // pending cases (free text)
+  const [nextNotes, setNextNotes] = useState("");      // notes for next shift
+  const [incidents, setIncidents] = useState("");      // incidents / special issues
+  const [saved, setSaved]       = useState("");
+  const [expandId, setExpandId] = useState(null);
+
+  const todayKey = todayStr();
+  const dayName  = DAYS[new Date().getDay()];
+  const canCreate = canEdit; // TL + SL + SME
+
+  // ── Auto-build summary from live data ─────────────────────────────────────
+  function buildSummary() {
+    const shiftEmps = selShift
+      ? employees.filter(e => (schedule[e.id]||{})[dayName] === selShift)
+      : employees.filter(e => { const v=(schedule[e.id]||{})[dayName]; return v&&v!=="OFF"&&v!=="LEAVE"&&v!=="PH"; });
+
+    const todayAtt  = attendance[todayKey] || {};
+    const todayPerf = performance[todayKey] || {};
+
+    // Attendance
+    const present  = shiftEmps.filter(e => isPresent((todayAtt[e.id]||{}).status)).length;
+    const absent   = shiftEmps.filter(e => isAbsent((todayAtt[e.id]||{}).status)).length;
+    const late     = shiftEmps.filter(e => (todayAtt[e.id]||{}).lateMin >= 7).length;
+
+    // Performance
+    const closed   = shiftEmps.reduce((s,e) => s+((todayPerf[e.id]||{}).closed||0), 0);
+    const escs     = shiftEmps.reduce((s,e) => s+((todayPerf[e.id]||{}).escalations||0), 0);
+    const quality  = shiftEmps.filter(e=>(todayPerf[e.id]||{}).quality!=="").map(e=>Number((todayPerf[e.id]||{}).quality)||0);
+    const avgQual  = quality.length ? Math.round(quality.reduce((a,b)=>a+b,0)/quality.length) : null;
+
+    // Queue
+    const QKEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
+    const todayEntries = Object.entries(queueLog||{}).filter(([k])=>k.startsWith(todayKey)).map(([,v])=>v);
+    const latestQ = todayEntries.length > 0
+      ? todayEntries.reduce((b,e)=>(e.updTime||"")>(b.updTime||"")?e:b, todayEntries[0])
+      : null;
+    const totalQ  = latestQ ? QKEYS.reduce((s,k)=>s+Number(latestQ[k+"Curr"]||0),0) : null;
+    const totalQBase = latestQ ? QKEYS.reduce((s,k)=>s+Number(latestQ[k+"Base"]||0),0) : null;
+
+    // Top performer
+    const topPerf = shiftEmps
+      .map(e=>({name:e.name, closed:(todayPerf[e.id]||{}).closed||0}))
+      .filter(e=>e.closed>0)
+      .sort((a,b)=>b.closed-a.closed)[0];
+
+    return { present, absent, late, closed, escs, avgQual, totalQ, totalQBase, topPerf, total: shiftEmps.length };
+  }
+
+  // ── All handover records ───────────────────────────────────────────────────
+  const allHandovers = (Array.isArray(notes)?notes:[])
+    .filter(n => n.tag === "Shift Handover")
+    .sort((a,b) => b.ts.localeCompare(a.ts));
+
+  function submitHandover() {
+    if (!session?.name) return;
+    if (!selShift) { setSaved("❌ Please select a shift"); return; }
+    const sh = shifts.find(s=>s.id===selShift);
+    const summary = buildSummary();
+    const data = {
+      shiftId: selShift,
+      shiftLabel: sh?.label || selShift,
+      supervisor: session.name,
+      supervisorRole: session.role,
+      pending: pending.trim(),
+      nextNotes: nextNotes.trim(),
+      incidents: incidents.trim(),
+      summary,
+      signedAt: new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"}),
+    };
+
+    const entry = {
+      id:   "ho"+Date.now(),
+      ts:   new Date().toISOString(),
+      date: todayKey,
+      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag:  "Shift Handover",
+      text: JSON.stringify(data),
+      from: session.name,
+      target: "supervisors",
+      msgType: "handover",
+    };
+
+    setNotes(prev => [entry, ...(Array.isArray(prev)?prev:[])]);
+    setSaved("✅ Handover submitted successfully!");
+    setPending(""); setNextNotes(""); setIncidents("");
+    setTimeout(() => { setSaved(""); setTab("history"); }, 2000);
+  }
+
+  // ── Render a single handover card ─────────────────────────────────────────
+  function HandoverCard({ h }) {
+    let d = {};
+    try { d = JSON.parse(h.text||"{}"); } catch {}
+    const s = d.summary || {};
+    const isExpanded = expandId === h.id;
+    const escRate = s.closed > 0 ? Math.round((s.escs/s.closed)*100) : 0;
+
+    return (
+      <div style={{ ...CRD({padding:0}), marginBottom:12, overflow:"hidden" }}>
+        {/* Header */}
+        <div
+          onClick={() => setExpandId(isExpanded ? null : h.id)}
+          style={{ padding:"14px 18px", cursor:"pointer", display:"flex", alignItems:"center", gap:12,
+            background: isExpanded ? _theme.primary+"18" : _theme.card,
+            borderBottom: isExpanded ? `1px solid ${_theme.cardBorder}` : "none" }}>
+          <div style={{ fontSize:28 }}>🔄</div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+              <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>{d.shiftLabel}</span>
+              <span style={{ fontSize:11, background:_theme.primary+"22", color:_theme.primary,
+                borderRadius:20, padding:"2px 10px", fontWeight:700 }}>{d.supervisorRole}</span>
+              {d.incidents && <span style={{ fontSize:11, background:"#FEF2F2", color:"#EF4444",
+                borderRadius:20, padding:"2px 8px", fontWeight:700 }}>⚠️ Incident</span>}
+            </div>
+            <div style={{ fontSize:12, color:_theme.textMuted, marginTop:2 }}>
+              By {d.supervisor} · {h.date} at {d.signedAt}
+            </div>
+          </div>
+          {/* Mini KPIs */}
+          <div style={{ display:"flex", gap:16, flexShrink:0 }}>
+            {[
+              {icon:"✅", val:s.closed||0, label:"Closed"},
+              {icon:"👥", val:`${s.present||0}/${s.total||0}`, label:"Present"},
+              {icon:"🔴", val:s.escs||0, label:"Esc"},
+            ].map(({icon,val,label}) => (
+              <div key={label} style={{ textAlign:"center" }}>
+                <div style={{ fontSize:14, fontWeight:800, color:_theme.text }}>{val}</div>
+                <div style={{ fontSize:9, color:_theme.textMuted, fontWeight:600 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+          <span style={{ color:_theme.textMuted, fontSize:14 }}>{isExpanded?"▲":"▼"}</span>
+        </div>
+
+        {/* Expanded Details */}
+        {isExpanded && (
+          <div style={{ padding:"16px 18px" }}>
+            {/* Stats Grid */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))", gap:10, marginBottom:16 }}>
+              {[
+                {icon:"👥", label:"Scheduled",  val:s.total||0,         color:"#3B82F6"},
+                {icon:"✅", label:"Present",     val:s.present||0,       color:"#10B981"},
+                {icon:"❌", label:"Absent",      val:s.absent||0,        color:"#EF4444"},
+                {icon:"⏰", label:"Late",         val:s.late||0,          color:"#F59E0B"},
+                {icon:"📦", label:"Cases Closed",val:s.closed||0,        color:"#6366F1"},
+                {icon:"🔴", label:"Escalations", val:s.escs||0,          color:"#EF4444"},
+                {icon:"📊", label:"Esc Rate",    val:escRate+"%",        color:escRate>15?"#EF4444":"#10B981"},
+                {icon:"⭐", label:"Avg Quality",  val:s.avgQual!=null?s.avgQual+"%":"—", color:"#F59E0B"},
+                {icon:"📋", label:"Queue End",   val:s.totalQ!=null?s.totalQ:"—", color:"#8B5CF6"},
+              ].map(({icon,label,val,color}) => (
+                <div key={label} style={{ background:_theme.surface, borderRadius:10, padding:"10px 12px",
+                  border:`1px solid ${_theme.cardBorder}`, textAlign:"center" }}>
+                  <div style={{ fontSize:18 }}>{icon}</div>
+                  <div style={{ fontSize:18, fontWeight:800, color }}>{val}</div>
+                  <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600 }}>{label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Top Performer */}
+            {s.topPerf && (
+              <div style={{ background:"#FEF9C3", border:"1px solid #F59E0B", borderRadius:10,
+                padding:"10px 14px", marginBottom:12, display:"flex", gap:8, alignItems:"center" }}>
+                <span style={{ fontSize:20 }}>🏆</span>
+                <div>
+                  <div style={{ fontWeight:700, fontSize:13, color:"#92400E" }}>Top Performer</div>
+                  <div style={{ fontSize:12, color:"#78350F" }}>{s.topPerf.name} — {s.topPerf.closed} cases</div>
+                </div>
+              </div>
+            )}
+
+            {/* Pending Cases */}
+            {d.pending && (
+              <div style={{ marginBottom:12 }}>
+                <div style={{ fontWeight:700, fontSize:12, color:"#F59E0B", marginBottom:4 }}>⏳ Pending Cases</div>
+                <div style={{ background:_theme.surface, borderRadius:8, padding:"10px 12px",
+                  fontSize:13, color:_theme.text, whiteSpace:"pre-wrap", lineHeight:1.6 }}>{d.pending}</div>
+              </div>
+            )}
+
+            {/* Notes for Next Shift */}
+            {d.nextNotes && (
+              <div style={{ marginBottom:12 }}>
+                <div style={{ fontWeight:700, fontSize:12, color:_theme.primary, marginBottom:4 }}>📌 Notes for Next Shift</div>
+                <div style={{ background:_theme.surface, borderRadius:8, padding:"10px 12px",
+                  fontSize:13, color:_theme.text, whiteSpace:"pre-wrap", lineHeight:1.6 }}>{d.nextNotes}</div>
+              </div>
+            )}
+
+            {/* Incidents */}
+            {d.incidents && (
+              <div style={{ marginBottom:12 }}>
+                <div style={{ fontWeight:700, fontSize:12, color:"#EF4444", marginBottom:4 }}>⚠️ Incidents / Issues</div>
+                <div style={{ background:"#FEF2F2", border:"1px solid #FCA5A5", borderRadius:8, padding:"10px 12px",
+                  fontSize:13, color:"#991B1B", whiteSpace:"pre-wrap", lineHeight:1.6 }}>{d.incidents}</div>
+              </div>
+            )}
+
+            {/* Digital Signature */}
+            <div style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 14px",
+              background:_theme.surface, borderRadius:8, border:`1px solid ${_theme.cardBorder}` }}>
+              <span style={{ fontSize:16 }}>✍️</span>
+              <div style={{ fontSize:12 }}>
+                <span style={{ color:_theme.textMuted }}>Signed by </span>
+                <span style={{ fontWeight:800, color:_theme.text }}>{d.supervisor}</span>
+                <span style={{ color:_theme.textMuted }}> ({d.supervisorRole}) at {d.signedAt}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const summary = buildSummary();
+  const sh = shifts.find(s=>s.id===selShift);
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={SBR()}>
+        <span style={{ fontSize:20 }}>🔄</span>
+        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>Shift Handover</span>
+        <div style={{ display:"flex", gap:8, marginLeft:"auto" }}>
+          {["new","history"].map(t => (
+            <button key={t} onClick={()=>setTab(t)}
+              style={{ border:`2px solid ${tab===t?_theme.primary:"#CBD5E1"}`,
+                borderRadius:20, padding:"5px 16px", fontSize:12, cursor:"pointer",
+                fontWeight:700, background:tab===t?_theme.primary:"transparent",
+                color:tab===t?"#fff":_theme.textSub }}>
+              {t==="new"?"➕ New Handover":`📋 History (${allHandovers.length})`}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── NEW HANDOVER FORM ── */}
+      {tab === "new" && (
+        <div>
+          {!canCreate ? (
+            <div style={{ ...CRD(), textAlign:"center", padding:32 }}>
+              <div style={{ fontSize:40, marginBottom:12 }}>🔒</div>
+              <div style={{ fontWeight:700, color:_theme.text }}>Supervisors Only</div>
+              <div style={{ fontSize:13, color:_theme.textMuted, marginTop:6 }}>Only Team Leads, Shift Leaders and SMEs can create handovers.</div>
+            </div>
+          ) : (
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+              {/* Left: Form */}
+              <div>
+                <div style={CRD()}>
+                  <div style={{ fontWeight:800, fontSize:14, color:_theme.text, marginBottom:14 }}>📝 Handover Form</div>
+
+                  {/* Shift selector */}
+                  <label style={LBL}>Shift Being Handed Over</label>
+                  <select value={selShift} onChange={e=>setSelShift(e.target.value)} style={{ ...I(), marginBottom:14 }}>
+                    <option value="">— Select shift —</option>
+                    {shifts.map(s=>(
+                      <option key={s.id} value={s.id}>{s.label} ({s.start}–{s.end})</option>
+                    ))}
+                  </select>
+
+                  {/* Pending cases */}
+                  <label style={LBL}>⏳ Pending Cases (cases needing follow-up)</label>
+                  <textarea value={pending} onChange={e=>setPending(e.target.value)} rows={3}
+                    style={{ ...I({resize:"vertical", width:"100%", marginBottom:14}) }}
+                    placeholder="List any open or pending cases that the next shift needs to follow up on..."/>
+
+                  {/* Notes for next shift */}
+                  <label style={LBL}>📌 Notes for Next Shift</label>
+                  <textarea value={nextNotes} onChange={e=>setNextNotes(e.target.value)} rows={3}
+                    style={{ ...I({resize:"vertical", width:"100%", marginBottom:14}) }}
+                    placeholder="Important notes, instructions, or alerts for the incoming shift..."/>
+
+                  {/* Incidents */}
+                  <label style={LBL}>⚠️ Incidents / Special Issues (optional)</label>
+                  <textarea value={incidents} onChange={e=>setIncidents(e.target.value)} rows={3}
+                    style={{ ...I({resize:"vertical", width:"100%", marginBottom:14}) }}
+                    placeholder="Any incidents, system issues, or unusual events that occurred..."/>
+
+                  {/* Supervisor signature */}
+                  <div style={{ background:_theme.surface, borderRadius:8, padding:"10px 14px",
+                    border:`1px solid ${_theme.cardBorder}`, marginBottom:14,
+                    display:"flex", alignItems:"center", gap:10 }}>
+                    <span style={{ fontSize:20 }}>✍️</span>
+                    <div>
+                      <div style={{ fontSize:12, color:_theme.textMuted }}>Digital Signature</div>
+                      <div style={{ fontWeight:800, fontSize:14, color:_theme.text }}>
+                        {session?.name} <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:400 }}>({session?.role})</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {saved && (
+                    <div style={{ fontSize:13, fontWeight:700, padding:"8px 12px", borderRadius:8, marginBottom:10,
+                      background:saved.startsWith("✅")?"#F0FDF4":"#FEF2F2",
+                      color:saved.startsWith("✅")?"#166534":"#991B1B" }}>{saved}</div>
+                  )}
+
+                  <button onClick={submitHandover}
+                    style={{ ...PBT(_theme.primary,{width:"100%",padding:"12px",fontSize:14}) }}>
+                    🔄 Submit Handover
+                  </button>
+                </div>
+              </div>
+
+              {/* Right: Live Auto Summary */}
+              <div>
+                <div style={CRD()}>
+                  <div style={{ fontWeight:800, fontSize:14, color:_theme.text, marginBottom:14 }}>
+                    📊 Auto Summary {selShift && sh ? `— ${sh.label}` : "— All Shifts"}
+                  </div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:14 }}>
+                    {[
+                      {icon:"👥", label:"Scheduled",   val:summary.total,      color:"#3B82F6"},
+                      {icon:"✅", label:"Present",      val:summary.present,    color:"#10B981"},
+                      {icon:"❌", label:"Absent",       val:summary.absent,     color:"#EF4444"},
+                      {icon:"⏰", label:"Late",          val:summary.late,       color:"#F59E0B"},
+                      {icon:"📦", label:"Closed",       val:summary.closed,     color:"#6366F1"},
+                      {icon:"🔴", label:"Escalations",  val:summary.escs,       color:"#EF4444"},
+                      {icon:"⭐", label:"Avg Quality",   val:summary.avgQual!=null?summary.avgQual+"%":"—", color:"#F59E0B"},
+                      {icon:"📋", label:"Queue Now",    val:summary.totalQ!=null?summary.totalQ:"—", color:"#8B5CF6"},
+                    ].map(({icon,label,val,color})=>(
+                      <div key={label} style={{ background:_theme.surface, borderRadius:10, padding:"12px",
+                        border:`1px solid ${_theme.cardBorder}`, textAlign:"center" }}>
+                        <div style={{ fontSize:22 }}>{icon}</div>
+                        <div style={{ fontSize:22, fontWeight:800, color, lineHeight:1.2 }}>{val}</div>
+                        <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600, marginTop:2 }}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {summary.topPerf && (
+                    <div style={{ background:"linear-gradient(135deg,#FEF9C3,#FEF3C7)",
+                      border:"1px solid #F59E0B", borderRadius:10, padding:"12px 14px",
+                      display:"flex", gap:10, alignItems:"center" }}>
+                      <span style={{ fontSize:24 }}>🏆</span>
+                      <div>
+                        <div style={{ fontWeight:700, fontSize:12, color:"#92400E" }}>Top Performer Today</div>
+                        <div style={{ fontWeight:800, fontSize:14, color:"#78350F" }}>{summary.topPerf.name}</div>
+                        <div style={{ fontSize:12, color:"#92400E" }}>{summary.topPerf.closed} cases closed</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Latest handover from history */}
+                {allHandovers.length > 0 && (
+                  <div style={{ ...CRD(), marginTop:14 }}>
+                    <div style={{ fontWeight:700, fontSize:13, color:_theme.text, marginBottom:10 }}>
+                      📋 Latest Handover
+                    </div>
+                    <HandoverCard h={allHandovers[0]}/>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── HISTORY TAB ── */}
+      {tab === "history" && (
+        <div>
+          {allHandovers.length === 0 ? (
+            <div style={{ ...CRD(), textAlign:"center", padding:40 }}>
+              <div style={{ fontSize:48, marginBottom:12 }}>🔄</div>
+              <div style={{ fontWeight:700, fontSize:16, color:_theme.text }}>No handovers yet</div>
+              <div style={{ fontSize:13, color:_theme.textMuted, marginTop:6 }}>
+                Handovers submitted by supervisors will appear here.
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div style={{ fontSize:12, color:_theme.textMuted, marginBottom:12 }}>
+                {allHandovers.length} handover{allHandovers.length!==1?"s":""} recorded
+              </div>
+              {allHandovers.map(h => <HandoverCard key={h.id} h={h}/>)}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -12740,13 +13130,14 @@ export default function App() {
     "KPI Dashboard": wrap(<KPIDashboardPage employees={employees} schedule={schedule} attendance={attendance} performance={performance} session={session}/>),
     "Surveys":       wrap(<SurveysPage employees={employees} notes={notes} setNotes={canEdit?setNotes:noop} session={session} canEdit={canEdit}/>),
     "Gamification":  wrap(<GamificationPage employees={employees} performance={performance} attendance={attendance} schedule={schedule} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
+    "Shift Handover": wrap(<ShiftHandoverPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
   };
 
   // Page icons
   const PAGE_ICONS = {
     "Home":"🏠","Messages":"💬","Schedule":"📅","Attendance":"📋","Queue":"📊","Daily Tasks":"📌",
     "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍","Notes":"📝",
-    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️","Leaderboard":"🏆","Attendance History":"📆","KPI Dashboard":"🎯","Surveys":"📋","Gamification":"🏅"
+    "Shifts":"⏰","Performance":"⚡","Reports":"📑","Owner Analytics":"👁️","Leaderboard":"🏆","Attendance History":"📆","KPI Dashboard":"🎯","Surveys":"📋","Gamification":"🏅","Shift Handover":"🔄"
   };
 
   const PAGE_LABELS = {
@@ -12761,7 +13152,8 @@ export default function App() {
     "Attendance History": "Attendance History",
     "KPI Dashboard": "KPI Dashboard",
     "Surveys": "Surveys",
-    "Gamification": "Gamification"
+    "Gamification": "Gamification",
+    "Shift Handover": "Shift Handover"
   };
 
   const safeCurrentPage = visiblePages.includes(page) ? page : visiblePages[0];
@@ -13210,6 +13602,18 @@ export default function App() {
                     .filter(n=>n.tag==="Direct Message"&&n.target===session?.name)
                     .filter(n=>{try{return !JSON.parse(n.text||"{}").read;}catch{return true;}}).length;
                   return unreadDMs > 0 ? (
+                    <span style={{ position:"absolute", top:-4, right:-6,
+                      background:"#EF4444", color:"#fff", borderRadius:"50%",
+                      width:14, height:14, fontSize:9, fontWeight:800,
+                      display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      {unreadDMs}
+                    </span>
+                  ) : null;
+                })()}
+                {p==="Shift Handover" && (() => {
+                  const todayHandovers = (Array.isArray(notes)?notes:[])
+                    .filter(n=>n.tag==="Shift Handover"&&n.date===todayStr()).length;
+                  return todayHandovers > 0 ? (
                     <span style={{ position:"absolute", top:-4, right:-6,
                       background:"#EF4444", color:"#fff", borderRadius:"50%",
                       width:14, height:14, fontSize:9, fontWeight:800,
