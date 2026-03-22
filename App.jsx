@@ -2678,7 +2678,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session
               Set target SLA % per channel. Green = meeting SLA.
             </div>
             {(() => {
-              const ALL_FIELDS = [...KSA_FIELDS,...GCC_FIELDS,...SOME_FIELDS];
+              const ALL_FIELDS = [...KSA_FIELDS,...GCC_FIELDS];
               const entries = Object.entries(queueLog||{}).filter(([k])=>k.startsWith(todayKey));
               const latest  = entries.length ? entries.reduce((b,[,v])=>(v.updTime||"")>(b.updTime||"")?v:b,entries[0][1]) : null;
               return ALL_FIELDS.map(f => {
@@ -2750,7 +2750,7 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session
               const updMin = uh*60+um;
               const nowMin = new Date().getHours()*60+new Date().getMinutes();
               const ageMin = nowMin - updMin;
-              const ALL_FIELDS = [...KSA_FIELDS,...GCC_FIELDS,...SOME_FIELDS];
+              const ALL_FIELDS = [...KSA_FIELDS,...GCC_FIELDS];
               return (
                 <div>
                   <div style={{marginBottom:8,padding:"6px 10px",borderRadius:8,
@@ -12242,7 +12242,6 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
   }
 
   const dayTip = (DAILY_TIPS_EN)[new Date().getDay() % DAILY_TIPS_EN.length];
-  const tr = (key) => T.en[key] || key;
 
   return (
     <div dir="ltr" style={{
