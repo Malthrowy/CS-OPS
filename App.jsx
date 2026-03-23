@@ -1555,7 +1555,6 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
       )}
     </div>
     </div>
-    </div>
   );
 }
 
@@ -2315,7 +2314,6 @@ function HeatMapPage({ queueLog, alertThresholdCritical, alertThresholdWarning }
               <span style={{ fontSize:12, color:_theme.textMuted }}>{label}</span>
             </div>
           ))}
-        </div>
         </div>
         </div>
         </div>
@@ -5194,7 +5192,6 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
     </div>
     </div>
     </div>
-    </div>
   );
 }
 
@@ -5686,8 +5683,6 @@ function AuditLogPage({ auditLog, session }) {
           })}
         </div>
       )}
-    </div>
-    </div>
     </div>
     </div>
   );
@@ -7051,8 +7046,6 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
       )}
     </div>
     </div>
-    </div>
-    </div>
   );
 }
 
@@ -7430,7 +7423,6 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
             <div style={{ fontSize:12, marginTop:4 }}>Results appear once entered by supervisor</div>
           </div>
         )}
-      </div>
       </div>
       </div>
       </div>
@@ -8868,7 +8860,6 @@ function SurveyAnswerCard({ survey, session, employees, notes, setNotes }) {
         📤 Submit Answer
       </button>
     </div>
-    </div>
   );
 }
 
@@ -9635,7 +9626,6 @@ function GamificationPage({ employees, performance, attendance, schedule, notes,
           )}
         </div>
       )}
-    </div>
     </div>
     </div>
   );
@@ -11399,8 +11389,6 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
       </div>
       </div>
       </div>
-      </div>
-      </div>
   );
 }
 // ─── INTERNAL DIRECT MESSAGING ───────────────────────────────────────────────
@@ -12074,7 +12062,6 @@ function ShortBreakRequestForm({ session, employees, notes, setNotes,
           opacity:sending?0.7:1})}}>
         {sending?"Sending...":"📤 Send Break Request"}
       </button>
-    </div>
     </div>
   );
 }
@@ -13484,7 +13471,6 @@ function SkillsMatrixPage({ employees, setEmployees, schedule, session, canEdit 
               </div>
             );
           })}
-        </div>
         </div>
         </div>
         </div>
@@ -16980,7 +16966,6 @@ export default function App() {
           </div>
         </div>
       )}
-    </div>
     </div>
     </div>
     </div>
