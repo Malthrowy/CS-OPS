@@ -1554,6 +1554,9 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
         </Modal>
       )}
     </div>
+    </div>
+    </div>
+    </div>
   );
 }
 
@@ -4075,6 +4078,9 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
         </Modal>
       )}
     </div>
+    </div>
+    </div>
+    </div>
   );
 }
 // ─── DAILY TASKS PAGE (merged Roster + Tasks) ─────────────────────────────────
@@ -4298,6 +4304,9 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
         </Modal>
       )}
     </div>
+    </div>
+    </div>
+    </div>
   );
 }
 
@@ -4375,6 +4384,9 @@ function ShiftsPage({ shifts, setShifts }) {
           <button style={PBT("#2563EB",{width:"100%"})} onClick={addShift}>Add Shift</button>
         </Modal>
       )}
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
@@ -5183,6 +5195,9 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
         </div>
       )}
     </div>
+    </div>
+    </div>
+    </div>
   );
 }
 
@@ -5346,6 +5361,9 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
           </div>
         </Modal>
       )}
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
@@ -5674,6 +5692,9 @@ function AuditLogPage({ auditLog, session }) {
           })}
         </div>
       )}
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
@@ -6158,6 +6179,9 @@ function OwnerEmployeeManager({ employees, setEmployees, session, showToast=()=>
           </div>
         </div>
       )}
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
@@ -7034,6 +7058,9 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
           })}
         </div>
       )}
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
@@ -8193,6 +8220,9 @@ function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, 
         </div>
       )}
     </div>
+    </div>
+    </div>
+    </div>
   );
 }
 
@@ -9016,6 +9046,9 @@ function SurveyResultsPanel({ survey, notes, employees, session, setNotes }) {
         </div>
       )}
     </div>
+    </div>
+    </div>
+    </div>
   );
 }
 
@@ -9164,6 +9197,9 @@ function SurveysPage({ employees, notes, setNotes, session, canEdit }) {
         <SurveyBuilderModal employees={employees} session={session}
           setNotes={setNotes} onClose={()=>setShowBuilder(false)}/>
       )}
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
@@ -9613,6 +9649,9 @@ function GamificationPage({ employees, performance, attendance, schedule, notes,
         </div>
       )}
     </div>
+    </div>
+    </div>
+    </div>
   );
 }
 
@@ -9817,6 +9856,9 @@ ${dataBlock}`;
           </div>
         </div>
       )}
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
@@ -10087,6 +10129,9 @@ ${d.toName}: ${d.toShiftLabel} ↔ ${d.fromShiftLabel}`)) return;
           No swap requests — {canEdit?"employees can request swaps from this panel":"click 'Request Swap' to get started"}
         </div>
       )}
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
@@ -10617,6 +10662,9 @@ This will go to a supervisor for final approval.`
             : "No break swap requests — click 'Request Break Swap' to get started"}
         </div>
       )}
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
@@ -11602,6 +11650,9 @@ function DirectMessagesPanel({ employees, notes, setNotes, session, canEdit }) {
           :outbox.map(m=><MsgCard key={m.id} msg={m} isInbox={false}/>)
       )}
     </div>
+    </div>
+    </div>
+    </div>
   );
 }
 
@@ -12276,6 +12327,9 @@ Respond with: "✅ Recommend APPROVE" or "❌ Recommend DECLINE" followed by one
           })}
         </div>
       )}
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
@@ -13231,6 +13285,9 @@ function EmployeeProfilePage({ employees, schedule, shifts, attendance, performa
         </div>
       )}
     </div>
+    </div>
+    </div>
+    </div>
   );
 }
 
@@ -13828,6 +13885,9 @@ function ShrinkageCalculatorPage({ employees, schedule, attendance, breakSchedul
         </div>
       )}
     </div>
+    </div>
+    </div>
+    </div>
   );
 }
 
@@ -14215,6 +14275,9 @@ function IncidentLogPage({ employees, session, notes, setNotes, canEdit }) {
         })
       )}
     </div>
+    </div>
+    </div>
+    </div>
   );
 }
 
@@ -14453,6 +14516,9 @@ function AnnouncementBanner({ notes, setNotes, session, canEdit }) {
           )}
         </div>
       )}
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
@@ -14843,6 +14909,9 @@ function ShiftHandoverPage({ employees, schedule, shifts, attendance, performanc
           )}
         </div>
       )}
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
@@ -16754,7 +16823,6 @@ export default function App() {
         <AnnouncementBanner notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>
         {pageComponents[safeCurrentPage]}
       </div>
-      </div>
 
       {/* ── System Pulse Dock (Desktop floating footer) ── */}
       <div className="desktop-only" style={{
@@ -16942,6 +17010,7 @@ export default function App() {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }
