@@ -1556,7 +1556,6 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
     </div>
     </div>
     </div>
-    </div>
   );
 }
 
@@ -2163,7 +2162,9 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
           </tbody>
         </table>
       </div>
-    </div>
+      </div>
+      </div>
+      </div>
   );
 }
 
@@ -2315,8 +2316,9 @@ function HeatMapPage({ queueLog, alertThresholdCritical, alertThresholdWarning }
             </div>
           ))}
         </div>
-      </div>
-    </div>
+        </div>
+        </div>
+        </div>
   );
 }
 
@@ -3067,6 +3069,8 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session
       </div>
       {/* ═══════════════════════ END MAIN CONTENT ═══════════════════════════════ */}
 
+    </div>
+    </div>
     </div>
   );
 }
@@ -4079,8 +4083,6 @@ function LiveFloorPage({ employees, schedule, shifts, attendance, setAttendance,
       )}
     </div>
     </div>
-    </div>
-    </div>
   );
 }
 // ─── DAILY TASKS PAGE (merged Roster + Tasks) ─────────────────────────────────
@@ -4304,9 +4306,6 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
         </Modal>
       )}
     </div>
-    </div>
-    </div>
-    </div>
   );
 }
 
@@ -4384,9 +4383,6 @@ function ShiftsPage({ shifts, setShifts }) {
           <button style={PBT("#2563EB",{width:"100%"})} onClick={addShift}>Add Shift</button>
         </Modal>
       )}
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
@@ -5198,6 +5194,7 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
     </div>
     </div>
     </div>
+    </div>
   );
 }
 
@@ -5361,9 +5358,6 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
           </div>
         </Modal>
       )}
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
@@ -6179,9 +6173,6 @@ function OwnerEmployeeManager({ employees, setEmployees, session, showToast=()=>
           </div>
         </div>
       )}
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
@@ -7440,7 +7431,9 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
           </div>
         )}
       </div>
-    </div>
+      </div>
+      </div>
+      </div>
   );
 }
 // Deferred XLSX load to avoid TDZ issues during module initialization
@@ -8220,9 +8213,6 @@ function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, 
         </div>
       )}
     </div>
-    </div>
-    </div>
-    </div>
   );
 }
 
@@ -8550,7 +8540,8 @@ class ErrorBoundary extends React.Component {
               ↺ Reload
             </button>
           </div>
-        </div>
+          </div>
+          </div>
       );
     }
     return this.props.children;
@@ -8877,6 +8868,7 @@ function SurveyAnswerCard({ survey, session, employees, notes, setNotes }) {
         📤 Submit Answer
       </button>
     </div>
+    </div>
   );
 }
 
@@ -9047,8 +9039,6 @@ function SurveyResultsPanel({ survey, notes, employees, session, setNotes }) {
       )}
     </div>
     </div>
-    </div>
-    </div>
   );
 }
 
@@ -9197,9 +9187,6 @@ function SurveysPage({ employees, notes, setNotes, session, canEdit }) {
         <SurveyBuilderModal employees={employees} session={session}
           setNotes={setNotes} onClose={()=>setShowBuilder(false)}/>
       )}
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
@@ -9651,7 +9638,6 @@ function GamificationPage({ employees, performance, attendance, schedule, notes,
     </div>
     </div>
     </div>
-    </div>
   );
 }
 
@@ -9856,9 +9842,6 @@ ${dataBlock}`;
           </div>
         </div>
       )}
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
@@ -10129,9 +10112,6 @@ ${d.toName}: ${d.toShiftLabel} ↔ ${d.fromShiftLabel}`)) return;
           No swap requests — {canEdit?"employees can request swaps from this panel":"click 'Request Swap' to get started"}
         </div>
       )}
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
@@ -10662,9 +10642,6 @@ This will go to a supervisor for final approval.`
             : "No break swap requests — click 'Request Break Swap' to get started"}
         </div>
       )}
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
@@ -11420,7 +11397,10 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
             style={{...PBT(_theme.primary,{fontSize:12,padding:"7px 14px"})}}>{l}</button>
         ))}
       </div>
-    </div>
+      </div>
+      </div>
+      </div>
+      </div>
   );
 }
 // ─── INTERNAL DIRECT MESSAGING ───────────────────────────────────────────────
@@ -11650,9 +11630,6 @@ function DirectMessagesPanel({ employees, notes, setNotes, session, canEdit }) {
           :outbox.map(m=><MsgCard key={m.id} msg={m} isInbox={false}/>)
       )}
     </div>
-    </div>
-    </div>
-    </div>
   );
 }
 
@@ -11869,6 +11846,7 @@ function SkeletonLine({ width="100%", height=14, style={} }) {
   return (
     <div className={_theme.isDark?"skeleton":"skeleton-light"}
       style={{ width, height, margin:"6px 0", ...style }}/>
+    </div>
   );
 }
 function SkeletonCard({ rows=3 }) {
@@ -12096,6 +12074,7 @@ function ShortBreakRequestForm({ session, employees, notes, setNotes,
           opacity:sending?0.7:1})}}>
         {sending?"Sending...":"📤 Send Break Request"}
       </button>
+    </div>
     </div>
   );
 }
@@ -12327,9 +12306,6 @@ Respond with: "✅ Recommend APPROVE" or "❌ Recommend DECLINE" followed by one
           })}
         </div>
       )}
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
@@ -12826,8 +12802,12 @@ function LoginScreen({ onLogin, employees, lang, setLang }) {
           padding:"10px 16px",fontSize:12,color:"#93C5FD",textAlign:"center"}}>
           💡 {dayTip}
         </div>
-      </div>
-    </div>
+        </div>
+        </div>
+        </div>
+        </div>
+        </div>
+        </div>
   );
 }
 
@@ -13285,9 +13265,6 @@ function EmployeeProfilePage({ employees, schedule, shifts, attendance, performa
         </div>
       )}
     </div>
-    </div>
-    </div>
-    </div>
   );
 }
 
@@ -13508,8 +13485,10 @@ function SkillsMatrixPage({ employees, setEmployees, schedule, session, canEdit 
             );
           })}
         </div>
-      </div>
-    </div>
+        </div>
+        </div>
+        </div>
+        </div>
   );
 }
 
@@ -13887,7 +13866,6 @@ function ShrinkageCalculatorPage({ employees, schedule, attendance, breakSchedul
     </div>
     </div>
     </div>
-    </div>
   );
 }
 
@@ -14044,7 +14022,8 @@ function ExecutiveDashboardPage({ employees, schedule, attendance, performance, 
           </div>
         )}
       </div>
-    </div>
+      </div>
+      </div>
   );
 }
 
@@ -14274,9 +14253,6 @@ function IncidentLogPage({ employees, session, notes, setNotes, canEdit }) {
           );
         })
       )}
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
@@ -14516,9 +14492,6 @@ function AnnouncementBanner({ notes, setNotes, session, canEdit }) {
           )}
         </div>
       )}
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
@@ -14909,9 +14882,6 @@ function ShiftHandoverPage({ employees, schedule, shifts, attendance, performanc
           )}
         </div>
       )}
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
@@ -17010,6 +16980,9 @@ export default function App() {
           </div>
         </div>
       )}
+    </div>
+    </div>
+    </div>
     </div>
     </div>
   );
