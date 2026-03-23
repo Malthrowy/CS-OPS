@@ -3075,29 +3075,10 @@ function NotesPage({ notes, setNotes, session }) {
   const [time, setTime] = useState(() => { const n=new Date(); return pad(n.getHours())+":"+pad(n.getMinutes()); });
   const [text, setText] = useState("");
   const [tag, setTag]     = useState("General");
-  const [recording, setRecording] = useState(false);
-  const [recMsg, setRecMsg]       = useState("");
+
   const TAGS = ["General","Staffing Issue","Queue Alert","System Issue","Performance Note","Exceptional Event","Other"];
 
-  // ── Voice Notes via Web Speech API ──────────────────────────────────────────
-  function startVoiceNote() {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { setRecMsg("⚠️ Your browser does not support voice recognition"); setTimeout(()=>setRecMsg(""),3000); return; }
-    const rec = new SR();
-    rec.lang = "en-US";
-    rec.continuous = false;
-    rec.interimResults = false;
-    rec.onstart  = () => setRecording(true);
-    rec.onend    = () => setRecording(false);
-    rec.onerror  = (e) => { setRecording(false); setRecMsg("Recording error: "+e.error); setTimeout(()=>setRecMsg(""),3000); };
-    rec.onresult = (e) => {
-      const transcript = Array.from(e.results).map(r=>r[0].transcript).join(" ");
-      setText(prev => prev ? prev+" "+transcript : transcript);
-      setRecMsg("✅ Recognized: "+transcript.slice(0,40));
-      setTimeout(()=>setRecMsg(""),3000);
-    };
-    rec.start();
-  }
+
   const TAG_COLORS = {"General":"#64748B","Staffing Issue":"#EF4444","Queue Alert":"#F59E0B","System Issue":"#8B5CF6","Performance Note":"#2563EB","Exceptional Event":"#EC4899","Other":"#10B981"};
 
   const [filterTag,  setFilterTag]  = useState("All");
@@ -3172,18 +3153,8 @@ function NotesPage({ notes, setNotes, session }) {
         <textarea value={text} onChange={e=>setText(e.target.value)} rows={3}
           style={{ ...I(), resize:"vertical", marginBottom:10 }}
           placeholder="Describe the exceptional circumstance, issue, or note that affected operations today..."/>
-        {recMsg && <div style={{ fontSize:12, color:recording?"#EF4444":"#10B981",
-          fontWeight:600, marginBottom:6 }}>{recMsg}</div>}
         <div style={{ display:"flex", gap:8 }}>
           <button style={PBT("#2563EB",{padding:"8px 20px",flex:1})} onClick={addNote}>+ Save Note</button>
-          {"SpeechRecognition" in window || "webkitSpeechRecognition" in window ? (
-            <button onClick={startVoiceNote}
-              style={{ background:recording?"#EF4444":"#6366F1", color:"#fff", border:"none",
-                borderRadius:8, padding:"8px 16px", fontSize:13, cursor:"pointer", fontWeight:600,
-                display:"flex", alignItems:"center", gap:5 }}>
-              {recording ? "⏹ Recording..." : "🎙️ Voice Note"}
-            </button>
-          ) : null}
         </div>
       </div>
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
@@ -5499,6 +5470,15 @@ function AuditLogPage({ auditLog, session }) {
                   <div style={{ fontSize:11, color:roleColor2, fontWeight:600, marginTop:2 }}>
                     {ROLE_ICONS[lastEntry?.role]||"👤"} {lastEntry?.role}
                   </div>
+                  {isSuperAdmin && lastEntry?.name !== session?.name && (
+                    <button
+                      onClick={()=>enterShadowMode({name:lastEntry.name,role:lastEntry.role,id:lastEntry.empId||""})}
+                      style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20,cursor:"pointer",
+                        background:"rgba(245,158,11,0.15)",color:"#F59E0B",
+                        border:"1px solid rgba(245,158,11,0.4)",marginTop:4,display:"block"}}>
+                      👁️ Shadow
+                    </button>
+                  )}
                   <div style={{ fontSize:12, color:"#6366F1", fontWeight:700, marginTop:4 }}>
                     {count} edit{count!==1?"s":""}
                   </div>
@@ -5704,7 +5684,7 @@ function AuditLogPage({ auditLog, session }) {
 
 // ─── OWNER EMPLOYEE MANAGER ──────────────────────────────────────────────────
 // Full employee management panel exclusive to Owner (Super Admin)
-function OwnerEmployeeManager({ employees, setEmployees, session }) {
+function OwnerEmployeeManager({ employees, setEmployees, session, showToast=()=>{} }) {
   const [tab, setTab] = useState("roles"); // "roles" | "add" | "pages"
   const [search, setSearch] = useState("");
   const [addForm, setAddForm] = useState({ name:"", role:"Agent", gender:"M", tasks:[], birthdate:"", joinDate:"", skills:{} });
@@ -5756,9 +5736,20 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
   }
 
   function togglePage(emp, page) {
-    const hidden = emp.hiddenPages || [];
-    const next = hidden.includes(page) ? hidden.filter(p=>p!==page) : [...hidden, page];
-    updateEmp(emp.id, { hiddenPages: next });
+    // Always read LATEST from employees state — not from stale prop
+    const liveEmp = employees.find(e => e.id === emp.id) || emp;
+    const hidden  = Array.isArray(liveEmp.hiddenPages) ? [...liveEmp.hiddenPages] : [];
+    const next    = hidden.includes(page)
+      ? hidden.filter(p => p !== page)
+      : [...hidden, page];
+    // Persist: update employee with new hiddenPages
+    setEmployees(prev => prev.map(e =>
+      e.id === emp.id ? { ...e, hiddenPages: next } : e
+    ));
+    showToast(
+      `${next.includes(page) ? "🚫 Hidden" : "✅ Visible"}: ${page} for ${(liveEmp.name||"").split(" ")[0]}`,
+      next.includes(page) ? "warning" : "success"
+    );
   }
 
   function toggleAdmin(emp) {
@@ -5863,6 +5854,16 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
                         borderRadius:6, padding:"3px 10px", fontSize:11, fontWeight:700 }}>
                         {ROLE_ICONS[emp.role]||"👤"} {emp.role}
                       </span>
+                      {session && isOwnerUser(session) && emp.name !== session?.name && (
+                        <button
+                          onClick={()=>enterShadowMode({name:emp.name,role:emp.role,id:emp.id})}
+                          title={`View system as ${emp.name}`}
+                          style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:20,cursor:"pointer",
+                            background:"rgba(245,158,11,0.12)",color:"#F59E0B",
+                            border:"1px solid rgba(245,158,11,0.35)",marginLeft:4}}>
+                          👁️
+                        </button>
+                      )}
                     </td>
 
                     {/* Role buttons */}
@@ -5973,18 +5974,22 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
                     <span style={{ fontSize:11, color:ROLE_COLORS[emp.role]||"#64748B", fontWeight:600 }}>
                       {ROLE_ICONS[emp.role]} {emp.role}
                     </span>
-                    {hidden.length > 0 && (
-                      <span style={{ background:"#FEF2F2", color:"#EF4444", border:"1px solid #FCA5A5",
-                        borderRadius:20, padding:"1px 8px", fontSize:10, fontWeight:700, marginLeft:"auto" }}>
-                        {hidden.length} pages hidden
-                      </span>
-                    )}
-                    {hidden.length === 0 && (
-                      <span style={{ background:"#F0FDF4", color:"#10B981", border:"1px solid #86EFAC",
-                        borderRadius:20, padding:"1px 8px", fontSize:10, fontWeight:700, marginLeft:"auto" }}>
-                        ✅ All pages visible
-                      </span>
-                    )}
+                    {(() => {
+                      // Always read LATEST hiddenPages from employees state
+                      const liveEmp = employees.find(e2=>e2.id===emp.id);
+                      const liveHidden = Array.isArray(liveEmp?.hiddenPages) ? liveEmp.hiddenPages : [];
+                      return liveHidden.length > 0 ? (
+                        <span style={{ background:"#FEF2F2", color:"#EF4444", border:"1px solid #FCA5A5",
+                          borderRadius:20, padding:"1px 8px", fontSize:10, fontWeight:700, marginLeft:"auto" }}>
+                          🚫 {liveHidden.length} pages hidden
+                        </span>
+                      ) : (
+                        <span style={{ background:"#F0FDF4", color:"#10B981", border:"1px solid #86EFAC",
+                          borderRadius:20, padding:"1px 8px", fontSize:10, fontWeight:700, marginLeft:"auto" }}>
+                          ✅ All visible
+                        </span>
+                      );
+                    })()}
                   </div>
                   {/* Expanded pages grid */}
                   {isExpanded && (
@@ -5995,14 +6000,20 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
                         </div>
                       )}
                       <div style={{ display:"flex", gap:8, marginBottom:10, flexWrap:"wrap" }}>
-                        <button onClick={()=>!isSelf&&updateEmp(emp.id,{hiddenPages:[]})}
+                        <button onClick={()=>{ if(!isSelf){
+  setEmployees(prev=>prev.map(e=>e.id===emp.id?{...e,hiddenPages:[]}:e));
+  showToast(`✅ All pages visible for ${emp.name.split(" ")[0]}`,"success");
+}}}
                           disabled={isSelf}
                           style={{ border:"1.5px solid #10B981", borderRadius:8, padding:"4px 12px",
                             fontSize:11, cursor:isSelf?"default":"pointer", fontWeight:700,
                             background:"#F0FDF4", color:"#10B981", opacity:isSelf?0.5:1 }}>
                           ✅ Show All
                         </button>
-                        <button onClick={()=>!isSelf&&updateEmp(emp.id,{hiddenPages:[...ALL_MANAGEABLE]})}
+                        <button onClick={()=>{ if(!isSelf){
+  setEmployees(prev=>prev.map(e=>e.id===emp.id?{...e,hiddenPages:[...ALL_MANAGEABLE]}:e));
+  showToast(`🚫 All pages hidden for ${emp.name.split(" ")[0]}`,"warning");
+}}}
                           disabled={isSelf}
                           style={{ border:"1.5px solid #EF4444", borderRadius:8, padding:"4px 12px",
                             fontSize:11, cursor:isSelf?"default":"pointer", fontWeight:700,
@@ -6012,7 +6023,10 @@ function OwnerEmployeeManager({ employees, setEmployees, session }) {
                       </div>
                       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))", gap:6 }}>
                         {ALL_MANAGEABLE.map(page => {
-                          const isHidden = hidden.includes(page);
+                          // Always read LIVE state from employees array
+                          const liveEmp2 = employees.find(e2=>e2.id===emp.id);
+                          const liveHidden2 = Array.isArray(liveEmp2?.hiddenPages) ? liveEmp2.hiddenPages : [];
+                          const isHidden = liveHidden2.includes(page);
                           return (
                             <button key={page}
                               onClick={()=>!isSelf&&togglePage(emp, page)}
@@ -6470,7 +6484,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
 
 
       {/* ══════════ EMPLOYEE MANAGEMENT ══════════ */}
-      <OwnerEmployeeManager employees={employees} setEmployees={setEmployees} session={session}/>
+      <OwnerEmployeeManager employees={employees} setEmployees={E} session={session} showToast={showToast}/>
 
 
       {/* ── Absence Pattern Detection ── */}
@@ -7712,6 +7726,56 @@ if (typeof window !== "undefined") {
 
 
 // ─── DAILY TIPS ───────────────────────────────────────────────────────────────
+// ─── GLASSMORPHISM + ENTERPRISE CSS (injected once) ─────────────────────────
+const ENTERPRISE_CSS = `
+  .desktop-only { display: flex !important; }
+  @media (max-width: 768px) { .desktop-only { display: none !important; } }
+
+  @keyframes fadeIn {
+    from { opacity:0; transform:translateY(-8px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes slideInLeft {
+    from { opacity:0; transform:translateX(-20px); }
+    to   { opacity:1; transform:translateX(0); }
+  }
+  @keyframes glowPulse {
+    0%,100% { box-shadow: 0 0 8px rgba(245,158,11,0.4); }
+    50%      { box-shadow: 0 0 20px rgba(245,158,11,0.8); }
+  }
+
+  /* Gold shadow mode animation */
+  .shadow-active {
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+
+  /* Hub sidebar items hover */
+  .hub-page-btn:hover {
+    background: rgba(255,255,255,0.08) !important;
+    transform: translateX(3px);
+  }
+
+  /* Glassmorphism cards */
+  .glass-card {
+    background: rgba(255,255,255,0.06) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+  }
+
+  /* System pulse dock */
+  .pulse-dock {
+    animation: fadeIn 0.5s ease;
+  }
+`;
+
+// Inject CSS once
+if (typeof document !== "undefined" && !document.getElementById("cs-ops-enterprise-css")) {
+  const style = document.createElement("style");
+  style.id = "cs-ops-enterprise-css";
+  style.textContent = ENTERPRISE_CSS;
+  document.head.appendChild(style);
+}
+
 const DAILY_TIPS_EN = [
   "💡 Start each shift with a quick team check-in to align priorities.",
   "📊 Document escalations immediately — details fade fast.",
@@ -10557,6 +10621,15 @@ This will go to a supervisor for final approval.`
   );
 }
 
+// ─── WELCOME MESSAGES PER ROLE ───────────────────────────────────────────────
+const ROLE_WELCOME = {
+  "Owner":        { title:"Welcome to Master Console", sub:"Total system control. The operation is yours.", icon:"👑", color:"#F59E0B" },
+  "Team Lead":    { title:"Welcome to Strategy Suite", sub:"Monitor team performance and strategic KPIs.", icon:"📊", color:"#3B82F6" },
+  "Shift Leader": { title:"Welcome to Field Control", sub:"Manage your floor, breaks, and live queue.", icon:"🎯", color:"#8B5CF6" },
+  "SME":          { title:"Welcome to Knowledge Lab", sub:"Focus on quality, coaching, and technical skills.", icon:"🧠", color:"#10B981" },
+  "Agent":        { title:"Welcome to Focus Hub", sub:"Your screen is optimized for your shift and tasks.", icon:"⚡", color:"#06B6D4" },
+};
+
 // ─── HOME DASHBOARD — Personal per role ──────────────────────────────────────
 function HomeDashboard({ session, employees, schedule, attendance, performance,
                          queueLog, notes, setNotes, breakSchedule, shifts, auditLog,
@@ -11076,8 +11149,160 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
         </div>
       </div>
 
+      {/* Role Environment Indicator */}
+      {(() => {
+        const envMap = {
+          "Team Lead":    { label:"Strategy Suite", icon:"📊", color:"#3B82F6", focus:"Comparative Charts • Approval Center • Team KPIs" },
+          "Shift Leader": { label:"Field Control",  icon:"🎯", color:"#8B5CF6", focus:"Live Floor Control • Break Swapping • Queue Monitor" },
+          "SME":          { label:"Knowledge Lab",  icon:"🧠", color:"#10B981", focus:"Audit Tools • Skills Coverage • Quality Review" },
+          "Agent":        { label:"Focus Hub",      icon:"⚡", color:"#06B6D4", focus:"Live Task • Individual SLA • Break Timer" },
+        };
+        const env = envMap[isSuperAdmin ? "Team Lead" : session?.role];
+        if (!env) return null;
+        return (
+          <div style={{display:"flex",alignItems:"center",gap:10,padding:"6px 12px",
+            background:env.color+"10",borderRadius:8,marginBottom:10,
+            border:`1px solid ${env.color}20`}}>
+            <span style={{fontSize:14}}>{env.icon}</span>
+            <span style={{fontSize:11,fontWeight:700,color:env.color}}>{env.label}</span>
+            <span style={{fontSize:10,color:_theme.textMuted,marginLeft:2}}>— {env.focus}</span>
+          </div>
+        );
+      })()}
+
+      {/* Role-specific Welcome Message (first visit of the day) */}
+      {(() => {
+        const roleName = isSuperAdmin ? "Owner" : session?.role;
+        const welcome  = ROLE_WELCOME[roleName] || ROLE_WELCOME["Agent"];
+        const todayKey = new Date().toISOString().slice(0,10);
+        const key      = "csops_welcomed_" + todayKey + "_" + (session?.name||"");
+        const shown    = (() => { try { return localStorage.getItem(key); } catch { return null; } })();
+        if (shown) return null;
+        // Mark as shown
+        try { localStorage.setItem(key, "1"); } catch {}
+        return (
+          <div style={{
+            background:`linear-gradient(135deg,${welcome.color}18,${welcome.color}08)`,
+            border:`1px solid ${welcome.color}30`,
+            borderLeft:`4px solid ${welcome.color}`,
+            borderRadius:12, padding:"14px 18px", marginBottom:12,
+            display:"flex", alignItems:"center", gap:14,
+            animation:"fadeIn 0.5s ease"
+          }}>
+            <span style={{fontSize:32,flexShrink:0}}>{welcome.icon}</span>
+            <div>
+              <div style={{fontWeight:800,fontSize:15,color:welcome.color}}>
+                {welcome.title}, {(session?.name||"").split(" ")[0]}
+              </div>
+              <div style={{fontSize:12,color:_theme.textMuted,marginTop:2}}>{welcome.sub}</div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Mood Check-in */}
       <MoodCheckin session={session} notes={notes} setNotes={setNotes}/>
+
+      {/* Agent-specific: Break countdown */}
+      {isAgent && (() => {
+        const dayName = DAYS[new Date().getDay()];
+        const empObj  = employees.find(e=>e.name===session?.name);
+        if (!empObj) return null;
+        const sid = (schedule[empObj.id]||{})[dayName];
+        if (!sid||sid==="OFF") return null;
+        const bKey = `${todayStr()}_${sid}`;
+        const bEntry = (breakSchedule[bKey]||{})[empObj.id];
+        if (!bEntry?.durationMin) return null;
+        const sh = shifts.find(s=>s.id===sid);
+        if (!sh) return null;
+        const totalOffset = (Number(bEntry.offsetHours)||0)*60+(Number(bEntry.offsetMins)||0);
+        const breakStartMin = (toMin(sh.start)+totalOffset)%1440;
+        const nowMin = new Date().getHours()*60+new Date().getMinutes();
+        const minsToBreak = breakStartMin - nowMin;
+        const duringBreak  = minsToBreak <= 0 && minsToBreak > -(bEntry.durationMin||0);
+        const breakEndMin  = breakStartMin + (bEntry.durationMin||0);
+        const minsLeft     = duringBreak ? breakEndMin - nowMin : 0;
+        if (minsToBreak > 60 || minsToBreak < -(bEntry.durationMin||0)) return null;
+        return (
+          <div style={{padding:"10px 14px",borderRadius:10,marginBottom:10,
+            background:duringBreak?"rgba(16,185,129,0.12)":"rgba(59,130,246,0.10)",
+            border:`1px solid ${duringBreak?"#10B98140":"#3B82F640"}`,
+            display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:22}}>{duringBreak?"☕":"⏱️"}</span>
+            <div>
+              <div style={{fontWeight:700,fontSize:13,
+                color:duringBreak?"#10B981":"#3B82F6"}}>
+                {duringBreak
+                  ? `Break ends in ${minsLeft} min`
+                  : `Break in ${minsToBreak} min (${pad(Math.floor(breakStartMin/60))}:${pad(breakStartMin%60)})`}
+              </div>
+              <div style={{fontSize:11,color:_theme.textMuted}}>
+                Duration: {bEntry.durationMin} minutes
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Shift Leader: Quick Approval Center */}
+      {session?.role==="Shift Leader" && (() => {
+        const pendingBreaks = (Array.isArray(notes)?notes:[])
+          .filter(n=>n.tag==="Short Break Request"&&n.date===todayStr())
+          .filter(n=>{ try{ const d=JSON.parse(n.text||"{}"); return d.status==="pending"||!d.status; }catch{return false;} });
+        const pendingSwaps = (Array.isArray(notes)?notes:[])
+          .filter(n=>(n.tag==="Swap Request"||n.tag==="Break Swap Request")&&n.date===todayStr())
+          .filter(n=>{ try{ const d=JSON.parse(n.text||"{}"); return !d.approved&&!d.rejected; }catch{return true;} });
+        const total = pendingBreaks.length + pendingSwaps.length;
+        if (!total) return null;
+        return (
+          <div style={{padding:"10px 14px",borderRadius:10,marginBottom:10,
+            background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.25)",
+            display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:22}}>🔔</span>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:700,fontSize:13,color:"#F59E0B"}}>
+                {total} Pending Approval{total!==1?"s":""}
+              </div>
+              <div style={{fontSize:11,color:_theme.textMuted}}>
+                {pendingBreaks.length>0&&`${pendingBreaks.length} break request${pendingBreaks.length!==1?"s":""}`}
+                {pendingBreaks.length>0&&pendingSwaps.length>0&&" · "}
+                {pendingSwaps.length>0&&`${pendingSwaps.length} swap request${pendingSwaps.length!==1?"s":""}`}
+              </div>
+            </div>
+            <span style={{fontSize:11,color:"#F59E0B",fontWeight:700}}>Go to Break →</span>
+          </div>
+        );
+      })()}
+
+      {/* SME: Skills coverage quick view */}
+      {session?.role==="SME" && (() => {
+        const dayName = DAYS[new Date().getDay()];
+        const todayEmps = employees.filter(e=>{
+          const v=(schedule[e.id]||{})[dayName]; return v&&v!=="OFF"&&v!=="LEAVE";
+        });
+        // Check coverage of critical skills
+        const criticalSkills = ["TGA","OSLO","OB"];
+        const gaps = criticalSkills.filter(skill => {
+          const experts = todayEmps.filter(e=>((e.skills||{})[skill]||0)>=3).length;
+          return experts < 2; // less than 2 experts = coverage gap
+        });
+        if (!gaps.length) return null;
+        return (
+          <div style={{padding:"10px 14px",borderRadius:10,marginBottom:10,
+            background:"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.25)",
+            display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:22}}>🧠</span>
+            <div>
+              <div style={{fontWeight:700,fontSize:13,color:"#6366F1"}}>
+                Skills Gap Alert
+              </div>
+              <div style={{fontSize:11,color:_theme.textMuted}}>
+                Low expert coverage: {gaps.join(", ")} — check Skills Matrix
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* My performance today */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
@@ -11288,9 +11513,27 @@ function DirectMessagesPanel({ employees, notes, setNotes, session, canEdit }) {
               <select value={toEmp} onChange={e=>setToEmp(e.target.value)}
                 style={{...I({width:"100%"})}}>
                 <option value="">— Select recipient —</option>
-                {employees.filter(e=>e.name!==myName).map(e=>(
+                {/* Whole Team — supervisors only */}
+                {ROLE_CAN_EDIT[session?.role] && (
+                  <option value="all">📢 Whole Team</option>
+                )}
+                {employees.filter(e => {
+                  if (e.name === myName) return false;
+                  const RPOW = {"Team Lead":4,"Shift Leader":3,"SME":2,"Agent":1};
+                  const myP = RPOW[session?.role] || 0;
+                  const thP = RPOW[e.role] || 0;
+                  // Owner → messages anyone
+                  if (isOwnerUser(session)) return true;
+                  // Agent(1) → only sends UP to supervisors (help request)
+                  if (myP <= 1) return thP > 1;
+                  // TL(4)  → SL + SME + Agent ✓
+                  // SL(3)  → TL + SME + Agent ✓
+                  // SME(2) → TL + SL + Agent ✓
+                  // All supervisors can message anyone (up or down)
+                  return true;
+                }).map(e=>(
                   <option key={e.id} value={e.name}>
-                    {e.name} ({e.role})
+                    {ROLE_ICONS[e.role]||"👤"} {e.name} ({e.role})
                   </option>
                 ))}
               </select>
@@ -11392,8 +11635,26 @@ function DirectMessageModal({ employees, session, notes, setNotes, onClose }) {
     .sort((a,b) => b.ts.localeCompare(a.ts))
     .slice(0, 20);
 
+  // Hierarchical messaging: can only message same level or below
+  const ROLE_POWER = { "Team Lead":4, "Shift Leader":3, "SME":2, "Agent":1 };
+  function canSendTo(targetRole) {
+    if (!targetRole || targetRole === "all") return ROLE_CAN_EDIT[session?.role]||isOwnerUser(session);
+    if (isOwnerUser(session)) return true; // owner → anyone
+    const RPOW2 = {"Team Lead":4,"Shift Leader":3,"SME":2,"Agent":1};
+    const myP2  = RPOW2[session?.role]||0;
+    // Agent → only up
+    if (myP2 === 1) return RPOW2[targetRole]>1;
+    // Supervisors → anyone
+    return true;
+  }
+
   function sendMessage() {
     if (!toEmp || !msgText.trim()) { setSent("❌ Fill in all fields"); return; }
+    const targetEmp = employees.find(e => e.name === toEmp);
+    if (targetEmp && !canSendTo(targetEmp.role)) {
+      setSent("❌ You cannot message someone with a higher role");
+      return;
+    }
     const isAll = toEmp === "all";
     const msg = {
       id: "dm"+Date.now(),
@@ -14586,6 +14847,116 @@ function ShiftHandoverPage({ employees, schedule, shifts, attendance, performanc
   );
 }
 
+
+// ─── 10 OPERATIONAL HUBS ──────────────────────────────────────────────────────
+const HUBS = [
+  {
+    id: "control",
+    icon: "🗼",
+    label: "Control Tower",
+    pages: ["Live Floor","Queue","Heat Map","Shrinkage"],
+    roles: ["Team Lead","Shift Leader","SME"],
+    color: "#EF4444",
+    desc: "Live operations monitoring"
+  },
+  {
+    id: "workforce",
+    icon: "📅",
+    label: "Workforce Hub",
+    pages: ["Schedule","Shifts","Attendance","Attendance History"],
+    roles: ["Team Lead","Shift Leader","SME","Agent"],
+    color: "#3B82F6",
+    desc: "Schedules, shifts & attendance"
+  },
+  {
+    id: "performance",
+    icon: "⚡",
+    label: "Performance Lab",
+    pages: ["Performance","KPI Dashboard","Leaderboard","Gamification"],
+    roles: ["Team Lead","Shift Leader","SME","Agent"],
+    color: "#10B981",
+    desc: "KPIs, rankings & gamification"
+  },
+  {
+    id: "people",
+    icon: "🧠",
+    label: "People & Skills",
+    pages: ["Skills Matrix","Coaching Notes","Employee Profile"],
+    roles: ["Team Lead","Shift Leader","SME","Agent"],
+    color: "#8B5CF6",
+    desc: "Skills, coaching & profiles"
+  },
+  {
+    id: "comms",
+    icon: "💬",
+    label: "Communication",
+    pages: ["Messages","Notes"],
+    roles: ["Team Lead","Shift Leader","SME","Agent"],
+    color: "#06B6D4",
+    desc: "Messages & operational notes"
+  },
+  {
+    id: "quality",
+    icon: "🔍",
+    label: "Quality & Audit",
+    pages: ["Audit Log","Incident Log","Surveys"],
+    roles: ["Team Lead","Shift Leader","SME"],
+    color: "#F59E0B",
+    desc: "Audits, incidents & surveys"
+  },
+  {
+    id: "reporting",
+    icon: "📊",
+    label: "Reporting Suite",
+    pages: ["Reports","Executive Dashboard","Owner Analytics"],
+    roles: ["Team Lead","Shift Leader","SME"],
+    color: "#6366F1",
+    desc: "Reports & executive insights"
+  },
+  {
+    id: "ops",
+    icon: "📌",
+    label: "Tasks & Ops",
+    pages: ["Daily Tasks","Shift Handover","Overtime"],
+    roles: ["Team Lead","Shift Leader","SME"],
+    color: "#EC4899",
+    desc: "Tasks, handovers & overtime"
+  },
+  {
+    id: "breaks",
+    icon: "☕",
+    label: "Break Station",
+    pages: ["Break"],
+    roles: ["Team Lead","Shift Leader","SME","Agent"],
+    color: "#84CC16",
+    desc: "Break management"
+  },
+  {
+    id: "home",
+    icon: "🏠",
+    label: "Home",
+    pages: ["Home"],
+    roles: ["Team Lead","Shift Leader","SME","Agent"],
+    color: "#94A3B8",
+    desc: "Dashboard & overview",
+    alwaysExpanded: true
+  },
+];
+
+// Get hub for a given page
+function getHubForPage(page) {
+  return HUBS.find(h => h.pages.includes(page)) || HUBS[HUBS.length-1];
+}
+
+// Get visible hubs for current role
+function getVisibleHubs(role, visPages, isSuperAdmin) {
+  return HUBS.filter(hub => {
+    if (!hub.roles.includes(role) && !isSuperAdmin) return false;
+    // Only show hub if at least one page is visible
+    return hub.pages.some(p => visPages.includes(p));
+  });
+}
+
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [page, setPage] = useState(() => {
@@ -15349,6 +15720,14 @@ export default function App() {
 
   const [criticalAlerts, setCriticalAlerts]   = useState([]);
   const [prev30secTotal, setPrev30secTotal]   = useState(0);
+
+  // ── Hub Sidebar state ───────────────────────────────────────────────────────
+  const [expandedHub, setExpandedHub]       = useState(null); // hub id
+  const [sidebarOpen, setSidebarOpen]       = useState(false); // mobile sidebar
+
+  // ── Shadow Mode (Owner views system as any employee) ──────────────────────
+  const [shadowEmployee, setShadowEmployee]   = useState(null); // {name,role,id}
+  const [shadowOrigSession, setShadowOrigSession] = useState(null);
   const [alertDismissed, setAlertDismissed]   = useState(false);
   const [dismissedQueueTotal, setDismissedQueueTotal] = useState(0); // track what was dismissed
   const [lastAlertCheck, setLastAlertCheck]   = useState(0);
@@ -15649,14 +16028,54 @@ export default function App() {
     try { localStorage.setItem("csops_lastPage", p); } catch {}
   }
 
+  // ── Shadow Mode functions (Owner only) ───────────────────────────────────
+  function enterShadowMode(emp) {
+    if (!isSuperAdmin) return;
+    setShadowOrigSession(session);
+    setShadowEmployee(emp);
+    setPage("Home");
+    showToast(`👁️ Shadow Mode: Viewing as ${emp.name} (${emp.role})`, "warning");
+    addAudit("Shadow Mode Enter", "Owner Analytics", `Viewing as ${emp.name}`);
+  }
+
+  function exitShadowMode() {
+    setShadowEmployee(null);
+    setShadowOrigSession(null);
+    setPage("Owner Analytics");
+    showToast("✅ Exited Shadow Mode", "success");
+    addAudit("Shadow Mode Exit", "Owner Analytics", "Returned to Owner view");
+  }
+
+  // Shadow mode overrides session values for rendering
+  const activeSession  = shadowEmployee
+    ? { ...session, name: shadowEmployee.name, role: shadowEmployee.role }
+    : session;
+  const activeRole     = activeSession?.role  || currentRole;
+  const activeName     = activeSession?.name  || currentName;
+  const activeIsAgent  = activeRole === "Agent";
+  const activeCanEdit  = shadowEmployee ? ROLE_CAN_EDIT[activeRole]||false : canEdit;
+  const activeIsOwner  = shadowEmployee ? false : isSuperAdmin;
+
+  // Visible pages for shadow mode
+  const shadowEmpObj   = shadowEmployee ? employees.find(e=>e.name===shadowEmployee.name) : null;
+  const shadowHidden   = shadowEmpObj?.hiddenPages || [];
+  const shadowBasePages= activeIsOwner
+    ? [...PAGES,"Owner Analytics"]
+    : activeIsAgent ? AGENT_PAGES : PAGES;
+  const activePagesVisible = shadowEmployee
+    ? shadowBasePages.filter(p=>!shadowHidden.includes(p))
+    : visiblePages;
+
   const noop = () => {};
   const AL = setAuditLog;
 
   // ── Audited setter: wraps any setter and logs every change ──────────────────
+  // Royal Audit: Owner edits tagged as "System Admin Update"
   function makeAudited(setter, label) {
     if (!canEdit) return noop;
     return (val) => {
       setter(val);
+      const isOwnerAction = isSuperAdmin || shadowEmployee !== null;
       const entry = {
         id: "al"+Date.now()+Math.random(),
         ts: new Date().toISOString(),
@@ -15710,33 +16129,33 @@ export default function App() {
 
   const pageComponents = {
     "Messages":    wrap(<DirectMessagesPanel employees={employees} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
-    "Home":        wrap(<HomeDashboard session={session} employees={employees} schedule={schedule} attendance={attendance} performance={performance} queueLog={queueLog} notes={notes} setNotes={setNotes} breakSchedule={breakSchedule} shifts={shifts} auditLog={auditLog} canEdit={canEdit} isSuperAdmin={isSuperAdmin} onNavigate={navigateLogged}/>),
-    Schedule:      wrap(<SchedulePage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} canEdit={canEdit} notes={notes} setNotes={setNotes} session={session}/>),
-    Attendance:    wrap(<AttendancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} setSchedule={SC} shifts={shifts} attendance={attendance} setAttendance={AT} notes={notes} setNotes={setNotes} session={session} myShiftFilter={myShiftOnly}/>),
-    Queue:         wrap(<QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL} setHeatmap={HM} canEdit={canEdit} session={session}/>),
-    "Daily Tasks": wrap(<DailyTasksPage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} auditLog={auditLog} setAuditLog={AL} session={session}/>),
-    "Live Floor":  wrap(<LiveFloorPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} queueLog={queueLog} canEdit={canEdit} session={session} notes={notes} setNotes={setNotes}/>),
-    Break:         wrap(<BreakPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={canEdit} addAudit={addAudit} session={session} notes={notes} setNotes={setNotes} myShiftFilter={myShiftOnly} queueLog={queueLog}/>),
+    "Home":        wrap(<HomeDashboard session={activeSession} employees={employees} schedule={schedule} attendance={attendance} performance={performance} queueLog={queueLog} notes={notes} setNotes={setNotes} breakSchedule={breakSchedule} shifts={shifts} auditLog={auditLog} canEdit={activeCanEdit} isSuperAdmin={isSuperAdmin} onNavigate={navigateLogged}/>),
+    Schedule:      wrap(<SchedulePage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} canEdit={activeCanEdit} notes={notes} setNotes={setNotes} session={activeSession}/>),
+    Attendance:    wrap(<AttendancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} setSchedule={SC} shifts={shifts} attendance={attendance} setAttendance={AT} notes={notes} setNotes={setNotes} session={activeSession} myShiftFilter={myShiftOnly}/>),
+    Queue:         wrap(<QueuePage shifts={shifts} queueLog={queueLog} setQueueLog={QL} setHeatmap={HM} canEdit={activeCanEdit} session={activeSession}/>),
+    "Daily Tasks": wrap(<DailyTasksPage employees={employees} setEmployees={E} schedule={schedule} setSchedule={SC} shifts={shifts} auditLog={auditLog} setAuditLog={AL} session={activeSession}/>),
+    "Live Floor":  wrap(<LiveFloorPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} attendance={attendance} setAttendance={AT} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} queueLog={queueLog} canEdit={activeCanEdit} session={activeSession} notes={notes} setNotes={setNotes}/>),
+    Break:         wrap(<BreakPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} breakSchedule={breakSchedule} setBreakSchedule={setBreakSchedule} canEdit={activeCanEdit} addAudit={addAudit} session={activeSession} notes={notes} setNotes={setNotes} myShiftFilter={myShiftOnly} queueLog={queueLog}/>),
     "Heat Map":    wrap(<HeatMapPage queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning}/>),
-    "Audit Log":   wrap(<AuditLogPage auditLog={auditLog} session={session}/>),
-    Notes:         wrap(<NotesPage notes={notes} setNotes={canEdit?setNotes:noop} session={session}/>),
+    "Audit Log":   wrap(<AuditLogPage auditLog={auditLog} session={activeSession}/>),
+    Notes:         wrap(<NotesPage notes={notes} setNotes={canEdit?setNotes:noop} session={activeSession}/>),
     Shifts:        wrap(<ShiftsPage shifts={shifts} setShifts={SH}/>),
-    Performance:   wrap(<PerformancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF} myShiftFilter={myShiftOnly} session={session} notes={notes} setNotes={setNotes}/>),
-    Reports:       wrap(<ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog} session={session} canEdit={canEdit} myShiftFilter={myShiftOnly}/>),
-    "Owner Analytics": wrap(<OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} setEmployees={E} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>),
-    Leaderboard:   wrap(<LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} setNotes={setNotes} canEdit={canEdit}/>),
+    Performance:   wrap(<PerformancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF} myShiftFilter={myShiftOnly} session={activeSession} notes={notes} setNotes={setNotes}/>),
+    Reports:       wrap(<ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog} session={activeSession} canEdit={activeCanEdit} myShiftFilter={myShiftOnly}/>),
+    "Owner Analytics": wrap(<OwnerAnalyticsPage auditLog={auditLog} session={activeSession} employees={employees} setEmployees={E} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes}/>),
+    Leaderboard:   wrap(<LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={activeSession} notes={notes} setNotes={setNotes} canEdit={activeCanEdit}/>),
     "Attendance History": wrap(<AttendanceHistoryPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance}/>),
-    "KPI Dashboard": wrap(<KPIDashboardPage employees={employees} schedule={schedule} attendance={attendance} performance={performance} session={session} notes={notes} setNotes={setNotes}/>),
-    "Surveys":       wrap(<SurveysPage employees={employees} notes={notes} setNotes={canEdit?setNotes:noop} session={session} canEdit={canEdit}/>),
-    "Gamification":  wrap(<GamificationPage employees={employees} performance={performance} attendance={attendance} schedule={schedule} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
-    "Shrinkage":           wrap(<ShrinkageCalculatorPage employees={employees} schedule={schedule} attendance={attendance} breakSchedule={breakSchedule} shifts={shifts} session={session}/>),
-    "Executive Dashboard": wrap(<ExecutiveDashboardPage employees={employees} schedule={schedule} attendance={attendance} performance={performance} queueLog={queueLog} shifts={shifts} session={session}/>),
-    "Incident Log":    wrap(<IncidentLogPage employees={employees} session={session} notes={notes} setNotes={setNotes} canEdit={canEdit}/>),
-    "Overtime":         wrap(<OvertimeTrackerPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} session={session} canEdit={canEdit}/>),
-    "Employee Profile": wrap(<EmployeeProfilePage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} notes={notes} session={session} canEdit={canEdit}/>),
-    "Skills Matrix":  wrap(<SkillsMatrixPage employees={employees} setEmployees={E} schedule={schedule} session={session} canEdit={canEdit}/>),
-    "Coaching Notes": wrap(<CoachingNotesPage employees={employees} performance={performance} attendance={attendance} schedule={schedule} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
-    "Shift Handover": wrap(<ShiftHandoverPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>),
+    "KPI Dashboard": wrap(<KPIDashboardPage employees={employees} schedule={schedule} attendance={attendance} performance={performance} session={activeSession} notes={notes} setNotes={setNotes}/>),
+    "Surveys":       wrap(<SurveysPage employees={employees} notes={notes} setNotes={canEdit?setNotes:noop} session={activeSession} canEdit={activeCanEdit}/>),
+    "Gamification":  wrap(<GamificationPage employees={employees} performance={performance} attendance={attendance} schedule={schedule} notes={notes} setNotes={setNotes} session={activeSession} canEdit={activeCanEdit}/>),
+    "Shrinkage":           wrap(<ShrinkageCalculatorPage employees={employees} schedule={schedule} attendance={attendance} breakSchedule={breakSchedule} shifts={shifts} session={activeSession}/>),
+    "Executive Dashboard": wrap(<ExecutiveDashboardPage employees={employees} schedule={schedule} attendance={attendance} performance={performance} queueLog={queueLog} shifts={shifts} session={activeSession}/>),
+    "Incident Log":    wrap(<IncidentLogPage employees={employees} session={activeSession} notes={notes} setNotes={setNotes} canEdit={activeCanEdit}/>),
+    "Overtime":         wrap(<OvertimeTrackerPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} session={activeSession} canEdit={activeCanEdit}/>),
+    "Employee Profile": wrap(<EmployeeProfilePage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} notes={notes} session={activeSession} canEdit={activeCanEdit}/>),
+    "Skills Matrix":  wrap(<SkillsMatrixPage employees={employees} setEmployees={E} schedule={schedule} session={activeSession} canEdit={activeCanEdit}/>),
+    "Coaching Notes": wrap(<CoachingNotesPage employees={employees} performance={performance} attendance={attendance} schedule={schedule} notes={notes} setNotes={setNotes} session={activeSession} canEdit={activeCanEdit}/>),
+    "Shift Handover": wrap(<ShiftHandoverPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} notes={notes} setNotes={setNotes} session={activeSession} canEdit={activeCanEdit}/>),
   };
 
   // Page icons
@@ -15769,11 +16188,14 @@ export default function App() {
     "Shrinkage": "Shrinkage"
   };
 
-  const safeCurrentPage = visiblePages.includes(page) ? page : visiblePages[0];
+  const safeCurrentPage = activePagesVisible.includes(page) ? page : activePagesVisible[0];
 
   return (
     <div dir="ltr" style={{
       minHeight:"100dvh", background:theme.bg,
+      outline: shadowEmployee ? "4px solid #F59E0B" : "none",
+      outlineOffset: shadowEmployee ? "-4px" : "0",
+      transition:"outline 0.3s ease",
       fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif",
       color:theme.text
     }}>
@@ -15885,308 +16307,493 @@ export default function App() {
       `}</style>
 
       {/* Top Header */}
-      <div style={{ background:theme.header, position:"sticky", top:0, zIndex:100,
-        borderBottom:`1px solid ${theme.cardBorder}`,
-        boxShadow:theme.isDark?"0 2px 16px rgba(0,0,0,0.6)":"0 2px 8px rgba(0,0,0,0.12)" }}>
-        <div style={{ maxWidth:1400, margin:"0 auto", padding:"0 12px" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:5, padding:"8px 0" }}>
+      {/* ════════════ HEADER ════════════ */}
+      <div style={{
+        background: theme.isDark
+          ? "rgba(10,15,30,0.95)"
+          : "rgba(255,255,255,0.95)",
+        backdropFilter: "blur(12px)",
+        position: "sticky", top: 0, zIndex: 100,
+        borderBottom: `1px solid ${theme.cardBorder}`,
+        boxShadow: theme.isDark
+          ? "0 2px 20px rgba(0,0,0,0.5)"
+          : "0 2px 12px rgba(0,0,0,0.08)"
+      }}>
+        <div style={{ padding:"0 12px" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6, height:46 }}>
 
-            {/* Brand */}
-            <div style={{ color:theme.text, fontWeight:800, fontSize:15, whiteSpace:"nowrap",
-              display:"flex", alignItems:"center", gap:6, flexShrink:0,
-              marginRight:6, paddingRight:8, borderRight:`1px solid ${theme.cardBorder}` }}>
-              🎯 <span style={{color:theme.primary}}>CS</span> Ops
-              <span style={{ fontSize:9, background:theme.success, color:"#fff",
-                borderRadius:10, padding:"2px 6px", fontWeight:700, animation:"pulse 2s infinite" }}>LIVE</span>
+            {/* ─ Logo ─ */}
+            <div style={{
+              display:"flex", alignItems:"center", gap:6,
+              flexShrink:0, paddingRight:10,
+              borderRight:`1px solid ${theme.cardBorder}`
+            }}>
+              <span style={{fontSize:18}}>🎯</span>
+              <span style={{fontWeight:900,fontSize:14,color:theme.primary,letterSpacing:-0.5}}>
+                CS<span style={{color:theme.text}}>Ops</span>
+              </span>
+              <span style={{
+                fontSize:9, background:"#10B981", color:"#fff",
+                borderRadius:20, padding:"2px 6px", fontWeight:800,
+                letterSpacing:0.3, animation:"pulse 2s infinite"
+              }}>LIVE</span>
             </div>
 
-            {/* Desktop nav — scrollable quick navigation */}
-            <div className="desktop-nav" style={{ display:"flex", gap:2, overflowX:"auto",
-              flex:1, scrollbarWidth:"none", alignItems:"center" }}>
-              {visiblePages.map(p => {
-                const isActive = safeCurrentPage===p;
+            {/* ─ Breadcrumb ─ */}
+            <div className="desktop-nav" style={{
+              display:"flex", alignItems:"center", gap:4,
+              fontSize:11, color:theme.textMuted, flexShrink:0,
+              paddingRight:8, borderRight:`1px solid ${theme.cardBorder}`
+            }}>
+              {(() => {
+                const hub = getHubForPage(safeCurrentPage);
+                if (!hub) return null;
                 return (
-                  <button key={p} className="nav-btn" onClick={()=>navigateLogged(p)}
-                    style={{ background: isActive ? theme.primary : "transparent",
+                  <>
+                    <span style={{color:hub.color,fontWeight:600}}>{hub.icon}</span>
+                    <span style={{color:theme.textMuted}}>{hub.label}</span>
+                    <span style={{opacity:0.3}}>›</span>
+                    <span style={{color:theme.text,fontWeight:700}}>
+                      {PAGE_LABELS[safeCurrentPage]||safeCurrentPage}
+                    </span>
+                  </>
+                );
+              })()}
+            </div>
+
+            {/* ─ Nav Tabs (scrollable, desktop only) ─ */}
+            <div className="desktop-nav" style={{
+              display:"flex", gap:2, overflowX:"auto", flex:1,
+              scrollbarWidth:"none", alignItems:"center",
+              scrollBehavior:"smooth"
+            }}>
+              {activePagesVisible.map(p => {
+                const isActive = safeCurrentPage === p;
+                return (
+                  <button key={p} onClick={()=>navigateLogged(p)}
+                    style={{
+                      background: isActive ? theme.primary : "transparent",
                       color: isActive ? "#fff" : theme.textSub,
-                      border:`1px solid ${isActive ? theme.primary : "transparent"}`,
-                      borderRadius:7, padding:"5px 9px", fontSize:11,
-                      cursor:"pointer", fontWeight: isActive ? 700 : 500,
-                      whiteSpace:"nowrap", flexShrink:0,
-                      boxShadow: isActive ? `0 2px 8px ${theme.primary}40` : "none" }}>
+                      border: `1px solid ${isActive ? theme.primary : "transparent"}`,
+                      borderRadius: 7, padding: "4px 9px", fontSize: 11,
+                      cursor: "pointer", fontWeight: isActive ? 700 : 500,
+                      whiteSpace: "nowrap", flexShrink: 0, transition:"all 0.15s",
+                      boxShadow: isActive ? `0 2px 8px ${theme.primary}40` : "none"
+                    }}>
                     {PAGE_ICONS[p]} {PAGE_LABELS[p]||p}
                   </button>
                 );
               })}
             </div>
 
-            {/* Right controls */}
-            <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
+            {/* ─ Right Controls ─ */}
+            <div style={{
+              display:"flex", alignItems:"center", gap:3,
+              marginLeft:"auto", flexShrink:0
+            }}>
 
-              {/* My Shift Only toggle — for supervisors only (not agents, not admin-agents) */}
+              {/* Hub Menu ☰ */}
+              <button onClick={()=>setSidebarOpen(p=>!p)}
+                title="Navigation Hubs"
+                style={{
+                  background: sidebarOpen ? theme.primary+"22" : "transparent",
+                  border: `1px solid ${sidebarOpen ? theme.primary : theme.cardBorder}`,
+                  color: sidebarOpen ? theme.primary : theme.textSub,
+                  borderRadius:7, padding:"4px 9px", fontSize:13,
+                  cursor:"pointer", fontWeight:700, flexShrink:0
+                }}>☰</button>
+
+              {/* My Shift toggle (supervisors only) */}
               {!isAgent && !isAdminAgent && (
                 <button
-                  title={myShiftOnly ? "Showing my shift only — click to show all" : "Show my shift only"}
+                  title={myShiftOnly?"Show all":"Show my shift only"}
                   onClick={()=>setMyShiftOnly(s=>!s)}
-                  style={{ background:myShiftOnly?theme.primary+"22":"transparent",
-                    color:myShiftOnly?theme.primary:theme.textSub,
-                    border:`1px solid ${myShiftOnly?theme.primary:theme.cardBorder}`,
-                    borderRadius:7, padding:"5px 9px", fontSize:11,
-                    cursor:"pointer", fontWeight:700,
-                    whiteSpace:"nowrap", flexShrink:0 }}>
-                  {myShiftOnly?"🔵 My Shift":"⬜ My Shift"}
+                  style={{
+                    background: myShiftOnly ? theme.primary+"22" : "transparent",
+                    color: myShiftOnly ? theme.primary : theme.textSub,
+                    border: `1px solid ${myShiftOnly ? theme.primary : theme.cardBorder}`,
+                    borderRadius:7, padding:"4px 9px", fontSize:11,
+                    cursor:"pointer", fontWeight:700, whiteSpace:"nowrap", flexShrink:0
+                  }}>
+                  {myShiftOnly?"🔵 My Shift":"⊞ My Shift"}
                 </button>
               )}
 
-              {/* Zoom — fixed to apply to content wrapper only */}
-              <div className="desktop-nav" style={{ display:"flex", alignItems:"center", gap:1,
-                background:theme.surface, border:`1px solid ${theme.cardBorder}`,
-                borderRadius:8, padding:"2px 3px" }}>
-                <button onClick={()=>changeZoom(zoom-10)}
-                  style={{ background:"none", border:"none", color:theme.textSub,
-                    cursor:"pointer", fontSize:14, padding:"1px 6px", lineHeight:1,
-                    borderRadius:4, fontWeight:700 }}>−</button>
-                <span style={{ fontSize:10, color:theme.textMuted, minWidth:32, textAlign:"center",
-                  fontWeight:600 }}>{zoom}%</span>
-                <button onClick={()=>changeZoom(zoom+10)}
-                  style={{ background:"none", border:"none", color:theme.textSub,
-                    cursor:"pointer", fontSize:14, padding:"1px 6px", lineHeight:1,
-                    borderRadius:4, fontWeight:700 }}>+</button>
-              </div>
-
-              {/* Global Search button */}
+              {/* Search 🔍 */}
               <button onClick={()=>setShowSearch(true)}
                 title="Global Search (Ctrl+K)"
-                style={{ background:theme.surface, border:`1px solid ${theme.cardBorder}`,
-                  color:theme.textSub, borderRadius:7, padding:"5px 9px",
-                  fontSize:11, cursor:"pointer", fontWeight:600,
-                  display:"flex", alignItems:"center", gap:4 }}>
-                🔍 <span className="desktop-nav" style={{fontSize:10}}>Ctrl+K</span>
+                style={{
+                  background: theme.surface,
+                  border: `1px solid ${theme.cardBorder}`,
+                  color: theme.textSub, borderRadius:7, padding:"4px 9px",
+                  fontSize:12, cursor:"pointer", fontWeight:600,
+                  display:"flex", alignItems:"center", gap:4
+                }}>
+                🔍<span className="desktop-nav" style={{fontSize:10}}>Ctrl+K</span>
               </button>
 
-              {/* Lang */}
+              {/* Zoom (desktop only) */}
+              <div className="desktop-nav" style={{
+                display:"flex", alignItems:"center", gap:1,
+                background:theme.surface, border:`1px solid ${theme.cardBorder}`,
+                borderRadius:7, padding:"2px 3px"
+              }}>
+                <button onClick={()=>changeZoom(zoom-10)}
+                  style={{background:"none",border:"none",color:theme.textSub,
+                    cursor:"pointer",fontSize:13,padding:"1px 5px",fontWeight:700}}>−</button>
+                <span style={{fontSize:10,color:theme.textMuted,minWidth:30,
+                  textAlign:"center",fontWeight:600}}>{zoom}%</span>
+                <button onClick={()=>changeZoom(zoom+10)}
+                  style={{background:"none",border:"none",color:theme.textSub,
+                    cursor:"pointer",fontSize:13,padding:"1px 5px",fontWeight:700}}>+</button>
+              </div>
 
-
-              {/* Theme */}
+              {/* Theme selector (desktop only) */}
               <select value={themeKey} onChange={e=>changeTheme(e.target.value)}
                 className="desktop-nav"
-                style={{ background:theme.surface, border:`1px solid ${theme.cardBorder}`,
-                  color:theme.textSub, borderRadius:7, padding:"5px 7px",
-                  fontSize:11, cursor:"pointer", outline:"none" }}>
+                style={{
+                  background:theme.surface, border:`1px solid ${theme.cardBorder}`,
+                  color:theme.textSub, borderRadius:7, padding:"4px 7px",
+                  fontSize:11, cursor:"pointer", outline:"none"
+                }}>
                 {Object.entries(THEMES).map(([k,v])=>(
-                  <option key={k} value={k}>{false?v.nameAr:v.name}</option>
+                  <option key={k} value={k}>{v.name}</option>
                 ))}
               </select>
 
-              {/* Auto-save indicator */}
-              <div style={{ display:"flex", alignItems:"center", gap:3,
-                background:`${theme.success}18`, border:`1px solid ${theme.success}30`,
-                borderRadius:20, padding:"3px 7px" }}>
-                <div style={{ width:5, height:5, borderRadius:"50%", background:theme.success,
-                  animation:"pulse 2s infinite" }}/>
-                <span style={{ fontSize:9, color:theme.success, fontWeight:700 }}>{tr("saved")}</span>
+              {/* Sound toggle (supervisors only, desktop) */}
+              {!isAgent && (
+                <button className="desktop-nav"
+                  title="Toggle alert sounds"
+                  onClick={()=>{
+                    const muted=localStorage.getItem("csops_mute")==="1";
+                    localStorage.setItem("csops_mute",muted?"0":"1");
+                    if(!muted) alert("🔕 Alert sounds muted");
+                    else { alert("🔔 Alert sounds enabled"); playSoftDing(); }
+                  }}
+                  style={{
+                    background:localStorage.getItem("csops_mute")==="1"?"rgba(239,68,68,0.1)":theme.surface,
+                    color:localStorage.getItem("csops_mute")==="1"?theme.danger:theme.textSub,
+                    border:`1px solid ${localStorage.getItem("csops_mute")==="1"?theme.danger+"40":theme.cardBorder}`,
+                    borderRadius:7,padding:"4px 8px",fontSize:13,cursor:"pointer"
+                  }}>
+                  {localStorage.getItem("csops_mute")==="1"?"🔕":"🔊"}
+                </button>
+              )}
+
+              {/* Auto-saved indicator */}
+              <div style={{
+                display:"flex", alignItems:"center", gap:3,
+                background:`${theme.success}18`,
+                border:`1px solid ${theme.success}30`,
+                borderRadius:20, padding:"3px 7px", flexShrink:0
+              }}>
+                <div style={{width:5,height:5,borderRadius:"50%",
+                  background:theme.success,animation:"pulse 2s infinite"}}/>
+                <span style={{fontSize:9,color:theme.success,fontWeight:700}}>Saved</span>
               </div>
 
               {/* User badge */}
-              <div style={{ background:`${roleColor}18`, border:`1px solid ${roleColor}40`,
-                borderRadius:20, padding:"4px 10px", display:"flex", alignItems:"center", gap:5 }}>
-                <span style={{ fontSize:13 }}>{ROLE_ICONS[currentRole]}</span>
+              <div style={{
+                background:`${roleColor}18`,
+                border:`1px solid ${roleColor}40`,
+                borderRadius:20, padding:"4px 10px",
+                display:"flex", alignItems:"center", gap:5, flexShrink:0
+              }}>
+                <span style={{fontSize:13}}>{ROLE_ICONS[currentRole]||"👤"}</span>
                 <div>
-                  <div style={{ fontSize:11, fontWeight:800, color:roleColor, lineHeight:1.2 }}>
+                  <div style={{fontSize:11,fontWeight:800,color:roleColor,lineHeight:1.2}}>
                     {currentName.split(" ")[0]}
                   </div>
-                  <div style={{ fontSize:9, color:theme.textMuted, lineHeight:1.2 }}>
-                    {currentRole}{!canEdit && " · 👁️"}
+                  <div style={{fontSize:9,color:theme.textMuted,lineHeight:1.2}}>
+                    {currentRole}{!canEdit?" · 👁️":""}
                   </div>
                 </div>
               </div>
 
-              {/* Sign out */}
-              <button onClick={logout}
-                style={{ background:`${theme.danger}18`, color:theme.danger,
-                  border:`1px solid ${theme.danger}30`, borderRadius:7,
-                  padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>⏏️</button>
-
-              {/* Reset passwords */}
-              {canResetPasswords(currentRole, currentName) && (
+              {/* Password Reset 🔑 */}
+              {canResetPasswords(currentRole,currentName) && (
                 <button onClick={()=>setShowResetPw(true)}
-                  style={{ background:`${theme.warning}18`, color:theme.warning,
-                    border:`1px solid ${theme.warning}30`, borderRadius:7,
-                    padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>🔑</button>
+                  title="Reset Passwords"
+                  style={{
+                    background:`${theme.warning}18`,color:theme.warning,
+                    border:`1px solid ${theme.warning}30`,borderRadius:7,
+                    padding:"4px 8px",fontSize:11,cursor:"pointer",fontWeight:600
+                  }}>🔑</button>
               )}
 
-              {/* Sound mute toggle */}
-              {!isAgent && (
-                <button
-                  title="Toggle alert sounds"
-                  onClick={()=>{
-                    const muted = localStorage.getItem("csops_mute")==="1";
-                    localStorage.setItem("csops_mute", muted?"0":"1");
-                    if (!muted) alert("🔕 Alert sounds muted");
-                    else { alert("🔔 Alert sounds enabled"); playSoftDing(); }
-                  }}
-                  style={{ background:localStorage.getItem("csops_mute")==="1"?"rgba(239,68,68,0.1)":theme.surface,
-                    color:localStorage.getItem("csops_mute")==="1"?theme.danger:theme.textSub,
-                    border:`1px solid ${localStorage.getItem("csops_mute")==="1"?theme.danger+"40":theme.cardBorder}`,
-                    borderRadius:7, padding:"5px 8px", fontSize:13, cursor:"pointer" }}>
-                  {localStorage.getItem("csops_mute")==="1" ? "🔕" : "🔊"}
-                </button>
-              )}
+              {/* Push Notifications */}
+              <button className="desktop-nav"
+                title="Enable push notifications"
+                onClick={async()=>{ await requestPushPermission(); }}
+                style={{
+                  background:theme.surface,color:theme.textSub,
+                  border:`1px solid ${theme.cardBorder}`,borderRadius:7,
+                  padding:"4px 8px",fontSize:13,cursor:"pointer"
+                }}>🔔</button>
 
-              {/* My Shift Only filter */}
-              <button
-                title="Toggle: My Shift Only"
-                onClick={()=>setMyShiftFilter(f=>!f)}
-                style={{ background:myShiftFilter?_theme.primary+"22":"transparent",
-                  color:myShiftFilter?_theme.primary:theme.textSub,
-                  border:`1px solid ${myShiftFilter?_theme.primary:theme.cardBorder}`,
-                  borderRadius:7, padding:"5px 8px", fontSize:12, cursor:"pointer",
-                  fontWeight:700 }}>
-                {myShiftFilter?"🔵 My Shift":"⊞ All"}
-              </button>
-
-              {/* Direct Messages */}
-              <button
-                title="Messages"
-                onClick={()=>setShowDM(true)}
-                style={{ position:"relative", background:"transparent",
-                  color:theme.textSub,
-                  border:`1px solid ${theme.cardBorder}`,
-                  borderRadius:7, padding:"5px 8px", fontSize:13, cursor:"pointer" }}>
+              {/* Messages 💬 */}
+              <button onClick={()=>setShowDMModal(true)}
+                style={{
+                  background:theme.surface,color:theme.textSub,
+                  border:`1px solid ${theme.cardBorder}`,borderRadius:7,
+                  padding:"4px 8px",fontSize:13,cursor:"pointer",
+                  position:"relative"
+                }}>
                 💬
-                {(()=>{
-                  const unread = (Array.isArray(notes)?notes:[]).filter(n=>
-                    (n.tag==="Direct Message"||n.tag==="Manager Message") &&
-                    (n.target===currentName||n.target==="all") &&
-                    n.from!==currentName
-                  ).length;
-                  return unread > 0 ? (
-                    <span style={{ position:"absolute", top:-4, right:-4,
-                      background:"#EF4444", color:"#fff", borderRadius:"50%",
-                      width:14, height:14, fontSize:9, fontWeight:800,
-                      display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      {unread > 9 ? "9+" : unread}
+                {(() => {
+                  const unread=(Array.isArray(notes)?notes:[])
+                    .filter(n=>n.tag==="Direct Message"&&n.target===session?.name)
+                    .filter(n=>{try{return !JSON.parse(n.text||"{}").read;}catch{return true;}}).length;
+                  return unread>0?(
+                    <span style={{position:"absolute",top:-4,right:-4,
+                      background:"#EF4444",color:"#fff",borderRadius:"50%",
+                      width:14,height:14,fontSize:9,fontWeight:800,
+                      display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      {unread}
                     </span>
-                  ) : null;
+                  ):null;
                 })()}
               </button>
 
-              {/* Push Notification toggle — supervisors only */}
-              {!isAgent && "Notification" in window && (
-                <button
-                  title={Notification.permission==="granted"?"Push notifications enabled — click for info":"Enable push notifications"}
-                  onClick={async()=>{
-                    if (Notification.permission==="granted") {
-                      alert("✅ Push notifications enabled\nYou'll receive alerts even when the app is closed.");
-                    } else if (Notification.permission==="denied") {
-                      alert("🚫 Notifications blocked. Open browser settings and allow this site.");
-                    } else {
-                      const res = await askPushPermission();
-                      if (res==="granted") alert("✅ Push notifications enabled!");
-                      else alert("⚠️ Notification permission denied.");
-                    }
-                  }}
-                  style={{
-                    background: Notification.permission==="granted"?"rgba(16,185,129,0.15)":"rgba(245,158,11,0.1)",
-                    color:      Notification.permission==="granted"?theme.success:theme.warning,
-                    border:`1px solid ${Notification.permission==="granted"?theme.success+"40":theme.warning+"40"}`,
-                    borderRadius:7, padding:"5px 8px", fontSize:13, cursor:"pointer", fontWeight:700
-                  }}>
-                  {Notification.permission==="granted" ? "🔔" : "🔕"}
-                </button>
-              )}
+              {/* Sign Out */}
+              <button onClick={logout}
+                title="Sign Out"
+                style={{
+                  background:`${theme.danger}18`,color:theme.danger,
+                  border:`1px solid ${theme.danger}30`,borderRadius:7,
+                  padding:"4px 8px",fontSize:11,cursor:"pointer",fontWeight:600
+                }}>⏏️</button>
 
-              {/* Audit log quick access */}
-              {(currentRole==="Team Lead"||currentRole==="Shift Leader"||currentName===SUPER_ADMIN) && (
-                <button onClick={()=>navigateLogged("Audit Log")}
-                  style={{ background:"rgba(99,102,241,0.15)", color:"#818CF8",
-                    border:"1px solid rgba(99,102,241,0.25)", borderRadius:7,
-                    padding:"5px 8px", fontSize:11, cursor:"pointer", fontWeight:600 }}>🕐</button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+            </div>{/* end right controls */}
+          </div>{/* end flex row */}
+        </div>{/* end padding */}
+      </div>{/* end header */}
 
-      {/* Page Content */}
-      <div style={{ maxWidth:1400, margin:"0 auto", padding:"16px 12px 100px",
-        transform:`scale(${zoom/100})`, transformOrigin:"top center",
-        transition:"transform 0.15s" }}>
-        <div style={{ marginBottom:14, display:"flex", alignItems:"center",
-          justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
-          <div>
-            <h1 style={{ fontSize:20, fontWeight:800, color:theme.text, margin:0 }}>
-              {PAGE_ICONS[safeCurrentPage]} {PAGE_LABELS[safeCurrentPage]||safeCurrentPage}
-            </h1>
-            <div style={{ fontSize:11, color:theme.textMuted, marginTop:2 }}>
-              {new Date().toLocaleDateString(false?"ar-SA":"en-US",
-                {weekday:"long",year:"numeric",month:"long",day:"numeric"})}
-            </div>
-          </div>
-          <div style={{ background:theme.card, border:`1px solid ${theme.cardBorder}`,
-            borderRadius:20, padding:"5px 12px", display:"flex", alignItems:"center",
-            gap:6, fontSize:11, color:theme.textSub }}>
-            <span>{ROLE_ICONS[currentRole]}</span>
-            <strong style={{ color:roleColor }}>{currentName.split(" ")[0]}</strong>
-            <span style={{ color:theme.textMuted }}>·</span>
-            <span>{new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}</span>
-              <span title={lastSync ? `Last sync: ${new Date(lastSync).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}` : "Syncing..."}
-                style={{width:7,height:7,borderRadius:"50%",display:"inline-block",
-                  background: lastSync && (Date.now()-lastSync)<60000 ? "#10B981" : "#F59E0B",
-                  boxShadow: lastSync && (Date.now()-lastSync)<60000 ? "0 0 4px #10B981" : "none",
-                  cursor:"help"}}/>
-          </div>
-        </div>
-
-        {!canEdit && (
-          <div style={{ background:"rgba(245,158,11,0.08)", border:"1.5px solid rgba(245,158,11,0.3)",
-            borderRadius:10, padding:"10px 16px", marginBottom:16,
-            display:"flex", alignItems:"center", gap:10 }}>
-            <span style={{ fontSize:18 }}>👁️</span>
-            <div style={{ fontSize:13, color:"#FCD34D" }}>
-              <strong>{tr("readOnlyMode")}</strong> — {tr("readOnlyDesc")}
-            </div>
-          </div>
+      {/* ── HUB SIDEBAR (Desktop Left) ── */}
+        {sidebarOpen && (
+          <div onClick={()=>setSidebarOpen(false)}
+            style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:299}}/>
         )}
+        <div style={{
+          position:"fixed", left:0, top:0, bottom:0,
+          width: sidebarOpen ? 240 : 0,
+          background: theme.isDark
+            ? "rgba(10,15,30,0.97)"
+            : "rgba(255,255,255,0.97)",
+          backdropFilter:"blur(20px)",
+          borderRight:`1px solid ${theme.cardBorder}`,
+          zIndex:300, overflowY:"auto", overflowX:"hidden",
+          transition:"width 0.25s cubic-bezier(0.4,0,0.2,1)",
+          display:"flex", flexDirection:"column",
+          boxShadow:"4px 0 24px rgba(0,0,0,0.15)"
+        }}>
+          {sidebarOpen && (
+            <div style={{padding:"16px 12px", minWidth:240}}>
+              {/* Sidebar Header */}
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
+                marginBottom:20,paddingBottom:12,borderBottom:`1px solid ${theme.cardBorder}`}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:22}}>🎯</span>
+                  <div>
+                    <div style={{fontWeight:800,fontSize:13,color:theme.text}}>CS Operations</div>
+                    <div style={{fontSize:10,color:theme.textMuted}}>v2.0 Enterprise</div>
+                  </div>
+                </div>
+                <button onClick={()=>setSidebarOpen(false)}
+                  style={{background:"none",border:"none",cursor:"pointer",color:theme.textMuted,fontSize:18}}>
+                  ✕
+                </button>
+              </div>
 
-        {/* My Shift Only banner */}
-        {myShiftOnly && myCurrentShiftId && myCurrentShiftId !== "OFF" && (
-          <div style={{ background:theme.primary+"18", border:`1px solid ${theme.primary}40`,
-            borderRadius:8, padding:"6px 14px", marginBottom:10,
-            display:"flex", alignItems:"center", gap:8, fontSize:12 }}>
-            <span style={{ fontWeight:800, color:theme.primary }}>🔵 My Shift Filter ON</span>
-            <span style={{ color:theme.textMuted }}>
-              Showing {(myShiftEmployeeIds||[]).length} employees on your shift only
-            </span>
-            <button onClick={()=>setMyShiftOnly(false)}
-              style={{ marginLeft:"auto", background:"none", border:`1px solid ${theme.primary}40`,
-                color:theme.primary, borderRadius:6, padding:"2px 8px",
-                cursor:"pointer", fontSize:11, fontWeight:700 }}>
-              Show All ✕
+              {/* Role Pill */}
+              <div style={{marginBottom:16,padding:"8px 12px",borderRadius:10,
+                background:roleColor+"18",border:`1px solid ${roleColor}30`,
+                display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:18}}>{ROLE_ICONS[currentRole]||"👤"}</span>
+                <div>
+                  <div style={{fontSize:12,fontWeight:700,color:roleColor}}>{currentRole}</div>
+                  <div style={{fontSize:10,color:theme.textMuted,
+                    maxWidth:140,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                    {currentName}
+                  </div>
+                </div>
+              </div>
+
+              {/* Hub Groups */}
+              {getVisibleHubs(currentRole, activePagesVisible, isSuperAdmin).map(hub => {
+                const hubPages = hub.pages.filter(p => activePagesVisible.includes(p));
+                if (!hubPages.length) return null;
+                const isExpanded = expandedHub === hub.id || hub.alwaysExpanded;
+                const isActiveHub = hubPages.includes(safeCurrentPage);
+
+                return (
+                  <div key={hub.id} style={{marginBottom:4}}>
+                    {/* Hub Header */}
+                    {!hub.alwaysExpanded ? (
+                      <button
+                        onClick={()=>setExpandedHub(isExpanded ? null : hub.id)}
+                        style={{
+                          width:"100%", display:"flex", alignItems:"center",
+                          gap:8, padding:"8px 10px", borderRadius:10,
+                          background: isActiveHub ? hub.color+"18" : "transparent",
+                          border: isActiveHub ? `1px solid ${hub.color}30` : "1px solid transparent",
+                          cursor:"pointer", textAlign:"left",
+                          transition:"all 0.15s"
+                        }}>
+                        <span style={{fontSize:16}}>{hub.icon}</span>
+                        <span style={{flex:1,fontSize:12,fontWeight:isActiveHub?800:600,
+                          color:isActiveHub?hub.color:theme.text}}>
+                          {hub.label}
+                        </span>
+                        <span style={{fontSize:10,color:theme.textMuted,
+                          transform:isExpanded?"rotate(90deg)":"none",
+                          transition:"transform 0.2s"}}>▶</span>
+                      </button>
+                    ) : (
+                      <div style={{padding:"4px 0"}}/>
+                    )}
+
+                    {/* Hub Pages */}
+                    {isExpanded && (
+                      <div style={{paddingLeft:hub.alwaysExpanded?0:8,marginTop:2}}>
+                        {hubPages.map(p => {
+                          const isActive = safeCurrentPage === p;
+                          return (
+                            <button key={p}
+                              onClick={()=>{ navigateLogged(p); setSidebarOpen(false); }}
+                              style={{
+                                width:"100%", display:"flex", alignItems:"center",
+                                gap:8, padding:"7px 10px", borderRadius:8,
+                                background: isActive ? hub.color : "transparent",
+                                border:"none", cursor:"pointer", textAlign:"left",
+                                marginBottom:2, transition:"all 0.12s",
+                              }}>
+                              <span style={{fontSize:14}}>{PAGE_ICONS[p]||"📄"}</span>
+                              <span style={{fontSize:12,fontWeight:isActive?700:500,
+                                color:isActive?"#fff":theme.textSub}}>
+                                {PAGE_LABELS[p]||p}
+                              </span>
+                              {isActive && (
+                                <span style={{marginLeft:"auto",width:6,height:6,borderRadius:"50%",
+                                  background:"#fff",opacity:0.8,flexShrink:0}}/>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Sidebar Footer */}
+              <div style={{marginTop:"auto",paddingTop:16,borderTop:`1px solid ${theme.cardBorder}`,
+                marginTop:20}}>
+                <div style={{fontSize:10,color:theme.textMuted,textAlign:"center",marginBottom:8}}>
+                  {activePagesVisible.length} pages accessible
+                </div>
+                <button onClick={()=>{setSession(null);setSidebarOpen(false);}}
+                  style={{width:"100%",padding:"8px",borderRadius:8,fontSize:12,
+                    background:"rgba(239,68,68,0.1)",color:"#EF4444",
+                    border:"1px solid rgba(239,68,68,0.2)",cursor:"pointer",fontWeight:600}}>
+                  🚪 Sign Out
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── SIDEBAR TOGGLE BUTTON (Desktop) ── */}
+        <button
+          onClick={()=>{ setSidebarOpen(p=>!p); if(expandedHub===null) setExpandedHub(getHubForPage(safeCurrentPage)?.id||null); }}
+          title="Open Navigation Hub"
+          style={{
+            position:"fixed", left:sidebarOpen?248:8, top:"50%",
+            transform:"translateY(-50%)",
+            zIndex:301, background:theme.primary,
+            color:"#fff", border:"none", borderRadius:"0 8px 8px 0",
+            padding:"12px 6px", cursor:"pointer",
+            fontSize:14, fontWeight:800,
+            transition:"left 0.25s",
+            boxShadow:`2px 0 12px ${theme.primary}40`,
+            display:"flex", flexDirection:"column", alignItems:"center", gap:2
+          }}>
+          <span>{sidebarOpen?"◀":"☰"}</span>
+          <span style={{fontSize:8,letterSpacing:0.5,writingMode:"vertical-rl",
+            transform:"rotate(180deg)",opacity:0.7}}>
+            {!sidebarOpen ? getHubForPage(safeCurrentPage)?.icon : ""}
+          </span>
+        </button>
+
+        {/* Shadow Mode Banner */}
+        {shadowEmployee && (
+          <div style={{
+            background: "linear-gradient(90deg,#F59E0B,#EF4444)",
+            color:"#fff", padding:"8px 20px",
+            display:"flex", alignItems:"center", justifyContent:"space-between",
+            fontSize:12, fontWeight:700, letterSpacing:0.3,
+            borderBottom:"2px solid #DC2626"
+          }}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <span style={{fontSize:16}}>👁️</span>
+              <span>SHADOW MODE — Viewing as <strong>{shadowEmployee.name}</strong> ({shadowEmployee.role})</span>
+              <span style={{background:"rgba(0,0,0,0.2)",borderRadius:20,padding:"2px 10px",fontSize:10}}>
+                🔒 Read Only — Your data is safe
+              </span>
+            </div>
+            <button onClick={exitShadowMode}
+              style={{background:"rgba(0,0,0,0.3)",color:"#fff",border:"1px solid rgba(255,255,255,0.4)",
+                borderRadius:20,padding:"4px 16px",cursor:"pointer",fontWeight:800,fontSize:12}}>
+              ✕ Exit Shadow Mode
             </button>
           </div>
         )}
-              {myShiftFilter && (
-        <div style={{ background:"#EFF6FF", border:"1.5px solid #3B82F640",
-          borderRadius:8, padding:"8px 16px", marginBottom:12,
-          display:"flex", alignItems:"center", gap:8 }}>
-          <span style={{ fontSize:14 }}>🔵</span>
-          <span style={{ fontSize:12, fontWeight:700, color:"#1E40AF" }}>
-            My Shift Only — showing your shift employees only
-          </span>
-          <button onClick={()=>setMyShiftFilter(false)}
-            style={{ marginLeft:"auto", fontSize:11, color:"#3B82F6",
-              background:"none", border:"none", cursor:"pointer", fontWeight:700 }}>
-            Show All
-          </button>
-        </div>
-      )}
 
-      <div key={safeCurrentPage} className="page-content">
         {/* Announcement Banner */}
         <AnnouncementBanner notes={notes} setNotes={setNotes} session={session} canEdit={canEdit}/>
         {pageComponents[safeCurrentPage]}
       </div>
+      </div>
+
+      {/* ── System Pulse Dock (Desktop floating footer) ── */}
+      <div className="desktop-only" style={{
+        position:"fixed", bottom:16, left:"50%", transform:"translateX(-50%)",
+        zIndex:199, display:"flex", alignItems:"center", gap:12,
+        background: theme.isDark ? "rgba(10,15,30,0.92)" : "rgba(255,255,255,0.92)",
+        backdropFilter:"blur(16px)",
+        border:`1px solid ${theme.cardBorder}`,
+        borderRadius:40, padding:"8px 20px",
+        boxShadow:"0 4px 24px rgba(0,0,0,0.2)",
+        fontSize:11, color:theme.textMuted,
+        pointerEvents:"none"
+      }}>
+        {/* Connection status */}
+        <div style={{display:"flex",alignItems:"center",gap:5}}>
+          <div style={{width:6,height:6,borderRadius:"50%",background:"#10B981",
+            boxShadow:"0 0 6px #10B981",animation:"pulse 2s infinite"}}/>
+          <span style={{fontWeight:600,color:"#10B981"}}>Live</span>
+        </div>
+        <span style={{opacity:0.3}}>|</span>
+        {/* Active users */}
+        <div style={{display:"flex",alignItems:"center",gap:4}}>
+          <span>👥</span>
+          <span>{employees.filter(e=>{
+            const dn=DAYS[new Date().getDay()];
+            return (schedule[e.id]||{})[dn]&&(schedule[e.id]||{})[dn]!=="OFF";
+          }).length} scheduled</span>
+        </div>
+        <span style={{opacity:0.3}}>|</span>
+        {/* Today closed */}
+        <div style={{display:"flex",alignItems:"center",gap:4}}>
+          <span>📦</span>
+          <span>{Object.values(performance[todayStr()]||{}).reduce((s,p)=>s+(p.closed||0),0)} closed</span>
+        </div>
+        <span style={{opacity:0.3}}>|</span>
+        {/* Current time */}
+        <div style={{fontWeight:700,color:theme.text}}>
+          {new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}
+        </div>
       </div>
 
       {/* Mobile Bottom Nav */}
