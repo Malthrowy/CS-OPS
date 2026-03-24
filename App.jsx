@@ -12594,7 +12594,7 @@ Only their password will be cleared. All other data stays intact.`)) return;
           : n
       ));
     }
-    setDone(\`✅ Password cleared for "${item.empName}" — they can now set a new one on next login\`);
+    setDone(`✅ Password cleared for "${item.empName}" — they can now set a new one on next login`);
     setTimeout(() => setDone(""), 5000);
   }
 
