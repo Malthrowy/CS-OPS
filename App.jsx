@@ -7,7 +7,7 @@ const T = {
     selectRole: "Select Your Role", yourName: "Your Name",
     selectName: "Select your name", agentNameLabel: "Select Your Name",
     agentHint: "View only — password required on first login",
-    password: "Password", signIn: "Sign In", signInAs: "Sign In as",
+    password: "Password", signIn: "Sign In", signInAs: "Sign in as",
     enterAs: "Enter as",
     setPassword: "Set Your Personal Password", firstLogin: "First time login",
     newPassword: "New Password (min. 4 characters)", confirmPassword: "Confirm Password",
@@ -116,151 +116,13 @@ const THEMES = {
     isDark: true,
     glow: "0 0 12px #A78BFA30",
     gradient: "linear-gradient(135deg,#0E0B1A 0%,#16112B 100%)"
-  },
-  carbonRed: {
-    name: "🔴 Carbon Red",
-    bg: "#0D0A0A", surface: "#1A1212", card: "#201515",
-    cardBorder: "#2D1515", header: "#080606",
-    text: "#FFE8E8", textSub: "#FF9090", textMuted: "#CC5555",
-    primary: "#FF3B3B", primaryHover: "#E02020",
-    success: "#22C55E", warning: "#F59E0B", danger: "#FF1744",
-    accent: "#FF6B6B", accentGold: "#FFD700",
-    input: "#0D0A0A", inputBorder: "#2D1515", inputText: "#FFE8E8",
-    isDark: true,
-    glow: "0 0 20px #FF3B3B40, 0 0 40px #FF3B3B15",
-    gradient: "linear-gradient(135deg,#0D0A0A 0%,#1A1212 50%,#0D0A0A 100%)"
-  },
-  matrix: {
-    name: "🟢 Matrix Terminal",
-    bg: "#050F05", surface: "#0A1A0A", card: "#0D200D",
-    cardBorder: "#0D2B0D", header: "#030803",
-    text: "#00FF41", textSub: "#00CC33", textMuted: "#008822",
-    primary: "#00FF41", primaryHover: "#00CC33",
-    success: "#00FF41", warning: "#FFFF00", danger: "#FF0000",
-    accent: "#00FFCC", accentGold: "#FFFF00",
-    input: "#050F05", inputBorder: "#0D2B0D", inputText: "#00FF41",
-    isDark: true,
-    glow: "0 0 20px #00FF4140, 0 0 40px #00FF4115",
-    gradient: "linear-gradient(135deg,#050F05 0%,#0A1A0A 50%,#050F05 100%)"
-  },
-  desert: {
-    name: "🌅 Desert Dawn",
-    bg: "#1A1208", surface: "#2D1F0E", card: "#3A2810",
-    cardBorder: "#4A3520", header: "#100C05",
-    text: "#F5E6C8", textSub: "#D4B896", textMuted: "#A08060",
-    primary: "#D4A843", primaryHover: "#B8902E",
-    success: "#4CAF50", warning: "#FF8C42", danger: "#E53935",
-    accent: "#FF8C42", accentGold: "#D4A843",
-    input: "#1A1208", inputBorder: "#4A3520", inputText: "#F5E6C8",
-    isDark: true,
-    glow: "0 0 20px #D4A84340, 0 0 40px #D4A84315",
-    gradient: "linear-gradient(135deg,#1A1208 0%,#2D1F0E 50%,#1A1208 100%)"
-  },
-  arctic: {
-    name: "🔵 Arctic Blue",
-    bg: "#F0F4FF", surface: "#E8EEFF", card: "#FFFFFF",
-    cardBorder: "#DBEAFE", header: "#1E3A8A",
-    text: "#0F1B35", textSub: "#1E3A8A", textMuted: "#4A6FA5",
-    primary: "#2563EB", primaryHover: "#1D4ED8",
-    success: "#059669", warning: "#D97706", danger: "#DC2626",
-    accent: "#7C3AED", accentGold: "#B45309",
-    input: "#FFFFFF", inputBorder: "#BFDBFE", inputText: "#0F1B35",
-    isDark: false,
-    glow: "0 4px 20px rgba(37,99,235,0.2)",
-    gradient: "linear-gradient(135deg,#F0F4FF 0%,#E8EEFF 100%)"
-  },
-  sakura: {
-    name: "🌸 Sakura Pro",
-    bg: "#0F0A12", surface: "#1A1020", card: "#221530",
-    cardBorder: "#2D1D35", header: "#080510",
-    text: "#FFE8F0", textSub: "#FF9EC0", textMuted: "#CC6688",
-    primary: "#FF6B9D", primaryHover: "#E0507A",
-    success: "#A8FF78", warning: "#FFE66D", danger: "#FF4B6E",
-    accent: "#B983FF", accentGold: "#FFE66D",
-    input: "#0F0A12", inputBorder: "#2D1D35", inputText: "#FFE8F0",
-    isDark: true,
-    glow: "0 0 20px #FF6B9D40, 0 0 40px #FF6B9D15",
-    gradient: "linear-gradient(135deg,#0F0A12 0%,#1A1020 50%,#0F0A12 100%)"
-  },
-  executiveGold: {
-    name: "🏆 Executive Gold",
-    bg: "#0A0800", surface: "#12100A", card: "#1C180A",
-    cardBorder: "#2A2210", header: "#060500",
-    text: "#FFF8E0", textSub: "#FFD700", textMuted: "#AA8800",
-    primary: "#FFD700", primaryHover: "#CCAA00",
-    success: "#50FA7B", warning: "#FFB86C", danger: "#FF5555",
-    accent: "#BD93F9", accentGold: "#FFD700",
-    input: "#0A0800", inputBorder: "#2A2210", inputText: "#FFF8E0",
-    isDark: true,
-    glow: "0 0 20px #FFD70050, 0 0 40px #FFD70020",
-    gradient: "linear-gradient(135deg,#0A0800 0%,#12100A 50%,#0A0800 100%)"
-  },
-  ocean: {
-    name: "🌊 Deep Ocean",
-    bg: "#020B18", surface: "#051525", card: "#071E35",
-    cardBorder: "#0A2540", header: "#010810",
-    text: "#C8E8FF", textSub: "#5BB8FF", textMuted: "#2A80C0",
-    primary: "#00B4D8", primaryHover: "#0096B5",
-    success: "#06D6A0", warning: "#FFB703", danger: "#EF233C",
-    accent: "#4895EF", accentGold: "#FFB703",
-    input: "#020B18", inputBorder: "#0A2540", inputText: "#C8E8FF",
-    isDark: true,
-    glow: "0 0 20px #00B4D840, 0 0 40px #00B4D815",
-    gradient: "linear-gradient(135deg,#020B18 0%,#051525 50%,#020B18 100%)"
-  },
-  volcanic: {
-    name: "🔥 Volcanic Dark",
-    bg: "#0D0500", surface: "#1A0C05", card: "#221005",
-    cardBorder: "#2D1A08", header: "#080300",
-    text: "#FFE8D0", textSub: "#FF9A60", textMuted: "#CC6030",
-    primary: "#FF6B2B", primaryHover: "#E05018",
-    success: "#22D3EE", warning: "#FBBF24", danger: "#FF1744",
-    accent: "#FF9A60", accentGold: "#FBBF24",
-    input: "#0D0500", inputBorder: "#2D1A08", inputText: "#FFE8D0",
-    isDark: true,
-    glow: "0 0 20px #FF6B2B40, 0 0 40px #FF6B2B15",
-    gradient: "linear-gradient(135deg,#0D0500 0%,#1A0C05 50%,#0D0500 100%)"
-  },
-  mono: {
-    name: "⚪ Monochrome Elite",
-    bg: "#080808", surface: "#111111", card: "#181818",
-    cardBorder: "#222222", header: "#040404",
-    text: "#FFFFFF", textSub: "#AAAAAA", textMuted: "#666666",
-    primary: "#FFFFFF", primaryHover: "#CCCCCC",
-    success: "#AAAAAA", warning: "#888888", danger: "#FFFFFF",
-    accent: "#CCCCCC", accentGold: "#FFFFFF",
-    input: "#080808", inputBorder: "#222222", inputText: "#FFFFFF",
-    isDark: true,
-    glow: "0 0 20px rgba(255,255,255,0.1)",
-    gradient: "linear-gradient(135deg,#080808 0%,#111111 50%,#080808 100%)"
-  },
-  grandLine: {
-    name: "⚓ Grand Line",
-    bg: "#020C1B", surface: "#041628", card: "#062040",
-    cardBorder: "#0A3060", header: "#010A14",
-    text: "#E8F4FD", textSub: "#7EB8D4", textMuted: "#4A7A95",
-    primary: "#F02D2D", primaryHover: "#C42020",
-    success: "#FFD700", warning: "#FF8C00", danger: "#FF1744",
-    accent: "#4FC3F7", accentGold: "#FFD700",
-    input: "#020C1B", inputBorder: "#0A3060", inputText: "#E8F4FD",
-    isDark: true,
-    glow: "0 0 20px #F02D2D40, 0 0 40px #FFD70020",
-    gradient: "linear-gradient(135deg,#020C1B 0%,#041628 50%,#020C1B 100%)",
-    isGrandLine: true
   }
 };
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-const TASK_LIST = [
-  "TGA","Social Group","180 All","180 KSA","180 KWT","180 BAH","180 QAT","180 UAE",
-  "SoMe KSA","SoMe KWT","SoMe UAE","SoMe BAH","SoMe QAT",
-  "OB KSA","T2 KWT","T2 QAT","T2 BAH","T2 UAE",
-  "Failed Refund Sheet","KMART","Training","Other"
-];
+const TASK_LIST = ["KFOOD","KEEMRT"];
 const TASK_LIST_ASSIGN = ["KFOOD","KEEMRT"];
-// Team assignment - supervisors only
-const SUPERVISOR_ROLES = new Set(["Team Lead","Shift Leader","SME"]);
 const TASK_COLORS = ["#10B981","#3B82F6","#6366F1","#0EA5E9","#F59E0B","#10B981","#EF4444","#8B5CF6","#EC4899","#14B8A6","#F97316","#06B6D4","#84CC16","#A855F7","#E11D48"];
 const STATUS_OPTIONS = ["Present","Absent","Late","Early Leave","Annual Leave","Sick Leave","Work From Home","On Training","Business Trip","Day Off"];
 // Statuses that count as "present" (employee is available/working)
@@ -389,27 +251,12 @@ const HUBS = [
 
 // Role-specific welcome messages
 const ROLE_WELCOME = {
-  "owner": "Master Console Active. All Nodes Linked. Full Stealth Engaged. 👁️",
+  "owner": "Welcome to Master Console. The system is under your total control. 👁️",
   "Team Lead": "Welcome back, Commander. Your strategy suite is ready. 🎯",
   "Shift Leader": "Field control active. Your team is counting on you. 🛡️",
   "SME": "Knowledge Lab initialized. Excellence mode engaged. 🧠",
   "Agent": "Pilot seat ready. Focus on your mission today. ✈️",
 };
-
-// Arabic onboarding & daily messages
-const MSG_ONBOARDING = "يا هلا والله ومسهلا.. حيّ هالطّلة! ✨ أخيراً نوّر النظام بوجودكم.. تراكم جيتوا ومكانكم خالي، والسيستم كان يتحراكم ويتحرى لمستكم الرهيبة. خذوا لكم لفه وتعرفوا على المكان، وحطوا في بالكم إننا فريق واحد وعلى قلب واحد. البدايات اللي تجمّل تبدأ من هنا! 🚀";
-const MSG_DAILY = "يا حيّ الله من جانا.. نورتونا من جديد! 😅 السيستم كان ضايق صدره بدونكم.. تذكروا إن كل شغلة تخلصونها اليوم هي خطوة لنجاحكم الكبير. سمّوا بالله وانطلقوا.. أنتم قدها! ✨";
-
-// Arabic status messages
-const STATUS_ARABIC_MSGS = {
-  "Break":    "استراحة محارب! تهنوا بوقتكم وارجعوا لنا مصحصحين. 🍫",
-  "Meeting":  "اجتماع مثمر يا رب.. لا تنسون تسجلون الزين من الملاحظات! 📝",
-  "Training": ".. استمتعوا بتطوير مهاراتكم! 🚀",
-};
-
-// Presence Status options for employees
-const PRESENCE_STATUSES = ["Online","Break","Meeting","Training","Offline"];
-const PRESENCE_ICONS = { "Online":"🟢","Break":"☕","Meeting":"📝","Training":"🚀","Offline":"⚫" };
 // ─── ROLE CONFIG ──────────────────────────────────────────────────────────────
 const ROLE_CAN_EDIT = {
   "Team Lead":    true,
@@ -431,42 +278,12 @@ const ROLE_DESC_EN = {
   "Agent":        "View only · Password on first login",
 };
 
-
-
 // Super Admin — protected by name AND role
 const SUPER_ADMIN = "Mohammed Nasser Althurwi";
 const OWNER_ROLE = "owner";
 function isOwnerUser(session) {
   if (!session) return false;
   return session.name === SUPER_ADMIN || session.role === OWNER_ROLE;
-}
-
-// ── STEALTH MASK: Owner appears as SME to everyone else ──────────────────────
-// Call this when displaying employee role to OTHER users (not the owner themselves)
-function getDisplayRole(emp, viewerSession) {
-  // If viewer IS the owner, show true role
-  if (isOwnerUser(viewerSession)) return emp.role;
-  // If employee IS the owner, mask as SME
-  if (emp.name === SUPER_ADMIN) return "SME";
-  return emp.role;
-}
-function getDisplayRoleIcon(emp, viewerSession) {
-  const r = getDisplayRole(emp, viewerSession);
-  return ROLE_ICONS[r] || "👤";
-}
-// Check if first-time login (no password set yet)
-function isFirstLogin(name) {
-  try {
-    const store = JSON.parse(localStorage.getItem("csops_passwords") || "{}");
-    return !store[name];
-  } catch { return false; }
-}
-// Get last login date for daily message detection
-function getLastLoginDate(name) {
-  try { return localStorage.getItem("csops_lastLogin_" + name) || ""; } catch { return ""; }
-}
-function setLastLoginDate(name) {
-  try { localStorage.setItem("csops_lastLogin_" + name, new Date().toISOString().slice(0,10)); } catch {}
 }
 
 // ─── THEME CONTEXT (global) ───────────────────────────────────────────────────
@@ -1474,7 +1291,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                 );
               })}
               <th style={{ padding:"10px 8px", borderBottom:`2px solid ${_theme.cardBorder}` }}></th>
-            </tr>
+              </tr>
           </thead>
           <tbody>
             {/* Flat or grouped rendering */}
@@ -2254,7 +2071,6 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
     </div>
   );
 }
-
 // ─── PERFORMANCE PAGE ─────────────────────────────────────────────────────────
 function PerformancePage({ employees, schedule, shifts, performance, setPerformance, myShiftFilter, session }) {
   const [date, setDate] = useState(todayStr());
@@ -2267,11 +2083,17 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
   const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
   const isAgentView = session?.role === "Agent";
 
+  const myShiftId = session && myShiftFilter ? (()=>{
+    const myEmpX = employees.find(e=>e.name===session?.name);
+    return myEmpX ? (schedule[myEmpX.id]||{})[dayName] : null;
+  })() : null;
+
   const dayEmps = employees.filter(emp => {
     // Agent sees ONLY their own data
     if (isAgentView) return emp.name === session?.name;
     const v=(schedule[emp.id]||{})[dayName];
     if (!v || v==="OFF" || v==="LEAVE" || v==="PH") return false;
+    if (myShiftFilter && myShiftId && v !== myShiftId) return false;
     return true;
   });
 
@@ -2969,47 +2791,46 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session
                         fontWeight:700, color:_theme.text,
                         borderBottom:`2px solid ${accent}40`, whiteSpace:"nowrap" }}>{h}</th>
                     ))}
-                  </tr>
-                </thead>
+                  </thead>
                 <tbody>
                   {groupCalcs.map((c,ri)=>(
                     <tr key={c.key} style={{ background:ri%2===0?_theme.card:_theme.surface }}>
-                      <td style={{ padding:"8px 10px", fontWeight:700, color:c.color }}>{c.label}</td>
-                      <td style={{ padding:"8px 6px", fontSize:16 }}>{c.flag}</td>
+                      <td style={{ padding:"8px 10px", fontWeight:700, color:c.color }}>{c.label} </td>
+                      <td style={{ padding:"8px 6px", fontSize:16 }}>{c.flag} </td>
                       <td style={{ padding:"8px 10px" }}>
                         <input type="number" min="0" disabled={isMulti}
                           value={isMulti?c.base:(data[c.key+"Base"]||"")}
                           onChange={e=>setQ(c.key+"Base",e.target.value)}
                           style={{ ...I({ width:72, opacity:isMulti?.7:1 })}} placeholder="0"/>
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 10px" }}>
                         <input type="number" min="0" disabled={isMulti}
                           value={isMulti?c.inflow:(data[c.key+"Inflow"]||"")}
                           onChange={e=>setQ(c.key+"Inflow",e.target.value)}
                           style={{ ...I({ width:72, border:isMulti?`1px solid ${_theme.inputBorder}`:inflowBorder(data[c.key+"Inflow"]),
                             opacity:isMulti?.7:1 })}} placeholder="0"/>
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 10px" }}>
                         <input type="number" min="0" disabled={isMulti}
                           value={isMulti?c.curr:(data[c.key+"Curr"]||"")}
                           onChange={e=>setQ(c.key+"Curr",e.target.value)}
                           style={{ ...I({ width:72, border:isMulti?`1px solid ${_theme.inputBorder}`:currBorder(data[c.key+"Curr"]),
                             opacity:isMulti?.7:1 })}} placeholder="0"/>
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 10px", fontWeight:700,
                         color:c.resolved>0?"#10B981":c.resolved<0?"#EF4444":_theme.textMuted }}>
                         {c.resolved>0?"+":""}{c.resolved}
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 10px", fontSize:16 }}>
                         {c.change>0?"📈":c.change<0?"📉":"➡️"}
                         <span style={{ fontSize:11, color:_theme.textMuted, marginLeft:4 }}>
                           {c.change>0?"+":""}{c.change||0}
                         </span>
-                      </td>
-                    </tr>
+                       </td>
+                     </tr>
                   ))}
                 </tbody>
-              </table>
+               </table>
             </div>
           );
         })}
@@ -3206,14 +3027,14 @@ function getDefaultBreakDuration(dateStr) {
 }
 
 // ─── BREAK PAGE ─────────────────────────────────────────────────────────────────
-function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedule, canEdit, addAudit, session, notes, setNotes, myShiftFilter }) {
+function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedule, canEdit, addAudit, session, notes, setNotes, myShiftFilter, queueLog }) {
   const [date, setDate]     = useState(todayStr());
   // If myShiftFilter is on, auto-select my shift
   const _myShiftEmp = session ? employees.find(e=>e.name===session.name) : null;
   const _myShiftDayName = DAYS[new Date().getDay()];
   const _myShiftId = _myShiftEmp ? (schedule[_myShiftEmp.id]||{})[_myShiftDayName] : null;
   const [shiftId, setShiftId] = useState(() => {
-    // myShiftFilter unified via parent employee list
+    if (myShiftFilter && _myShiftId) return _myShiftId;
     return shifts[0]?.id||"";
   });
   const isOwner = session && isOwnerUser(session);
@@ -3424,8 +3245,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                   color:_theme.text, borderBottom:`2px solid ${_theme.tableBorder}`,
                   whiteSpace:"nowrap", fontSize:12 }}>{h}</th>
               ))}
-            </tr>
-          </thead>
+             </thead>
           <tbody>
             {shiftEmps.map((emp, ri) => {
               const entry   = getEntry(emp.id);
@@ -3454,10 +3274,10 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                       {emp.gender||"M"}
                     </span>
                     <div style={{ fontSize:11, color:_theme.textMuted }}>{emp.role}</div>
-                  </td>
+                   </td>
                   <td style={{ padding:"8px 10px", color:_theme.textSub, fontWeight:600 }}>
                     {sh?.start || "--"}
-                  </td>
+                   </td>
 
                   {/* Offset input — only owner can edit */}
                   <td style={{ padding:"8px 10px" }}>
@@ -3515,7 +3335,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                         +{entry.offsetHours||0}h {entry.offsetMins||0}m
                       </div>
                     )}
-                  </td>
+                   </td>
 
                   {/* Duration */}
                   <td style={{ padding:"8px 10px" }}>
@@ -3541,16 +3361,16 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                     ) : (
                       <span style={{ fontWeight:600, color:_theme.textSub }}>{entry.durationMin||defaultDur}m</span>
                     )}
-                  </td>
+                   </td>
 
                   {/* Break Start / End */}
                   <td style={{ padding:"8px 10px", fontWeight:700,
                     color: bStart ? _theme.primary : _theme.textMuted }}>
                     {bStart || "—"}
-                  </td>
+                   </td>
                   <td style={{ padding:"8px 10px", fontWeight:700, color:_theme.textSub }}>
                     {bEnd || "—"}
-                  </td>
+                   </td>
 
                   {/* Status */}
                   <td style={{ padding:"8px 10px" }}>
@@ -3559,17 +3379,17 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                       padding:"3px 10px", fontSize:11, fontWeight:700, whiteSpace:"nowrap" }}>
                       {statusLabel}
                     </span>
-                  </td>
-                </tr>
+                   </td>
+                 </tr>
               );
             })}
             {shiftEmps.length === 0 && (
-              <tr><td colSpan={8} style={{ padding:32, textAlign:"center", color:_theme.textMuted }}>
+               <tr><td colSpan={8} style={{ padding:32, textAlign:"center", color:_theme.textMuted }}>
                 No employees scheduled for this shift on {dayName}
-              </td></tr>
+               </td></tr>
             )}
           </tbody>
-        </table>
+         </table>
       </div>
 
       {/* Owner-only: Bulk set offset */}
@@ -4156,8 +3976,7 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
               {["#","Name","Role","Tasks","Actions"].map(h=>(
                 <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
               ))}
-            </tr>
-          </thead>
+             </thead>
           <tbody>
             {shiftEmployees.map((emp, ri) => (
               <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
@@ -4186,14 +4005,14 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
               </tr>
             ))}
             {shiftEmployees.length===0 && (
-              <tr>
+               <tr>
                 <td colSpan={5} style={{ padding:32, textAlign:"center", color:_theme.textMuted }}>
                   No employees scheduled for <strong>{sh?.label}</strong> on <strong>{dayName}</strong>
                 </td>
-              </tr>
+               </tr>
             )}
           </tbody>
-        </table>
+         </table>
       </div>
 
       {/* Legend */}
@@ -4516,10 +4335,14 @@ function ReportsPage({ employees, schedule, shifts, attendance, performance, hea
   function buildOpsReport() {
     const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
     // myShiftFilter: show only my shift's employees
-  const myShiftId = null; // unified via myShiftOnly in parent
+  const myShiftId = session && myShiftFilter ? (()=>{
+    const myEmpX = employees.find(e=>e.name===session?.name);
+    return myEmpX ? (schedule[myEmpX.id]||{})[dayName] : null;
+  })() : null;
   const dayEmps = employees.filter(emp => {
     const v=(schedule[emp.id]||{})[dayName];
     if (!v || v==="OFF" || v==="LEAVE" || v==="PH") return false;
+    if (myShiftFilter && myShiftId && v !== myShiftId) return false;
     return true;
   });
     const attMap  = attendance[date]||{};
@@ -4549,9 +4372,9 @@ Time of Update: ${opsUpdTime} (Comparative Analysis: ${opsBaseTime} vs ${opsUpdT
 Subject: Operations Performance, Productivity Analysis & Shift Allocation
 Overall Operations Status: ${opsStatus}${opsStatusNote ? ` (${opsStatusNote})` : ""}
 
-${"═".repeat(65)}
+${"=".repeat(65)}
 1. Productivity & Deep Dive Analysis (${opsBaseTime} - ${opsUpdTime})
-${"═".repeat(65)}
+${"=".repeat(65)}
 ${dur ? `Over the past ${dur}, the operations floor experienced the following:` : ""}
 ${opsNarrative ? `\n${opsNarrative}\n` : ""}
 ${n(ksaOBBase)>0 ? `• ${ksaOBNet>0?"🔴":"🟢"} KSA Queue - Outbound (Productivity Breakdown):
@@ -4569,9 +4392,9 @@ ${n(ksaOBBase)>0 ? `• ${ksaOBNet>0?"🔴":"🟢"} KSA Queue - Outbound (Produc
 ` : ""}
 📊 Total Cases Closed (All Queues): ${totalClosed > 0 ? totalClosed : ksaOBRes+ksaSomeRes+ksaOsloRes+gccT2Res+gccSomeRes} cases
 
-${"═".repeat(65)}
+${"=".repeat(65)}
 2. Live Metrics & Queue Status (Net Variance)
-${"═".repeat(65)}
+${"=".repeat(65)}
 ${n(ksaOBCurr)+n(ksaSomeCurr)+n(ksaOsloCurr)>0 ? `${ksaCritical?"🔴":"🟡"} KSA Queue [${ksaCritical?"CRITICAL":"MONITOR"}]
 ${n(ksaOBCurr)>0?`• Outbound: ${ksaOBCurr} (${netStr(ksaOBNet)})`:""}
 ${n(ksaSomeCurr)>0?`• "Some" Cases: ${ksaSomeCurr} (${netStr(ksaSomeNet)})`:""}
@@ -4580,20 +4403,20 @@ ${n(ksaOsloCurr)>0?`• OSLO: ${ksaOsloCurr} (${netStr(ksaOsloNet)})`:""}
 ${n(gccT2Curr)>0?`• Tier 2: ${gccT2Curr} (${netStr(gccT2Net)})`:""}
 ${n(gccSomeCurr)>0?`• "Some" Cases: ${gccSomeCurr} (${netStr(gccSomeNet)})`:""}
 ` : ""}
-${"═".repeat(65)}
+${"=".repeat(65)}
 3. Attendance
-${"═".repeat(65)}
+${"=".repeat(65)}
 Scheduled: ${dayEmps.length} | Present: ${present} | Absent: ${absent.length} | Late: ${late.length}
 ${absent.length>0?`Absent: ${absent.map(e=>e.name).join(", ")}`:""}
 ${late.length>0?`Late: ${late.map(e=>`${e.name} (${attMap[e.id]?.lateMin||0}m)`).join(", ")}`:""}
 
-${"═".repeat(65)}
+${"=".repeat(65)}
 4. Strategic Workforce Allocation (Starting ${opsUpdTime} Shift)
-${"═".repeat(65)}
+${"=".repeat(65)}
 ${allocRows.filter(r=>r.team&&r.agents).map(r=>`• ${r.team}:\n${r.agents.split("\n").map(a=>a.trim()).filter(Boolean).map(a=>`  - ${a}`).join("\n")}`).join("\n\n")}
 ${opsExecNote ? `\nExecutive Note: ${opsExecNote}` : ""}
 
-${"═".repeat(65)}
+${"=".repeat(65)}
 Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:false})}`;
   }
 
@@ -4793,8 +4616,7 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
                       <th key={h} style={{ padding:"10px 12px", textAlign:"right", fontWeight:700,
                         color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
                     ))}
-                  </tr>
-                </thead>
+                   </thead>
                 <tbody>
                   {monthData.map((d,ri)=>{
                     const isLast = ri===monthData.length-1;
@@ -4809,7 +4631,7 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
                     );
                   })}
                 </tbody>
-              </table>
+               </table>
             </div>
           </div>
         );
@@ -4982,18 +4804,17 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
                   {["Rank","Employee","Attendance %","Avg Work Hours","Punctuality","Score"].map(h=>(
                     <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
                   ))}
-                </tr>
-              </thead>
+                 </thead>
               <tbody>
                 {scoreData.map((s,ri) => {
                   const scoreColor = s.score>=80?"#10B981":s.score>=60?"#F59E0B":"#EF4444";
                   return (
                     <tr key={s.emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
-                      <td style={{ padding:"10px 12px", fontSize:16, textAlign:"center" }}>{["🥇","🥈","🥉"][ri]||ri+1}</td>
+                      <td style={{ padding:"10px 12px", fontSize:16, textAlign:"center" }}>{["🥇","🥈","🥉"][ri]||ri+1}  </td>
                       <td style={{ padding:"10px 12px", fontWeight:700 }}>
                         {s.emp.name}
                         <div style={{ fontSize:11, color:_theme.textMuted }}>{s.emp.role}</div>
-                      </td>
+                        </td>
                       <td style={{ padding:"10px 12px" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                           <div style={{ background:"#E2E8F0", borderRadius:10, height:8, width:80, overflow:"hidden" }}>
@@ -5002,27 +4823,27 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
                           <span style={{ fontWeight:600 }}>{s.attRate}%</span>
                         </div>
                         <div style={{ fontSize:11, color:_theme.textMuted }}>Abs: {s.s.abs} · Late: {s.s.lateCount}x</div>
-                      </td>
+                        </td>
                       <td style={{ padding:"10px 12px" }}>
                         <div style={{ fontWeight:700, color: s.workScore>=80?"#10B981":s.workScore>=60?"#F59E0B":"#EF4444" }}>
                           {s.avgWorkHFmt}
                         </div>
                         <div style={{ fontSize:11, color:_theme.textMuted }}>Score: {s.workScore}</div>
-                      </td>
+                        </td>
                       <td style={{ padding:"10px 12px" }}>
                         <div style={{ fontWeight:700, color: s.punctScore>=90?"#10B981":s.punctScore>=70?"#F59E0B":"#EF4444" }}>
                           {s.punctScore}/100
                         </div>
                         <div style={{ fontSize:11, color:_theme.textMuted }}>Late {s.s.lateCount}x · {s.s.lateMin}m total</div>
-                      </td>
+                        </td>
                       <td style={{ padding:"10px 12px" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                           <DonutChart value={s.score} max={100} color={scoreColor} size={52}/>
                           <span style={{ background:scoreColor+"20", color:scoreColor, border:`1.5px solid ${scoreColor}`,
                             borderRadius:20, padding:"4px 14px", fontWeight:800, fontSize:15 }}>{s.score}</span>
                         </div>
-                      </td>
-                    </tr>
+                        </td>
+                      </tr>
                   );
                 })}
                 {scoreData.length===0 && (
@@ -5155,8 +4976,7 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
               {["#","Employee","Role","Assigned Tasks","Assigned By","Actions"].map(h=>(
                 <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
               ))}
-            </tr>
-          </thead>
+             </thead>
           <tbody>
             {filtered.map((emp, ri) => {
               // Find last audit entry for this employee's tasks
@@ -5167,11 +4987,11 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
                   <td style={{ padding:"10px 12px", fontWeight:700, color:_theme.text }}>
                     {emp.name}
                     <div style={{ fontSize:11, color:_theme.textMuted }}>{emp.role}</div>
-                  </td>
+                    </td>
                   <td style={{ padding:"10px 12px" }}>
                     <span style={{ background:ROLE_COLORS[emp.role]||"#64748B", color:"#fff",
                       borderRadius:6, padding:"2px 8px", fontSize:11, fontWeight:600 }}>{emp.role}</span>
-                  </td>
+                    </td>
                   <td style={{ padding:"10px 12px" }}>
                     {(emp.tasks||[]).length === 0
                       ? <span style={{ color:_theme.textMuted, fontSize:12 }}>No tasks assigned</span>
@@ -5182,7 +5002,7 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
                           ))}
                         </div>
                     }
-                  </td>
+                    </td>
                   <td style={{ padding:"10px 12px", fontSize:12, color:_theme.textMuted }}>
                     {lastEdit
                       ? <div>
@@ -5193,12 +5013,12 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
                         </div>
                       : <span style={{ color:"#CBD5E1" }}>--</span>
                     }
-                  </td>
+                    </td>
                   <td style={{ padding:"10px 12px" }}>
                     <button onClick={()=>openEdit(emp)}
                       style={{ ...PBT("#2563EB",{ padding:"5px 12px", fontSize:12 }) }}>✏️ Edit Tasks</button>
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
               );
             })}
           </tbody>
@@ -5558,14 +5378,9 @@ function AuditLogPage({ auditLog, session }) {
     </div>
   );
 }
-
-
-
-
-
 // ─── OWNER EMPLOYEE MANAGER ──────────────────────────────────────────────────
 // Full employee management panel exclusive to Owner (Super Admin)
-function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNotes }) {
+function OwnerEmployeeManager({ employees, setEmployees, session }) {
   const [tab, setTab] = useState("roles"); // "roles" | "add" | "pages"
   const [search, setSearch] = useState("");
   const [addForm, setAddForm] = useState({ name:"", role:"Agent", gender:"M", tasks:[] });
@@ -5586,11 +5401,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
   );
 
   function updateEmp(id, patch) {
-    // Use functional update so the FULL updated array goes through the saving wrapper
-    setEmployees(prev => {
-      const updated = prev.map(e => e.id===id ? {...e, ...patch} : e);
-      return updated;
-    });
+    setEmployees(prev => prev.map(e => e.id===id ? {...e, ...patch} : e));
   }
 
   function deleteEmployee(emp) {
@@ -5629,36 +5440,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
     { k:"roles", icon:"🔑", label:"Roles & Permissions" },
     { k:"pages", icon:"🗂️", label:"Page Access Control" },
     { k:"add",   icon:"➕", label:"Add Employees" },
-    { k:"dark",  icon:"🔒", label:"Dark Notes" },
   ];
-
-  // Dark Notes helpers
-  const [darkNoteTarget, setDarkNoteTarget] = useState("");
-  const [darkNoteText, setDarkNoteText] = useState("");
-  const [darkNoteSaved, setDarkNoteSaved] = useState(false);
-
-  function getDarkNote(empName) {
-    const n = (Array.isArray(notes)?notes:[]).find(n => n.tag==="Dark Note" && n.target===empName);
-    if (!n) return "";
-    try { return atob(n.text||""); } catch { return n.text||""; }
-  }
-  function saveDarkNote(empName, text) {
-    const existing = (Array.isArray(notes)?notes:[]).filter(n => !(n.tag==="Dark Note" && n.target===empName));
-    const entry = {
-      id: "dn"+Date.now(),
-      ts: new Date().toISOString(),
-      date: new Date().toISOString().slice(0,10),
-      time: "00:00",
-      tag: "Dark Note",
-      text: btoa(unescape(encodeURIComponent(text))),
-      from: session?.name||"",
-      target: empName,
-      msgType: "dark_note",
-    };
-    if (setNotes) setNotes([entry, ...existing]);
-    setDarkNoteSaved(true);
-    setTimeout(()=>setDarkNoteSaved(false), 2500);
-  }
 
   return (
     <div style={{ background:_theme.card, border:`1.5px solid ${_theme.primary}30`,
@@ -5705,8 +5487,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                   <th key={h} style={{ padding:"10px 10px", textAlign:"right", fontWeight:700,
                     color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
                 ))}
-              </tr>
-            </thead>
+                </thead>
             <tbody>
               {filtered.map((emp,ri) => {
                 const isSelf = emp.name === session?.name;
@@ -5722,7 +5503,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                         {isSelf && <span style={{ fontSize:10, color:_theme.textMuted }}>(You)</span>}
                       </div>
                       <div style={{ fontSize:10, color:_theme.textMuted }}>{emp.id}</div>
-                    </td>
+                      </td>
 
                     {/* Gender */}
                     <td style={{ padding:"8px 10px", textAlign:"center" }}>
@@ -5739,7 +5520,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                           </button>
                         ))}
                       </div>
-                    </td>
+                      </td>
 
                     {/* Current role badge */}
                     <td style={{ padding:"8px 10px", whiteSpace:"nowrap" }}>
@@ -5749,7 +5530,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                         borderRadius:6, padding:"3px 10px", fontSize:11, fontWeight:700 }}>
                         {ROLE_ICONS[emp.role]||"👤"} {emp.role}
                       </span>
-                    </td>
+                      </td>
 
                     {/* Role buttons */}
                     <td style={{ padding:"8px 10px" }}>
@@ -5769,7 +5550,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                           </button>
                         ))}
                       </div>
-                    </td>
+                      </td>
 
                     {/* Admin toggle */}
                     <td style={{ padding:"8px 10px", textAlign:"center" }}>
@@ -5783,7 +5564,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                           opacity:isSelf?0.4:1 }}>
                         {emp.isAdmin ? "⚡ Admin" : "+ Admin"}
                       </button>
-                    </td>
+                      </td>
 
                     {/* Tasks */}
                     <td style={{ padding:"8px 10px" }}>
@@ -5806,7 +5587,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                           );
                         })}
                       </div>
-                    </td>
+                      </td>
 
                     {/* Delete */}
                     <td style={{ padding:"8px 10px", textAlign:"center" }}>
@@ -5820,14 +5601,14 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                           fontSize:12, fontWeight:700 }}>
                         🗑️
                       </button>
-                    </td>
-                  </tr>
+                      </td>
+                    </tr>
                 );
               })}
               {filtered.length===0 && (
-                <tr><td colSpan={7} style={{ padding:24, textAlign:"center", color:_theme.textMuted }}>
+                 <tr><td colSpan={7} style={{ padding:24, textAlign:"center", color:_theme.textMuted }}>
                   No search results
-                </td></tr>
+                 </td></tr>
               )}
             </tbody>
           </table>
@@ -6030,60 +5811,12 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
           </div>
         </div>
       )}
-
-      {/* ── TAB: Dark Notes (Owner Eyes Only) ── */}
-      {tab==="dark" && (
-        <div>
-          <div style={{ fontSize:12, color:"rgba(239,68,68,0.8)", marginBottom:14, padding:"10px 14px",
-            background:"rgba(239,68,68,0.08)", borderRadius:8, border:"1px solid rgba(239,68,68,0.25)",
-            display:"flex", alignItems:"center", gap:8 }}>
-            <span>🔒</span>
-            <span><strong>Dark Notes</strong> — Encrypted. Visible only to you. Never shown to employees or in audit logs.</span>
-          </div>
-          <div style={{ marginBottom:14 }}>
-            <label style={{ fontSize:11, fontWeight:700, color:_theme.textSub, display:"block", marginBottom:6 }}>
-              Select Employee
-            </label>
-            <select value={darkNoteTarget} onChange={e=>{
-              setDarkNoteTarget(e.target.value);
-              setDarkNoteText(e.target.value ? getDarkNote(e.target.value) : "");
-            }}
-              style={{ ...I({width:"100%"}) }}>
-              <option value="">— Select employee —</option>
-              {employees.map(e=><option key={e.id} value={e.name}>{e.name} ({e.role})</option>)}
-            </select>
-          </div>
-          {darkNoteTarget && (
-            <div>
-              <label style={{ fontSize:11, fontWeight:700, color:"#EF4444", display:"block", marginBottom:6 }}>
-                🔒 Private Note for {darkNoteTarget}
-              </label>
-              <textarea
-                value={darkNoteText} onChange={e=>setDarkNoteText(e.target.value)}
-                rows={6} style={{ ...I({width:"100%",resize:"vertical",marginBottom:10}),
-                  fontFamily:"monospace", fontSize:13 }}
-                placeholder="Write your private note here... (encrypted, owner eyes only)"/>
-              {darkNoteSaved && (
-                <div style={{ color:"#10B981", fontSize:12, marginBottom:8, fontWeight:700 }}>
-                  ✅ Dark note saved securely
-                </div>
-              )}
-              <button onClick={()=>saveDarkNote(darkNoteTarget, darkNoteText)}
-                style={{ background:"rgba(239,68,68,0.15)", border:"1px solid rgba(239,68,68,0.4)",
-                  color:"#EF4444", borderRadius:8, padding:"9px 20px",
-                  cursor:"pointer", fontWeight:800, fontSize:13 }}>
-                🔒 Save Dark Note
-              </button>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
 
 // ─── OWNER ANALYTICS PAGE ────────────────────────────────────────────────────
-function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedule, shifts, attendance, performance, queueLog, alertThresholdCritical, alertThresholdWarning, saveAlertThresholds, notes, setNotes, onShadowMode, onToggleFreeze, onSystemFrozen, onTogglePresentation, onPresentationMode }) {
+function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedule, shifts, attendance, performance, queueLog, alertThresholdCritical, alertThresholdWarning, saveAlertThresholds, notes, setNotes, onShadowMode }) {
   const [filterUser, setFilterUser]       = useState("");
   const [filterAction, setFilterAction]   = useState("");
   const [filterDate, setFilterDate]       = useState("");
@@ -6235,34 +5968,6 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
 
   return (
     <div>
-      {/* ── Owner Control Strip ── */}
-      <div style={{ display:"flex", gap:10, marginBottom:20, flexWrap:"wrap" }}>
-        {/* System Freeze */}
-        <button onClick={()=>{
-          const next = !onSystemFrozen;
-          onToggleFreeze && onToggleFreeze(next);
-          try { if(next) localStorage.setItem("csops_frozen","1"); else localStorage.removeItem("csops_frozen"); } catch {}
-          showToast(next ? "🧊 System FROZEN — all edits blocked" : "✅ System UNFROZEN — edits restored", next?"error":"success", 4000);
-        }}
-          style={{ background: onSystemFrozen ? "rgba(220,38,38,0.2)" : "rgba(59,130,246,0.1)",
-            border: `2px solid ${onSystemFrozen ? "#DC2626" : "#3B82F6"}`,
-            color: onSystemFrozen ? "#EF4444" : "#60A5FA",
-            borderRadius:10, padding:"8px 18px", cursor:"pointer", fontWeight:800, fontSize:13,
-            display:"flex", alignItems:"center", gap:8 }}>
-          {onSystemFrozen ? "🔓 Unfreeze System" : "🧊 Freeze System"}
-        </button>
-
-        {/* Presentation Mode */}
-        <button onClick={()=> onTogglePresentation && onTogglePresentation()}
-          style={{ background: onPresentationMode ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.08)",
-            border: `2px solid ${onPresentationMode ? "#8B5CF6" : "#6D28D9"}`,
-            color: onPresentationMode ? "#A78BFA" : "#7C3AED",
-            borderRadius:10, padding:"8px 18px", cursor:"pointer", fontWeight:800, fontSize:13,
-            display:"flex", alignItems:"center", gap:8 }}>
-          🎭 {onPresentationMode ? "Exit Presentation" : "Presentation Mode"}
-        </button>
-      </div>
-
       {/* ── 👁️ GOLDEN EYE — Shadow Mode Panel ── */}
       <div style={{ background:"linear-gradient(135deg,rgba(180,120,0,0.15),rgba(255,215,0,0.08),rgba(180,120,0,0.15))",
         border:"2px solid rgba(255,215,0,0.4)", borderRadius:16, padding:"18px 20px", marginBottom:20,
@@ -6348,7 +6053,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
               version: "cs-ops-v1",
               exported: new Date().toISOString(),
               employees, shifts, schedule, attendance, performance,
-              heatmap, queueLog, notes, auditLog,
+              heatmap: {}, queueLog, notes, auditLog,
             };
             const blob = new Blob([JSON.stringify(backup, null, 2)], { type:"application/json" });
             const url  = URL.createObjectURL(blob);
@@ -6424,10 +6129,8 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
         </div>
       </div>
 
-
       {/* ══════════ EMPLOYEE MANAGEMENT ══════════ */}
-      <OwnerEmployeeManager employees={employees} setEmployees={setEmployees} session={session} notes={notes} setNotes={setNotes}/>
-
+      <OwnerEmployeeManager employees={employees} setEmployees={setEmployees} session={session}/>
 
       {/* ── Weekly Team Review ── */}
       <div style={{ background:_theme.card, border:`1.5px solid ${_theme.primary}20`,
@@ -6483,8 +6186,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
                         <th key={h} style={{ padding:"8px 10px", textAlign:"right", fontWeight:700,
                           color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
                       ))}
-                    </tr>
-                  </thead>
+                    </thead>
                   <tbody>
                     {weekStats.map((d,ri)=>(
                       <tr key={d.date} style={{ background:ri%2===0?_theme.card:_theme.surface }}>
@@ -6494,7 +6196,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
                         <td style={{ padding:"7px 10px", color:d.absent>0?"#EF4444":_theme.textMuted, fontWeight:600 }}>{d.absent||"—"}</td>
                         <td style={{ padding:"7px 10px", color:"#3B82F6", fontWeight:700 }}>{d.closed||"—"}</td>
                         <td style={{ padding:"7px 10px", color:d.esc>0?"#F59E0B":_theme.textMuted, fontWeight:600 }}>{d.esc||"—"}</td>
-                      </tr>
+                       </tr>
                     ))}
                   </tbody>
                 </table>
@@ -6847,1461 +6549,407 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
   );
 }
 
+// ─── GAMIFICATION — BADGES & POINTS SYSTEM ───────────────────────────────────
 
-// ─── CRITICAL ALERT POPUP ─────────────────────────────────────────────────────
-function CriticalAlertPopup({ onDismiss, alerts }) {
-  if (!alerts || !alerts.length) return null;
-  return (
-      <div style={{ background:_theme.card, borderRadius:16, maxWidth:460, width:"100%",
-        border:"2px solid #EF4444", boxShadow:"0 0 40px rgba(239,68,68,0.4)",
-        overflow:"hidden" }}>
-        {/* Header */}
-        <div style={{ background:"linear-gradient(135deg,#7F1D1D,#991B1B)",
-          padding:"20px 24px", display:"flex", alignItems:"center", gap:14 }}>
-          <div style={{ fontSize:36, animation:"pulse 1s infinite" }}>🚨</div>
-          <div>
-            <div style={{ color:"#FEF2F2", fontWeight:800, fontSize:18, letterSpacing:-0.3 }}>
-              Critical Alert
-            </div>
-            <div style={{ color:"#FCA5A5", fontSize:12, marginTop:2 }}>
-              Requires immediate supervisor action
-            </div>
-          </div>
-          <div style={{ marginLeft:"auto", background:"rgba(255,255,255,0.15)",
-            borderRadius:8, padding:"2px 8px", fontSize:11, color:"#FEF2F2", fontWeight:700 }}>
-            {new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
-          </div>
-        </div>
-        {/* Alerts list */}
-        <div style={{ padding:"16px 20px", maxHeight:280, overflowY:"auto" }}>
-          {alerts.map((a,i) => (
-            <div key={i} style={{ display:"flex", gap:12, padding:"10px 0",
-              borderBottom: i<alerts.length-1?`1px solid ${_theme.cardBorder}`:"none" }}>
-              <span style={{ fontSize:22, flexShrink:0 }}>{a.icon||"⚠️"}</span>
-              <div>
-                <div style={{ fontWeight:700, fontSize:14, color:_theme.text }}>{a.title}</div>
-                <div style={{ fontSize:12, color:_theme.textSub, marginTop:3 }}>{a.detail}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* Action buttons */}
-        <div style={{ padding:"14px 20px", display:"flex", gap:10,
-          borderTop:`1px solid ${_theme.cardBorder}` }}>
-          <button onClick={onDismiss}
-            style={{ flex:1, background:"#EF4444", color:"#fff", border:"none",
-              borderRadius:8, padding:"11px", fontSize:14, cursor:"pointer",
-              fontWeight:700 }}>
-            ✓ Acknowledged
-          </button>
-          <button onClick={onDismiss}
-            style={{ background:_theme.surface, color:_theme.textMuted,
-              border:`1px solid ${_theme.cardBorder}`, borderRadius:8,
-              padding:"11px 16px", fontSize:13, cursor:"pointer" }}>
-            Dismiss
-          </button>
-        </div>
-      </div>
-  );
+const BADGES = [
+  { id:"quality_champion",  icon:"🏆", name:"Quality Champion",   desc:"Quality score ≥ 90% for 5+ days",      color:"#F59E0B", rarity:"gold"   },
+  { id:"shift_savior",      icon:"🦸", name:"Shift Savior",        desc:"Closed 50+ cases in a single shift",   color:"#3B82F6", rarity:"blue"   },
+  { id:"fastest_response",  icon:"⚡", name:"Fastest Response",    desc:"0 escalations for 7 consecutive days", color:"#10B981", rarity:"green"  },
+  { id:"attendance_star",   icon:"⭐", name:"Attendance Star",     desc:"Perfect attendance for a full month",  color:"#8B5CF6", rarity:"purple" },
+  { id:"top_closer",        icon:"🎯", name:"Top Closer",          desc:"#1 in closed cases for the week",      color:"#EF4444", rarity:"red"    },
+  { id:"team_player",       icon:"🤝", name:"Team Player",         desc:"Highest peer recognition votes",       color:"#EC4899", rarity:"pink"   },
+  { id:"consistency_king",  icon:"👑", name:"Consistency King",    desc:"Above-average performance for 30 days",color:"#F59E0B", rarity:"gold"   },
+  { id:"zero_escalation",   icon:"🛡️", name:"Zero Escalation",    desc:"Zero escalations for 14 days",         color:"#10B981", rarity:"green"  },
+  { id:"early_bird",        icon:"🌅", name:"Early Bird",          desc:"On-time arrival for 20 consecutive days",color:"#0EA5E9",rarity:"blue"  },
+  { id:"century_club",      icon:"💯", name:"Century Club",        desc:"100+ cases closed in a single week",   color:"#6366F1", rarity:"purple" },
+];
+
+const RARITY_COLORS = {
+  gold:   { bg:"#FEF9C3", border:"#F59E0B", text:"#92400E" },
+  blue:   { bg:"#EFF6FF", border:"#3B82F6", text:"#1E40AF" },
+  green:  { bg:"#F0FDF4", border:"#10B981", text:"#065F46" },
+  purple: { bg:"#F5F3FF", border:"#8B5CF6", text:"#4C1D95" },
+  red:    { bg:"#FEF2F2", border:"#EF4444", text:"#991B1B" },
+  pink:   { bg:"#FDF2F8", border:"#EC4899", text:"#831843" },
+};
+
+// Calculate points for an employee from performance data
+function calcEmployeePoints(empId, performance, attendance) {
+  let pts = 0;
+  const perfDates = Object.keys(performance||{});
+  perfDates.forEach(date => {
+    const p = (performance[date]||{})[empId];
+    if (!p) return;
+    pts += (p.closed||0) * 10;                          // 10 pts per closed case
+    pts += (p.quality||0) >= 90 ? 50 : (p.quality||0) >= 75 ? 20 : 0; // quality bonus
+    pts -= (p.escalations||0) * 5;                      // -5 per escalation
+  });
+  const attDates = Object.keys(attendance||{});
+  attDates.forEach(date => {
+    const a = (attendance[date]||{})[empId];
+    if (!a) return;
+    if (a.status === "Present") pts += 5;               // 5 pts presence
+    if (a.lateMin === 0 && a.status === "Present") pts += 3; // bonus on-time
+    if (isAbsent(a.status)) pts -= 10;               // -10 absent
+  });
+  return Math.max(0, pts);
 }
 
+// Auto-detect earned badges
+function detectBadges(empId, performance, attendance, employees, notes) {
+  const earned = [];
+  const perfDates = Object.keys(performance||{}).sort();
+  const allPerf   = perfDates.map(d => (performance[d]||{})[empId]).filter(Boolean);
+  const allAtt    = Object.values(attendance||{}).map(d => d[empId]).filter(Boolean);
 
-// ─── LEADERBOARD PAGE (Agent view) ────────────────────────────────────────────
-function LeaderboardPage({ employees, schedule, performance, session, notes, setNotes, canEdit }) {
-  const [tick, setTick]       = useState(0);
-  const [lbPeriod, setLbPeriod] = useState("today");
-  useEffect(() => {
-    const t = setInterval(() => setTick(p => p+1), 60000);
-    return () => clearInterval(t);
-  }, []);
+  // Quality Champion: quality ≥ 90 for 5+ days
+  const highQualDays = allPerf.filter(p => (p.quality||0) >= 90).length;
+  if (highQualDays >= 5) earned.push("quality_champion");
 
-  const isAgentView = session?.role === "Agent";
-  const todayKey = todayStr();
-  const dayName  = DAYS[new Date().getDay()];
+  // Shift Savior: 50+ cases in a single day
+  if (allPerf.some(p => (p.closed||0) >= 50)) earned.push("shift_savior");
 
-  const todayEmps = employees.filter(e => {
-    const v = (schedule[e.id]||{})[dayName];
-    return v && v !== "OFF";
-  });
+  // Zero Escalation: 0 escalations for 14 consecutive days
+  let zeroStreak = 0, maxZero = 0;
+  allPerf.forEach(p => { if ((p.escalations||0) === 0) { zeroStreak++; maxZero = Math.max(maxZero, zeroStreak); } else zeroStreak = 0; });
+  if (maxZero >= 14) earned.push("zero_escalation");
+  if (maxZero >= 7)  earned.push("fastest_response");
 
-  const periodDates = lbPeriod==="today" ? [todayKey] :
-    lbPeriod==="week" ? Array.from({length:7},(_,i)=>{
-      const d=new Date(); d.setDate(d.getDate()-6+i); return d.toISOString().slice(0,10);
-    }) :
-    Array.from({length:new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate()},(_,i)=>{
-      const d=new Date(); d.setDate(1+i); return d.toISOString().slice(0,10);
-    });
+  // Attendance Star: present every working day in a month (≥20 present)
+  const presentDays = allAtt.filter(a => isPresent(a.status)).length;
+  const absentDays  = allAtt.filter(a => isAbsent(a.status)).length;
+  if (presentDays >= 20 && absentDays === 0) earned.push("attendance_star");
 
-  const sorted = [...todayEmps]
-    .map(e => {
-      const closed = periodDates.reduce((s,dk)=>s+((performance[dk]||{})[e.id]?.closed||0),0);
-      const esc    = periodDates.reduce((s,dk)=>s+((performance[dk]||{})[e.id]?.escalations||0),0);
-      return { ...e, perf: { closed, escalations: esc } };
-    })
-    .sort((a,b) => (b.perf.closed||0) - (a.perf.closed||0));
+  // Early Bird: 20 consecutive on-time arrivals
+  let onTimeStreak = 0, maxOnTime = 0;
+  allAtt.forEach(a => { if (a.status==="Present" && a.lateMin===0) { onTimeStreak++; maxOnTime=Math.max(maxOnTime,onTimeStreak); } else onTimeStreak=0; });
+  if (maxOnTime >= 20) earned.push("early_bird");
 
-  const totalClosed = sorted.reduce((s,e)=>s+(e.perf.closed||0),0);
-  const myData      = sorted.find(e=>e.name===session?.name);
-  const myRank      = myData ? sorted.indexOf(myData)+1 : null;
-  const medals      = ["🥇","🥈","🥉"];
+  // Century Club: 100+ cases in a week
+  for (let i = 0; i <= perfDates.length - 7; i++) {
+    const weekTotal = perfDates.slice(i, i+7).reduce((s,d)=>s+((performance[d]||{})[empId]?.closed||0),0);
+    if (weekTotal >= 100) { earned.push("century_club"); break; }
+  }
 
-  // Agent sees only their own card + manager messages for them
-  const displaySorted = isAgentView ? sorted.filter(e=>e.name===session?.name) : sorted;
+  // Consistency King: above-average for 30 days
+  if (allPerf.length >= 30) {
+    const avg = allPerf.reduce((s,p)=>s+(p.closed||0),0) / allPerf.length;
+    const aboveAvg = allPerf.filter(p=>(p.closed||0) >= avg).length;
+    if (aboveAvg >= 25) earned.push("consistency_king");
+  }
 
-  // Manager messages — show all + ones targeting this employee
-  const allNotes = Array.isArray(notes) ? notes : [];
-  // Manager messages filter:
-  // - "all" messages → visible to everyone
-  // - targeted messages → visible ONLY to the target person (or sender/supervisors)
-  const managerMessages = allNotes
-    .filter(n => {
-      if (n.tag !== "Manager Message") return false;
-      const isAll      = !n.target || n.target === "all";
-      const isForMe    = n.target === session?.name;
-      const isSentByMe = n.from === session?.name;
-      return isAll || isForMe || isSentByMe;
-    })
-    .sort((a,b) => b.ts.localeCompare(a.ts))
-    .slice(0, 10);
+  return [...new Set(earned)];
+}
 
-  const typeConfig = (t) => ({
-    shoutout:   { icon:"🌟", color:"#F59E0B", label:"Recognition" },
-    motivation: { icon:"🚀", color:_theme.primary, label:"Motivation" },
-    reminder:   { icon:"📌", color:"#8B5CF6", label:"Reminder" },
-  }[t||"shoutout"] || { icon:"💬", color:_theme.accent, label:"Message" });
-
+// ── Badges Display Component ───────────────────────────────────────────────────
+function BadgesDisplay({ badgeIds, size="normal" }) {
+  if (!badgeIds || badgeIds.length === 0) return null;
+  const sm = size === "small";
   return (
-    <div>
-      {/* Header banner */}
-      <div style={{ background:`linear-gradient(135deg,${_theme.primary}22,${_theme.accent}22)`,
-        border:`1.5px solid ${_theme.primary}30`, borderRadius:16,
-        padding:"24px 28px", marginBottom:20, textAlign:"center" }}>
-        <div style={{ fontSize:40, marginBottom:8 }}>🏆</div>
-        <div style={{ fontWeight:800, fontSize:22, color:_theme.text, marginBottom:4 }}>
-          Today's Leaderboard
-        </div>
-        <div style={{ fontSize:13, color:_theme.textMuted }}>
-          {new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",timeZone:"Asia/Riyadh"})}
-          &nbsp;·&nbsp; {todayEmps.length} employees scheduled · {totalClosed} cases closed
-        </div>
-        {/* Period tabs */}
-        <div style={{ display:"flex", gap:6, marginTop:12, justifyContent:"center" }}>
-          {[["today","📅 Today"],["week","📈 Week"],["month","🗓️ Month"]].map(([k,l])=>(
-            <button key={k} onClick={()=>setLbPeriod(k)}
-              style={{ border:`2px solid ${lbPeriod===k?_theme.primary:"#CBD5E1"}`,
-                borderRadius:20, padding:"5px 16px", fontSize:12, cursor:"pointer", fontWeight:700,
-                background:lbPeriod===k?_theme.primary:"transparent",
-                color:lbPeriod===k?"#fff":_theme.textSub }}>
-              {l}
-            </button>
-          ))}
-        </div>
-        {myRank && (
-          <div style={{ marginTop:12, display:"inline-flex", alignItems:"center", gap:8,
-            background:`${_theme.primary}22`, border:`1px solid ${_theme.primary}40`,
-            borderRadius:20, padding:"6px 18px" }}>
-            <span style={{ fontSize:18 }}>{medals[myRank-1]||"🎯"}</span>
-            <span style={{ fontSize:13, fontWeight:700, color:_theme.primary }}>
-              Your Rank Today: #{myRank}
-            </span>
-            {myData?.perf?.closed > 0 && (
-              <span style={{ fontSize:12, color:_theme.textMuted }}>
-                · {myData.perf.closed} cases closed
-              </span>
-            )}
+    <div style={{ display:"flex", gap:sm?3:5, flexWrap:"wrap" }}>
+      {badgeIds.map(bid => {
+        const b = BADGES.find(x=>x.id===bid);
+        if (!b) return null;
+        const rc = RARITY_COLORS[b.rarity];
+        return (
+          <div key={bid} title={`${b.name}: ${b.desc}`}
+            style={{ display:"flex", alignItems:"center", gap:sm?2:4,
+              background:rc.bg, border:`1px solid ${rc.border}`,
+              borderRadius:sm?4:6, padding:sm?"1px 5px":"3px 8px",
+              fontSize:sm?10:11, fontWeight:700, color:rc.text,
+              cursor:"default" }}>
+            <span style={{ fontSize:sm?11:13 }}>{b.icon}</span>
+            {!sm && <span>{b.name}</span>}
           </div>
-        )}
-      </div>
-
-      {/* ── Manager Messages — shown to employees ── */}
-      {managerMessages.length > 0 && (
-        <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
-          {managerMessages.map(m => {
-            const cfg = typeConfig(m.msgType);
-            const isPersonal = m.target === session?.name;
-            return (
-              <div key={m.id} style={{
-                background: isPersonal
-                  ? `linear-gradient(135deg,${cfg.color}18,${_theme.card})`
-                  : _theme.card,
-                border:`1.5px solid ${cfg.color}${isPersonal?"60":"30"}`,
-                borderRadius:12, padding:"14px 18px",
-                display:"flex", gap:12, alignItems:"flex-start",
-                boxShadow: isPersonal?`0 4px 16px ${cfg.color}20`:"none",
-                animation: isPersonal?"fadeIn 0.4s ease":"none"
-              }}>
-                <div style={{ fontSize:28, flexShrink:0 }}>{cfg.icon}</div>
-                <div style={{ flex:1 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8,
-                    marginBottom:6, flexWrap:"wrap" }}>
-                    <span style={{ fontSize:11, fontWeight:700,
-                      background:cfg.color+"22", color:cfg.color,
-                      borderRadius:20, padding:"2px 10px" }}>{cfg.label}</span>
-                    {isPersonal && (
-                      <span style={{ fontSize:11, fontWeight:700,
-                        background:_theme.primary+"22", color:_theme.primary,
-                        borderRadius:20, padding:"2px 10px" }}>🎯 Personal</span>
-                    )}
-                    <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>
-                      From: {m.from||"Management"}
-                    </span>
-                    <span style={{ fontSize:10, color:_theme.textMuted, marginLeft:"auto" }}>
-                      {m.time}
-                    </span>
-                  </div>
-                  <div style={{ fontSize:14, color:_theme.text,
-                    fontWeight: isPersonal?600:400,
-                    lineHeight:1.7, whiteSpace:"pre-wrap" }}>
-                    {m.text}
-                  </div>
-                </div>
-                {/* Delete button — only for sender or canEdit */}
-                {(canEdit || m.from === session?.name) && setNotes && (
-                  <button
-                    onClick={()=>{
-                      if (!window.confirm("Delete this message?")) return;
-                      setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==m.id));
-                    }}
-                    title="Delete message"
-                    style={{ background:"none", border:"none", color:"#94A3B8",
-                      cursor:"pointer", fontSize:16, padding:"4px", flexShrink:0,
-                      alignSelf:"flex-start" }}>🗑️</button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* ── Leave Requests (submit for agents, view status) ── */}
-      <LeaveRequestsPanel
-        session={session}
-        employees={employees}
-        schedule={schedule}
-        setSchedule={()=>{}}
-        notes={notes}
-        setNotes={canEdit ? ()=>{} : ()=>{}}
-        canEdit={false}
-      />
-
-      {/* ── GRAND LINE: Wanted Poster Mode ── */}
-      {_theme.isGrandLine && displaySorted.length > 0 && (
-        <div style={{ marginBottom:20 }}>
-          <div style={{ textAlign:"center", marginBottom:16 }}>
-            <div style={{ fontSize:22, fontWeight:900, color:"#F02D2D",
-              textShadow:"0 0 15px rgba(240,45,45,0.6)", letterSpacing:2 }}>
-              ⚓ GRAND LINE BOUNTY BOARD ⚓
-            </div>
-            <div style={{ fontSize:11, color:"#4A7A95", marginTop:4 }}>
-              Marine HQ · Most Wanted Pirates
-            </div>
-          </div>
-          <div style={{ display:"flex", gap:12, flexWrap:"wrap", justifyContent:"center" }}>
-            {displaySorted.slice(0,6).map((e,ri) => {
-              const bounty = (e.perf.closed||0)*1000 + (ri===0?50000:ri===1?20000:ri===2?10000:0);
-              const isMe = e.name===session?.name;
-              const rank = ri+1;
-              return (
-                <div key={e.id} style={{
-                  width:150, background:"linear-gradient(180deg,#D4A843,#C8952A,#A07020)",
-                  borderRadius:8, padding:"12px 10px", textAlign:"center",
-                  boxShadow: isMe
-                    ? "0 0 20px rgba(240,45,45,0.6), 0 4px 16px rgba(0,0,0,0.6)"
-                    : "0 4px 16px rgba(0,0,0,0.5)",
-                  border: isMe ? "3px solid #F02D2D" : "2px solid #8B6520",
-                  position:"relative", transform:ri===0?"scale(1.08)":"scale(1)",
-                  transition:"transform 0.2s"
-                }}>
-                  {/* WANTED header */}
-                  <div style={{ fontSize:9, fontWeight:900, color:"#3D1A00", letterSpacing:4,
-                    marginBottom:4, textTransform:"uppercase" }}>⚓ WANTED ⚓</div>
-                  {/* Avatar placeholder */}
-                  <div style={{ width:70, height:70, borderRadius:4, margin:"0 auto 8px",
-                    background:"linear-gradient(135deg,#8B6520,#5A3A0A)",
-                    border:"2px solid #5A3A0A", display:"flex", alignItems:"center",
-                    justifyContent:"center", fontSize:32 }}>
-                    {ROLE_ICONS[e.role]||"🏴‍☠️"}
-                  </div>
-                  {/* Name */}
-                  <div style={{ fontSize:11, fontWeight:900, color:"#1A0800",
-                    marginBottom:4, lineHeight:1.2 }}>
-                    {e.name.split(" ").slice(0,2).join(" ")}
-                  </div>
-                  {/* Rank */}
-                  <div style={{ fontSize:9, color:"#3D1A00", marginBottom:6 }}>
-                    {["🥇","🥈","🥉"][ri]||`#${rank}`} · {e.role}
-                  </div>
-                  {/* BOUNTY */}
-                  <div style={{ background:"rgba(0,0,0,0.25)", borderRadius:4,
-                    padding:"4px 6px", marginBottom:6 }}>
-                    <div style={{ fontSize:8, color:"#D4A843", fontWeight:700, letterSpacing:1 }}>BOUNTY</div>
-                    <div style={{ fontSize:14, fontWeight:900, color:"#FFD700",
-                      textShadow:"0 0 8px rgba(255,215,0,0.5)" }}>
-                      {bounty.toLocaleString()}
-                    </div>
-                  </div>
-                  <div style={{ fontSize:7, color:"#3D1A00", fontWeight:700, letterSpacing:1 }}>
-                    DEAD OR ALIVE
-                  </div>
-                  {/* Red stamp for #1 */}
-                  {rank===1 && (
-                    <div style={{ position:"absolute", top:8, right:8, fontSize:22,
-                      transform:"rotate(15deg)", filter:"drop-shadow(0 0 4px rgba(240,45,45,0.8))" }}>
-                      🔴
-                    </div>
-                  )}
-                  {isMe && (
-                    <div style={{ position:"absolute", bottom:-8, left:"50%", transform:"translateX(-50%)",
-                      background:"#F02D2D", color:"#fff", borderRadius:20, padding:"2px 10px",
-                      fontSize:9, fontWeight:900, whiteSpace:"nowrap" }}>
-                      ← YOU
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Top 3 podium — normal themes */}
-      {!_theme.isGrandLine && displaySorted.slice(0,3).some(e=>e.perf.closed>0) && (
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1.2fr 1fr",
-          gap:10, marginBottom:20, alignItems:"flex-end" }}>
-          {[displaySorted[1], displaySorted[0], displaySorted[2]].map((e,pi) => {
-            if (!e) return <div key={pi}/>;
-            const isMe = e.name === session?.name;
-            const podiumH = [100, 130, 80][pi];
-            const podiumC = ["#9CA3AF","#F59E0B","#CD7F32"][pi];
-            const rank    = [2,1,3][pi];
-            return (
-              <div key={e.id} style={{ textAlign:"center" }}>
-                <div style={{ fontSize:isMe?18:14, fontWeight:700,
-                  color: isMe?_theme.primary:_theme.text, marginBottom:4 }}>
-                  {medals[rank-1]} {e.name.split(" ")[0]}
-                  {isMe && <span style={{ fontSize:11, color:_theme.primary }}> (You)</span>}
-                </div>
-                <div style={{ fontSize:11, color:_theme.textMuted, marginBottom:6 }}>
-                  {e.perf.closed} cases
-                </div>
-                <div style={{ height:podiumH, background:`linear-gradient(180deg,${podiumC},${podiumC}88)`,
-                  borderRadius:"8px 8px 0 0", display:"flex", alignItems:"center",
-                  justifyContent:"center", fontSize:28,
-                  border:`2px solid ${isMe?_theme.primary:podiumC}`,
-                  boxShadow: isMe?`0 0 16px ${_theme.primary}40`:"none" }}>
-                  {medals[rank-1]}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Full ranking table */}
-      <div style={CRD()}>
-        <div style={{ fontWeight:700, fontSize:14, color:_theme.text, marginBottom:14 }}>
-          📋 Full Ranking Today
-        </div>
-        {displaySorted.map((e, ri) => {
-          const isMe    = e.name === session?.name;
-          const maxClosed = displaySorted[0]?.perf?.closed||1;
-          const pct     = maxClosed > 0 ? Math.round((e.perf.closed||0)/maxClosed*100) : 0;
-          return (
-            <div key={e.id} style={{ display:"flex", alignItems:"center", gap:12,
-              padding:"10px 0", borderBottom: ri<displaySorted.length-1?`1px solid ${_theme.cardBorder}`:"none",
-              background: isMe?`${_theme.primary}08`:"transparent",
-              borderRadius: isMe?8:0, paddingLeft: isMe?10:0, paddingRight: isMe?10:0 }}>
-              <div style={{ fontSize:18, minWidth:30, textAlign:"center" }}>
-                {medals[ri]||<span style={{fontSize:12,color:_theme.textMuted}}>#{ri+1}</span>}
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4, flexWrap:"wrap" }}>
-                  <span style={{ fontWeight: isMe?800:600, fontSize:13,
-                    color: isMe?_theme.primary:_theme.text }}>
-                    {e.name}
-                    {isMe && <span style={{ marginLeft:6, fontSize:10,
-                      background:_theme.primary+"22", color:_theme.primary,
-                      borderRadius:8, padding:"1px 6px" }}>You</span>}
-                  </span>
-                  <span style={{ fontSize:11, color:ROLE_COLORS[e.role]||_theme.textMuted,
-                    fontWeight:600 }}>{e.role}</span>
-                </div>
-                {(() => {
-                  const autoBadges = detectBadges(e.id, performance, {}, employees, []);
-                  const manualBadges = (Array.isArray(notes)?notes:[])
-                    .filter(n=>n.tag==="Badge Award")
-                    .map(n=>{try{const d=JSON.parse(n.text||"{}");return d.empId===e.id?d.badgeId:null;}catch{return null;}})
-                    .filter(Boolean);
-                  const all=[...new Set([...autoBadges,...manualBadges])];
-                  return all.length>0?<BadgesDisplay badgeIds={all} size="small"/>:null;
-                })()}
-                <div style={{ background:_theme.surface, borderRadius:20, height:6,
-                  overflow:"hidden", maxWidth:200 }}>
-                  <div style={{ width:`${pct}%`, height:"100%",
-                    background: isMe?_theme.primary:"#10B981",
-                    borderRadius:20, transition:"width 0.5s" }}/>
-                </div>
-              </div>
-              <div style={{ textAlign:"right", minWidth:60 }}>
-                <div style={{ fontSize:18, fontWeight:800,
-                  color: e.perf.closed>0?(isMe?_theme.primary:"#10B981"):_theme.textMuted }}>
-                  {e.perf.closed||0}
-                </div>
-                <div style={{ fontSize:10, color:_theme.textMuted }}>Cases</div>
-              </div>
-            </div>
-          );
-        })}
-        {sorted.every(e=>!e.perf.closed) && (
-          <div style={{ textAlign:"center", padding:"32px 20px", color:_theme.textMuted }}>
-            <div style={{ fontSize:32, marginBottom:8 }}>🎯</div>
-            <div style={{ fontWeight:600 }}>No closed cases recorded today</div>
-            <div style={{ fontSize:12, marginTop:4 }}>Results appear once entered by supervisor</div>
-          </div>
-        )}
-      </div>
+        );
+      })}
     </div>
   );
 }
-// Deferred XLSX load to avoid TDZ issues during module initialization
-if (typeof window !== "undefined") {
-  window.addEventListener("load", () => {
-    if (!window.XLSX) {
-      const _s = document.createElement("script");
-      _s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
-      _s.async = true;
-      document.head.appendChild(_s);
-    }
-  });
-}
 
-// Helper: wait for XLSX to be ready (max 5 seconds)
-function waitForXLSX() {
-  return new Promise((resolve, reject) => {
-    if (window.XLSX) { resolve(window.XLSX); return; }
-    let tries = 0;
-    const t = setInterval(() => {
-      tries++;
-      if (window.XLSX) { clearInterval(t); resolve(window.XLSX); }
-      else if (tries > 50) { clearInterval(t); reject(new Error("SheetJS failed to load. Please refresh and try again.")); }
-    }, 100);
-  });
-}
+// ─── Gamification Page ──────────────────────────────────────────────────────────
+function GamificationPage({ employees, performance, attendance, schedule, notes, setNotes, session, canEdit }) {
+  const [tab, setTab]           = useState("leaderboard"); // leaderboard | badges | award
+  const [awardEmp, setAwardEmp] = useState("");
+  const [awardBadge, setAwardBadge] = useState("");
+  const [awardNote, setAwardNote]   = useState("");
+  const [awardDone, setAwardDone]   = useState("");
+  const [search, setSearch]     = useState("");
 
-// ═══════════════════════════════════════════════════════════
-// ─── PUSH NOTIFICATIONS ──────────────────────────────────────────────────────
-// Uses browser Notification API + Service Worker showNotification
-// No VAPID/server needed — works when app is open or in background (PWA)
+  const todayKey = todayStr();
 
-async function askPushPermission() {
-  if (!("Notification" in window)) return "unsupported";
-  if (Notification.permission === "granted") return "granted";
-  if (Notification.permission === "denied")  return "denied";
-  const result = await Notification.requestPermission();
-  return result;
-}
+  // Manual badge awards stored in notes (tag: "Badge Award")
+  const manualAwards = (Array.isArray(notes)?notes:[])
+    .filter(n => n.tag === "Badge Award");
 
-function sendPushNotification(title, body, tag = "cs-ops-alert") {
-  if (!("Notification" in window) || Notification.permission !== "granted") return;
-  // Try via Service Worker first (works when app is in background)
-  if (navigator.serviceWorker?.controller) {
-    navigator.serviceWorker.ready.then(reg => {
-      reg.showNotification(title, {
-        body,
-        tag,           // prevents duplicate notifications with same tag
-        icon:  "/icon-192.png",
-        badge: "/icon-192.png",
-        vibrate: [200, 100, 200],
-        requireInteraction: true,  // stays until user taps
-        data: { url: "/" },
-        actions: [
-          { action: "view", title: "Open App" },
-          { action: "dismiss", title: "Dismiss" },
-        ]
-      });
-    }).catch(() => {
-      // Fallback: direct Notification (only works when app is open)
-      new Notification(title, { body, icon: "/icon-192.png", tag });
-    });
-  } else {
-    new Notification(title, { body, icon: "/icon-192.png", tag });
-  }
-}
+  // Build per-employee data
+  const empData = useMemo(() => {
+    return employees.map(emp => {
+      const pts     = calcEmployeePoints(emp.id, performance, attendance);
+      const autoBadges = detectBadges(emp.id, performance, attendance, employees, notes);
+      const manualBadges = manualAwards
+        .filter(n => { try { return JSON.parse(n.text||"{}").empId === emp.id; } catch { return false; } })
+        .map(n => { try { return JSON.parse(n.text||"{}").badgeId; } catch { return null; } })
+        .filter(Boolean);
+      const allBadges = [...new Set([...autoBadges, ...manualBadges])];
+      // Today's perf
+      const todayPerf = (performance[todayKey]||{})[emp.id] || { closed:0, escalations:0 };
+      return { ...emp, pts, badges:allBadges, todayPerf };
+    }).sort((a,b) => b.pts - a.pts);
+  }, [employees, performance, attendance, notes, manualAwards]);
 
-
-// ─── ALERT SOUND SYSTEM (Web Audio API, zero dependencies) ───────────────────
-function playAlertSound(type = "critical") {
-  if (localStorage.getItem("csops_mute") === "1") return; // muted
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const now = ctx.currentTime;
-
-    if (type === "critical") {
-      // Urgent triple beep — descending tone
-      [0, 0.25, 0.5].forEach((t, i) => {
-        const osc  = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.value = 880 - i * 110;
-        osc.type = "sine";
-        gain.gain.setValueAtTime(0.4, now + t);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + t + 0.18);
-        osc.start(now + t);
-        osc.stop(now + t + 0.2);
-      });
-    } else {
-      // Gentle double ping — warning
-      [0, 0.3].forEach(t => {
-        const osc  = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.value = 660;
-        osc.type = "sine";
-        gain.gain.setValueAtTime(0.25, now + t);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + t + 0.22);
-        osc.start(now + t);
-        osc.stop(now + t + 0.25);
-      });
-    }
-    setTimeout(() => ctx.close(), 2000);
-  } catch {}
-}
-
-// Play a subtle "ding" for new messages / info
-function playSoftDing() {
-  if (localStorage.getItem("csops_mute") === "1") return;
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.frequency.value = 784; // G5
-    osc.type = "sine";
-    const now = ctx.currentTime;
-    gain.gain.setValueAtTime(0.18, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-    osc.start(now); osc.stop(now + 0.45);
-    setTimeout(() => ctx.close(), 1000);
-  } catch {}
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SUPABASE - FULL REALTIME (supabase-js v2 from CDN)
-// All reads/writes go through the official SDK.
-// Realtime subscriptions are set up separately in the App component.
-// ═══════════════════════════════════════════════════════════════════════════
-const SUPABASE_URL  = "https://ohbgpdsuaointhidnmps.supabase.co";
-const SUPABASE_KEY  = "sb_publishable_0CLCyh1yv2I6RcHkSRs1EQ_D3ucGkhH";
-
-// ── Singleton client ─────────────────────────────────────────────────────────
-let _supabase = null;
-
-/** Returns the Supabase client. Loads the SDK from CDN if not yet loaded. */
-function getDB() {
-  if (_supabase) return Promise.resolve(_supabase);
-  return new Promise(resolve => {
-    // Already loading?
-    if (document.getElementById("sb-sdk")) {
-      const t = setInterval(() => { if (_supabase) { clearInterval(t); resolve(_supabase); } }, 40);
-      return;
-    }
-    const s   = document.createElement("script");
-    s.id      = "sb-sdk";
-    s.src     = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
-    s.onload  = () => {
-      _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        realtime: {
-          params: { eventsPerSecond: 20 },
-        },
-        db: { schema: "public" },
-      });
-      resolve(_supabase);
-    };
-    s.onerror = () => resolve(null); // graceful offline fallback
-    document.head.appendChild(s);
-  });
-}
-
-// ── Legacy REST shim  (keeps all existing sb.from() calls working unchanged) ─
-// When SDK is ready it uses it; otherwise falls back to raw fetch.
-const sb = {
-  async from(table) {
-    const db = await getDB();
-    if (db) {
-      // ── SDK path ──────────────────────────────────────────────────────────
-      return {
-        async select(cols = "*", filterStr = "") {
-          let q = db.from(table).select(cols);
-          if (filterStr) {
-            filterStr.split("&").forEach(f => {
-              if      (f.startsWith("order="))    { const [col, dir] = f.slice(6).split("."); q = q.order(col, { ascending: dir === "asc" }); }
-              else if (f.startsWith("limit="))    { q = q.limit(Number(f.slice(6))); }
-              else if (f.startsWith("date=gte.")) { q = q.gte("date", f.slice(9)); }
-            });
-          }
-          const { data, error } = await q;
-          if (error) console.warn("sb.select error", table, error.message);
-          return data || [];
-        },
-        async upsert(rows) {
-          const arr = Array.isArray(rows) ? rows : [rows];
-          // Per-table primary key (onConflict must match the actual PK)
-          const PK = {
-            schedule:       "emp_id",
-            heatmap:        "date",
-            user_passwords: "name",
-          };
-          const conflictCol = PK[table] || "id";
-          const { data, error } = await db.from(table).upsert(arr, { onConflict: conflictCol });
-          if (error) console.warn("sb.upsert error", table, conflictCol, error.message);
-          return data;
-        },
-        async insert(rows) {
-          const arr = Array.isArray(rows) ? rows : [rows];
-          const { data, error } = await db.from(table).insert(arr);
-          if (error) console.warn("sb.insert error", table, error.message);
-          return data;
-        },
-        async delete(filterStr) {
-          // filterStr format: "col=eq.value"
-          const eqMatch = filterStr.match(/^(\w+)=eq\.(.+)$/);
-          if (eqMatch) {
-            const { error } = await db.from(table).delete().eq(eqMatch[1], eqMatch[2]);
-            if (error) console.warn("sb.delete error", table, error.message);
-          }
-          return true;
-        },
-      };
-    }
-    // ── Offline REST fallback (no SDK) ────────────────────────────────────────
-    const base = `${SUPABASE_URL}/rest/v1/${table}`;
-    const hdrs = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`,
-                   "Content-Type": "application/json", "Prefer": "return=representation" };
-    return {
-      async select(cols = "*", filterStr = "") {
-        const url = `${base}?select=${cols}${filterStr ? "&" + filterStr : ""}`;
-        const r   = await fetch(url, { headers: hdrs });
-        return r.ok ? r.json() : [];
-      },
-      async upsert(rows) {
-        const r = await fetch(base, { method: "POST",
-          headers: { ...hdrs, "Prefer": "resolution=merge-duplicates,return=representation" },
-          body: JSON.stringify(Array.isArray(rows) ? rows : [rows]) });
-        return r.ok ? r.json() : null;
-      },
-      async insert(rows) {
-        const r = await fetch(base, { method: "POST", headers: hdrs,
-          body: JSON.stringify(Array.isArray(rows) ? rows : [rows]) });
-        return r.ok ? r.json() : null;
-      },
-      async delete(filterStr) {
-        const r = await fetch(`${base}?${filterStr}`, { method: "DELETE", headers: hdrs });
-        return r.ok;
-      },
-    };
-  }
-};
-
-// (useSupabaseState removed — state is managed directly in App with Realtime subscriptions)
-
-// ─── PASSWORD SYSTEM (Supabase-backed) ───────────────────────────────────────
-const RESET_ADMINS = ["Team Lead", "Shift Leader", "SME", "Mohammed Nasser Althurwi"];
-function canResetPasswords(role, name) {
-  return RESET_ADMINS.includes(role) || RESET_ADMINS.includes(name);
-}
-
-// Local cache for passwords (also stored in Supabase user_passwords table)
-// ─── PASSWORD SYSTEM — SHA-256 hashed (Web Crypto API, no library needed) ─────
-// Passwords are NEVER stored in plain text — only SHA-256 hashes.
-// Comparison: hash(input) === stored_hash  (one-way, irreversible)
-// ─────────────────────────────────────────────────────────────────────────────
-
-async function hashPassword(pw) {
-  // SHA-256 via built-in Web Crypto API
-  const encoded = new TextEncoder().encode(pw);
-  const hashBuf = await crypto.subtle.digest("SHA-256", encoded);
-  const hashArr = Array.from(new Uint8Array(hashBuf));
-  return hashArr.map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
-function getPwStore() {
-  try { return JSON.parse(localStorage.getItem("csops_passwords")||"{}"); } catch { return {}; }
-}
-function setPwStore(obj) {
-  try { localStorage.setItem("csops_passwords", JSON.stringify(obj)); } catch {}
-}
-
-// Returns the stored hash (or null if no password set)
-function getUserPw(name) { return getPwStore()[name] || null; }
-
-// Stores a hashed password
-async function setUserPw(name, pw) {
-  const hash = await hashPassword(pw);
-  const s = getPwStore(); s[name] = hash; setPwStore(s);
-  try {
-    const t = await sb.from("user_passwords");
-    // Store only the hash — never the plain password
-    await t.upsert({ name, password: hash, updated_at: new Date().toISOString() });
-  } catch {}
-}
-
-async function resetUserPw(name) {
-  const s = getPwStore(); delete s[name]; setPwStore(s);
-  try {
-    const t = await sb.from("user_passwords");
-    await t.delete(`name=eq.${encodeURIComponent(name)}`);
-  } catch {}
-}
-
-// Load password HASHES from Supabase — waits for SDK to be ready
-// Deferred until after full module initialization to avoid TDZ errors
-if (typeof window !== "undefined") {
-  window.addEventListener("load", () => {
-    getDB().then(async () => {
-      try {
-        const t = await sb.from("user_passwords");
-        const rows = await t.select();
-        if (Array.isArray(rows) && rows.length > 0) {
-          const obj = {};
-          rows.forEach(r => { obj[r.name] = r.password; }); // hashes only
-          setPwStore(obj);
-        }
-      } catch {}
-    });
-  });
-}
-
-
-// ─── DAILY TIPS ───────────────────────────────────────────────────────────────
-const DAILY_TIPS_EN = [
-  "💡 Start each shift with a quick team check-in to align priorities.",
-  "📊 Document escalations immediately — details fade fast.",
-  "☕ A proactive break schedule reduces errors by up to 30%.",
-  "🎯 Clear queue data = better staffing decisions tomorrow.",
-  "⭐ Recognition boosts productivity — acknowledge good work daily.",
-  "🔄 Review yesterday's performance before today's planning.",
-  "📱 Keep the team informed — communication prevents most issues.",
-];
-
-
-// ─── LOGIN SCREEN ─────────────────────────────────────────────────────────────
-
-// ─── EMPLOYEE ATTENDANCE HISTORY PAGE ────────────────────────────────────────
-function AttendanceHistoryPage({ employees, schedule, shifts, attendance }) {
-  const [selectedEmp, setSelectedEmp] = useState("");
-  const [month, setMonth]             = useState(new Date().toISOString().slice(0,7));
-  const [search, setSearch]           = useState("");
-
-  const [y, m] = month.split("-").map(Number);
-  const dates  = monthDates(y, m-1);
-
-  const filtered = employees.filter(e =>
+  const filtered = empData.filter(e =>
     e.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const emp = employees.find(e => e.id === selectedEmp);
-
-  // Stats for selected employee
-  const stats = useMemo(() => {
-    if (!emp) return null;
-    let present=0, absent=0, late=0, earlyLeave=0, dayOff=0, totalLateMin=0, totalWorkMin=0, workDays=0;
-    dates.forEach(d => {
-      const dayName = DAYS[new Date(d+"T12:00:00").getDay()];
-      const sid     = (schedule[emp.id]||{})[dayName];
-      if (!sid || sid==="OFF" || sid==="LEAVE" || sid==="PH") { dayOff++; return; }
-      workDays++;
-      const att = ((attendance[d]||{})[emp.id]) || { status:"Present" };
-      if      (isPresent(att.status))      present++;
-      else if (isAbsent(att.status))       absent++;
-      // Late already counted in isPresent
-      else if (att.status==="Early Leave") earlyLeave++;
-      totalLateMin  += att.lateMin||0;
-      totalWorkMin  += Number(att.workDuration)||0;
-    });
-    const attRate = workDays > 0 ? Math.round(((workDays-absent)/workDays)*100) : 0;
-    const avgWork = workDays > 0 ? Math.round(totalWorkMin/workDays) : 0;
-    return { present, absent, late, earlyLeave, dayOff, totalLateMin, workDays, attRate, avgWork };
-  }, [emp, dates, schedule, attendance]);
-
-  function statusColor(s) {
-    if (s==="Present")     return "#10B981";
-    if (s==="Absent")      return "#EF4444";
-    if (s==="Late")        return "#F59E0B";
-    if (s==="Early Leave") return "#8B5CF6";
-    return "#94A3B8";
-  }
-  function statusIcon(s) {
-    if (s==="Present")     return "✅";
-    if (s==="Absent")      return "❌";
-    if (s==="Late")        return "⏰";
-    if (s==="Early Leave") return "🔆";
-    return "—";
-  }
-
-  return (
-    <div>
-      {/* Toolbar */}
-      <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>📆 Individual Attendance History</span>
-        <input value={search} onChange={e=>setSearch(e.target.value)}
-          style={{ ...I({width:200}) }} placeholder="🔍 Search employee..."/>
-        <input type="month" value={month} onChange={e=>setMonth(e.target.value)}
-          style={{ ...I({width:160}) }}/>
-      </div>
-
-      <div style={{ display:"grid", gridTemplateColumns:"260px 1fr", gap:14, alignItems:"start" }}>
-        {/* Employee list */}
-        <div style={{ ...CRD({padding:0}), overflow:"hidden", maxHeight:"80vh", overflowY:"auto" }}>
-          <div style={{ padding:"10px 14px", fontWeight:700, fontSize:12,
-            color:_theme.textMuted, borderBottom:`1px solid ${_theme.cardBorder}` }}>
-            {filtered.length} employees
-          </div>
-          {filtered.map(e => (
-            <div key={e.id} onClick={()=>setSelectedEmp(e.id)}
-              style={{ padding:"10px 14px", cursor:"pointer",
-                background: selectedEmp===e.id ? _theme.primary+"22" : "transparent",
-                borderBottom:`1px solid ${_theme.cardBorder}20`,
-                borderRight: selectedEmp===e.id ? `3px solid ${_theme.primary}` : "3px solid transparent",
-                transition:"all 0.1s" }}>
-              <div style={{ fontWeight:600, fontSize:13, color:_theme.text }}>{e.name}</div>
-              <div style={{ fontSize:11, color:ROLE_COLORS[e.role]||_theme.textMuted }}>{e.role}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Detail panel */}
-        {!emp ? (
-          <div style={{ ...CRD(), textAlign:"center", padding:"60px 20px", color:_theme.textMuted }}>
-            <div style={{ fontSize:40, marginBottom:12 }}>👤</div>
-            <div style={{ fontWeight:600 }}>Select an employee to view attendance history</div>
-          </div>
-        ) : (
-          <div>
-            {/* Employee header */}
-            <div style={{ ...CRD({padding:"14px 18px"}), marginBottom:12,
-              borderRight:`4px solid ${ROLE_COLORS[emp.role]||"#64748B"}` }}>
-              <div style={{ fontWeight:800, fontSize:16, color:_theme.text }}>{emp.name}</div>
-              <div style={{ fontSize:12, color:ROLE_COLORS[emp.role]||_theme.textMuted, fontWeight:600 }}>
-                {ROLE_ICONS[emp.role]} {emp.role}
-              </div>
-            </div>
-
-            {/* KPI strip */}
-            {stats && (
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))", gap:8, marginBottom:14 }}>
-                {[
-                  ["Work Days",  stats.workDays,                        "#3B82F6"],
-                  ["Present",        stats.present,                         "#10B981"],
-                  ["Absent",        stats.absent,                          "#EF4444"],
-                  ["Late",        stats.late,                            "#F59E0B"],
-                  ["Early Leave", stats.earlyLeave,                     "#8B5CF6"],
-                  ["Attendance Rate", stats.attRate+"%",                     "#0EA5E9"],
-                  ["Total Late", stats.totalLateMin+"m",            "#EC4899"],
-                  ["Avg Work", Math.floor(stats.avgWork/60)+"h "+stats.avgWork%60+"m", "#14B8A6"],
-                ].map(([l,v,c])=>(
-                  <div key={l} style={{ ...CRD({padding:"10px 12px"}), borderTop:`3px solid ${c}` }}>
-                    <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600, marginBottom:2 }}>{l}</div>
-                    <div style={{ fontSize:20, fontWeight:800, color:c }}>{v}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Monthly calendar grid */}
-            <div style={{ ...CRD({padding:0}), overflowX:"auto" }}>
-              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
-                <thead>
-                  <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
-                    {["Date","Day","Shift","Status","In","Out","Late","Duration","Note"].map(h=>(
-                      <th key={h} style={{ padding:"9px 8px", textAlign:"right", fontWeight:700,
-                        color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {dates.map((d,ri) => {
-                    const dayName = DAYS[new Date(d+"T12:00:00").getDay()];
-                    const sid     = (schedule[emp.id]||{})[dayName];
-                    const sh      = shifts.find(s=>s.id===sid);
-                    const isOff   = !sid || sid==="OFF";
-                    const isWknd  = dayName==="Friday" || dayName==="Saturday";
-                    const att     = ((attendance[d]||{})[emp.id]) || null;
-                    const status  = att?.status || (isOff?"Day Off":"Present");
-                    const today   = d === todayStr();
-                    return (
-                      <tr key={d} style={{
-                        background: today ? _theme.primary+"18" :
-                                    isOff ? _theme.surface :
-                                    ri%2===0 ? _theme.card : _theme.surface,
-                        opacity: isOff ? 0.6 : 1
-                      }}>
-                        <td style={{ padding:"7px 8px", fontWeight: today?700:400,
-                          color: today?_theme.primary:_theme.text }}>{d.slice(5)}</td>
-                        <td style={{ padding:"7px 8px", color:isWknd?"#EF4444":_theme.textSub, fontWeight:600 }}>
-                          {dayName.slice(0,3)}
-                        </td>
-                        <td style={{ padding:"7px 8px" }}>
-                          {sh ? <span style={{ background:sh.color+"22", color:sh.color,
-                            border:`1px solid ${sh.color}40`, borderRadius:5, padding:"1px 7px",
-                            fontSize:10, fontWeight:700 }}>{sh.label}</span>
-                          : <span style={{ color:_theme.textMuted, fontSize:11 }}>—</span>}
-                        </td>
-                        <td style={{ padding:"7px 8px" }}>
-                          <span style={{ color:statusColor(status), fontWeight:700, fontSize:12 }}>
-                            {statusIcon(status)} {status}
-                          </span>
-                        </td>
-                        <td style={{ padding:"7px 8px", color:_theme.textSub, fontSize:11 }}>{att?.checkIn||"—"}</td>
-                        <td style={{ padding:"7px 8px", color:_theme.textSub, fontSize:11 }}>{att?.checkOut||"—"}</td>
-                        <td style={{ padding:"7px 8px", color:(att?.lateMin||0)>=7?"#EF4444":"#94A3B8",
-                          fontWeight:600, fontSize:11 }}>
-                          {att?.lateMin > 0 ? att.lateMin+"m" : "—"}
-                        </td>
-                        <td style={{ padding:"7px 8px", fontSize:11,
-                          color: att?.workDuration ? "#10B981" : _theme.textMuted }}>
-                          {att?.workDuration
-                            ? Math.floor(att.workDuration/60)+"h "+att.workDuration%60+"m"
-                            : "—"}
-                        </td>
-                        <td style={{ padding:"7px 8px", color:_theme.textMuted, fontSize:11,
-                          maxWidth:140, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                          {att?.note||"—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── LEAVE REQUEST SYSTEM ────────────────────────────────────────────────────
-// Employees submit requests, supervisors approve/reject from Attendance page
-function LeaveRequestsPanel({ session, employees, schedule, setSchedule, notes, setNotes, canEdit }) {
-  const [showForm, setShowForm]   = useState(false);
-  const [startDate, setStartDate] = useState(todayStr());
-  const [endDate, setEndDate]     = useState(todayStr());
-  const [reason, setReason]       = useState("");
-  const [saved, setSaved]         = useState("");
-
-  // Who can submit leave requests: Team Lead + Shift Leader + Owner only
-  // Agent and SME cannot submit leave requests
-  const myRole = session?.role;
-  const canSubmitLeave = myRole === "Team Lead" || myRole === "Shift Leader" ||
-                         (session && isOwnerUser(session));
-
-  // Leave requests stored as notes with tag "Leave Request"
-  const allRequests = (Array.isArray(notes)?notes:[])
-    .filter(n => n.tag === "Leave Request")
-    .sort((a,b) => b.ts.localeCompare(a.ts));
-
-  // Supervisors see all; others see only their own
-  const myName = session?.name;
-  const visibleRequests = canEdit
-    ? allRequests
-    : allRequests.filter(r => r.from === myName);
-
-  // If user cannot submit and has no requests to show — hide panel entirely
-  if (!canSubmitLeave && !canEdit && visibleRequests.length === 0) return null;
-
-  const pending  = visibleRequests.filter(r => r.leaveStatus === "pending");
-  const approved = visibleRequests.filter(r => r.leaveStatus === "approved");
-  const rejected = visibleRequests.filter(r => r.leaveStatus === "rejected");
-
-  // Only canSubmitLeave users can submit
-  function submitRequest() {
-    if (!canSubmitLeave) return;
-    if (!startDate || !endDate || !reason.trim()) { setSaved("❌ Enter date and reason"); return; }
-    if (endDate < startDate) { setSaved("❌ End date before start date"); return; }
-    const req = {
-      id: "lr"+Date.now(), ts: new Date().toISOString(),
-      date: startDate, time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
-      tag: "Leave Request", text: reason.trim(),
-      from: myName, target: "all",
-      leaveStatus: "pending",
-      leaveStart: startDate, leaveEnd: endDate,
-      msgType: "leave",
+  function awardBadgeManually() {
+    if (!awardEmp || !awardBadge) { setAwardDone("❌ Select employee and badge"); return; }
+    const badge = BADGES.find(b=>b.id===awardBadge);
+    const emp   = employees.find(e=>e.id===awardEmp);
+    const award = {
+      id: "ba"+Date.now(),
+      ts: new Date().toISOString(),
+      date: todayStr(),
+      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag: "Badge Award",
+      text: JSON.stringify({ empId:awardEmp, badgeId:awardBadge, note:awardNote, awardedBy:session?.name }),
+      from: session?.name||"",
+      target: awardEmp,
+      msgType: "badge",
     };
-    setNotes(prev => [req, ...(Array.isArray(prev)?prev:[])]);
-    setSaved("✅ Request sent — awaiting approval");
-    setReason(""); setShowForm(false);
-    setTimeout(() => setSaved(""), 3000);
+    setNotes(prev=>[award,...(Array.isArray(prev)?prev:[])]);
+    setAwardDone(`✅ "${badge?.name}" awarded to ${emp?.name}!`);
+    setAwardEmp(""); setAwardBadge(""); setAwardNote("");
+    setTimeout(()=>setAwardDone(""),4000);
   }
 
-  function approveRequest(req) {
-    // Mark approved
-    setNotes(prev => (Array.isArray(prev)?prev:[]).map(n =>
-      n.id===req.id ? {...n, leaveStatus:"approved", approvedBy:myName} : n
-    ));
-    // Apply LEAVE to schedule for each day in range
-    const emp = employees.find(e => e.name === req.from);
-    if (!emp) return;
-    const d = new Date(req.leaveStart+"T12:00:00");
-    const end = new Date(req.leaveEnd+"T12:00:00");
-    const updates = { ...(schedule[emp.id]||{}) };
-    while (d <= end) {
-      const dayName = DAYS[d.getDay()];
-      updates[dayName] = "LEAVE";
-      d.setDate(d.getDate()+1);
-    }
-    setSchedule(prev => ({ ...prev, [emp.id]: updates }));
-  }
-
-  function rejectRequest(req) {
-    setNotes(prev => (Array.isArray(prev)?prev:[]).map(n =>
-      n.id===req.id ? {...n, leaveStatus:"rejected", rejectedBy:myName} : n
-    ));
-  }
-
-  function deleteRequest(id) {
-    setNotes(prev => (Array.isArray(prev)?prev:[]).filter(n => n.id!==id));
-  }
-
-  function statusBadge(status) {
-    const map = {
-      pending:  { bg:"#FEF3C7", color:"#B45309", label:"Pending ⏳" },
-      approved: { bg:"#F0FDF4", color:"#166534", label:"Approved ✅" },
-      rejected: { bg:"#FEF2F2", color:"#991B1B", label:"Rejected ❌" },
-    };
-    const cfg = map[status] || map.pending;
-    return (
-      <span style={{ background:cfg.bg, color:cfg.color,
-        borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>
-        {cfg.label}
-      </span>
-    );
-  }
-
-  return (
-    <div style={{ ...CRD(), marginTop:16 }}>
-      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
-        <span style={{ fontSize:16 }}>🏖️</span>
-        <span style={{ fontWeight:800, fontSize:14, color:_theme.text }}>Leave Requests</span>
-        {pending.length > 0 && (
-          <span style={{ background:"#FEF3C7", color:"#B45309", border:"1px solid #FCD34D",
-            borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>
-            {pending.length} pending
-          </span>
-        )}
-        <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
-          {canSubmitLeave && (
-            <button onClick={()=>setShowForm(s=>!s)}
-              style={{ ...PBT("#10B981",{padding:"6px 14px",fontSize:12}) }}>
-              {showForm ? "✕ Close" : "+ New Leave Request"}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Request form (employees only) */}
-      {showForm && !canEdit && (
-        <div style={{ background:_theme.surface, borderRadius:10, padding:"14px 16px",
-          marginBottom:14, border:`1px solid ${_theme.cardBorder}` }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
-            <div>
-              <label style={{ ...LBL }}>From</label>
-              <input type="date" value={startDate} onChange={e=>setStartDate(e.target.value)} style={I()}/>
-            </div>
-            <div>
-              <label style={{ ...LBL }}>To</label>
-              <input type="date" value={endDate} onChange={e=>setEndDate(e.target.value)} style={I()}/>
-            </div>
-          </div>
-          <label style={{ ...LBL }}>Leave Reason</label>
-          <textarea value={reason} onChange={e=>setReason(e.target.value)} rows={2}
-            style={{ ...I({resize:"vertical",marginBottom:10}) }}
-            placeholder="State leave reason..."/>
-          <button onClick={submitRequest} style={{ ...PBT("#10B981",{width:"100%"}) }}>
-            📤 Submit
-          </button>
-          {saved && <div style={{ marginTop:8, fontSize:12, color:saved.startsWith("✅")?"#10B981":"#EF4444",
-            fontWeight:600 }}>{saved}</div>}
-        </div>
-      )}
-
-      {/* Pending requests (supervisors see approve/reject) */}
-      {pending.length > 0 && (
-        <div style={{ marginBottom:14 }}>
-          <div style={{ fontSize:12, fontWeight:700, color:"#B45309", marginBottom:8 }}>⏳ Pending ({pending.length})</div>
-          {pending.map(r => (
-            <div key={r.id} style={{ background:"#FEF3C720", border:"1px solid #FCD34D",
-              borderRadius:10, padding:"12px 14px", marginBottom:8 }}>
-              <div style={{ display:"flex", alignItems:"flex-start", gap:10, flexWrap:"wrap" }}>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontWeight:700, fontSize:13, color:_theme.text }}>
-                    {r.from} {statusBadge(r.leaveStatus)}
-                  </div>
-                  <div style={{ fontSize:11, color:_theme.textMuted, marginTop:3 }}>
-                    📅 {r.leaveStart} → {r.leaveEnd}
-                    {r.leaveStart !== r.leaveEnd && ` (${Math.ceil((new Date(r.leaveEnd)-new Date(r.leaveStart))/(864e5))+1} days)`}
-                  </div>
-                  <div style={{ fontSize:12, color:_theme.text, marginTop:5 }}>{r.text}</div>
-                </div>
-                {canEdit && (
-                  <div style={{ display:"flex", gap:6, flexShrink:0 }}>
-                    <button onClick={()=>approveRequest(r)}
-                      style={{ ...PBT("#10B981",{padding:"5px 12px",fontSize:12}) }}>✅ Approve</button>
-                    <button onClick={()=>rejectRequest(r)}
-                      style={{ ...PBT("#EF4444",{padding:"5px 12px",fontSize:12}) }}>❌ Reject</button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* History */}
-      {[...approved, ...rejected].length > 0 && (
-        <div>
-          <div style={{ fontSize:12, fontWeight:700, color:_theme.textMuted, marginBottom:8 }}>History</div>
-          {[...approved, ...rejected].slice(0,10).map(r => (
-            <div key={r.id} style={{ display:"flex", alignItems:"center", gap:10,
-              padding:"8px 12px", borderBottom:`1px solid ${_theme.cardBorder}20`,
-              borderRadius:8, marginBottom:4,
-              background: r.leaveStatus==="approved"?"#F0FDF408":"#FEF2F208" }}>
-              <div style={{ flex:1 }}>
-                <span style={{ fontWeight:600, fontSize:12, color:_theme.text }}>{r.from}</span>
-                <span style={{ fontSize:11, color:_theme.textMuted, marginRight:6 }}>
-                  {" "}· {r.leaveStart} → {r.leaveEnd}
-                </span>
-                {statusBadge(r.leaveStatus)}
-              </div>
-              {canEdit && (
-                <button onClick={()=>deleteRequest(r.id)}
-                  style={{ background:"none", border:`1px solid ${_theme.cardBorder}`,
-                    color:_theme.textMuted, borderRadius:5, padding:"2px 7px",
-                    cursor:"pointer", fontSize:11 }}>✕</button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {visibleRequests.length === 0 && (
-        <div style={{ textAlign:"center", padding:"24px", color:_theme.textMuted, fontSize:13 }}>
-          <div style={{ fontSize:32, marginBottom:8 }}>🏖️</div>
-          No leave requests {canEdit ? "" : "— click + to request leave"}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── CHART HELPERS (SVG, zero dependencies) ───────────────────────────────────
-function SparkBar({ values, color="#3B82F6", height=40, width=120 }) {
-  if (!values || values.length === 0) return null;
-  const max   = Math.max(...values, 1);
-  const bw    = Math.floor(width / values.length) - 2;
-  const bwMin = Math.max(bw, 3);
-  return (
-    <svg width={width} height={height} style={{ display:"block" }}>
-      {values.map((v, i) => {
-        const bh = Math.round((v / max) * (height - 4)) || 1;
-        const x  = i * (bwMin + 2);
-        const y  = height - bh;
-        return (
-          <g key={i}>
-            <rect x={x} y={y} width={bwMin} height={bh}
-              fill={color} rx={2} opacity={0.85}/>
-            {bh > 12 && (
-              <text x={x + bwMin/2} y={y + bh - 3}
-                textAnchor="middle" fontSize={9} fill="#fff" fontWeight="bold">
-                {v}
-              </text>
-            )}
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
-function SparkLine({ values, color="#10B981", height=36, width=120 }) {
-  if (!values || values.length < 2) return null;
-  const max  = Math.max(...values, 1);
-  const step = width / (values.length - 1);
-  const pts  = values.map((v,i) => `${Math.round(i*step)},${Math.round(height - (v/max)*(height-4) - 2)}`).join(" ");
-  const last = values[values.length-1];
-  const lx   = Math.round((values.length-1)*step);
-  const ly   = Math.round(height - (last/max)*(height-4) - 2);
-  return (
-    <svg width={width} height={height} style={{ display:"block" }}>
-      <polyline points={pts} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round"/>
-      <circle cx={lx} cy={ly} r={3} fill={color}/>
-      <text x={lx+5} y={ly+4} fontSize={10} fill={color} fontWeight="bold">{last}</text>
-    </svg>
-  );
-}
-
-function DonutChart({ value, max=100, color="#3B82F6", size=64, label="" }) {
-  const pct  = Math.min(100, Math.max(0, Math.round((value/max)*100)));
-  const r    = (size-8)/2;
-  const circ = 2 * Math.PI * r;
-  const dash = (pct/100) * circ;
-  return (
-    <div style={{ position:"relative", width:size, height:size }}>
-      <svg width={size} height={size} style={{ transform:"rotate(-90deg)" }}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none"
-          stroke={color+"30"} strokeWidth={6}/>
-        <circle cx={size/2} cy={size/2} r={r} fill="none"
-          stroke={color} strokeWidth={6}
-          strokeDasharray={`${dash} ${circ}`}
-          strokeLinecap="round"/>
-      </svg>
-      <div style={{ position:"absolute", inset:0, display:"flex",
-        flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-        <span style={{ fontSize:13, fontWeight:800, color }}>{pct}%</span>
-        {label && <span style={{ fontSize:9, color:"#94A3B8" }}>{label}</span>}
-      </div>
-    </div>
-  );
-}
-
-// ─── KPI DASHBOARD PAGE ───────────────────────────────────────────────────────
-// Supervisors set personal KPI targets; system tracks progress automatically
-function KPIDashboardPage({ employees, schedule, attendance, performance, session }) {
-  const todayKey = todayStr();
-  const [targets, setTargets] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("csops_kpi_targets")||"{}"); } catch { return {}; }
-  });
-  const [editMode, setEditMode] = useState(false);
-  const [draft, setDraft]       = useState({});
-
-  // Default KPI targets
-  const DEFAULT_TARGETS = {
-    dailyClosed:    50,
-    maxEscRate:     5,   // % max escalation rate
-    minAttRate:     90,  // % min attendance
-    maxAvgLate:     10,  // minutes avg lateness
-    maxAbsent:      3,   // count
-  };
-  const T = { ...DEFAULT_TARGETS, ...targets };
-
-  // Today's actuals
-  const dayName    = DAYS[new Date().getDay()];
-  const todayEmps  = employees.filter(e=>{ const v=(schedule[e.id]||{})[dayName]; return v&&v!=="OFF"; });
-  const todayAtt   = attendance[todayKey] || {};
-  const todayPerf  = performance[todayKey] || {};
-
-  const totalClosed   = Object.values(todayPerf).reduce((s,p)=>s+(p.closed||0),0);
-  const totalEsc      = Object.values(todayPerf).reduce((s,p)=>s+(p.escalations||0),0);
-  const presentCount  = Object.values(todayAtt).filter(a=>isPresent(a.status)).length;
-  const absentCount   = Object.values(todayAtt).filter(a=>isAbsent(a.status)).length;
-  const lateArr       = Object.values(todayAtt).filter(a=>a.lateMin>0);
-  const avgLate       = lateArr.length > 0 ? Math.round(lateArr.reduce((s,a)=>s+(a.lateMin||0),0)/lateArr.length) : 0;
-  const attRate       = todayEmps.length > 0 ? Math.round((presentCount/todayEmps.length)*100) : 100;
-  const escRate       = totalClosed > 0 ? Math.round((totalEsc/totalClosed)*100) : 0;
-
-  function saveTargets() {
-    setTargets(draft);
-    localStorage.setItem("csops_kpi_targets", JSON.stringify(draft));
-    setEditMode(false);
-  }
-
-  function openEdit() {
-    setDraft({...T});
-    setEditMode(true);
-  }
-
-  const kpis = [
-    {
-      id:"dailyClosed", label:"Daily Closed Cases", icon:"✅",
-      actual:totalClosed, target:T.dailyClosed, unit:"cases",
-      color:"#10B981", higherBetter:true,
-    },
-    {
-      id:"maxEscRate", label:"Escalation Rate", icon:"⚠️",
-      actual:escRate, target:T.maxEscRate, unit:"%",
-      color:"#F59E0B", higherBetter:false,
-    },
-    {
-      id:"minAttRate", label:"Attendance Rate", icon:"👥",
-      actual:attRate, target:T.minAttRate, unit:"%",
-      color:"#3B82F6", higherBetter:true,
-    },
-    {
-      id:"maxAvgLate", label:"Avg Late", icon:"⏰",
-      actual:avgLate, target:T.maxAvgLate, unit:"min",
-      color:"#8B5CF6", higherBetter:false,
-    },
-    {
-      id:"maxAbsent", label:"Daily Absences", icon:"❌",
-      actual:absentCount, target:T.maxAbsent, unit:"employees",
-      color:"#EF4444", higherBetter:false,
-    },
-  ];
-
-  function getStatus(kpi) {
-    if (kpi.higherBetter) return kpi.actual >= kpi.target ? "achieved" : kpi.actual >= kpi.target*0.8 ? "close" : "behind";
-    else return kpi.actual <= kpi.target ? "achieved" : kpi.actual <= kpi.target*1.2 ? "close" : "behind";
-  }
-
-  const statusConfig = {
-    achieved: { color:"#10B981", bg:"#F0FDF4", label:"✅ Achieved",   ring:"#10B981" },
-    close:    { color:"#F59E0B", bg:"#FEF9C3", label:"⚡ Close",    ring:"#F59E0B" },
-    behind:   { color:"#EF4444", bg:"#FEF2F2", label:"❌ Behind",   ring:"#EF4444" },
-  };
-
-  const achieved = kpis.filter(k=>getStatus(k)==="achieved").length;
+  const topEmp = empData[0];
+  const maxPts = topEmp?.pts || 1;
 
   return (
     <div>
       {/* Header */}
       <div style={SBR()}>
-        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🎯 KPI Dashboard</span>
-        <span style={{ fontSize:12, color:_theme.textMuted }}>
-          {new Date().toLocaleDateString("ar-SA",{weekday:"long",year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Riyadh"})}
-        </span>
-        <div style={{ marginLeft:"auto", display:"flex", gap:8, alignItems:"center" }}>
-          <span style={{ background:"#F0FDF4", color:"#10B981", border:"1px solid #86EFAC",
-            borderRadius:20, padding:"3px 12px", fontSize:12, fontWeight:700 }}>
-            {achieved}/{kpis.length} achieved
-          </span>
-          <button onClick={openEdit}
-            style={{ ...PBT("#6366F1",{padding:"6px 14px",fontSize:12}) }}>
-            ⚙️ Edit Targets
-          </button>
+        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>🏅 Gamification — Badges & Points</span>
+        <input value={search} onChange={e=>setSearch(e.target.value)}
+          style={{ ...I({width:180}) }} placeholder="🔍 Search employee..."/>
+        <div style={{ display:"flex", gap:6 }}>
+          {[["leaderboard","🏆 Leaderboard"],["badges","🎖️ All Badges"],canEdit?["award","🎁 Award Badge"]:null]
+            .filter(Boolean).map(([k,l])=>(
+            <button key={k} onClick={()=>setTab(k)}
+              style={{ border:`2px solid ${tab===k?_theme.primary:"#CBD5E1"}`,
+                borderRadius:20, padding:"5px 14px", fontSize:12, cursor:"pointer",
+                fontWeight:700, background:tab===k?_theme.primary:"transparent",
+                color:tab===k?"#fff":_theme.textSub }}>{l}</button>
+          ))}
         </div>
       </div>
 
-      {/* Edit targets modal */}
-      {editMode && (
-        <div style={{ ...CRD(), marginBottom:16, border:`2px solid #6366F1` }}>
-          <div style={{ fontWeight:700, color:_theme.text, marginBottom:12 }}>⚙️ Edit KPI Targets</div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))", gap:12, marginBottom:14 }}>
-            {kpis.map(k=>(
-              <div key={k.id}>
-                <label style={{ fontSize:11, fontWeight:700, color:_theme.textSub, display:"block", marginBottom:4 }}>
-                  {k.icon} {k.label} (target)
-                </label>
-                <input type="number" min="0" value={draft[k.id]||""}
-                  onChange={e=>setDraft(p=>({...p,[k.id]:Number(e.target.value)}))}
-                  style={{ ...I({width:"100%"}) }} placeholder={String(T[k.id])}/>
-              </div>
-            ))}
+      {/* ── Leaderboard Tab ── */}
+      {tab==="leaderboard" && (
+        <div>
+          {/* Top 3 podium */}
+          {empData.slice(0,3).some(e=>e.pts>0) && (
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1.2fr 1fr", gap:10, marginBottom:20, alignItems:"flex-end" }}>
+              {[empData[1], empData[0], empData[2]].map((e,pi) => {
+                if (!e) return <div key={pi}/>;
+                const podiumH = [100, 130, 85][pi];
+                const medals  = ["🥈","🥇","🥉"];
+                const colors  = ["#94A3B8","#F59E0B","#CD7F32"];
+                return (
+                  <div key={e.id} style={{ ...CRD({padding:"14px 10px"}), textAlign:"center",
+                    borderTop:`4px solid ${colors[pi]}`,
+                    background:`linear-gradient(180deg,${colors[pi]}15,${_theme.card})` }}>
+                    <div style={{ fontSize:28, marginBottom:4 }}>{medals[pi]}</div>
+                    <div style={{ fontWeight:800, fontSize:13, color:_theme.text, marginBottom:4 }}>{e.name}</div>
+                    <BadgesDisplay badgeIds={e.badges} size="small"/>
+                    <div style={{ fontSize:22, fontWeight:900, color:colors[pi], marginTop:6 }}>
+                      {e.pts.toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:false})}
+                      <span style={{ fontSize:11, fontWeight:600, color:_theme.textMuted }}> pts</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Full ranking table */}
+          <div style={{ ...CRD({padding:0}), overflowX:"auto" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+              <thead>
+                <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+                  {["Rank","Employee","Role","Badges","Total Points","Today's Cases","Bar"].map(h=>(
+                    <th key={h} style={{ padding:"10px 10px", textAlign:"left", fontWeight:700,
+                      color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`,
+                      whiteSpace:"nowrap" }}>{h}</th>
+                  ))}
+                 </thead>
+              <tbody>
+                {filtered.map((e,ri) => {
+                  const pct = maxPts > 0 ? (e.pts/maxPts)*100 : 0;
+                  const isMe = e.name === session?.name;
+                  return (
+                    <tr key={e.id} style={{
+                      background: isMe ? _theme.primary+"12" : ri%2===0?_theme.card:_theme.surface,
+                      borderLeft: isMe?`3px solid ${_theme.primary}`:"3px solid transparent"
+                    }}>
+                      <td style={{ padding:"8px 10px", fontWeight:800, fontSize:14,
+                        color:ri===0?"#F59E0B":ri===1?"#94A3B8":ri===2?"#CD7F32":_theme.textMuted }}>
+                        {ri===0?"🥇":ri===1?"🥈":ri===2?"🥉":`#${ri+1}`}
+                       </td>
+                      <td style={{ padding:"8px 10px", fontWeight:600, color:_theme.text }}>
+                        {e.name}
+                        {isMe && <span style={{ fontSize:10, color:_theme.primary,
+                          background:_theme.primary+"18", borderRadius:10,
+                          padding:"1px 6px", marginLeft:5 }}>You</span>}
+                       </td>
+                      <td style={{ padding:"8px 10px" }}>
+                        <span style={{ fontSize:10, fontWeight:700,
+                          color:ROLE_COLORS[e.role]||"#64748B",
+                          background:(ROLE_COLORS[e.role]||"#64748B")+"18",
+                          borderRadius:4, padding:"1px 5px" }}>
+                          {ROLE_ICONS[e.role]} {e.role}
+                        </span>
+                       </td>
+                      <td style={{ padding:"8px 10px" }}>
+                        <BadgesDisplay badgeIds={e.badges} size="small"/>
+                        {e.badges.length===0 && <span style={{ fontSize:11, color:_theme.textMuted }}>—</span>}
+                       </td>
+                      <td style={{ padding:"8px 10px", fontWeight:800,
+                        color: e.pts>=500?"#F59E0B":e.pts>=200?"#3B82F6":_theme.text,
+                        fontSize:14 }}>
+                        {e.pts.toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:false})}
+                       </td>
+                      <td style={{ padding:"8px 10px", color:"#10B981", fontWeight:700 }}>
+                        {e.todayPerf.closed||0}
+                       </td>
+                      <td style={{ padding:"8px 20px 8px 10px", minWidth:120 }}>
+                        <div style={{ background:_theme.surface, borderRadius:20, height:8, overflow:"hidden" }}>
+                          <div style={{ height:"100%", borderRadius:20,
+                            width:`${pct}%`, transition:"width 0.5s",
+                            background: pct>80?"#F59E0B":pct>50?"#3B82F6":"#10B981" }}/>
+                        </div>
+                       </td>
+                     </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-          <div style={{ display:"flex", gap:8 }}>
-            <button onClick={saveTargets} style={{ ...PBT("#10B981",{flex:1}) }}>💾 Save Targets</button>
-            <button onClick={()=>setEditMode(false)} style={{ ...PBT("#94A3B8",{padding:"8px 16px"}) }}>Cancel</button>
+
+          {/* Points key */}
+          <div style={{ ...CRD({padding:"10px 14px"}), marginTop:10, fontSize:11,
+            color:_theme.textMuted, display:"flex", gap:16, flexWrap:"wrap" }}>
+            <span style={{ fontWeight:700, color:_theme.text }}>Points Key:</span>
+            <span>✅ Closed case = <strong>+10pts</strong></span>
+            <span>🎯 Quality ≥90% = <strong>+50pts</strong></span>
+            <span>🎯 Quality ≥75% = <strong>+20pts</strong></span>
+            <span>📅 Present = <strong>+5pts</strong></span>
+            <span>⏰ On-time = <strong>+3pts</strong></span>
+            <span>⚠️ Escalation = <strong>−5pts</strong></span>
+            <span>❌ Absent = <strong>−10pts</strong></span>
           </div>
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))", gap:14, marginBottom:20 }}>
-        {kpis.map(kpi=>{
-          const status = getStatus(kpi);
-          const cfg    = statusConfig[status];
-          const pct    = kpi.higherBetter
-            ? Math.min(100, Math.round((kpi.actual/kpi.target)*100))
-            : Math.min(100, Math.round((kpi.target/Math.max(kpi.actual,1))*100));
-          return (
-            <div key={kpi.id} style={{ ...CRD({padding:"16px 18px"}),
-              borderTop:`4px solid ${cfg.ring}`,
-              background: cfg.bg }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
-                <div>
-                  <div style={{ fontSize:11, fontWeight:700, color:"#6B7280", marginBottom:4 }}>{kpi.icon} {kpi.label}</div>
-                  <div style={{ fontSize:32, fontWeight:900, color:cfg.color, lineHeight:1 }}>
-                    {kpi.actual}<span style={{ fontSize:13, fontWeight:600, marginRight:3 }}>{kpi.unit}</span>
-                  </div>
-                  <div style={{ fontSize:11, color:"#6B7280", marginTop:4 }}>
-                    Target: {kpi.target} {kpi.unit}
+      {/* ── All Badges Tab ── */}
+      {tab==="badges" && (
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:12 }}>
+          {BADGES.map(b => {
+            const rc = RARITY_COLORS[b.rarity];
+            const holders = empData.filter(e=>e.badges.includes(b.id));
+            return (
+              <div key={b.id} style={{ ...CRD({padding:"14px 16px"}),
+                border:`2px solid ${rc.border}`, background:rc.bg }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
+                  <span style={{ fontSize:28 }}>{b.icon}</span>
+                  <div>
+                    <div style={{ fontWeight:800, fontSize:13, color:rc.text }}>{b.name}</div>
+                    <div style={{ fontSize:10, fontWeight:700, color:rc.border,
+                      textTransform:"uppercase" }}>{b.rarity}</div>
                   </div>
                 </div>
-                <DonutChart value={pct} max={100} color={cfg.ring} size={60}/>
+                <div style={{ fontSize:12, color:_theme.textSub, marginBottom:8 }}>{b.desc}</div>
+                {holders.length > 0 ? (
+                  <div>
+                    <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600, marginBottom:4 }}>
+                      Earned by ({holders.length}):
+                    </div>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
+                      {holders.map(e=>(
+                        <span key={e.id} style={{ fontSize:10, background:rc.border+"22",
+                          color:rc.text, borderRadius:10, padding:"1px 6px",
+                          fontWeight:600 }}>{e.name}</span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize:11, color:_theme.textMuted, fontStyle:"italic" }}>
+                    Not yet earned by anyone
+                  </div>
+                )}
               </div>
-              <div style={{ background:"#E5E7EB", borderRadius:10, height:6, overflow:"hidden" }}>
-                <div style={{ width:`${pct}%`, height:"100%", background:cfg.ring,
-                  borderRadius:10, transition:"width 0.5s" }}/>
-              </div>
-              <div style={{ marginTop:6, fontSize:12, fontWeight:700, color:cfg.color }}>{cfg.label}</div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Top performers today */}
-      <div style={{ ...CRD() }}>
-        <div style={{ fontWeight:700, color:_theme.text, marginBottom:12, fontSize:13 }}>
-          ⚡ Top Performer Today
+            );
+          })}
         </div>
-        {(() => {
-          const ranked = todayEmps
-            .map(e=>({ ...e, closed:(performance[todayKey]||{})[e.id]?.closed||0 }))
-            .filter(e=>e.closed>0)
-            .sort((a,b)=>b.closed-a.closed)
-            .slice(0,5);
-          if (ranked.length===0) return (
-            <div style={{ color:_theme.textMuted, textAlign:"center", padding:"16px", fontSize:13 }}>
-              No performance data yet
+      )}
+
+      {/* ── Award Badge Tab (supervisors only) ── */}
+      {tab==="award" && canEdit && (
+        <div style={{ maxWidth:500 }}>
+          <div style={{ ...CRD({padding:"16px 18px"}), marginBottom:16,
+            background:"rgba(99,102,241,0.05)", border:"1px solid #6366F140" }}>
+            <div style={{ fontWeight:700, fontSize:13, color:_theme.text, marginBottom:14 }}>
+              🎁 Manually Award a Badge
             </div>
-          );
-          return ranked.map((e,i)=>(
-            <div key={e.id} style={{ display:"flex", alignItems:"center", gap:10,
-              padding:"8px 0", borderBottom:`1px solid ${_theme.cardBorder}20` }}>
-              <span style={{ fontSize:20 }}>{"🥇🥈🥉🏅🏅"[i]}</span>
-              <div style={{ flex:1 }}>
-                <div style={{ fontWeight:700, fontSize:13, color:_theme.text }}>{e.name}</div>
-                <div style={{ fontSize:11, color:ROLE_COLORS[e.role]||_theme.textMuted }}>{e.role}</div>
+            <div style={{ marginBottom:12 }}>
+              <label style={LBL}>Select Employee</label>
+              <select value={awardEmp} onChange={e=>setAwardEmp(e.target.value)} style={{ ...I({width:"100%"}) }}>
+                <option value="">— Choose employee —</option>
+                {employees.map(e=><option key={e.id} value={e.id}>{e.name} ({e.role})</option>)}
+              </select>
+            </div>
+            <div style={{ marginBottom:12 }}>
+              <label style={LBL}>Select Badge</label>
+              <select value={awardBadge} onChange={e=>setAwardBadge(e.target.value)} style={{ ...I({width:"100%"}) }}>
+                <option value="">— Choose badge —</option>
+                {BADGES.map(b=><option key={b.id} value={b.id}>{b.icon} {b.name}</option>)}
+              </select>
+            </div>
+            {awardBadge && (
+              <div style={{ ...CRD({padding:"10px 12px"}), marginBottom:12,
+                border:`1px solid ${RARITY_COLORS[BADGES.find(b=>b.id===awardBadge)?.rarity||"blue"].border}` }}>
+                <div style={{ fontSize:11, color:_theme.textMuted }}>
+                  {BADGES.find(b=>b.id===awardBadge)?.desc}
+                </div>
               </div>
-              <div style={{ fontWeight:800, fontSize:16, color:"#10B981" }}>{e.closed} cases</div>
-              <SparkBar values={[e.closed]} color="#10B981" height={28} width={40}/>
+            )}
+            <div style={{ marginBottom:12 }}>
+              <label style={LBL}>Note (optional)</label>
+              <input value={awardNote} onChange={e=>setAwardNote(e.target.value)}
+                style={{ ...I({width:"100%"}) }} placeholder="Why are you awarding this badge?"/>
             </div>
-          ));
-        })()}
-      </div>
+            {awardDone && (
+              <div style={{ padding:"10px 12px", borderRadius:8, marginBottom:10,
+                background:awardDone.startsWith("✅")?"#F0FDF4":"#FEF2F2",
+                color:awardDone.startsWith("✅")?"#166534":"#EF4444",
+                fontWeight:600, fontSize:13 }}>{awardDone}</div>
+            )}
+            <button onClick={awardBadgeManually}
+              style={{ ...PBT("#6366F1",{width:"100%",padding:"11px"}) }}>
+              🎁 Award Badge
+            </button>
+          </div>
+          <div style={{ ...CRD({padding:"12px 14px"}), fontSize:11, color:_theme.textMuted }}>
+            <div style={{ fontWeight:700, color:_theme.text, marginBottom:6 }}>Auto-awarded badges:</div>
+            Some badges are automatically detected from performance data.
+            Manual awards let you recognize exceptional moments that numbers don't capture.
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-// ─── ERROR BOUNDARY ──────────────────────────────────────────────────────────
-// Catches render errors in any page and shows a recovery screen
-// Must be a class component (React requirement for error boundaries)
-class ErrorBoundary extends React.Component {
-  constructor(props) { super(props); this.state = { error:null, info:null }; }
-  static getDerivedStateFromError(error) { return { error }; }
-  componentDidCatch(error, info) { this.setState({ info }); console.error("CS-Ops Error:", error, info); }
-  render() {
-    if (this.state.error) {
-      return (
-        <div style={{ padding:32, textAlign:"center", maxWidth:500, margin:"40px auto" }}>
-          <div style={{ fontSize:48, marginBottom:16 }}>⚠️</div>
-          <div style={{ fontWeight:800, fontSize:18, color:"#EF4444", marginBottom:8 }}>
-            An unexpected error occurred
-          </div>
-          <div style={{ fontSize:13, color:"#6B7280", marginBottom:8, fontFamily:"monospace",
-            background:"#FEF2F2", border:"1px solid #FCA5A5", borderRadius:8,
-            padding:"10px 14px", textAlign:"left", whiteSpace:"pre-wrap", wordBreak:"break-all" }}>
-            {this.state.error?.message || "Unknown error"}
-          </div>
-          <div style={{ fontSize:12, color:"#9CA3AF", marginBottom:20 }}>
-            This page encountered a problem. You can go back or reload.
-          </div>
-          <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
-            <button onClick={()=>this.setState({error:null,info:null})}
-              style={{ background:"#2563EB", color:"#fff", border:"none", borderRadius:8,
-                padding:"10px 20px", fontSize:13, cursor:"pointer", fontWeight:700 }}>
-              🔄 Try Again
-            </button>
-            <button onClick={()=>window.location.reload()}
-              style={{ background:"#6B7280", color:"#fff", border:"none", borderRadius:8,
-                padding:"10px 20px", fontSize:13, cursor:"pointer", fontWeight:700 }}>
-              ↺ Reload
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
 
 // ─── SURVEYS & POLLS SYSTEM ──────────────────────────────────────────────────
 // Survey & Polls System
@@ -8452,7 +7100,7 @@ function SurveyBuilderModal({ employees, session, setNotes, onClose }) {
                         style={{ width:22, height:22, borderRadius:"50%", flexShrink:0,
                           border:`2px solid ${q.correct===oi?"#10B981":"#CBD5E1"}`,
                           background:q.correct===oi?"#10B981":"transparent",
-                          cursor:"pointer" }}/>
+                          cursor:"pointer" }/>
                     )}
                     <input value={opt} onChange={e=>updateOpt(qi,oi,e.target.value)}
                       style={{ ...I({flex:1}) }} placeholder={`Option ${oi+1}`}/>
@@ -8938,409 +7586,6 @@ function SurveysPage({ employees, notes, setNotes, session, canEdit }) {
       {showBuilder && (
         <SurveyBuilderModal employees={employees} session={session}
           setNotes={setNotes} onClose={()=>setShowBuilder(false)}/>
-      )}
-    </div>
-  );
-}
-
-// ─── GAMIFICATION — BADGES & POINTS SYSTEM ───────────────────────────────────
-
-const BADGES = [
-  { id:"quality_champion",  icon:"🏆", name:"Quality Champion",   desc:"Quality score ≥ 90% for 5+ days",      color:"#F59E0B", rarity:"gold"   },
-  { id:"shift_savior",      icon:"🦸", name:"Shift Savior",        desc:"Closed 50+ cases in a single shift",   color:"#3B82F6", rarity:"blue"   },
-  { id:"fastest_response",  icon:"⚡", name:"Fastest Response",    desc:"0 escalations for 7 consecutive days", color:"#10B981", rarity:"green"  },
-  { id:"attendance_star",   icon:"⭐", name:"Attendance Star",     desc:"Perfect attendance for a full month",  color:"#8B5CF6", rarity:"purple" },
-  { id:"top_closer",        icon:"🎯", name:"Top Closer",          desc:"#1 in closed cases for the week",      color:"#EF4444", rarity:"red"    },
-  { id:"team_player",       icon:"🤝", name:"Team Player",         desc:"Highest peer recognition votes",       color:"#EC4899", rarity:"pink"   },
-  { id:"consistency_king",  icon:"👑", name:"Consistency King",    desc:"Above-average performance for 30 days",color:"#F59E0B", rarity:"gold"   },
-  { id:"zero_escalation",   icon:"🛡️", name:"Zero Escalation",    desc:"Zero escalations for 14 days",         color:"#10B981", rarity:"green"  },
-  { id:"early_bird",        icon:"🌅", name:"Early Bird",          desc:"On-time arrival for 20 consecutive days",color:"#0EA5E9",rarity:"blue"  },
-  { id:"century_club",      icon:"💯", name:"Century Club",        desc:"100+ cases closed in a single week",   color:"#6366F1", rarity:"purple" },
-];
-
-const RARITY_COLORS = {
-  gold:   { bg:"#FEF9C3", border:"#F59E0B", text:"#92400E" },
-  blue:   { bg:"#EFF6FF", border:"#3B82F6", text:"#1E40AF" },
-  green:  { bg:"#F0FDF4", border:"#10B981", text:"#065F46" },
-  purple: { bg:"#F5F3FF", border:"#8B5CF6", text:"#4C1D95" },
-  red:    { bg:"#FEF2F2", border:"#EF4444", text:"#991B1B" },
-  pink:   { bg:"#FDF2F8", border:"#EC4899", text:"#831843" },
-};
-
-// Calculate points for an employee from performance data
-function calcEmployeePoints(empId, performance, attendance) {
-  let pts = 0;
-  const perfDates = Object.keys(performance||{});
-  perfDates.forEach(date => {
-    const p = (performance[date]||{})[empId];
-    if (!p) return;
-    pts += (p.closed||0) * 10;                          // 10 pts per closed case
-    pts += (p.quality||0) >= 90 ? 50 : (p.quality||0) >= 75 ? 20 : 0; // quality bonus
-    pts -= (p.escalations||0) * 5;                      // -5 per escalation
-  });
-  const attDates = Object.keys(attendance||{});
-  attDates.forEach(date => {
-    const a = (attendance[date]||{})[empId];
-    if (!a) return;
-    if (a.status === "Present") pts += 5;               // 5 pts presence
-    if (a.lateMin === 0 && a.status === "Present") pts += 3; // bonus on-time
-    if (isAbsent(a.status)) pts -= 10;               // -10 absent
-  });
-  return Math.max(0, pts);
-}
-
-// Auto-detect earned badges
-function detectBadges(empId, performance, attendance, employees, notes) {
-  const earned = [];
-  const perfDates = Object.keys(performance||{}).sort();
-  const allPerf   = perfDates.map(d => (performance[d]||{})[empId]).filter(Boolean);
-  const allAtt    = Object.values(attendance||{}).map(d => d[empId]).filter(Boolean);
-
-  // Quality Champion: quality ≥ 90 for 5+ days
-  const highQualDays = allPerf.filter(p => (p.quality||0) >= 90).length;
-  if (highQualDays >= 5) earned.push("quality_champion");
-
-  // Shift Savior: 50+ cases in a single day
-  if (allPerf.some(p => (p.closed||0) >= 50)) earned.push("shift_savior");
-
-  // Zero Escalation: 0 escalations for 14 consecutive days
-  let zeroStreak = 0, maxZero = 0;
-  allPerf.forEach(p => { if ((p.escalations||0) === 0) { zeroStreak++; maxZero = Math.max(maxZero, zeroStreak); } else zeroStreak = 0; });
-  if (maxZero >= 14) earned.push("zero_escalation");
-  if (maxZero >= 7)  earned.push("fastest_response");
-
-  // Attendance Star: present every working day in a month (≥20 present)
-  const presentDays = allAtt.filter(a => isPresent(a.status)).length;
-  const absentDays  = allAtt.filter(a => isAbsent(a.status)).length;
-  if (presentDays >= 20 && absentDays === 0) earned.push("attendance_star");
-
-  // Early Bird: 20 consecutive on-time arrivals
-  let onTimeStreak = 0, maxOnTime = 0;
-  allAtt.forEach(a => { if (a.status==="Present" && a.lateMin===0) { onTimeStreak++; maxOnTime=Math.max(maxOnTime,onTimeStreak); } else onTimeStreak=0; });
-  if (maxOnTime >= 20) earned.push("early_bird");
-
-  // Century Club: 100+ cases in a week
-  for (let i = 0; i <= perfDates.length - 7; i++) {
-    const weekTotal = perfDates.slice(i, i+7).reduce((s,d)=>s+((performance[d]||{})[empId]?.closed||0),0);
-    if (weekTotal >= 100) { earned.push("century_club"); break; }
-  }
-
-  // Consistency King: above-average for 30 days
-  if (allPerf.length >= 30) {
-    const avg = allPerf.reduce((s,p)=>s+(p.closed||0),0) / allPerf.length;
-    const aboveAvg = allPerf.filter(p=>(p.closed||0) >= avg).length;
-    if (aboveAvg >= 25) earned.push("consistency_king");
-  }
-
-  return [...new Set(earned)];
-}
-
-// ── Badges Display Component ───────────────────────────────────────────────────
-function BadgesDisplay({ badgeIds, size="normal" }) {
-  if (!badgeIds || badgeIds.length === 0) return null;
-  const sm = size === "small";
-  return (
-    <div style={{ display:"flex", gap:sm?3:5, flexWrap:"wrap" }}>
-      {badgeIds.map(bid => {
-        const b = BADGES.find(x=>x.id===bid);
-        if (!b) return null;
-        const rc = RARITY_COLORS[b.rarity];
-        return (
-          <div key={bid} title={`${b.name}: ${b.desc}`}
-            style={{ display:"flex", alignItems:"center", gap:sm?2:4,
-              background:rc.bg, border:`1px solid ${rc.border}`,
-              borderRadius:sm?4:6, padding:sm?"1px 5px":"3px 8px",
-              fontSize:sm?10:11, fontWeight:700, color:rc.text,
-              cursor:"default" }}>
-            <span style={{ fontSize:sm?11:13 }}>{b.icon}</span>
-            {!sm && <span>{b.name}</span>}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ── Gamification Page ──────────────────────────────────────────────────────────
-function GamificationPage({ employees, performance, attendance, schedule, notes, setNotes, session, canEdit }) {
-  const [tab, setTab]           = useState("leaderboard"); // leaderboard | badges | award
-  const [awardEmp, setAwardEmp] = useState("");
-  const [awardBadge, setAwardBadge] = useState("");
-  const [awardNote, setAwardNote]   = useState("");
-  const [awardDone, setAwardDone]   = useState("");
-  const [search, setSearch]     = useState("");
-
-  const todayKey = todayStr();
-
-  // Manual badge awards stored in notes (tag: "Badge Award")
-  const manualAwards = (Array.isArray(notes)?notes:[])
-    .filter(n => n.tag === "Badge Award");
-
-  // Build per-employee data
-  const empData = useMemo(() => {
-    return employees.map(emp => {
-      const pts     = calcEmployeePoints(emp.id, performance, attendance);
-      const autoBadges = detectBadges(emp.id, performance, attendance, employees, notes);
-      const manualBadges = manualAwards
-        .filter(n => { try { return JSON.parse(n.text||"{}").empId === emp.id; } catch { return false; } })
-        .map(n => { try { return JSON.parse(n.text||"{}").badgeId; } catch { return null; } })
-        .filter(Boolean);
-      const allBadges = [...new Set([...autoBadges, ...manualBadges])];
-      // Today's perf
-      const todayPerf = (performance[todayKey]||{})[emp.id] || { closed:0, escalations:0 };
-      return { ...emp, pts, badges:allBadges, todayPerf };
-    }).sort((a,b) => b.pts - a.pts);
-  }, [employees, performance, attendance, notes, manualAwards]);
-
-  const filtered = empData.filter(e =>
-    e.name.toLowerCase().includes(search.toLowerCase())
-  );
-
-  function awardBadgeManually() {
-    if (!awardEmp || !awardBadge) { setAwardDone("❌ Select employee and badge"); return; }
-    const badge = BADGES.find(b=>b.id===awardBadge);
-    const emp   = employees.find(e=>e.id===awardEmp);
-    const award = {
-      id: "ba"+Date.now(),
-      ts: new Date().toISOString(),
-      date: todayStr(),
-      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
-      tag: "Badge Award",
-      text: JSON.stringify({ empId:awardEmp, badgeId:awardBadge, note:awardNote, awardedBy:session?.name }),
-      from: session?.name||"",
-      target: awardEmp,
-      msgType: "badge",
-    };
-    setNotes(prev=>[award,...(Array.isArray(prev)?prev:[])]);
-    setAwardDone(`✅ "${badge?.name}" awarded to ${emp?.name}!`);
-    setAwardEmp(""); setAwardBadge(""); setAwardNote("");
-    setTimeout(()=>setAwardDone(""),4000);
-  }
-
-  const topEmp = empData[0];
-  const maxPts = topEmp?.pts || 1;
-
-  return (
-    <div>
-      {/* Header */}
-      <div style={SBR()}>
-        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>🏅 Gamification — Badges & Points</span>
-        <input value={search} onChange={e=>setSearch(e.target.value)}
-          style={{ ...I({width:180}) }} placeholder="🔍 Search employee..."/>
-        <div style={{ display:"flex", gap:6 }}>
-          {[["leaderboard","🏆 Leaderboard"],["badges","🎖️ All Badges"],canEdit?["award","🎁 Award Badge"]:null]
-            .filter(Boolean).map(([k,l])=>(
-            <button key={k} onClick={()=>setTab(k)}
-              style={{ border:`2px solid ${tab===k?_theme.primary:"#CBD5E1"}`,
-                borderRadius:20, padding:"5px 14px", fontSize:12, cursor:"pointer",
-                fontWeight:700, background:tab===k?_theme.primary:"transparent",
-                color:tab===k?"#fff":_theme.textSub }}>{l}</button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Leaderboard Tab ── */}
-      {tab==="leaderboard" && (
-        <div>
-          {/* Top 3 podium */}
-          {empData.slice(0,3).some(e=>e.pts>0) && (
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1.2fr 1fr", gap:10, marginBottom:20, alignItems:"flex-end" }}>
-              {[empData[1], empData[0], empData[2]].map((e,pi) => {
-                if (!e) return <div key={pi}/>;
-                const podiumH = [100, 130, 85][pi];
-                const medals  = ["🥈","🥇","🥉"];
-                const colors  = ["#94A3B8","#F59E0B","#CD7F32"];
-                return (
-                  <div key={e.id} style={{ ...CRD({padding:"14px 10px"}), textAlign:"center",
-                    borderTop:`4px solid ${colors[pi]}`,
-                    background:`linear-gradient(180deg,${colors[pi]}15,${_theme.card})` }}>
-                    <div style={{ fontSize:28, marginBottom:4 }}>{medals[pi]}</div>
-                    <div style={{ fontWeight:800, fontSize:13, color:_theme.text, marginBottom:4 }}>{e.name}</div>
-                    <BadgesDisplay badgeIds={e.badges} size="small"/>
-                    <div style={{ fontSize:22, fontWeight:900, color:colors[pi], marginTop:6 }}>
-                      {e.pts.toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:false})}
-                      <span style={{ fontSize:11, fontWeight:600, color:_theme.textMuted }}> pts</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Full ranking table */}
-          <div style={{ ...CRD({padding:0}), overflowX:"auto" }}>
-            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
-              <thead>
-                <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
-                  {["Rank","Employee","Role","Badges","Total Points","Today's Cases","Bar"].map(h=>(
-                    <th key={h} style={{ padding:"10px 10px", textAlign:"left", fontWeight:700,
-                      color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`,
-                      whiteSpace:"nowrap" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((e,ri) => {
-                  const pct = maxPts > 0 ? (e.pts/maxPts)*100 : 0;
-                  const isMe = e.name === session?.name;
-                  return (
-                    <tr key={e.id} style={{
-                      background: isMe ? _theme.primary+"12" : ri%2===0?_theme.card:_theme.surface,
-                      borderLeft: isMe?`3px solid ${_theme.primary}`:"3px solid transparent"
-                    }}>
-                      <td style={{ padding:"8px 10px", fontWeight:800, fontSize:14,
-                        color:ri===0?"#F59E0B":ri===1?"#94A3B8":ri===2?"#CD7F32":_theme.textMuted }}>
-                        {ri===0?"🥇":ri===1?"🥈":ri===2?"🥉":`#${ri+1}`}
-                      </td>
-                      <td style={{ padding:"8px 10px", fontWeight:600, color:_theme.text }}>
-                        {e.name}
-                        {isMe && <span style={{ fontSize:10, color:_theme.primary,
-                          background:_theme.primary+"18", borderRadius:10,
-                          padding:"1px 6px", marginLeft:5 }}>You</span>}
-                      </td>
-                      <td style={{ padding:"8px 10px" }}>
-                        <span style={{ fontSize:10, fontWeight:700,
-                          color:ROLE_COLORS[e.role]||"#64748B",
-                          background:(ROLE_COLORS[e.role]||"#64748B")+"18",
-                          borderRadius:4, padding:"1px 5px" }}>
-                          {ROLE_ICONS[e.role]} {e.role}
-                        </span>
-                      </td>
-                      <td style={{ padding:"8px 10px" }}>
-                        <BadgesDisplay badgeIds={e.badges} size="small"/>
-                        {e.badges.length===0 && <span style={{ fontSize:11, color:_theme.textMuted }}>—</span>}
-                      </td>
-                      <td style={{ padding:"8px 10px", fontWeight:800,
-                        color: e.pts>=500?"#F59E0B":e.pts>=200?"#3B82F6":_theme.text,
-                        fontSize:14 }}>
-                        {e.pts.toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:false})}
-                      </td>
-                      <td style={{ padding:"8px 10px", color:"#10B981", fontWeight:700 }}>
-                        {e.todayPerf.closed||0}
-                      </td>
-                      <td style={{ padding:"8px 20px 8px 10px", minWidth:120 }}>
-                        <div style={{ background:_theme.surface, borderRadius:20, height:8, overflow:"hidden" }}>
-                          <div style={{ height:"100%", borderRadius:20,
-                            width:`${pct}%`, transition:"width 0.5s",
-                            background: pct>80?"#F59E0B":pct>50?"#3B82F6":"#10B981" }}/>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Points key */}
-          <div style={{ ...CRD({padding:"10px 14px"}), marginTop:10, fontSize:11,
-            color:_theme.textMuted, display:"flex", gap:16, flexWrap:"wrap" }}>
-            <span style={{ fontWeight:700, color:_theme.text }}>Points Key:</span>
-            <span>✅ Closed case = <strong>+10pts</strong></span>
-            <span>🎯 Quality ≥90% = <strong>+50pts</strong></span>
-            <span>🎯 Quality ≥75% = <strong>+20pts</strong></span>
-            <span>📅 Present = <strong>+5pts</strong></span>
-            <span>⏰ On-time = <strong>+3pts</strong></span>
-            <span>⚠️ Escalation = <strong>−5pts</strong></span>
-            <span>❌ Absent = <strong>−10pts</strong></span>
-          </div>
-        </div>
-      )}
-
-      {/* ── All Badges Tab ── */}
-      {tab==="badges" && (
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:12 }}>
-          {BADGES.map(b => {
-            const rc = RARITY_COLORS[b.rarity];
-            const holders = empData.filter(e=>e.badges.includes(b.id));
-            return (
-              <div key={b.id} style={{ ...CRD({padding:"14px 16px"}),
-                border:`2px solid ${rc.border}`, background:rc.bg }}>
-                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-                  <span style={{ fontSize:28 }}>{b.icon}</span>
-                  <div>
-                    <div style={{ fontWeight:800, fontSize:13, color:rc.text }}>{b.name}</div>
-                    <div style={{ fontSize:10, fontWeight:700, color:rc.border,
-                      textTransform:"uppercase" }}>{b.rarity}</div>
-                  </div>
-                </div>
-                <div style={{ fontSize:12, color:_theme.textSub, marginBottom:8 }}>{b.desc}</div>
-                {holders.length > 0 ? (
-                  <div>
-                    <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:600, marginBottom:4 }}>
-                      Earned by ({holders.length}):
-                    </div>
-                    <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
-                      {holders.map(e=>(
-                        <span key={e.id} style={{ fontSize:10, background:rc.border+"22",
-                          color:rc.text, borderRadius:10, padding:"1px 6px",
-                          fontWeight:600 }}>{e.name}</span>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ fontSize:11, color:_theme.textMuted, fontStyle:"italic" }}>
-                    Not yet earned by anyone
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* ── Award Badge Tab (supervisors only) ── */}
-      {tab==="award" && canEdit && (
-        <div style={{ maxWidth:500 }}>
-          <div style={{ ...CRD({padding:"16px 18px"}), marginBottom:16,
-            background:"rgba(99,102,241,0.05)", border:"1px solid #6366F140" }}>
-            <div style={{ fontWeight:700, fontSize:13, color:_theme.text, marginBottom:14 }}>
-              🎁 Manually Award a Badge
-            </div>
-            <div style={{ marginBottom:12 }}>
-              <label style={LBL}>Select Employee</label>
-              <select value={awardEmp} onChange={e=>setAwardEmp(e.target.value)} style={{ ...I({width:"100%"}) }}>
-                <option value="">— Choose employee —</option>
-                {employees.map(e=><option key={e.id} value={e.id}>{e.name} ({e.role})</option>)}
-              </select>
-            </div>
-            <div style={{ marginBottom:12 }}>
-              <label style={LBL}>Select Badge</label>
-              <select value={awardBadge} onChange={e=>setAwardBadge(e.target.value)} style={{ ...I({width:"100%"}) }}>
-                <option value="">— Choose badge —</option>
-                {BADGES.map(b=><option key={b.id} value={b.id}>{b.icon} {b.name}</option>)}
-              </select>
-            </div>
-            {awardBadge && (
-              <div style={{ ...CRD({padding:"10px 12px"}), marginBottom:12,
-                border:`1px solid ${RARITY_COLORS[BADGES.find(b=>b.id===awardBadge)?.rarity||"blue"].border}` }}>
-                <div style={{ fontSize:11, color:_theme.textMuted }}>
-                  {BADGES.find(b=>b.id===awardBadge)?.desc}
-                </div>
-              </div>
-            )}
-            <div style={{ marginBottom:12 }}>
-              <label style={LBL}>Note (optional)</label>
-              <input value={awardNote} onChange={e=>setAwardNote(e.target.value)}
-                style={{ ...I({width:"100%"}) }} placeholder="Why are you awarding this badge?"/>
-            </div>
-            {awardDone && (
-              <div style={{ padding:"10px 12px", borderRadius:8, marginBottom:10,
-                background:awardDone.startsWith("✅")?"#F0FDF4":"#FEF2F2",
-                color:awardDone.startsWith("✅")?"#166534":"#EF4444",
-                fontWeight:600, fontSize:13 }}>{awardDone}</div>
-            )}
-            <button onClick={awardBadgeManually}
-              style={{ ...PBT("#6366F1",{width:"100%",padding:"11px"}) }}>
-              🎁 Award Badge
-            </button>
-          </div>
-          <div style={{ ...CRD({padding:"12px 14px"}), fontSize:11, color:_theme.textMuted }}>
-            <div style={{ fontWeight:700, color:_theme.text, marginBottom:6 }}>Auto-awarded badges:</div>
-            Some badges are automatically detected from performance data.
-            Manual awards let you recognize exceptional moments that numbers don't capture.
-          </div>
-        </div>
       )}
     </div>
   );
@@ -10351,9 +8596,421 @@ This will go to a supervisor for final approval.`
   );
 }
 
+// ─── SHORT BREAK REQUEST SYSTEM ──────────────────────────────────────────────
+// Employee requests a short break → Supervisor approves/rejects with reason
+// Stored in notes (tag: "Short Break Request") — Realtime via existing channel
+// AI recommendation for supervisor based on current Queue + on-break count
+
+const SHORT_BREAK_TYPES = [
+  { id:"prayer",   icon:"🕌", label:"Prayer Break",   maxMin:15 },
+  { id:"personal", icon:"🚶", label:"Personal Break",  maxMin:5  },
+  { id:"other",    icon:"⏸️", label:"Other",            maxMin:5  },
+];
+
+// ── Employee Request Form ─────────────────────────────────────────────────────
+function ShortBreakRequestForm({ session, employees, notes, setNotes,
+                                  breakSchedule, shifts, schedule }) {
+  const [type,      setType]     = useState("prayer");
+  const [duration,  setDuration] = useState(5);
+  const [note,      setNote]     = useState("");
+  const [sending,   setSending]  = useState(false);
+  const [startTime, setStartTime] = useState(() => {
+    const now = new Date();
+    return now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"});
+  });
+
+  const myName = session?.name;
+  const myId   = employees.find(e=>e.name===myName)?.id;
+
+  // Check if I already have a pending request
+  const myPending = (Array.isArray(notes)?notes:[]).find(n=>{
+    if(n.tag!=="Short Break Request") return false;
+    try{const d=JSON.parse(n.text||"{}");
+      return d.empId===myId && (d.status==="pending"||d.status==="approved");
+    }catch{return false;}
+  });
+
+  function submit() {
+    if(myPending){showToast("You already have a pending or active break request","warning");return;}
+    const maxMin = SHORT_BREAK_TYPES.find(t=>t.id===type)?.maxMin || 5;
+    if(duration > maxMin){showToast(`Max duration for this break type is ${maxMin} minutes`,"warning");return;}
+    setSending(true);
+    const bt = SHORT_BREAK_TYPES.find(t=>t.id===type);
+    const req = {
+      id: "sbr"+Date.now(),
+      ts: new Date().toISOString(),
+      date: todayStr(),
+      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
+      tag: "Short Break Request",
+      text: JSON.stringify({
+        empId:myId, empName:myName,
+        type, typeLabel:bt?.label, typeIcon:bt?.icon,
+        duration, note: note.trim(),
+        startTime: startTime,
+        status:"pending",
+        requestedAt: new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"}),
+      }),
+      from: myName||"",
+      target: "supervisors",
+      msgType: "short_break_request",
+    };
+    setNotes(prev=>[req,...(Array.isArray(prev)?prev:[])]);
+    showToast(`Break request sent ⏳ Waiting for supervisor approval`,"info");
+    setSending(false);
+    setNote("");
+  }
+
+  // My request status card
+  if(myPending) {
+    let d={};
+    try{d=JSON.parse(myPending.text||"{}");} catch{}
+    const statusColor = d.status==="approved"?"#10B981":d.status==="rejected"?"#EF4444":"#F59E0B";
+    const statusLabel = d.status==="approved"?"✅ Approved":d.status==="rejected"?"❌ Rejected":"⏳ Pending...";
+    return (
+      <div style={{...CRD({padding:"16px 18px"}),
+        borderTop:`3px solid ${statusColor}`,
+        background: d.status==="approved"?"#F0FDF4":
+                    d.status==="rejected"?"#FEF2F2":"#FFFBEB"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+          <span style={{fontSize:24}}>{d.typeIcon}</span>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:800,fontSize:14,color:_theme.text}}>
+              {d.typeLabel} — {d.duration} min
+            </div>
+            <div style={{fontSize:12,color:_theme.textMuted}}>Requested at {d.requestedAt}</div>
+          </div>
+          <span style={{fontWeight:800,fontSize:13,color:statusColor,
+            background:statusColor+"18",borderRadius:20,padding:"4px 12px",
+            border:`1px solid ${statusColor}40`}}>{statusLabel}</span>
+        </div>
+        {/* Approval progress */}
+        <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:d.rejectReason?12:0}}>
+          <div style={{flex:1,background:_theme.surface,borderRadius:20,height:6,overflow:"hidden"}}>
+            <div style={{height:"100%",borderRadius:20,transition:"width 0.5s",
+              width:d.status==="approved"?"100%":d.status==="rejected"?"100%":"50%",
+              background:statusColor}}/>
+          </div>
+          <span style={{fontSize:11,color:statusColor,fontWeight:700}}>
+            {d.status==="pending"?"Waiting for approval":
+             d.status==="approved"?"Enjoy your break!":"Request declined"}
+          </span>
+        </div>
+        {/* Reject reason */}
+        {d.status==="rejected" && d.rejectReason && (
+          <div style={{background:"#FEF2F2",border:"1px solid #FCA5A5",borderRadius:10,
+            padding:"10px 12px",marginTop:10}}>
+            <div style={{fontSize:11,fontWeight:700,color:"#991B1B",marginBottom:4}}>
+              Reason from supervisor:
+            </div>
+            <div style={{fontSize:13,color:"#7F1D1D"}}>{d.rejectReason}</div>
+          </div>
+        )}
+        {/* Cancel if pending */}
+        {d.status==="pending" && (
+          <button onClick={()=>{
+            setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==myPending.id));
+            showToast("Break request cancelled","info");
+          }} style={{...PBT("#94A3B8",{fontSize:11,padding:"6px 12px",marginTop:10})}}>
+            Cancel Request
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{...CRD({padding:"16px 18px"})}}>
+      <div style={{fontWeight:800,fontSize:14,color:_theme.text,marginBottom:14,
+        display:"flex",alignItems:"center",gap:8}}>
+        ☕ Request Break
+        <span style={{fontSize:11,color:_theme.textMuted,fontWeight:400}}>— Select type below</span>
+      </div>
+
+      {/* Type selector */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+        {SHORT_BREAK_TYPES.map(t=>(
+          <button key={t.id} onClick={()=>{setType(t.id);setDuration(Math.min(duration,t.maxMin));}}
+            style={{border:`2px solid ${type===t.id?_theme.primary:"#CBD5E1"}`,
+              borderRadius:12,padding:"10px 8px",cursor:"pointer",textAlign:"center",
+              background:type===t.id?_theme.primary+"18":_theme.surface,
+              transition:"all 0.15s",
+              boxShadow:type===t.id?`0 2px 10px ${_theme.primary}30`:"none"}}>
+            <div style={{fontSize:22,marginBottom:4}}>{t.icon}</div>
+            <div style={{fontSize:11,fontWeight:700,
+              color:type===t.id?_theme.primary:_theme.text}}>{t.label}</div>
+            <div style={{fontSize:10,color:_theme.textMuted,marginTop:2}}>
+              max {t.maxMin} min
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Start Time */}
+      <label style={LBL}>⏰ Break Start Time</label>
+      <input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)}
+        style={{...I({width:"100%",marginBottom:12,fontWeight:700,fontSize:14})}}/>
+
+      {/* Duration */}
+      <label style={LBL}>Duration (minutes) — max {SHORT_BREAK_TYPES.find(t=>t.id===type)?.maxMin||5} min</label>
+      <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap"}}>
+        {(type==="prayer" ? [5,10,15] : [5]).map(d=>(
+          <button key={d} onClick={()=>setDuration(d)}
+            style={{border:`2px solid ${duration===d?_theme.primary:"#CBD5E1"}`,
+              borderRadius:20,padding:"6px 16px",fontSize:12,cursor:"pointer",
+              fontWeight:700,background:duration===d?_theme.primary+"22":_theme.surface,
+              color:duration===d?_theme.primary:_theme.textSub}}>{d}m</button>
+        ))}
+      </div>
+
+      {/* Note */}
+      <label style={LBL}>Note (optional)</label>
+      <input value={note} onChange={e=>setNote(e.target.value)}
+        style={{...I({width:"100%",marginBottom:14})}}
+        placeholder="Any additional info for supervisor..."/>
+
+      <button onClick={submit} disabled={sending}
+        style={{...PBT(_theme.primary,{width:"100%",padding:"12px",
+          opacity:sending?0.7:1})}}>
+        {sending?"Sending...":"📤 Send Break Request"}
+      </button>
+    </div>
+  );
+}
+
+// ── Supervisor Break Request Dashboard ────────────────────────────────────────
+function SupervisorBreakDashboard({ employees, notes, setNotes, session,
+                                     breakSchedule, shifts, schedule, queueLog }) {
+  const [rejectId,    setRejectId]    = useState(null);
+  const [rejectText,  setRejectText]  = useState("");
+  const [aiLoading,   setAiLoading]   = useState({});
+  const [aiAdvice,    setAiAdvice]    = useState({});
+
+  const todayKey = todayStr();
+  const dayName  = DAYS[new Date().getDay()];
+  const now      = new Date();
+  const nowMin   = now.getHours()*60 + now.getMinutes();
+
+  // All pending short break requests
+  const allReqs = (Array.isArray(notes)?notes:[])
+    .filter(n=>n.tag==="Short Break Request")
+    .sort((a,b)=>b.ts.localeCompare(a.ts));
+  const pending  = allReqs.filter(n=>{try{return JSON.parse(n.text||"{}").status==="pending";}catch{return false;}});
+  const history  = allReqs.filter(n=>{try{const s=JSON.parse(n.text||"{}").status;return s!=="pending";}catch{return false;}});
+
+  // Count currently on scheduled break
+  const onBreakNow = employees.filter(emp=>{
+    const sid=(schedule[emp.id]||{})[dayName];
+    if(!sid||sid==="OFF") return false;
+    const sh=shifts.find(s=>s.id===sid);
+    if(!sh) return false;
+    const bk=`${todayKey}_${sid}`;
+    const en=(breakSchedule[bk]||{})[emp.id];
+    if(!en) return false;
+    const off=(Number(en.offsetHours)||0)*60+(Number(en.offsetMins)||0);
+    const bs=(toMin(sh.start)+off)%1440;
+    const be=(bs+Number(en.durationMin))%1440;
+    return nowMin>=bs && nowMin<=be;
+  }).length;
+
+  // Queue load
+  const QKEYS=["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
+  const todayQE=Object.entries(queueLog||{}).filter(([k])=>k.startsWith(todayKey)).map(([,v])=>v);
+  const latestQ=todayQE.length>0?todayQE.reduce((b,e)=>(e.updTime||"")>(b.updTime||"")?e:b,todayQE[0]):null;
+  const totalQueue=latestQ?QKEYS.reduce((s,k)=>s+Number(latestQ[k+"Curr"]||0),0):0;
+
+  function updateReq(id, update) {
+    setNotes(prev=>(Array.isArray(prev)?prev:[]).map(n=>{
+      if(n.id!==id) return n;
+      try{const d=JSON.parse(n.text||"{}");
+        return {...n,text:JSON.stringify({...d,...update})};}
+      catch{return n;}
+    }));
+  }
+
+  function approve(req) {
+    let d={};
+    try{d=JSON.parse(req.text||"{}");} catch{}
+    updateReq(req.id,{status:"approved",approvedBy:session?.name,
+      approvedAt:new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})});
+    showToast(`✅ Break approved for ${d.empName}`,"success");
+    playSoftDing();
+  }
+
+  function reject(req) {
+    if(!rejectText.trim()){showToast("Please enter a rejection reason","error");return;}
+    let d={};
+    try{d=JSON.parse(req.text||"{}");} catch{}
+    updateReq(req.id,{status:"rejected",rejectReason:rejectText.trim(),
+      rejectedBy:session?.name});
+    showToast(`Break request declined — reason sent to ${d.empName}`,"warning");
+    setRejectId(null); setRejectText("");
+  }
+
+  async function getAIAdvice(req) {
+    const id=req.id;
+    setAiLoading(p=>({...p,[id]:true}));
+    try{
+      let d={};
+      try{d=JSON.parse(req.text||"{}");} catch{}
+      const prompt=`You are a CS Operations supervisor assistant. Advise briefly (1-2 sentences max) whether to APPROVE or DECLINE a short break request.
+
+Current floor status:
+- Queue load: ${totalQueue} cases ${totalQueue>300?"(CRITICAL)":totalQueue>150?"(HIGH)":"(NORMAL)"}
+- Employees currently on scheduled break: ${onBreakNow}
+- Pending break requests (besides this one): ${pending.length-1}
+
+Break request: ${d.empName} requesting ${d.duration} min ${d.typeLabel}
+
+Respond with: "✅ Recommend APPROVE" or "❌ Recommend DECLINE" followed by one short reason.`;
+
+      const res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-sonnet-4-20250514",max_tokens:120,
+          messages:[{role:"user",content:prompt}]
+        })
+      });
+      const data=await res.json();
+      const text=(data.content||[]).map(c=>c.text||"").join("").trim();
+      setAiAdvice(p=>({...p,[id]:text}));
+    }catch(e){
+      setAiAdvice(p=>({...p,[id]:"AI advice unavailable"}));
+    }
+    setAiLoading(p=>({...p,[id]:false}));
+  }
+
+  return (
+    <div>
+      {/* Floor Status Strip */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+        {[
+          {label:"On Break Now",value:onBreakNow,color:"#F59E0B"},
+          {label:"Queue Load",value:totalQueue,color:totalQueue>300?"#EF4444":totalQueue>150?"#F59E0B":"#10B981"},
+          {label:"Pending Requests",value:pending.length,color:pending.length>0?"#8B5CF6":"#94A3B8"},
+        ].map(({label,value,color})=>(
+          <div key={label} style={{...CRD({padding:"10px 12px"}),borderTop:`3px solid ${color}`,textAlign:"center"}}>
+            <div style={{fontSize:11,color:_theme.textMuted,fontWeight:600}}>{label}</div>
+            <div style={{fontSize:26,fontWeight:900,color}}>{value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Pending Requests */}
+      {pending.length===0?(
+        <div style={{...CRD({padding:"28px 20px"}),textAlign:"center",color:_theme.textMuted}}>
+          <div style={{fontSize:32,marginBottom:8}}>☕</div>
+          No pending break requests
+        </div>
+      ):pending.map(req=>{
+        let d={};
+        try{d=JSON.parse(req.text||"{}");} catch{}
+        const isRejectOpen=rejectId===req.id;
+        const advice=aiAdvice[req.id];
+        const isApproveAdvised=advice&&advice.includes("APPROVE");
+        const isDeclineAdvised=advice&&advice.includes("DECLINE");
+        return (
+          <div key={req.id} style={{...CRD({padding:"14px 16px"}),marginBottom:10,
+            borderLeft:`4px solid ${d.typeIcon==="🕌"?"#8B5CF6":
+                                    d.typeIcon==="💊"?"#EF4444":"#F59E0B"}`}}>
+            <div style={{display:"flex",alignItems:"flex-start",gap:10,flexWrap:"wrap"}}>
+              <span style={{fontSize:26,flexShrink:0}}>{d.typeIcon}</span>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:800,fontSize:14,color:_theme.text}}>{d.empName}</div>
+                <div style={{fontSize:12,color:_theme.textMuted}}>
+                  {d.typeLabel} · {d.duration} min · Requested at {d.requestedAt}
+                </div>
+                {d.note&&<div style={{fontSize:12,color:_theme.textSub,marginTop:4,
+                  fontStyle:"italic"}}>"{d.note}"</div>}
+                {/* AI Advice */}
+                {advice&&(
+                  <div style={{marginTop:8,padding:"8px 10px",borderRadius:8,
+                    background:isApproveAdvised?"#F0FDF4":isDeclineAdvised?"#FEF2F2":"#EFF6FF",
+                    border:`1px solid ${isApproveAdvised?"#86EFAC":isDeclineAdvised?"#FCA5A5":"#BFDBFE"}`,
+                    fontSize:12,fontWeight:600,
+                    color:isApproveAdvised?"#166534":isDeclineAdvised?"#991B1B":"#1E40AF"}}>
+                    🤖 {advice}
+                  </div>
+                )}
+              </div>
+              {/* Action buttons */}
+              <div style={{display:"flex",flexDirection:"column",gap:6,flexShrink:0}}>
+                <button onClick={()=>approve(req)}
+                  style={{...PBT("#10B981",{fontSize:12,padding:"7px 14px"})}}>
+                  ✅ Approve
+                </button>
+                <button onClick={()=>{setRejectId(isRejectOpen?null:req.id);setRejectText("");}}
+                  style={{...PBT("#EF4444",{fontSize:12,padding:"7px 14px"})}}>
+                  ❌ Decline
+                </button>
+                <button onClick={()=>getAIAdvice(req)}
+                  disabled={!!aiLoading[req.id]}
+                  style={{...PBT("#6366F1",{fontSize:11,padding:"5px 10px",
+                    opacity:aiLoading[req.id]?0.7:1})}}>
+                  {aiLoading[req.id]?"🤖...":"🤖 AI Advice"}
+                </button>
+              </div>
+            </div>
+            {/* Reject reason input */}
+            {isRejectOpen&&(
+              <div style={{marginTop:10,padding:"12px 14px",background:_theme.surface,
+                borderRadius:10,border:"1px solid #FCA5A5"}}>
+                <label style={{...LBL,color:"#EF4444"}}>⚠️ Rejection reason (required)</label>
+                <textarea value={rejectText} onChange={e=>setRejectText(e.target.value)}
+                  rows={2} autoFocus
+                  style={{...I({resize:"none",width:"100%",marginBottom:8,
+                    border:"1px solid #FCA5A5"})}}
+                  placeholder="e.g. Queue is at critical level — please wait 15 minutes"/>
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={()=>reject(req)}
+                    style={{...PBT("#EF4444",{flex:1,padding:"9px"})}}>
+                    Confirm Rejection
+                  </button>
+                  <button onClick={()=>{setRejectId(null);setRejectText("");}}
+                    style={{...PBT("#94A3B8",{padding:"9px 14px"})}}>Cancel</button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* History */}
+      {history.length>0&&(
+        <div style={{marginTop:16}}>
+          <div style={{fontSize:12,fontWeight:700,color:_theme.textMuted,marginBottom:8}}>
+            History ({history.length})
+          </div>
+          {history.slice(0,6).map(req=>{
+            let d={};
+            try{d=JSON.parse(req.text||"{}");} catch{}
+            const statusColor=d.status==="approved"?"#10B981":d.status==="rejected"?"#EF4444":"#94A3B8";
+            return (
+              <div key={req.id} style={{display:"flex",alignItems:"center",gap:8,
+                padding:"8px 0",borderBottom:`1px solid ${_theme.cardBorder}20`,flexWrap:"wrap"}}>
+                <span style={{fontSize:16}}>{d.typeIcon}</span>
+                <div style={{flex:1,fontSize:12}}>
+                  <span style={{fontWeight:700}}>{d.empName}</span>
+                  <span style={{color:_theme.textMuted}}> · {d.typeLabel} {d.duration}m · {d.requestedAt}</span>
+                </div>
+                <span style={{background:statusColor+"18",color:statusColor,
+                  borderRadius:20,padding:"2px 10px",fontSize:10,fontWeight:800}}>
+                  {d.status==="approved"?"✅ Approved":d.status==="rejected"?"❌ Declined":"—"}
+                </span>
+                <button onClick={()=>setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==req.id))}
+                  style={{background:"none",border:"none",color:_theme.textMuted,cursor:"pointer",fontSize:14}}>✕</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── HOME DASHBOARD — Personal per role ──────────────────────────────────────
 function HomeDashboard({ session, employees, schedule, attendance, performance,
-                         queueLog, notes, setNotes, breakSchedule, shifts, auditLog,
+                         queueLog, notes, breakSchedule, shifts, auditLog,
                          canEdit, isSuperAdmin, onNavigate }) {
   const todayKey  = todayStr();
   const dayName   = DAYS[new Date().getDay()];
@@ -10363,51 +9020,6 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
 
   const myId      = employees.find(e=>e.name===session?.name)?.id;
   const myRole    = session?.role;
-
-  // ── Presence Status ────────────────────────────────────────────────────────
-  const [myStatus, setMyStatus] = useState(() => {
-    try { return localStorage.getItem("csops_status_"+session?.name) || "Online"; } catch { return "Online"; }
-  });
-
-  function changeStatus(newStatus) {
-    setMyStatus(newStatus);
-    try { localStorage.setItem("csops_status_"+session?.name, newStatus); } catch {}
-    // Save to notes for realtime sync
-    const entry = {
-      id: "st"+Date.now(),
-      ts: new Date().toISOString(),
-      date: todayStr(),
-      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
-      tag: "UserStatus",
-      text: JSON.stringify({ status: newStatus, empName: session?.name, empRole: session?.role }),
-      from: session?.name||"",
-      target: "all",
-      msgType: "user_status",
-    };
-    if (setNotes) setNotes(prev => {
-      const filtered = (Array.isArray(prev)?prev:[]).filter(n => !(n.tag==="UserStatus"&&n.from===session?.name));
-      return [entry, ...filtered];
-    });
-    // Show Arabic message
-    const arabicMsg = STATUS_ARABIC_MSGS[newStatus];
-    if (arabicMsg) showToast(arabicMsg, "info", 4000);
-  }
-
-  // Get all users current status for admin view
-  const allStatuses = useMemo(() => {
-    const map = {};
-    (Array.isArray(notes)?notes:[])
-      .filter(n => n.tag === "UserStatus")
-      .forEach(n => {
-        try {
-          const d = JSON.parse(n.text||"{}");
-          if (!map[d.empName] || n.ts > map[d.empName].ts) {
-            map[d.empName] = { status: d.status, ts: n.ts, role: d.empRole };
-          }
-        } catch {}
-      });
-    return map;
-  }, [notes]);
 
   // ── Shared computed values ─────────────────────────────────────────────────
   const todayEmps = employees.filter(e=>{
@@ -10527,32 +9139,9 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
   // ── OWNER Dashboard ───────────────────────────────────────────────────────
   if(isSuperAdmin) return (
     <div>
-      {/* Owner Master Console Header */}
-      <div style={{marginBottom:20, background:"linear-gradient(135deg,rgba(255,215,0,0.1),rgba(255,215,0,0.05))",
-        border:"1px solid rgba(255,215,0,0.3)", borderRadius:14, padding:"16px 20px"}}>
-        <div style={{fontSize:22,fontWeight:900,color:"#FFD700",
-          textShadow:"0 0 20px rgba(255,215,0,0.4)"}}>
-          👑 Master Console — {timeStr}
-        </div>
-        <div style={{fontSize:12,color:"rgba(255,215,0,0.6)",marginTop:4,fontWeight:600}}>
-          {dateStr} · Full Stealth Engaged · All Nodes Linked
-        </div>
-        {/* Live Status Bar */}
-        <div style={{display:"flex",gap:12,marginTop:12,flexWrap:"wrap"}}>
-          {[
-            {label:"Online Now",value:Object.values(allStatuses).filter(s=>s.status==="Online").length,color:"#00FF88"},
-            {label:"On Break",value:Object.values(allStatuses).filter(s=>s.status==="Break").length,color:"#FFB800"},
-            {label:"In Meeting",value:Object.values(allStatuses).filter(s=>s.status==="Meeting").length,color:"#60A5FA"},
-            {label:"Training",value:Object.values(allStatuses).filter(s=>s.status==="Training").length,color:"#A78BFA"},
-            {label:"Total Queue",value:totalQueue,color:"#FF3366"},
-          ].map(item=>(
-            <div key={item.label} style={{background:"rgba(0,0,0,0.3)",borderRadius:8,
-              padding:"6px 12px",border:`1px solid ${item.color}30`}}>
-              <div style={{fontSize:10,color:item.color,fontWeight:700}}>{item.label}</div>
-              <div style={{fontSize:18,fontWeight:900,color:item.color}}>{item.value}</div>
-            </div>
-          ))}
-        </div>
+      <div style={{marginBottom:20}}>
+        <div style={{fontSize:22,fontWeight:900,color:_theme.text}}>Good {now.getHours()<12?"morning":now.getHours()<17?"afternoon":"evening"}, Mohammed 👑</div>
+        <div style={{fontSize:13,color:_theme.textMuted}}>{dateStr} · {timeStr}</div>
       </div>
 
       {absentSupervisors.length>0&&(
@@ -10676,92 +9265,6 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
         </div>
       )}
 
-      {/* ── My Status Selector ── */}
-      <div style={{...CRD({padding:"14px 18px"}), marginBottom:14}}>
-        <div style={{fontWeight:700,fontSize:13,color:_theme.text,marginBottom:12,
-          display:"flex",alignItems:"center",gap:8}}>
-          {PRESENCE_ICONS[myStatus]||"🟢"} My Status
-          <span style={{fontSize:11,color:_theme.textMuted,fontWeight:400}}>— visible to supervisors in real-time</span>
-        </div>
-        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          {PRESENCE_STATUSES.map(s=>(
-            <button key={s} onClick={()=>changeStatus(s)}
-              style={{border:`2px solid ${myStatus===s?_theme.primary:"#CBD5E1"}`,
-                borderRadius:20, padding:"7px 16px", fontSize:12, cursor:"pointer",
-                fontWeight:700,
-                background:myStatus===s?_theme.primary+"22":"transparent",
-                color:myStatus===s?_theme.primary:_theme.textSub,
-                display:"flex",alignItems:"center",gap:6,
-                boxShadow:myStatus===s?`0 2px 8px ${_theme.primary}30`:"none",
-                transition:"all 0.15s"}}>
-              {PRESENCE_ICONS[s]} {s}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Admin: Live Team Status Board ── */}
-      {(session?.role==="Team Lead"||session?.role==="Shift Leader"||session?.role==="SME") && (() => {
-        const [statusFilter, setStatusFilter] = React.useState("All");
-        const [teamFilter, setTeamFilter] = React.useState("All");
-        const liveEmployees = employees.map(e => ({
-          ...e,
-          currentStatus: allStatuses[e.name]?.status || "Offline",
-        })).filter(e => {
-          if (statusFilter !== "All" && e.currentStatus !== statusFilter) return false;
-          if (teamFilter !== "All" && !(e.tasks||[]).includes(teamFilter)) return false;
-          return true;
-        });
-        return (
-          <div style={{...CRD({padding:"14px 18px"}),marginBottom:14}}>
-            <div style={{fontWeight:700,fontSize:13,color:_theme.text,marginBottom:12,
-              display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-              📡 Live Team Status
-              <span style={{fontSize:10,color:_theme.success,fontWeight:600,
-                background:_theme.success+"20",borderRadius:10,padding:"2px 8px",
-                animation:"pulse 2s infinite"}}>● LIVE</span>
-              <div style={{marginLeft:"auto",display:"flex",gap:6,flexWrap:"wrap"}}>
-                {/* Status filter */}
-                <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}
-                  style={{...I({width:"auto",padding:"4px 10px",fontSize:11})}}>
-                  <option value="All">All Status</option>
-                  {PRESENCE_STATUSES.map(s=><option key={s} value={s}>{PRESENCE_ICONS[s]} {s}</option>)}
-                </select>
-                {/* Team filter */}
-                <select value={teamFilter} onChange={e=>setTeamFilter(e.target.value)}
-                  style={{...I({width:"auto",padding:"4px 10px",fontSize:11})}}>
-                  <option value="All">All Teams</option>
-                  <option value="KFOOD">KFOOD</option>
-                  <option value="KEEMRT">KEEMRT</option>
-                </select>
-              </div>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:8}}>
-              {liveEmployees.slice(0,20).map(emp=>{
-                const st = emp.currentStatus;
-                const stColor = st==="Online"?"#00FF88":st==="Break"?"#FFB800":st==="Meeting"?"#60A5FA":st==="Training"?"#A78BFA":"#6B7280";
-                return (
-                  <div key={emp.id} style={{background:_theme.surface,
-                    border:`1px solid ${stColor}30`,borderRadius:10,padding:"10px 12px",
-                    display:"flex",alignItems:"center",gap:8}}>
-                    <div style={{width:8,height:8,borderRadius:"50%",background:stColor,
-                      boxShadow:`0 0 6px ${stColor}`,flexShrink:0,
-                      animation:st==="Online"?"pulse 2s infinite":"none"}}/>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:11,fontWeight:700,color:_theme.text,
-                        overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                        {emp.name.split(" ").slice(0,2).join(" ")}
-                      </div>
-                      <div style={{fontSize:10,color:stColor,fontWeight:600}}>{st}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })()}
-
       <SectionTitle>⚡ Performance Snapshot</SectionTitle>
       <div style={{...CRD({padding:0}),overflowX:"auto",marginBottom:14}}>
         <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
@@ -10771,8 +9274,7 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
                 <th key={h} style={{padding:"8px 10px",textAlign:"left",fontWeight:700,
                   color:_theme.text,borderBottom:`2px solid ${_theme.cardBorder}`}}>{h}</th>
               ))}
-            </tr>
-          </thead>
+            </thead>
           <tbody>
             {todayEmps.slice(0,8).map((emp,ri)=>{
               const a=todayAtt[emp.id]; const p=todayPerf[emp.id];
@@ -10789,25 +9291,25 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
               }
               return (
                 <tr key={emp.id} style={{background:ri%2===0?_theme.card:_theme.surface}}>
-                  <td style={{padding:"7px 10px",fontWeight:600,color:_theme.text}}>{emp.name}</td>
+                  <td style={{padding:"7px 10px",fontWeight:600,color:_theme.text}}>{emp.name}  </td>
                   <td style={{padding:"7px 10px"}}>
                     <span style={{fontSize:10,fontWeight:700,borderRadius:20,padding:"2px 8px",
                       background:a?.status==="Present"?"#F0FDF4":a?.status==="Absent"?"#FEF2F2":a?.status==="Late"?"#FEF9C3":"#F1F5F9",
                       color:a?.status==="Present"?"#166534":a?.status==="Absent"?"#991B1B":a?.status==="Late"?"#B45309":"#64748B"}}>
                       {a?.status||"—"}
                     </span>
-                  </td>
-                  <td style={{padding:"7px 10px",fontWeight:700,color:"#10B981"}}>{p?.closed||0}</td>
+                    </td>
+                  <td style={{padding:"7px 10px",fontWeight:700,color:"#10B981"}}>{p?.closed||0}  </td>
                   <td style={{padding:"7px 10px",fontWeight:700,
                     color:escR>=20?"#EF4444":escR>=10?"#F59E0B":"#10B981"}}>
                     {p?.closed>0?`${escR}%`:"—"}
-                  </td>
-                  <td style={{padding:"7px 10px",color:_theme.textMuted}}>{breakStr}</td>
-                </tr>
+                    </td>
+                  <td style={{padding:"7px 10px",color:_theme.textMuted}}>{breakStr}  </td>
+                 </tr>
               );
             })}
           </tbody>
-        </table>
+         </table>
         {todayEmps.length>8&&(
           <div style={{padding:"8px 12px",fontSize:11,color:_theme.textMuted,
             borderTop:`1px solid ${_theme.cardBorder}`}}>
@@ -10862,8 +9364,7 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
                 <th key={h} style={{padding:"8px 10px",textAlign:"left",fontWeight:700,
                   color:_theme.text,borderBottom:`2px solid ${_theme.cardBorder}`}}>{h}</th>
               ))}
-            </tr>
-          </thead>
+            </thead>
           <tbody>
             {myShiftColleagues.map((emp,ri)=>{
               const a=todayAtt[emp.id]; const p=todayPerf[emp.id];
@@ -10877,26 +9378,26 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
               }
               return (
                 <tr key={emp.id} style={{background:ri%2===0?_theme.card:_theme.surface}}>
-                  <td style={{padding:"7px 10px",fontWeight:600,color:_theme.text}}>{emp.name}</td>
+                  <td style={{padding:"7px 10px",fontWeight:600,color:_theme.text}}>{emp.name}  </td>
                   <td style={{padding:"7px 10px"}}>
                     <span style={{fontSize:10,color:ROLE_COLORS[emp.role]||"#64748B",fontWeight:700}}>
                       {ROLE_ICONS[emp.role]} {emp.role}
                     </span>
-                  </td>
+                    </td>
                   <td style={{padding:"7px 10px"}}>
                     <span style={{fontSize:10,fontWeight:700,borderRadius:20,padding:"2px 8px",
                       background:a?.status==="Present"?"#F0FDF4":a?.status==="Absent"?"#FEF2F2":"#FEF9C3",
                       color:a?.status==="Present"?"#166534":a?.status==="Absent"?"#991B1B":"#B45309"}}>
                       {a?.status||"Not recorded"}
                     </span>
-                  </td>
-                  <td style={{padding:"7px 10px",fontWeight:700,color:"#10B981"}}>{p?.closed||0}</td>
-                  <td style={{padding:"7px 10px",color:_theme.textMuted,fontSize:11}}>{breakStr}</td>
-                </tr>
+                    </td>
+                  <td style={{padding:"7px 10px",fontWeight:700,color:"#10B981"}}>{p?.closed||0}  </td>
+                  <td style={{padding:"7px 10px",color:_theme.textMuted,fontSize:11}}>{breakStr}  </td>
+                 </tr>
               );
             })}
           </tbody>
-        </table>
+         </table>
       </div>
 
       <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
@@ -11022,6 +9523,7 @@ function HomeDashboard({ session, employees, schedule, attendance, performance,
     </div>
   );
 }
+
 // ─── INTERNAL DIRECT MESSAGING ───────────────────────────────────────────────
 // Person-to-person messaging inside the app
 // Stored in notes with tag: "Direct Message"
@@ -11537,418 +10039,6 @@ function showToast(message, type="info", duration=3500) {
   }, duration);
 }
 
-// ─── SHORT BREAK REQUEST SYSTEM ──────────────────────────────────────────────
-// Employee requests a short break → Supervisor approves/rejects with reason
-// Stored in notes (tag: "Short Break Request") — Realtime via existing channel
-// AI recommendation for supervisor based on current Queue + on-break count
-
-const SHORT_BREAK_TYPES = [
-  { id:"prayer",   icon:"🕌", label:"Prayer Break",   maxMin:15 },
-  { id:"personal", icon:"🚶", label:"Personal Break",  maxMin:5  },
-  { id:"other",    icon:"⏸️", label:"Other",            maxMin:5  },
-];
-
-// ── Employee Request Form ─────────────────────────────────────────────────────
-function ShortBreakRequestForm({ session, employees, notes, setNotes,
-                                  breakSchedule, shifts, schedule }) {
-  const [type,      setType]     = useState("prayer");
-  const [duration,  setDuration] = useState(5);
-  const [note,      setNote]     = useState("");
-  const [sending,   setSending]  = useState(false);
-  const [startTime, setStartTime] = useState(() => {
-    const now = new Date();
-    return now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"});
-  });
-
-  const myName = session?.name;
-  const myId   = employees.find(e=>e.name===myName)?.id;
-
-  // Check if I already have a pending request
-  const myPending = (Array.isArray(notes)?notes:[]).find(n=>{
-    if(n.tag!=="Short Break Request") return false;
-    try{const d=JSON.parse(n.text||"{}");
-      return d.empId===myId && (d.status==="pending"||d.status==="approved");
-    }catch{return false;}
-  });
-
-  function submit() {
-    if(myPending){showToast("You already have a pending or active break request","warning");return;}
-    const maxMin = SHORT_BREAK_TYPES.find(t=>t.id===type)?.maxMin || 5;
-    if(duration > maxMin){showToast(`Max duration for this break type is ${maxMin} minutes`,"warning");return;}
-    setSending(true);
-    const bt = SHORT_BREAK_TYPES.find(t=>t.id===type);
-    const req = {
-      id: "sbr"+Date.now(),
-      ts: new Date().toISOString(),
-      date: todayStr(),
-      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
-      tag: "Short Break Request",
-      text: JSON.stringify({
-        empId:myId, empName:myName,
-        type, typeLabel:bt?.label, typeIcon:bt?.icon,
-        duration, note: note.trim(),
-        startTime: startTime,
-        status:"pending",
-        requestedAt: new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"}),
-      }),
-      from: myName||"",
-      target: "supervisors",
-      msgType: "short_break_request",
-    };
-    setNotes(prev=>[req,...(Array.isArray(prev)?prev:[])]);
-    showToast(`Break request sent ⏳ Waiting for supervisor approval`,"info");
-    setSending(false);
-    setNote("");
-  }
-
-  // My request status card
-  if(myPending) {
-    let d={};
-    try{d=JSON.parse(myPending.text||"{}");} catch{}
-    const statusColor = d.status==="approved"?"#10B981":d.status==="rejected"?"#EF4444":"#F59E0B";
-    const statusLabel = d.status==="approved"?"✅ Approved":d.status==="rejected"?"❌ Rejected":"⏳ Pending...";
-    return (
-      <div style={{...CRD({padding:"16px 18px"}),
-        borderTop:`3px solid ${statusColor}`,
-        background: d.status==="approved"?"#F0FDF4":
-                    d.status==="rejected"?"#FEF2F2":"#FFFBEB"}}>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-          <span style={{fontSize:24}}>{d.typeIcon}</span>
-          <div style={{flex:1}}>
-            <div style={{fontWeight:800,fontSize:14,color:_theme.text}}>
-              {d.typeLabel} — {d.duration} min
-            </div>
-            <div style={{fontSize:12,color:_theme.textMuted}}>Requested at {d.requestedAt}</div>
-          </div>
-          <span style={{fontWeight:800,fontSize:13,color:statusColor,
-            background:statusColor+"18",borderRadius:20,padding:"4px 12px",
-            border:`1px solid ${statusColor}40`}}>{statusLabel}</span>
-        </div>
-        {/* Approval progress */}
-        <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:d.rejectReason?12:0}}>
-          <div style={{flex:1,background:_theme.surface,borderRadius:20,height:6,overflow:"hidden"}}>
-            <div style={{height:"100%",borderRadius:20,transition:"width 0.5s",
-              width:d.status==="approved"?"100%":d.status==="rejected"?"100%":"50%",
-              background:statusColor}}/>
-          </div>
-          <span style={{fontSize:11,color:statusColor,fontWeight:700}}>
-            {d.status==="pending"?"Waiting for approval":
-             d.status==="approved"?"Enjoy your break!":"Request declined"}
-          </span>
-        </div>
-        {/* Reject reason */}
-        {d.status==="rejected" && d.rejectReason && (
-          <div style={{background:"#FEF2F2",border:"1px solid #FCA5A5",borderRadius:10,
-            padding:"10px 12px",marginTop:10}}>
-            <div style={{fontSize:11,fontWeight:700,color:"#991B1B",marginBottom:4}}>
-              Reason from supervisor:
-            </div>
-            <div style={{fontSize:13,color:"#7F1D1D"}}>{d.rejectReason}</div>
-          </div>
-        )}
-        {/* Cancel if pending */}
-        {d.status==="pending" && (
-          <button onClick={()=>{
-            setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==myPending.id));
-            showToast("Break request cancelled","info");
-          }} style={{...PBT("#94A3B8",{fontSize:11,padding:"6px 12px",marginTop:10})}}>
-            Cancel Request
-          </button>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div style={{...CRD({padding:"16px 18px"})}}>
-      <div style={{fontWeight:800,fontSize:14,color:_theme.text,marginBottom:14,
-        display:"flex",alignItems:"center",gap:8}}>
-        ☕ Request Break
-        <span style={{fontSize:11,color:_theme.textMuted,fontWeight:400}}>— Select type below</span>
-      </div>
-
-      {/* Type selector */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
-        {SHORT_BREAK_TYPES.map(t=>(
-          <button key={t.id} onClick={()=>{setType(t.id);setDuration(Math.min(duration,t.maxMin));}}
-            style={{border:`2px solid ${type===t.id?_theme.primary:"#CBD5E1"}`,
-              borderRadius:12,padding:"10px 8px",cursor:"pointer",textAlign:"center",
-              background:type===t.id?_theme.primary+"18":_theme.surface,
-              transition:"all 0.15s",
-              boxShadow:type===t.id?`0 2px 10px ${_theme.primary}30`:"none"}}>
-            <div style={{fontSize:22,marginBottom:4}}>{t.icon}</div>
-            <div style={{fontSize:11,fontWeight:700,
-              color:type===t.id?_theme.primary:_theme.text}}>{t.label}</div>
-            <div style={{fontSize:10,color:_theme.textMuted,marginTop:2}}>
-              max {t.maxMin} min
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* Start Time */}
-      <label style={LBL}>⏰ Break Start Time</label>
-      <input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)}
-        style={{...I({width:"100%",marginBottom:12,fontWeight:700,fontSize:14})}}/>
-
-      {/* Duration */}
-      <label style={LBL}>Duration (minutes) — max {SHORT_BREAK_TYPES.find(t=>t.id===type)?.maxMin||5} min</label>
-      <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap"}}>
-        {(type==="prayer" ? [5,10,15] : [5]).map(d=>(
-          <button key={d} onClick={()=>setDuration(d)}
-            style={{border:`2px solid ${duration===d?_theme.primary:"#CBD5E1"}`,
-              borderRadius:20,padding:"6px 16px",fontSize:12,cursor:"pointer",
-              fontWeight:700,background:duration===d?_theme.primary+"22":_theme.surface,
-              color:duration===d?_theme.primary:_theme.textSub}}>{d}m</button>
-        ))}
-      </div>
-
-      {/* Note */}
-      <label style={LBL}>Note (optional)</label>
-      <input value={note} onChange={e=>setNote(e.target.value)}
-        style={{...I({width:"100%",marginBottom:14})}}
-        placeholder="Any additional info for supervisor..."/>
-
-      <button onClick={submit} disabled={sending}
-        style={{...PBT(_theme.primary,{width:"100%",padding:"12px",
-          opacity:sending?0.7:1})}}>
-        {sending?"Sending...":"📤 Send Break Request"}
-      </button>
-    </div>
-  );
-}
-
-// ── Supervisor Break Request Dashboard ────────────────────────────────────────
-function SupervisorBreakDashboard({ employees, notes, setNotes, session,
-                                     breakSchedule, shifts, schedule, queueLog }) {
-  const [rejectId,    setRejectId]    = useState(null);
-  const [rejectText,  setRejectText]  = useState("");
-  const [aiLoading,   setAiLoading]   = useState({});
-  const [aiAdvice,    setAiAdvice]    = useState({});
-
-  const todayKey = todayStr();
-  const dayName  = DAYS[new Date().getDay()];
-  const now      = new Date();
-  const nowMin   = now.getHours()*60 + now.getMinutes();
-
-  // All pending short break requests
-  const allReqs = (Array.isArray(notes)?notes:[])
-    .filter(n=>n.tag==="Short Break Request")
-    .sort((a,b)=>b.ts.localeCompare(a.ts));
-  const pending  = allReqs.filter(n=>{try{return JSON.parse(n.text||"{}").status==="pending";}catch{return false;}});
-  const history  = allReqs.filter(n=>{try{const s=JSON.parse(n.text||"{}").status;return s!=="pending";}catch{return false;}});
-
-  // Count currently on scheduled break
-  const onBreakNow = employees.filter(emp=>{
-    const sid=(schedule[emp.id]||{})[dayName];
-    if(!sid||sid==="OFF") return false;
-    const sh=shifts.find(s=>s.id===sid);
-    if(!sh) return false;
-    const bk=`${todayKey}_${sid}`;
-    const en=(breakSchedule[bk]||{})[emp.id];
-    if(!en) return false;
-    const off=(Number(en.offsetHours)||0)*60+(Number(en.offsetMins)||0);
-    const bs=(toMin(sh.start)+off)%1440;
-    const be=(bs+Number(en.durationMin))%1440;
-    return nowMin>=bs && nowMin<=be;
-  }).length;
-
-  // Queue load
-  const QKEYS=["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
-  const todayQE=Object.entries(queueLog||{}).filter(([k])=>k.startsWith(todayKey)).map(([,v])=>v);
-  const latestQ=todayQE.length>0?todayQE.reduce((b,e)=>(e.updTime||"")>(b.updTime||"")?e:b,todayQE[0]):null;
-  const totalQueue=latestQ?QKEYS.reduce((s,k)=>s+Number(latestQ[k+"Curr"]||0),0):0;
-
-  function updateReq(id, update) {
-    setNotes(prev=>(Array.isArray(prev)?prev:[]).map(n=>{
-      if(n.id!==id) return n;
-      try{const d=JSON.parse(n.text||"{}");
-        return {...n,text:JSON.stringify({...d,...update})};}
-      catch{return n;}
-    }));
-  }
-
-  function approve(req) {
-    let d={};
-    try{d=JSON.parse(req.text||"{}");} catch{}
-    updateReq(req.id,{status:"approved",approvedBy:session?.name,
-      approvedAt:new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})});
-    showToast(`✅ Break approved for ${d.empName}`,"success");
-    playSoftDing();
-  }
-
-  function reject(req) {
-    if(!rejectText.trim()){showToast("Please enter a rejection reason","error");return;}
-    let d={};
-    try{d=JSON.parse(req.text||"{}");} catch{}
-    updateReq(req.id,{status:"rejected",rejectReason:rejectText.trim(),
-      rejectedBy:session?.name});
-    showToast(`Break request declined — reason sent to ${d.empName}`,"warning");
-    setRejectId(null); setRejectText("");
-  }
-
-  async function getAIAdvice(req) {
-    const id=req.id;
-    setAiLoading(p=>({...p,[id]:true}));
-    try{
-      let d={};
-      try{d=JSON.parse(req.text||"{}");} catch{}
-      const prompt=`You are a CS Operations supervisor assistant. Advise briefly (1-2 sentences max) whether to APPROVE or DECLINE a short break request.
-
-Current floor status:
-- Queue load: ${totalQueue} cases ${totalQueue>300?"(CRITICAL)":totalQueue>150?"(HIGH)":"(NORMAL)"}
-- Employees currently on scheduled break: ${onBreakNow}
-- Pending break requests (besides this one): ${pending.length-1}
-
-Break request: ${d.empName} requesting ${d.duration} min ${d.typeLabel}
-
-Respond with: "✅ Recommend APPROVE" or "❌ Recommend DECLINE" followed by one short reason.`;
-
-      const res=await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          model:"claude-sonnet-4-20250514",max_tokens:120,
-          messages:[{role:"user",content:prompt}]
-        })
-      });
-      const data=await res.json();
-      const text=(data.content||[]).map(c=>c.text||"").join("").trim();
-      setAiAdvice(p=>({...p,[id]:text}));
-    }catch(e){
-      setAiAdvice(p=>({...p,[id]:"AI advice unavailable"}));
-    }
-    setAiLoading(p=>({...p,[id]:false}));
-  }
-
-  return (
-    <div>
-      {/* Floor Status Strip */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
-        {[
-          {label:"On Break Now",value:onBreakNow,color:"#F59E0B"},
-          {label:"Queue Load",value:totalQueue,color:totalQueue>300?"#EF4444":totalQueue>150?"#F59E0B":"#10B981"},
-          {label:"Pending Requests",value:pending.length,color:pending.length>0?"#8B5CF6":"#94A3B8"},
-        ].map(({label,value,color})=>(
-          <div key={label} style={{...CRD({padding:"10px 12px"}),borderTop:`3px solid ${color}`,textAlign:"center"}}>
-            <div style={{fontSize:11,color:_theme.textMuted,fontWeight:600}}>{label}</div>
-            <div style={{fontSize:26,fontWeight:900,color}}>{value}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Pending Requests */}
-      {pending.length===0?(
-        <div style={{...CRD({padding:"28px 20px"}),textAlign:"center",color:_theme.textMuted}}>
-          <div style={{fontSize:32,marginBottom:8}}>☕</div>
-          No pending break requests
-        </div>
-      ):pending.map(req=>{
-        let d={};
-        try{d=JSON.parse(req.text||"{}");} catch{}
-        const isRejectOpen=rejectId===req.id;
-        const advice=aiAdvice[req.id];
-        const isApproveAdvised=advice&&advice.includes("APPROVE");
-        const isDeclineAdvised=advice&&advice.includes("DECLINE");
-        return (
-          <div key={req.id} style={{...CRD({padding:"14px 16px"}),marginBottom:10,
-            borderLeft:`4px solid ${d.typeIcon==="🕌"?"#8B5CF6":
-                                    d.typeIcon==="💊"?"#EF4444":"#F59E0B"}`}}>
-            <div style={{display:"flex",alignItems:"flex-start",gap:10,flexWrap:"wrap"}}>
-              <span style={{fontSize:26,flexShrink:0}}>{d.typeIcon}</span>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:800,fontSize:14,color:_theme.text}}>{d.empName}</div>
-                <div style={{fontSize:12,color:_theme.textMuted}}>
-                  {d.typeLabel} · {d.duration} min · Requested at {d.requestedAt}
-                </div>
-                {d.note&&<div style={{fontSize:12,color:_theme.textSub,marginTop:4,
-                  fontStyle:"italic"}}>"{d.note}"</div>}
-                {/* AI Advice */}
-                {advice&&(
-                  <div style={{marginTop:8,padding:"8px 10px",borderRadius:8,
-                    background:isApproveAdvised?"#F0FDF4":isDeclineAdvised?"#FEF2F2":"#EFF6FF",
-                    border:`1px solid ${isApproveAdvised?"#86EFAC":isDeclineAdvised?"#FCA5A5":"#BFDBFE"}`,
-                    fontSize:12,fontWeight:600,
-                    color:isApproveAdvised?"#166534":isDeclineAdvised?"#991B1B":"#1E40AF"}}>
-                    🤖 {advice}
-                  </div>
-                )}
-              </div>
-              {/* Action buttons */}
-              <div style={{display:"flex",flexDirection:"column",gap:6,flexShrink:0}}>
-                <button onClick={()=>approve(req)}
-                  style={{...PBT("#10B981",{fontSize:12,padding:"7px 14px"})}}>
-                  ✅ Approve
-                </button>
-                <button onClick={()=>{setRejectId(isRejectOpen?null:req.id);setRejectText("");}}
-                  style={{...PBT("#EF4444",{fontSize:12,padding:"7px 14px"})}}>
-                  ❌ Decline
-                </button>
-                <button onClick={()=>getAIAdvice(req)}
-                  disabled={!!aiLoading[req.id]}
-                  style={{...PBT("#6366F1",{fontSize:11,padding:"5px 10px",
-                    opacity:aiLoading[req.id]?0.7:1})}}>
-                  {aiLoading[req.id]?"🤖...":"🤖 AI Advice"}
-                </button>
-              </div>
-            </div>
-            {/* Reject reason input */}
-            {isRejectOpen&&(
-              <div style={{marginTop:10,padding:"12px 14px",background:_theme.surface,
-                borderRadius:10,border:"1px solid #FCA5A5"}}>
-                <label style={{...LBL,color:"#EF4444"}}>⚠️ Rejection reason (required)</label>
-                <textarea value={rejectText} onChange={e=>setRejectText(e.target.value)}
-                  rows={2} autoFocus
-                  style={{...I({resize:"none",width:"100%",marginBottom:8,
-                    border:"1px solid #FCA5A5"})}}
-                  placeholder="e.g. Queue is at critical level — please wait 15 minutes"/>
-                <div style={{display:"flex",gap:8}}>
-                  <button onClick={()=>reject(req)}
-                    style={{...PBT("#EF4444",{flex:1,padding:"9px"})}}>
-                    Confirm Rejection
-                  </button>
-                  <button onClick={()=>{setRejectId(null);setRejectText("");}}
-                    style={{...PBT("#94A3B8",{padding:"9px 14px"})}}>Cancel</button>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
-
-      {/* History */}
-      {history.length>0&&(
-        <div style={{marginTop:16}}>
-          <div style={{fontSize:12,fontWeight:700,color:_theme.textMuted,marginBottom:8}}>
-            History ({history.length})
-          </div>
-          {history.slice(0,6).map(req=>{
-            let d={};
-            try{d=JSON.parse(req.text||"{}");} catch{}
-            const statusColor=d.status==="approved"?"#10B981":d.status==="rejected"?"#EF4444":"#94A3B8";
-            return (
-              <div key={req.id} style={{display:"flex",alignItems:"center",gap:8,
-                padding:"8px 0",borderBottom:`1px solid ${_theme.cardBorder}20`,flexWrap:"wrap"}}>
-                <span style={{fontSize:16}}>{d.typeIcon}</span>
-                <div style={{flex:1,fontSize:12}}>
-                  <span style={{fontWeight:700}}>{d.empName}</span>
-                  <span style={{color:_theme.textMuted}}> · {d.typeLabel} {d.duration}m · {d.requestedAt}</span>
-                </div>
-                <span style={{background:statusColor+"18",color:statusColor,
-                  borderRadius:20,padding:"2px 10px",fontSize:10,fontWeight:800}}>
-                  {d.status==="approved"?"✅ Approved":d.status==="rejected"?"❌ Declined":"—"}
-                </span>
-                <button onClick={()=>setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==req.id))}
-                  style={{background:"none",border:"none",color:_theme.textMuted,cursor:"pointer",fontSize:14}}>✕</button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── QUICK NOTE FAB COMPONENT ────────────────────────────────────────────────
 function QuickNoteFAB({ currentName, setNotes, theme }) {
   const [open, setOpen] = useState(false);
@@ -12016,6 +10106,7 @@ function QuickNoteFAB({ currentName, setNotes, theme }) {
     </>
   );
 }
+
 // ─── GLOBAL SEARCH ───────────────────────────────────────────────────────────
 function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose, session }) {
   const [query, setQuery] = useState("");
@@ -12141,466 +10232,11 @@ function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose, session
   );
 }
 
-function LoginScreen({ onLogin, employees, lang, setLang, onForgotPassword }) {
-  const [selectedRole, setSelectedRole] = useState("Team Lead");
-  const [selectedName, setSelectedName] = useState("");
-  const [password, setPassword]         = useState("");
-  const [newPw1, setNewPw1]             = useState("");
-  const [newPw2, setNewPw2]             = useState("");
-  const [error, setError]               = useState("");
-  const [showPw, setShowPw]             = useState(false);
-  const [step, setStep]                 = useState("login");
-  const [showForgot, setShowForgot]     = useState(false);
-  const [forgotName, setForgotName]     = useState("");
-  const [forgotSent, setForgotSent]     = useState(false);
-
-  const isRTL = false;
-  const tr = (key) => T.en[key] || key;
-  const isAgent = selectedRole === "Agent";
-  const roleColor = ROLE_COLORS[selectedRole];
-  const roleEmployees = employees.filter(e => e.role === selectedRole);
-
-  function handleNameChange(name) {
-    setSelectedName(name); setError(""); setPassword("");
-    if (!name) { setStep("login"); return; }
-    // Owner's own account — direct bypass
-    if (isOwnerUser({ role: selectedRole, name })) {
-      setStep("login"); return;
-    }
-    // All roles: must have password setup
-    setStep(getUserPw(name) ? "login" : "setup");
-  }
-
-  async function tryLogin() {
-    if (!selectedName) { setError(tr("selectYourName")); return; }
-
-    // ── Owner master bypass ──────────────────────────────────────────────────
-    // The Owner (Mohammed Nasser Althurwi) can enter ANY account directly
-    // without a password. This is the Owner's privilege for support purposes.
-    // His own account also bypasses password.
-    const activeOwner = isOwnerUser({ role: selectedRole, name: selectedName });
-    const ownerSession = JSON.parse(
-      (() => { try { return localStorage.getItem("csops_session")||"null"; } catch { return "null"; } })()
-    );
-    const ownerIsLoggedIn = ownerSession && isOwnerUser(ownerSession);
-
-    if (activeOwner || ownerIsLoggedIn) {
-      // Owner accessing his own account — direct bypass
-      if (activeOwner) {
-        onLogin({ role: selectedRole, name: selectedName });
-        return;
-      }
-      // Owner accessing ANOTHER account — bypass password, enter as that person
-      if (ownerIsLoggedIn) {
-        onLogin({ role: selectedRole, name: selectedName, accessedByOwner: true });
-        return;
-      }
-    }
-
-    // ── All roles (including Agent) require password ──────────────────────────
-    const existing = getUserPw(selectedName);
-    if (!existing) { setStep("setup"); return; }
-    if (!password) { setError(tr("password") + "..."); return; }
-
-    // Legacy plain-text migration (one-time upgrade to SHA-256)
-    const isLegacyPlain = existing.length < 64;
-    if (isLegacyPlain) {
-      if (password !== existing) { setError(tr("incorrectPassword")); setPassword(""); return; }
-      await setUserPw(selectedName, password);
-      onLogin({ role: selectedRole, name: selectedName });
-      return;
-    }
-
-    // Normal: compare SHA-256 hashes
-    const inputHash = await hashPassword(password);
-    if (inputHash !== existing) { setError(tr("incorrectPassword")); setPassword(""); return; }
-    onLogin({ role: selectedRole, name: selectedName });
-  }
-
-  async function setupPassword() {
-    if (!newPw1 || newPw1.length < 4) { setError("4+ characters required"); return; }
-    if (newPw1 !== newPw2) { setError("Passwords do not match"); return; }
-    await setUserPw(selectedName, newPw1);
-    onLogin({ role:selectedRole, name:selectedName, isFirstLogin: true });
-  }
-
-  async function submitForgotPassword() {
-    if (!forgotName.trim()) { setError("Please enter your name"); return; }
-    const emp = employees.find(e => e.name === forgotName.trim());
-    if (!emp) { setError("Name not found in system"); return; }
-    // Create reset request note — stored in localStorage for supervisors to see
-    const req = {
-      id: "prr" + Date.now(),
-      ts: new Date().toISOString(),
-      date: new Date().toISOString().slice(0,10),
-      time: pad(new Date().getHours()) + ":" + pad(new Date().getMinutes()),
-      tag: "Password Reset Request",
-      text: JSON.stringify({ empName: forgotName.trim(), empRole: emp.role, status: "pending", requestedAt: new Date().toISOString() }),
-      from: forgotName.trim(),
-      target: "supervisors",
-      msgType: "password_reset",
-    };
-    // Save to localStorage notes (will sync to Supabase when supervisor logs in)
-    try {
-      const existing = JSON.parse(localStorage.getItem("csops_notes") || "[]");
-      existing.unshift(req);
-      localStorage.setItem("csops_notes", JSON.stringify(existing));
-    } catch {}
-    setForgotSent(true);
-    setError("");
-  }
-
-  const dayTip = (DAILY_TIPS_EN)[new Date().getDay() % DAILY_TIPS_EN.length];
-
-  return (
-    <div dir="ltr" style={{
-      minHeight:"100dvh",
-      background:"linear-gradient(135deg,#0A0F1E 0%,#0F2744 50%,#0A0F1E 100%)",
-      display:"flex", alignItems:"center", justifyContent:"center",
-      fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", padding:16,
-      position:"relative", overflow:"hidden"
-    }}>
-      {/* Background decoration */}
-      <div style={{ position:"absolute", inset:0, overflow:"hidden", pointerEvents:"none" }}>
-        <div style={{ position:"absolute", top:"-20%", right:"-10%", width:400, height:400,
-          borderRadius:"50%", background:"radial-gradient(circle,#3B82F620 0%,transparent 70%)" }}/>
-        <div style={{ position:"absolute", bottom:"-10%", left:"-10%", width:300, height:300,
-          borderRadius:"50%", background:"radial-gradient(circle,#8B5CF620 0%,transparent 70%)" }}/>
-      </div>
-
-      {/* Lang toggle top */}
-      <div style={{ position:"absolute", top:20, right:20 }}>
-        <button onClick={()=>{}}
-          style={{ display:"none" }}>
-          🌐 EN
-        </button>
-      </div>
-
-      <div style={{ width:"100%", maxWidth:460, zIndex:1 }}>
-        {/* Header card */}
-        <div style={{ background:"linear-gradient(135deg,#060F2A,#0A1628,#111827)",
-          border:"1px solid #0E2040", borderRadius:"20px 20px 0 0",
-          padding:"36px 32px 28px", textAlign:"center",
-          boxShadow:"0 4px 40px rgba(0,212,255,0.12), 0 0 80px rgba(0,212,255,0.04)" }}>
-          {/* Cyber glow ring */}
-          <div style={{ position:"relative", display:"inline-block", marginBottom:12 }}>
-            <div style={{ fontSize:52, position:"relative", zIndex:1 }}>🎯</div>
-            <div style={{ position:"absolute", inset:-8, borderRadius:"50%",
-              background:"radial-gradient(circle,#00D4FF20 0%,transparent 70%)",
-              animation:"pulse 2s infinite" }}/>
-          </div>
-          <div style={{ color:"#E0F2FF", fontWeight:900, fontSize:26, letterSpacing:-0.5,
-            textShadow:"0 0 20px #00D4FF40" }}>
-            CS <span style={{ color:"#00D4FF" }}>Operations</span>
-          </div>
-          <div style={{ color:"#60A5FA", fontSize:13, marginTop:4, fontWeight:600 }}>
-            Management System v2.0
-          </div>
-
-          {/* Welcome message based on selected role */}
-          {selectedName && (
-            <div style={{ marginTop:14,
-              background: selectedName === SUPER_ADMIN ? "rgba(255,215,0,0.08)" : "rgba(0,212,255,0.08)",
-              border:`1px solid ${selectedName === SUPER_ADMIN ? "rgba(255,215,0,0.4)" : "rgba(0,212,255,0.25)"}`,
-              borderRadius:10, padding:"10px 14px", fontSize:12,
-              color: selectedName === SUPER_ADMIN ? "#FFD700" : "#00D4FF",
-              fontWeight:600, textAlign:"left",
-              boxShadow: selectedName === SUPER_ADMIN ? "0 0 12px rgba(255,215,0,0.2)" : "none" }}>
-              {selectedName === SUPER_ADMIN ? ROLE_WELCOME["owner"] : ROLE_WELCOME[selectedRole] || "Welcome back."}
-            </div>
-          )}
-          {!selectedName && (
-            <div style={{ marginTop:14, background:"rgba(0,212,255,0.06)",
-              border:"1px solid rgba(0,212,255,0.15)", borderRadius:10,
-              padding:"10px 14px", fontSize:12, color:"#60A5FA",
-              textAlign:"left" }}>
-              💡 {dayTip}
-            </div>
-          )}
-
-          <div style={{ marginTop:12, display:"inline-flex", alignItems:"center", gap:6,
-            background:"rgba(0,255,136,0.12)", border:"1px solid rgba(0,255,136,0.25)",
-            borderRadius:20, padding:"4px 14px" }}>
-            <div style={{ width:6, height:6, borderRadius:"50%", background:"#00FF88",
-              boxShadow:"0 0 6px #00FF88", animation:"pulse 2s infinite" }}/>
-            <span style={{ fontSize:11, color:"#00FF88", fontWeight:700 }}>
-              LIVE · Auto-saved · Encrypted
-            </span>
-          </div>
-        </div>
-
-        {/* Form card */}
-        <div style={{ background:"linear-gradient(180deg,#0A1628,#060F2A)",
-          border:"1px solid #0E2040",
-          borderTop:"none", borderRadius:"0 0 20px 20px",
-          padding:"24px 28px 28px",
-          boxShadow:"0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(0,212,255,0.04)" }}>
-
-          {/* Role picker */}
-          <div style={{ marginBottom:16 }}>
-            <label style={{ ...LBL, color:"#9CA3AF" }}>{tr("selectRole")}</label>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-              {Object.keys(ROLE_CAN_EDIT).map(role => (
-                <button key={role} onClick={()=>{ setSelectedRole(role); setSelectedName(""); setError(""); setPassword(""); setStep("login"); }}
-                  style={{ border:`2px solid ${selectedRole===role ? ROLE_COLORS[role] : "rgba(14,32,64,0.8)"}`,
-                    borderRadius:12, padding:"10px 12px", cursor:"pointer",
-                    textAlign:"left", transition:"all 0.18s",
-                    background: selectedRole===role ? ROLE_COLORS[role]+"20" : "rgba(6,15,42,0.8)",
-                    display:"flex", alignItems:"center", gap:8,
-                    boxShadow: selectedRole===role ? `0 0 12px ${ROLE_COLORS[role]}30` : "none" }}>
-                  <span style={{ fontSize:18 }}>{ROLE_ICONS[role]}</span>
-                  <div>
-                    <div style={{ fontSize:12, fontWeight:700,
-                      color: selectedRole===role ? ROLE_COLORS[role] : "#94A3B8" }}>{role}</div>
-                    <div style={{ fontSize:10, color:"rgba(100,116,139,0.8)" }}>
-                      {ROLE_DESC_EN[role]}
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Name selector */}
-          <div style={{ marginBottom:14 }}>
-            <label style={{ ...LBL, color:"#60A5FA" }}>
-              {isAgent ? tr("agentNameLabel") : tr("yourName")}
-            </label>
-            <select value={selectedName} onChange={e=>handleNameChange(e.target.value)}
-              style={{ background:"rgba(6,15,42,0.9)", border:`1px solid ${error&&!selectedName?"#FF3366":"rgba(0,212,255,0.25)"}`,
-                borderRadius:10, padding:"10px 14px", fontSize:14, color:"#E0F2FF",
-                outline:"none", width:"100%", cursor:"pointer",
-                boxShadow: selectedName ? "0 0 0 2px rgba(0,212,255,0.1)" : "none" }}>
-              <option value="">-- {tr("selectName")} --</option>
-              {roleEmployees.map(e=><option key={e.id} value={e.name}>{e.name}</option>)}
-            </select>
-          </div>
-
-          {/* Agent info */}
-          {isAgent && !selectedName && (
-            <div style={{ background:"rgba(0,212,255,0.06)", border:"1px solid rgba(0,212,255,0.15)",
-              borderRadius:8, padding:"10px 14px", marginBottom:14,
-              fontSize:12, color:"#60A5FA", textAlign:"left" }}>
-              👁️ View access — password required on first login
-            </div>
-          )}
-
-          {/* Password setup */}
-          {selectedName && step==="setup" && (
-            <div style={{ background:"rgba(0,212,255,0.05)", border:"1px solid rgba(0,212,255,0.2)",
-              borderRadius:10, padding:"16px", marginBottom:14 }}>
-              <div style={{ fontWeight:700, color:"#00D4FF", fontSize:13, marginBottom:8 }}>
-                🔐 {tr("setPassword")}
-              </div>
-              <div style={{ fontSize:12, color:"#60A5FA", marginBottom:12 }}>
-                {tr("firstLogin")} — <strong style={{color:"#00D4FF"}}>{selectedName}</strong>
-              </div>
-              <label style={{ ...LBL, color:"#60A5FA" }}>{tr("newPassword")}</label>
-              <div style={{ position:"relative", marginBottom:10 }}>
-                <input type={showPw?"text":"password"} value={newPw1}
-                  onChange={e=>{setNewPw1(e.target.value);setError("");}}
-                  onKeyDown={e=>e.key==="Enter"&&setupPassword()}
-                  style={{ background:"rgba(6,15,42,0.9)", border:`1px solid ${error?"#FF3366":"rgba(0,212,255,0.3)"}`,
-                    borderRadius:8, padding:"10px 42px 10px 14px", fontSize:14, color:"#E0F2FF",
-                    outline:"none", width:"100%", boxSizing:"border-box" }}
-                  placeholder="••••••••" autoFocus/>
-                <button onClick={()=>setShowPw(p=>!p)}
-                  style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
-                    background:"none", border:"none", cursor:"pointer", fontSize:15, color:"#60A5FA" }}>
-                  {showPw?"🙈":"👁️"}
-                </button>
-              </div>
-              <label style={{ ...LBL, color:"#60A5FA" }}>{tr("confirmPassword")}</label>
-              <input type={showPw?"text":"password"} value={newPw2}
-                onChange={e=>{setNewPw2(e.target.value);setError("");}}
-                onKeyDown={e=>e.key==="Enter"&&setupPassword()}
-                style={{ background:"rgba(6,15,42,0.9)", border:`1px solid ${error?"#FF3366":"rgba(0,212,255,0.3)"}`,
-                  borderRadius:8, padding:"10px 14px", fontSize:14, color:"#E0F2FF",
-                  outline:"none", width:"100%", boxSizing:"border-box", marginBottom:10 }}
-                placeholder="••••••••"/>
-              {error && <div style={{ color:"#FF6B8A", fontSize:12, marginBottom:8 }}>⚠️ {error}</div>}
-              <button onClick={setupPassword}
-                style={{ background:"linear-gradient(135deg,#0E7490,#00D4FF)", color:"#020818",
-                  border:"none", borderRadius:10, padding:"11px", fontSize:14,
-                  cursor:"pointer", fontWeight:800, width:"100%",
-                  boxShadow:"0 4px 16px rgba(0,212,255,0.3)" }}>
-                🔐 {tr("setAndSignIn")}
-              </button>
-            </div>
-          )}
-
-          {/* Password login */}
-          {selectedName && step==="login" && (
-            <div style={{ marginBottom:16 }}>
-              <label style={{ ...LBL, color:"#60A5FA" }}>{tr("password")}</label>
-              <div style={{ position:"relative" }}>
-                <input type={showPw?"text":"password"} value={password}
-                  onChange={e=>{setPassword(e.target.value);setError("");}}
-                  onKeyDown={e=>e.key==="Enter"&&tryLogin()}
-                  style={{ background:"rgba(6,15,42,0.9)", border:`1px solid ${error?"#FF3366":"rgba(0,212,255,0.3)"}`,
-                    borderRadius:10, padding:"11px 42px 11px 14px", fontSize:14, color:"#E0F2FF",
-                    outline:"none", width:"100%", boxSizing:"border-box",
-                    boxShadow: password ? "0 0 0 2px rgba(0,212,255,0.15)" : "none" }}
-                  placeholder="••••••••" autoFocus/>
-                <button onClick={()=>setShowPw(p=>!p)}
-                  style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
-                    background:"none", border:"none", cursor:"pointer", fontSize:15, color:"#60A5FA" }}>
-                  {showPw?"🙈":"👁️"}
-                </button>
-              </div>
-              {error && <div style={{ color:"#FF6B8A", fontSize:12, marginTop:6 }}>⚠️ {error}</div>}
-            </div>
-          )}
-
-          {error && !selectedName && (
-            <div style={{ color:"#FF6B8A", fontSize:12, marginBottom:8 }}>⚠️ {error}</div>
-          )}
-
-          {/* Owner direct-access button */}
-          {selectedName && isOwnerUser({role:selectedRole, name:selectedName}) && (
-            <>
-              <div style={{ background:"rgba(255,215,0,0.1)", border:"1px solid rgba(255,215,0,0.35)",
-                borderRadius:10, padding:"10px 14px", marginBottom:12,
-                fontSize:12, color:"#FFD700", fontWeight:700, textAlign:"center",
-                boxShadow:"0 0 12px rgba(255,215,0,0.15)" }}>
-                👑 Master Console — Direct access granted
-              </div>
-              <button onClick={()=>onLogin({role:selectedRole, name:selectedName})}
-                style={{ background:"linear-gradient(135deg,#B45309,#FFD700,#B45309)",
-                  color:"#1A0A00", border:"none", borderRadius:12, padding:"13px",
-                  fontSize:15, cursor:"pointer", fontWeight:900, width:"100%",
-                  boxShadow:"0 4px 24px rgba(255,215,0,0.4)", marginBottom:8, letterSpacing:0.5 }}>
-                👁️ Enter Master Console
-              </button>
-            </>
-          )}
-          {selectedName && !isOwnerUser({role:selectedRole, name:selectedName}) &&
-           step==="login" && !getUserPw(selectedName) === false && (
-            <div style={{ background:"rgba(255,51,102,0.06)", border:"1px solid rgba(255,51,102,0.2)",
-              borderRadius:8, padding:"8px 12px", marginBottom:8,
-              fontSize:11, color:"#FF6B8A", textAlign:"center" }}>
-              🔒 Password required — contact admin to reset
-            </div>
-          )}
-          {selectedName && !isOwnerUser({role:selectedRole, name:selectedName}) && (step==="login") && (
-            <button onClick={tryLogin}
-              style={{ background:`linear-gradient(135deg,${roleColor}CC,${roleColor})`,
-                color:"#fff", border:"none", borderRadius:12, padding:"13px",
-                fontSize:15, cursor:"pointer", fontWeight:800, width:"100%",
-                boxShadow:`0 4px 20px ${roleColor}50`, marginBottom:8,
-                letterSpacing:0.3 }}>
-              {ROLE_ICONS[selectedRole]} {isAgent ? `${tr("enterAs")} ${selectedName.split(" ")[0]}` : `${tr("signInAs")} ${selectedName.split(" ")[0]}`}
-            </button>
-          )}
-
-          {/* Forgot Password link */}
-          {!showForgot && (
-            <div style={{ textAlign:"center", marginTop:8 }}>
-              <button onClick={()=>{ setShowForgot(true); setError(""); setForgotSent(false); setForgotName(""); }}
-                style={{ background:"none", border:"none", color:"rgba(0,212,255,0.5)",
-                  fontSize:11, cursor:"pointer", textDecoration:"underline", fontWeight:600 }}>
-                🔑 Forgot Password?
-              </button>
-            </div>
-          )}
-
-          {/* Forgot Password Panel */}
-          {showForgot && (
-            <div style={{ background:"rgba(0,212,255,0.05)", border:"1px solid rgba(0,212,255,0.2)",
-              borderRadius:12, padding:"16px", marginTop:8 }}>
-              {!forgotSent ? (
-                <>
-                  <div style={{ fontWeight:700, color:"#00D4FF", fontSize:13, marginBottom:10 }}>
-                    🔑 Password Reset Request
-                  </div>
-                  <div style={{ fontSize:11, color:"rgba(0,212,255,0.6)", marginBottom:12, lineHeight:1.5 }}>
-                    Enter your name to send a reset request to your supervisor.
-                    <br/>Your password will be cleared after approval.
-                  </div>
-                  <select value={forgotName} onChange={e=>setForgotName(e.target.value)}
-                    style={{ background:"rgba(6,15,42,0.9)", border:"1px solid rgba(0,212,255,0.3)",
-                      borderRadius:8, padding:"10px 14px", fontSize:13, color:"#E0F2FF",
-                      outline:"none", width:"100%", marginBottom:10 }}>
-                    <option value="">— Select your name —</option>
-                    {employees.map(e=><option key={e.id} value={e.name}>{e.name} ({e.role})</option>)}
-                  </select>
-                  {error && <div style={{ color:"#FF6B8A", fontSize:12, marginBottom:8 }}>⚠️ {error}</div>}
-                  <div style={{ display:"flex", gap:8 }}>
-                    <button onClick={()=>setShowForgot(false)}
-                      style={{ flex:1, background:"transparent", border:"1px solid rgba(0,212,255,0.2)",
-                        color:"rgba(0,212,255,0.5)", borderRadius:8, padding:"9px", fontSize:12,
-                        cursor:"pointer", fontWeight:600 }}>Cancel</button>
-                    <button onClick={submitForgotPassword}
-                      style={{ flex:2, background:"linear-gradient(135deg,#0E7490,#00D4FF)",
-                        color:"#020818", border:"none", borderRadius:8, padding:"9px", fontSize:13,
-                        cursor:"pointer", fontWeight:800 }}>Send Reset Request</button>
-                  </div>
-                </>
-              ) : (
-                <div style={{ textAlign:"center", padding:"8px 0" }}>
-                  <div style={{ fontSize:32, marginBottom:8 }}>✅</div>
-                  <div style={{ fontWeight:700, color:"#00D4FF", fontSize:13, marginBottom:6 }}>
-                    Request Sent Successfully
-                  </div>
-                  <div style={{ fontSize:11, color:"rgba(0,212,255,0.6)", lineHeight:1.6, marginBottom:12 }}>
-                    Your supervisor has been notified.<br/>
-                    Once approved, log in to set a new password.
-                  </div>
-                  <button onClick={()=>{ setShowForgot(false); setForgotSent(false); }}
-                    style={{ background:"rgba(0,212,255,0.1)", border:"1px solid rgba(0,212,255,0.3)",
-                      color:"#00D4FF", borderRadius:8, padding:"8px 20px", fontSize:12,
-                      cursor:"pointer", fontWeight:700 }}>Back to Login</button>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div style={{ textAlign:"center", fontSize:11, color:"rgba(0,212,255,0.35)", marginTop:10,
-            display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-            <span>🔒</span>
-            <span>Secured by Supabase · Auto-saved · CS-OPS v2.0</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── PASSWORD RESET MODAL (inside app, for admins) ───────────────────────────
-function PasswordResetModal({ employees, session, notes, setNotes, onClose }) {
+function PasswordResetModal({ employees, session, onClose }) {
   const [search, setSearch] = useState("");
   const [done, setDone]     = useState("");
-  const [tab, setTab]       = useState("manual"); // "manual" | "requests"
   const isOwner = isOwnerUser(session);
-
-  // Pending reset requests from notes
-  const pendingResets = (Array.isArray(notes)?notes:[])
-    .filter(n => n.tag === "Password Reset Request")
-    .map(n => { try { return {...JSON.parse(n.text||"{}"), noteId:n.id, ts:n.ts}; } catch { return null; } })
-    .filter(Boolean)
-    .filter(n => n.status === "pending")
-    .sort((a,b) => b.ts.localeCompare(a.ts));
-
-  async function approveReset(item) {
-    if (!window.confirm(`Approve password reset for "${item.empName}"?
-Only their password will be cleared. All other data stays intact.`)) return;
-    // Clear ONLY the password — nothing else is touched
-    await resetUserPw(item.empName);
-    // Mark request as approved in notes
-    if (setNotes) {
-      setNotes(prev => (Array.isArray(prev)?prev:[]).map(n =>
-        n.id === item.noteId
-          ? {...n, text: JSON.stringify({...item, status:"approved", approvedBy:session?.name, approvedAt:new Date().toISOString()})}
-          : n
-      ));
-    }
-    setDone(\`✅ Password cleared for "${item.empName}" — they can now set a new one on next login\`);
-    setTimeout(() => setDone(""), 5000);
-  }
-
-  function dismissReset(noteId) {
-    if (setNotes) setNotes(prev => (Array.isArray(prev)?prev:[]).filter(n => n.id !== noteId));
-  }
 
   // Who can reset whom:
   // Owner → can reset anyone (all roles)
@@ -12624,79 +10260,28 @@ Their password will be cleared. They will set a new one on next login.`
     if (!confirm1) return;
     // DELETE the password entirely — do NOT set a new one
     await resetUserPw(emp.name);
-    setDone(`✅ Password cleared for "${emp.name}" — they will set a new one on next login`);
+    setDone("✅ Password cleared for \"" + emp.name + "\" — they can now set a new one on next login");
     setTimeout(() => setDone(""), 5000);
   }
 
   return (
-    <Modal title="🔑 Reset Password" onClose={onClose} width={560}>
-
-      {/* Tabs */}
-      <div style={{ display:"flex", gap:6, marginBottom:14 }}>
-        {[["manual","🔑 Manual Reset"],["requests",`📥 Pending Requests${pendingResets.length>0?" ("+pendingResets.length+")":""}`]].map(([k,l])=>(
-          <button key={k} onClick={()=>setTab(k)}
-            style={{ border:`2px solid ${tab===k?_theme.primary:"#CBD5E1"}`,
-              borderRadius:20, padding:"5px 14px", fontSize:12, cursor:"pointer", fontWeight:700,
-              background:tab===k?_theme.primary:"transparent",
-              color:tab===k?"#fff":_theme.textSub }}>
-            {l}
-          </button>
-        ))}
+    <Modal title="🔑 Reset Password" onClose={onClose} width={520}>
+      {/* Privacy note */}
+      <div style={{ background:"rgba(59,130,246,0.08)", border:"1px solid rgba(59,130,246,0.2)",
+        borderRadius:8, padding:"10px 14px", marginBottom:14, fontSize:12, color:_theme.textSub }}>
+        <div style={{ fontWeight:700, marginBottom:4 }}>🔒 Privacy Protected</div>
+        Reset only clears the current password — no one sees the new one.
+        The employee sets their own new password on next login.
       </div>
+
+      <input value={search} onChange={e=>setSearch(e.target.value)}
+        style={{ ...I(), marginBottom:12 }} placeholder="🔍 Search name..."/>
 
       {done && (
         <div style={{ background:"#F0FDF4", border:"1px solid #86EFAC",
           borderRadius:8, padding:"10px 14px", marginBottom:12,
           fontSize:13, color:"#166534", fontWeight:600 }}>{done}</div>
       )}
-
-      {/* Pending Requests Tab */}
-      {tab==="requests" && (
-        <div>
-          {pendingResets.length===0 ? (
-            <div style={{ textAlign:"center", padding:"32px", color:_theme.textMuted }}>
-              <div style={{ fontSize:36, marginBottom:8 }}>✅</div>
-              No pending reset requests
-            </div>
-          ) : pendingResets.map(item => (
-            <div key={item.noteId} style={{ background:_theme.surface,
-              border:`1.5px solid ${_theme.primary}30`, borderRadius:10,
-              padding:"12px 14px", marginBottom:8,
-              display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
-              <span style={{ fontSize:20 }}>{ROLE_ICONS[item.empRole]||"👤"}</span>
-              <div style={{ flex:1 }}>
-                <div style={{ fontWeight:700, fontSize:13, color:_theme.text }}>{item.empName}</div>
-                <div style={{ fontSize:11, color:_theme.textMuted }}>
-                  {item.empRole} · Requested at {item.ts?.slice(11,16)}
-                </div>
-              </div>
-              <div style={{ display:"flex", gap:6 }}>
-                <button onClick={()=>approveReset(item)}
-                  style={{ background:"#10B981", color:"#fff", border:"none",
-                    borderRadius:8, padding:"6px 14px", fontSize:12,
-                    cursor:"pointer", fontWeight:700 }}>✅ Approve</button>
-                <button onClick={()=>dismissReset(item.noteId)}
-                  style={{ background:"rgba(239,68,68,0.1)", color:"#EF4444",
-                    border:"1px solid rgba(239,68,68,0.3)",
-                    borderRadius:8, padding:"6px 12px", fontSize:12,
-                    cursor:"pointer", fontWeight:700 }}>✕ Dismiss</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Manual Reset Tab */}
-      {tab==="manual" && (<>
-      {/* Privacy note */}
-      <div style={{ background:"rgba(59,130,246,0.08)", border:"1px solid rgba(59,130,246,0.2)",
-        borderRadius:8, padding:"10px 14px", marginBottom:14, fontSize:12, color:_theme.textSub }}>
-        <div style={{ fontWeight:700, marginBottom:4 }}>🔒 Password Only — Data Protected</div>
-        Resets ONLY the password. All attendance, tasks, schedule and data stay intact.
-      </div>
-
-      <input value={search} onChange={e=>setSearch(e.target.value)}
-        style={{ ...I(), marginBottom:12 }} placeholder="🔍 Search name..."/>
 
       <div style={{ maxHeight:340, overflowY:"auto" }}>
         {visibleEmps.map(emp => {
@@ -12736,7 +10321,6 @@ Their password will be cleared. They will set a new one on next login.`
           </div>
         )}
       </div>
-      </>)}
     </Modal>
   );
 }
@@ -13179,12 +10763,7 @@ export default function App() {
   const [myShiftOnly, setMyShiftOnly] = useState(false);
   const [showDM, setShowDM]           = useState(false);
   const [showSelfCheckIn, setShowSelfCheckIn] = useState(false);
-  const [systemFrozen, setSystemFrozen]       = useState(() => {
-    try { return localStorage.getItem("csops_frozen") === "1"; } catch { return false; }
-  });
-  const [presentationMode, setPresentationMode] = useState(false);
-  const [showDarkNotes, setShowDarkNotes]       = useState(false);
-  const [darkNoteEmp, setDarkNoteEmp]           = useState(null);
+  const [myShiftFilter, setMyShiftFilter] = useState(false); // "My Shift Only" global filter
   const [loading, setLoading]         = useState(true);
   const [lastSync, setLastSync]       = useState(null); // timestamp of last successful poll
 
@@ -13878,27 +11457,14 @@ export default function App() {
   }
 
   // ── Wrapped setters that save to Supabase ─────────────────────────────────
-  // ── System Freeze guard — blocks all writes when frozen (except owner) ──────
-  function freezeGuard() {
-    if (systemFrozen && !isSuperAdmin) {
-      showToast("🚨 System is frozen — contact admin", "error", 3000);
-      return true;
-    }
-    return false;
-  }
-
   function setEmployees(val) {
-    if (freezeGuard() && !isSuperAdmin) return;
     setEmployeesRaw(prev => {
       const n = typeof val === "function" ? val(prev) : val;
       saveEmployees(n);
       return n;
     });
   }
-  function setShifts(val) {
-    if (freezeGuard() && !isSuperAdmin) return;
-    const n=typeof val==="function"?val(shifts):val; setShiftsRaw(n); saveShifts(n);
-  }
+  function setShifts(val)     { const n=typeof val==="function"?val(shifts):val;     setShiftsRaw(n);     saveShifts(n); }
   function setSchedule(val) {
     const n = typeof val === "function" ? val(scheduleMap) : val;
     setScheduleRaw(n);
@@ -13952,116 +11518,6 @@ export default function App() {
   const schedule = scheduleMap;
 
   // Loading screen
-
-  // Not logged in → show login
-
-  const [criticalAlerts, setCriticalAlerts]   = useState([]);
-  const [alertDismissed, setAlertDismissed]   = useState(false);
-  const [dismissedQueueTotal, setDismissedQueueTotal] = useState(0); // track what was dismissed
-  const [lastAlertCheck, setLastAlertCheck]   = useState(0);
-  const [alertThresholdCritical, setAlertThresholdCritical] = useState(() => {
-    try { return Number(localStorage.getItem("csops_alertCritical")) || 400; } catch { return 400; }
-  });
-  const [alertThresholdWarning, setAlertThresholdWarning] = useState(() => {
-    try { return Number(localStorage.getItem("csops_alertWarning")) || 200; } catch { return 200; }
-  });
-
-
-
-  useEffect(() => {
-    if (!session || session.role === "Agent") return; // agents never see alert
-
-    function checkQueue(isDismissedRef, dismissedTotalRef) {
-      const todayD = new Date().toISOString().slice(0,10);
-      const QUEUE_KEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
-      const todayEntries = Object.entries(queueLog||{})
-        .filter(([k])=>k.startsWith(todayD)).map(([,v])=>v);
-      if (!todayEntries.length) return;
-      const latest = todayEntries.reduce((best,e)=>(e.updTime||"")>(best.updTime||"")?e:best, todayEntries[0]);
-      const totalCurr = QUEUE_KEYS.reduce((s,k)=>s+Number(latest[k+"Curr"]||0),0);
-
-      // Only show if NOT dismissed, or if queue has grown significantly (50+) since last dismiss
-      const shouldShow = !isDismissedRef || (totalCurr > dismissedTotalRef + 50);
-      if (!shouldShow) return;
-
-      if (totalCurr > alertThresholdCritical) {
-        setCriticalAlerts([{ icon:"🚨", title:`Queue Critical — ${totalCurr} cases`, detail:`Exceeded critical threshold (${alertThresholdCritical}+). Immediate action required.`, total:totalCurr }]);
-        setAlertDismissed(false);
-        playAlertSound("critical"); // 🔊 urgent triple beep
-        sendPushNotification(
-          `🚨 Queue Critical — ${totalCurr} cases`,
-          `Exceeded critical threshold (${alertThresholdCritical}+). Requires immediate action.`,
-          "queue-critical"
-        );
-      } else if (totalCurr > alertThresholdWarning) {
-        setCriticalAlerts([{ icon:"⚠️", title:`Queue Warning — ${totalCurr} cases`, detail:`In warning zone (${alertThresholdWarning}+). Monitor closely.`, total:totalCurr }]);
-        setAlertDismissed(false);
-        playAlertSound("warning"); // 🔊 gentle double ping
-        sendPushNotification(
-          `⚠️ Queue Warning — ${totalCurr} cases`,
-          `In warning zone (${alertThresholdWarning}+). Monitor closely.`,
-          "queue-warning"
-        );
-      }
-    }
-
-    // Run once on mount after 3s — read current dismissed state
-    const initial = setTimeout(() => {
-      setAlertDismissed(cur => {
-        setDismissedQueueTotal(tot => { checkQueue(cur, tot); return tot; });
-        return cur;
-      });
-    }, 3000);
-
-    const interval = setInterval(() => {
-      // Read current dismissed state via functional setter trick
-      setAlertDismissed(currentDismissed => {
-        setDismissedQueueTotal(currentTotal => {
-          checkQueue(currentDismissed, currentTotal);
-          return currentTotal;
-        });
-        return currentDismissed;
-      });
-    }, 60000);
-
-    return () => { clearInterval(interval); clearTimeout(initial); };
-  }, [session, queueLog, alertThresholdCritical, alertThresholdWarning]);
-
-
-  // ── Global search keyboard shortcut: Ctrl+K ──────────────────────────────────
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === "k") { e.preventDefault(); setShowSearch(s => !s); }
-        if (e.key === "h") { e.preventDefault(); navigateLogged("Home"); }
-        if (e.key === "a" && !isAgent) { e.preventDefault(); navigateLogged("Attendance"); }
-        if (e.key === "p") { e.preventDefault(); navigateLogged("Performance"); }
-        if (e.key === "q") { e.preventDefault(); navigateLogged("Queue"); }
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, []);
-
-  // ── Heartbeat: log activity every 10 min ──
-  useEffect(() => {
-    if (!session) return;
-    const hb = setInterval(() => {
-      // Use page directly since safeCurrentPage may not be in scope yet
-      addAudit("Page View", page, `Active on ${page}`);
-    }, 10 * 60 * 1000); // every 10 minutes
-    return () => clearInterval(hb);
-  }, [session, page]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Status Dock live clock ──
-  useEffect(() => {
-    const tick = setInterval(() => {
-      const el = document.getElementById("status-dock-time");
-      if (el) el.textContent = new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,timeZone:"Asia/Riyadh"});
-    }, 1000);
-    return () => clearInterval(tick);
-  }, []);
-
   if (loading) {
     return (
       <div style={{ minHeight:"100vh",
@@ -14116,7 +11572,7 @@ export default function App() {
     );
   }
 
-
+  // Not logged in → show login
   if (!session) {
     return <LoginScreen employees={employees} lang={lang} setLang={changeLang} onLogin={sess => {
       const entry = {
@@ -14155,6 +11611,16 @@ export default function App() {
   const roleColor   = ROLE_COLORS[currentRole];
 
   // ── Critical Alert System ──────────────────────────────────────────────────
+  const [criticalAlerts, setCriticalAlerts]   = useState([]);
+  const [alertDismissed, setAlertDismissed]   = useState(false);
+  const [dismissedQueueTotal, setDismissedQueueTotal] = useState(0);
+  const [alertThresholdCritical, setAlertThresholdCritical] = useState(() => {
+    try { return Number(localStorage.getItem("csops_alertCritical")) || 400; } catch { return 400; }
+  });
+  const [alertThresholdWarning, setAlertThresholdWarning] = useState(() => {
+    try { return Number(localStorage.getItem("csops_alertWarning")) || 200; } catch { return 200; }
+  });
+
   function saveAlertThresholds(c, w) {
     setAlertThresholdCritical(c);
     setAlertThresholdWarning(w);
@@ -14162,22 +11628,107 @@ export default function App() {
   }
 
   // Check every 60 seconds for critical conditions (supervisors only)
+  useEffect(() => {
+    if (!session || session.role === "Agent") return;
+
+    function checkQueue(isDismissedRef, dismissedTotalRef) {
+      const todayD = new Date().toISOString().slice(0,10);
+      const QUEUE_KEYS = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
+      const todayEntries = Object.entries(queueLog||{})
+        .filter(([k])=>k.startsWith(todayD)).map(([,v])=>v);
+      if (!todayEntries.length) return;
+      const latest = todayEntries.reduce((best,e)=>(e.updTime||"")>(best.updTime||"")?e:best, todayEntries[0]);
+      const totalCurr = QUEUE_KEYS.reduce((s,k)=>s+Number(latest[k+"Curr"]||0),0);
+
+      const shouldShow = !isDismissedRef || (totalCurr > dismissedTotalRef + 50);
+      if (!shouldShow) return;
+
+      if (totalCurr > alertThresholdCritical) {
+        setCriticalAlerts([{ icon:"🚨", title:`Queue Critical — ${totalCurr} cases`, detail:`Exceeded critical threshold (${alertThresholdCritical}+). Immediate action required.`, total:totalCurr }]);
+        setAlertDismissed(false);
+        playAlertSound("critical");
+        sendPushNotification(
+          `🚨 Queue Critical — ${totalCurr} cases`,
+          `Exceeded critical threshold (${alertThresholdCritical}+). Requires immediate action.`,
+          "queue-critical"
+        );
+      } else if (totalCurr > alertThresholdWarning) {
+        setCriticalAlerts([{ icon:"⚠️", title:`Queue Warning — ${totalCurr} cases`, detail:`In warning zone (${alertThresholdWarning}+). Monitor closely.`, total:totalCurr }]);
+        setAlertDismissed(false);
+        playAlertSound("warning");
+        sendPushNotification(
+          `⚠️ Queue Warning — ${totalCurr} cases`,
+          `In warning zone (${alertThresholdWarning}+). Monitor closely.`,
+          "queue-warning"
+        );
+      }
+    }
+
+    const initial = setTimeout(() => {
+      setAlertDismissed(cur => {
+        setDismissedQueueTotal(tot => { checkQueue(cur, tot); return tot; });
+        return cur;
+      });
+    }, 3000);
+
+    const interval = setInterval(() => {
+      setAlertDismissed(currentDismissed => {
+        setDismissedQueueTotal(currentTotal => {
+          checkQueue(currentDismissed, currentTotal);
+          return currentTotal;
+        });
+        return currentDismissed;
+      });
+    }, 60000);
+
+    return () => { clearInterval(interval); clearTimeout(initial); };
+  }, [session, queueLog, alertThresholdCritical, alertThresholdWarning]);
 
   const showCriticalAlert = !isAgent && !alertDismissed && criticalAlerts.length > 0;
 
+  // ── Global search keyboard shortcut: Ctrl+K ──────────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === "k") { e.preventDefault(); setShowSearch(s => !s); }
+        if (e.key === "h") { e.preventDefault(); navigateLogged("Home"); }
+        if (e.key === "a" && !isAgent) { e.preventDefault(); navigateLogged("Attendance"); }
+        if (e.key === "p") { e.preventDefault(); navigateLogged("Performance"); }
+        if (e.key === "q") { e.preventDefault(); navigateLogged("Queue"); }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  // ── Heartbeat: log activity every 10 min ──
+  useEffect(() => {
+    if (!session) return;
+    const hb = setInterval(() => {
+      addAudit("Page View", page, `Active on ${page}`);
+    }, 10 * 60 * 1000);
+    return () => clearInterval(hb);
+  }, [session, page]);
+
+  // ── Status Dock live clock ──
+  useEffect(() => {
+    const tick = setInterval(() => {
+      const el = document.getElementById("status-dock-time");
+      if (el) el.textContent = new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,timeZone:"Asia/Riyadh"});
+    }, 1000);
+    return () => clearInterval(tick);
+  }, []);
+
   // Pages visible to this user
-  // Mohammed Nasser Althurwi (SUPER_ADMIN) always sees Owner Analytics
-  // Also respect employee.hiddenPages set by owner
   const hiddenPages = (currentEmployee?.hiddenPages) || [];
-  // isAdmin agents get full edit access and see all non-owner pages
   const isAdminAgent = isAgent && (currentEmployee?.isAdmin === true);
   const basePages = isSuperAdmin
     ? [...PAGES, "Owner Analytics"]
-    : isAdminAgent ? PAGES           // admin-elevated agent
-    : isAgent ? AGENT_PAGES          // regular agent
+    : isAdminAgent ? PAGES
+    : isAgent ? AGENT_PAGES
     : PAGES;
   const visiblePages = isSuperAdmin
-    ? basePages  // owner sees everything always
+    ? basePages
     : basePages.filter(p => !hiddenPages.includes(p));
 
   function navigate(p) {
@@ -14217,7 +11768,6 @@ export default function App() {
 
   // ── Fine-grained audit helper for specific actions (Tasks page, login, etc.) ──
   function addAudit(action, target, detail) {
-    // Invisible Presence: Owner edits (including shadow mode) logged as "System Admin Update"
     const isShadow = session?.accessedByOwner;
     const auditName = isShadow ? "System Admin" : currentName;
     const auditRole = isShadow ? "System" : currentRole;
@@ -14264,9 +11814,9 @@ export default function App() {
     "Audit Log":   wrap(<AuditLogPage auditLog={auditLog} session={session}/>),
     Notes:         wrap(<NotesPage notes={notes} setNotes={canEdit?setNotes:noop} session={session}/>),
     Shifts:        wrap(<ShiftsPage shifts={shifts} setShifts={SH}/>),
-    Performance:   wrap(<PerformancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF} myShiftFilter={false} session={session}/>),
-    Reports:       wrap(<ReportsPage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog} session={session} canEdit={canEdit} myShiftFilter={false}/>),
-    "Owner Analytics": wrap(<OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} setEmployees={setEmployees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes} onShadowMode={(shadowSess)=>{ setSession({...shadowSess, _prevOwner:{ name:currentName, role:currentRole }}); navigateLogged("Home"); }} onToggleFreeze={(v)=>{ setSystemFrozen(v); }} onSystemFrozen={systemFrozen} onTogglePresentation={()=>setPresentationMode(p=>!p)} onPresentationMode={presentationMode}/>),
+    Performance:   wrap(<PerformancePage employees={myShiftEmployeeIds?employees.filter(e=>myShiftEmployeeIds.includes(e.id)):employees} schedule={schedule} shifts={shifts} performance={performance} setPerformance={PF} myShiftFilter={myShiftOnly} session={session}/>),
+    Reports:       wrap(<ReportsPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} heatmap={heatmap} kg={{}} queueLog={queueLog} session={session} canEdit={canEdit} myShiftFilter={myShiftOnly}/>),
+    "Owner Analytics": wrap(<OwnerAnalyticsPage auditLog={auditLog} session={session} employees={employees} setEmployees={setEmployees} schedule={schedule} shifts={shifts} attendance={attendance} performance={performance} queueLog={queueLog} alertThresholdCritical={alertThresholdCritical} alertThresholdWarning={alertThresholdWarning} saveAlertThresholds={saveAlertThresholds} notes={notes} setNotes={setNotes} onShadowMode={(shadowSess)=>{ setSession({...shadowSess, _prevOwner:{ name:currentName, role:currentRole }}); navigateLogged("Home"); }}/>),
     Leaderboard:   wrap(<LeaderboardPage employees={employees} schedule={schedule} performance={performance} session={session} notes={notes} setNotes={setNotes} canEdit={canEdit}/>),
     "Attendance History": wrap(<AttendanceHistoryPage employees={employees} schedule={schedule} shifts={shifts} attendance={attendance}/>),
     "KPI Dashboard": wrap(<KPIDashboardPage employees={employees} schedule={schedule} attendance={attendance} performance={performance} session={session}/>),
@@ -14315,46 +11865,6 @@ export default function App() {
           backgroundSize:"50px 50px" }}/>
       )}
 
-      {/* Grand Line ocean wave overlay */}
-      {themeKey === "grandLine" && (
-        <div style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:0,
-          opacity:0.03,
-          backgroundImage:"linear-gradient(#F02D2D 1px,transparent 1px),linear-gradient(90deg,#0A3060 1px,transparent 1px)",
-          backgroundSize:"60px 60px" }}/>
-      )}
-
-      {/* 🧊 SYSTEM FREEZE BANNER */}
-      {systemFrozen && (
-        <div style={{ position:"fixed", top:0, left:0, right:0, zIndex:99998,
-          background:"linear-gradient(135deg,#7F1D1D,#DC2626,#7F1D1D)",
-          padding:"8px 20px", textAlign:"center", fontSize:13, fontWeight:800,
-          color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", gap:12,
-          boxShadow:"0 2px 20px rgba(220,38,38,0.5)" }}>
-          <span style={{ fontSize:18 }}>🧊</span>
-          <span>SYSTEM FROZEN — Read Only Mode Active. Contact admin to resume.</span>
-          {isSuperAdmin && (
-            <button onClick={()=>{
-              setSystemFrozen(false);
-              try { localStorage.removeItem("csops_frozen"); } catch {}
-              showToast("✅ System unfrozen — all edits restored", "success", 3000);
-            }}
-              style={{ background:"rgba(255,255,255,0.2)", border:"1px solid rgba(255,255,255,0.4)",
-                color:"#fff", borderRadius:8, padding:"3px 14px", cursor:"pointer",
-                fontSize:12, fontWeight:800, marginLeft:8 }}>
-              🔓 UNFREEZE
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* 🎭 PRESENTATION MODE OVERLAY — blurs sensitive names */}
-      {presentationMode && (
-        <style>{`
-          .emp-name, .sensitive-name { filter: blur(5px) !important; user-select: none !important; }
-          .emp-name:hover, .sensitive-name:hover { filter: blur(5px) !important; }
-        `}</style>
-      )}
-
       {/* Toast notification system */}
       <ToastContainer/>
 
@@ -14371,8 +11881,6 @@ export default function App() {
           }}
         />
       )}
-
-
 
       <style>{`
         /* ── Hub Dropdown Navigation ── */
@@ -14703,7 +12211,14 @@ export default function App() {
                   </button>
                 )}
 
-
+                {/* My Shift filter */}
+                <button onClick={()=>setMyShiftFilter(f=>!f)}
+                  style={{ background:myShiftFilter?_theme.primary+"22":"transparent",
+                    color:myShiftFilter?_theme.primary:theme.textSub,
+                    border:`1px solid ${myShiftFilter?_theme.primary:theme.cardBorder}`,
+                    borderRadius:7, padding:"5px 8px", fontSize:12, cursor:"pointer", fontWeight:700 }}>
+                  {myShiftFilter?"🔵 My Shift":"⊞ All"}
+                </button>
 
                 {/* DM button */}
                 <button onClick={()=>setShowDM(true)}
@@ -14837,11 +12352,25 @@ export default function App() {
             </button>
           </div>
         )}
-        
+        {myShiftFilter && (
+          <div style={{ background:"#EFF6FF", border:"1.5px solid #3B82F640",
+            borderRadius:8, padding:"8px 16px", marginBottom:12,
+            display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:14 }}>🔵</span>
+            <span style={{ fontSize:12, fontWeight:700, color:"#1E40AF" }}>
+              My Shift Only — showing your shift employees only
+            </span>
+            <button onClick={()=>setMyShiftFilter(false)}
+              style={{ marginLeft:"auto", fontSize:11, color:"#3B82F6",
+                background:"none", border:"none", cursor:"pointer", fontWeight:700 }}>
+              Show All
+            </button>
+          </div>
+        )}
 
-      <div key={safeCurrentPage} className="page-content">
-        {pageComponents[safeCurrentPage]}
-      </div>
+        <div key={safeCurrentPage} className="page-content">
+          {pageComponents[safeCurrentPage]}
+        </div>
       </div>
 
       {/* ── Floating Status Dock — desktop only ── */}
@@ -14958,94 +12487,6 @@ export default function App() {
           })}
         </div>
       </div>
-
-      {/* ── Self Check-In Modal — Auto Attendance ── */}
-      {showSelfCheckIn && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)",
-          backdropFilter:"blur(8px)", zIndex:10002,
-          display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
-          <div style={{ background:theme.card, border:`2px solid ${theme.success}50`,
-            borderRadius:20, padding:"32px 28px", maxWidth:400, width:"100%",
-            boxShadow:`0 20px 60px rgba(0,0,0,0.6), 0 0 40px ${theme.success}20`,
-            textAlign:"center" }}>
-            <div style={{ fontSize:52, marginBottom:12 }}>✅</div>
-            <div style={{ fontWeight:900, fontSize:20, color:theme.success, marginBottom:8 }}>
-              Auto Check-In
-            </div>
-            <div style={{ fontSize:13, color:theme.textSub, lineHeight:1.7, marginBottom:20 }}>
-              Confirm your attendance now.<br/>
-              <strong style={{ color:theme.text }}>
-                {new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})}
-              </strong>
-              {" "}will be recorded as your check-in time.<br/>
-              <span style={{ fontSize:11, color:theme.textMuted }}>
-                Your supervisor will verify and confirm in Attendance page.
-              </span>
-            </div>
-            <div style={{ display:"flex", gap:10 }}>
-              <button onClick={()=>setShowSelfCheckIn(false)}
-                style={{ flex:1, background:"transparent", border:`1px solid ${theme.cardBorder}`,
-                  color:theme.textSub, borderRadius:10, padding:"12px", fontSize:14,
-                  cursor:"pointer", fontWeight:600 }}>Cancel</button>
-              <button onClick={()=>{
-                const now = new Date();
-                const todayKey = now.toLocaleDateString("en-CA",{timeZone:"Asia/Riyadh"});
-                const timeStr = now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"});
-                const emp = employees.find(e=>e.name===currentName);
-                if (!emp) { setShowSelfCheckIn(false); return; }
-                // Add self-check-in note for supervisors
-                const note = {
-                  id:"sci"+Date.now(),
-                  ts:now.toISOString(),
-                  date:todayKey,
-                  time:timeStr,
-                  tag:"Self Check-In",
-                  text:JSON.stringify({ empName:currentName, empId:emp.id, empRole:currentRole, checkInTime:timeStr, date:todayKey, status:"pending" }),
-                  from:currentName,
-                  target:"supervisors",
-                  msgType:"self_checkin",
-                };
-                setNotes(prev=>[note,...(Array.isArray(prev)?prev:[])]);
-                addAudit("Self Check-In", currentName, `Auto check-in at ${timeStr}`);
-                showToast(`✅ Check-in recorded at ${timeStr} — awaiting supervisor confirmation`, "success", 5000);
-                setShowSelfCheckIn(false);
-              }}
-                style={{ flex:1, background:`linear-gradient(135deg,${theme.success},${theme.success}CC)`,
-                  color:"#fff", border:"none", borderRadius:10, padding:"12px", fontSize:14,
-                  cursor:"pointer", fontWeight:800,
-                  boxShadow:`0 4px 16px ${theme.success}40` }}>
-                ✅ Confirm Check-In
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showResetPw && (
-        <PasswordResetModal employees={employees} session={session} notes={notes} setNotes={setNotes} onClose={()=>setShowResetPw(false)}/>
-      )}
-
-      {/* ── Quick Note FAB — proper component ── */}
-      {!isAgent && (
-        <QuickNoteFAB
-          currentName={currentName}
-          setNotes={setNotes}
-          theme={theme}
-        />
-      )}
-
-      {/* ── Global Search Modal ── */}
-      {showSearch && (
-        <GlobalSearch
-          employees={employees}
-          notes={notes}
-          auditLog={auditLog}
-          onNavigate={p=>navigateLogged(p)}
-          onClose={()=>setShowSearch(false)}
-          session={session}
-        />
-      )}
-
       {/* ── POPUPS: rendered at root level, unaffected by transform:scale on content ── */}
       {showDM && (
         <DirectMessageModal
@@ -15063,7 +12504,6 @@ export default function App() {
           <CriticalAlertPopup
             alerts={criticalAlerts}
             onDismiss={()=>{
-              // Save current total so alert only re-shows if queue grows by 50+
               const total = criticalAlerts[0]?.total || 0;
               setDismissedQueueTotal(total);
               setAlertDismissed(true);
@@ -15073,102 +12513,71 @@ export default function App() {
         </div>
       )}
 
-      {showTip && (() => {
-        const _isFirstTime = isFirstLogin(currentName);
-        const _isOwner = isSuperAdmin;
-        const _arabicMsg = _isFirstTime ? MSG_ONBOARDING : MSG_DAILY;
-        return (
+      {showTip && (
         <div style={{ position:"fixed", inset:0,
-          background:"rgba(0,0,0,0.88)",
-          backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)",
+          background:"rgba(0,0,0,0.85)",
+          backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
           zIndex:10001, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
           <div style={{
-            background: _isOwner
+            background: isSuperAdmin
               ? "linear-gradient(135deg,#1A0E00,#2D1800,#1A0E00)"
               : theme.card,
-            border: _isOwner
+            border: isSuperAdmin
               ? "2px solid rgba(255,215,0,0.5)"
               : `1px solid ${theme.primary}40`,
-            borderRadius:20, padding:"32px 32px 28px", maxWidth:500, width:"100%",
-            boxShadow: _isOwner
+            borderRadius:20, padding:"36px 36px 28px", maxWidth:460, width:"100%",
+            boxShadow: isSuperAdmin
               ? "0 0 60px rgba(255,215,0,0.2), 0 20px 60px rgba(0,0,0,0.8)"
               : "0 20px 60px rgba(0,0,0,0.6)",
             textAlign:"center", animation:"scaleIn 0.3s cubic-bezier(0.34,1.56,0.64,1)" }}>
 
             {/* Icon */}
-            <div style={{ fontSize:56, marginBottom:10,
-              filter: _isOwner ? "drop-shadow(0 0 20px #FFD700)" : "none" }}>
-              {_isOwner ? "👑" : _isFirstTime ? "🎉" : ROLE_ICONS[currentRole] || "🎯"}
+            <div style={{ fontSize:56, marginBottom:12,
+              filter: isSuperAdmin ? "drop-shadow(0 0 20px #FFD700)" : "none" }}>
+              {isSuperAdmin ? "👑" : ROLE_ICONS[currentRole] || "🎯"}
             </div>
 
-            {/* Title */}
-            <div style={{ fontWeight:900, fontSize:_isOwner?22:18, marginBottom:8,
-              color: _isOwner ? "#FFD700" : theme.primary,
-              textShadow: _isOwner ? "0 0 20px #FFD70060" : "none" }}>
-              {_isOwner
-                ? "Master Console"
-                : _isFirstTime
-                  ? "أهلاً وسهلاً! 🎉"
-                  : `Welcome back, ${currentName.split(" ")[0]}`}
+            {/* Welcome message */}
+            <div style={{ fontWeight:900, fontSize:22, marginBottom:10,
+              color: isSuperAdmin ? "#FFD700" : theme.primary,
+              textShadow: isSuperAdmin ? "0 0 20px #FFD70060" : "none" }}>
+              {isSuperAdmin ? "Master Console" : `Welcome, ${currentName.split(" ")[0]}`}
             </div>
 
-            {/* Message */}
-            <div style={{
-              fontSize: _isOwner ? 13 : 15,
-              color: _isOwner ? "rgba(255,215,0,0.85)" : theme.text,
-              lineHeight:1.9, marginBottom:18,
-              fontWeight: _isOwner ? 600 : 400,
-              direction: _isOwner ? "ltr" : "rtl",
-              textAlign: _isOwner ? "center" : "right",
-              fontFamily: _isOwner ? "inherit" : "'Segoe UI',Tahoma,Arial,sans-serif",
-              background: _isOwner ? "transparent" : `${theme.primary}08`,
-              borderRadius: _isOwner ? 0 : 12,
-              padding: _isOwner ? 0 : "14px 18px",
-              border: _isOwner ? "none" : `1px solid ${theme.primary}20`
-            }}>
-              {_isOwner ? ROLE_WELCOME["owner"] : _arabicMsg}
+            {/* Role-specific message */}
+            <div style={{ fontSize:14, color: isSuperAdmin ? "rgba(255,215,0,0.8)" : theme.textSub,
+              lineHeight:1.7, marginBottom:20, fontWeight:isSuperAdmin?600:400 }}>
+              {isSuperAdmin
+                ? ROLE_WELCOME["owner"]
+                : ROLE_WELCOME[currentRole] || "Welcome back. Your workspace is ready."}
             </div>
 
-            {/* Role badge for non-owner */}
-            {!_isOwner && (
-              <div style={{ fontSize:11, color:theme.textMuted, marginBottom:16,
-                display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-                <span style={{ background:ROLE_COLORS[currentRole]+"22",
-                  color:ROLE_COLORS[currentRole], borderRadius:20, padding:"3px 10px",
-                  fontWeight:700 }}>
-                  {ROLE_ICONS[currentRole]} {currentRole}
-                </span>
-                <span>·</span>
-                <span>{ROLE_WELCOME[currentRole]}</span>
-              </div>
-            )}
+            {/* Daily tip */}
+            <div style={{ background: isSuperAdmin ? "rgba(255,215,0,0.08)" : `${theme.primary}10`,
+              border:`1px solid ${isSuperAdmin ? "rgba(255,215,0,0.2)" : theme.primary+"25"}`,
+              borderRadius:10, padding:"12px 16px", marginBottom:22,
+              fontSize:12, color: isSuperAdmin ? "rgba(255,215,0,0.65)" : theme.textMuted,
+              textAlign:"left", lineHeight:1.6 }}>
+              💡 {(DAILY_TIPS_EN)[new Date().getDay() % 7]}
+            </div>
 
-            <button onClick={()=>{
-              setShowTip(false);
-              // Mark as returning user
-              setLastLoginDate(currentName);
-            }}
+            <button onClick={()=>setShowTip(false)}
               style={{
-                background: _isOwner
+                background: isSuperAdmin
                   ? "linear-gradient(135deg,#B45309,#FFD700,#B45309)"
                   : `linear-gradient(135deg,${theme.primary},${theme.primaryHover})`,
-                color: _isOwner ? "#1A0A00" : "#fff",
+                color: isSuperAdmin ? "#1A0A00" : "#fff",
                 border:"none", borderRadius:12,
                 padding:"13px 44px", fontSize:15, cursor:"pointer", fontWeight:800,
-                boxShadow: _isOwner
+                boxShadow: isSuperAdmin
                   ? "0 4px 20px rgba(255,215,0,0.4)"
                   : `0 4px 16px ${theme.primary}60`,
                 letterSpacing:0.5 }}>
-              {_isOwner ? "Enter Master Console 👁️" : _isFirstTime ? "سمّ الله وانطلق! 🚀" : "يلا نبدأ! ✨"}
+              {isSuperAdmin ? "Enter Master Console 👁️" : "Let's Go 🚀"}
             </button>
           </div>
         </div>
-        );
-      })()}
+      )}
     </div>
   );
 }
-
-
-
-
