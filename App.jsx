@@ -12496,95 +12496,7 @@ export default function App() {
           })}
         </div>
       </div>
-
-      {/* ── Self Check-In Modal — Auto Attendance ── */}
-      {showSelfCheckIn && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)",
-          backdropFilter:"blur(8px)", zIndex:10002,
-          display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
-          <div style={{ background:theme.card, border:`2px solid ${theme.success}50`,
-            borderRadius:20, padding:"32px 28px", maxWidth:400, width:"100%",
-            boxShadow:`0 20px 60px rgba(0,0,0,0.6), 0 0 40px ${theme.success}20`,
-            textAlign:"center" }}>
-            <div style={{ fontSize:52, marginBottom:12 }}>✅</div>
-            <div style={{ fontWeight:900, fontSize:20, color:theme.success, marginBottom:8 }}>
-              Auto Check-In
-            </div>
-            <div style={{ fontSize:13, color:theme.textSub, lineHeight:1.7, marginBottom:20 }}>
-              Confirm your attendance now.<br/>
-              <strong style={{ color:theme.text }}>
-                {new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})}
-              </strong>
-              {" "}will be recorded as your check-in time.<br/>
-              <span style={{ fontSize:11, color:theme.textMuted }}>
-                Your supervisor will verify and confirm in Attendance page.
-              </span>
-            </div>
-            <div style={{ display:"flex", gap:10 }}>
-              <button onClick={()=>setShowSelfCheckIn(false)}
-                style={{ flex:1, background:"transparent", border:`1px solid ${theme.cardBorder}`,
-                  color:theme.textSub, borderRadius:10, padding:"12px", fontSize:14,
-                  cursor:"pointer", fontWeight:600 }}>Cancel</button>
-              <button onClick={()=>{
-                const now = new Date();
-                const todayKey = now.toLocaleDateString("en-CA",{timeZone:"Asia/Riyadh"});
-                const timeStr = now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"});
-                const emp = employees.find(e=>e.name===currentName);
-                if (!emp) { setShowSelfCheckIn(false); return; }
-                // Add self-check-in note for supervisors
-                const note = {
-                  id:"sci"+Date.now(),
-                  ts:now.toISOString(),
-                  date:todayKey,
-                  time:timeStr,
-                  tag:"Self Check-In",
-                  text:JSON.stringify({ empName:currentName, empId:emp.id, empRole:currentRole, checkInTime:timeStr, date:todayKey, status:"pending" }),
-                  from:currentName,
-                  target:"supervisors",
-                  msgType:"self_checkin",
-                };
-                setNotes(prev=>[note,...(Array.isArray(prev)?prev:[])]);
-                addAudit("Self Check-In", currentName, `Auto check-in at ${timeStr}`);
-                showToast(`✅ Check-in recorded at ${timeStr} — awaiting supervisor confirmation`, "success", 5000);
-                setShowSelfCheckIn(false);
-              }}
-                style={{ flex:1, background:`linear-gradient(135deg,${theme.success},${theme.success}CC)`,
-                  color:"#fff", border:"none", borderRadius:10, padding:"12px", fontSize:14,
-                  cursor:"pointer", fontWeight:800,
-                  boxShadow:`0 4px 16px ${theme.success}40` }}>
-                ✅ Confirm Check-In
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showResetPw && (
-        <PasswordResetModal employees={employees} session={session} onClose={()=>setShowResetPw(false)}/>
-      )}
-
-      {/* ── Quick Note FAB — proper component ── */}
-      {!isAgent && (
-        <QuickNoteFAB
-          currentName={currentName}
-          setNotes={setNotes}
-          theme={theme}
-        />
-      )}
-
-      {/* ── Global Search Modal ── */}
-      {showSearch && (
-        <GlobalSearch
-          employees={employees}
-          notes={notes}
-          auditLog={auditLog}
-          onNavigate={p=>navigateLogged(p)}
-          onClose={()=>setShowSearch(false)}
-          session={session}
-        />
-      )}
-
-      {/* ── POPUPS: rendered at root level, unaffected by transform:scale on content ── */}
+{/* ── POPUPS: rendered at root level, unaffected by transform:scale on content ── */}
       {showDM && (
         <DirectMessageModal
           employees={employees}
@@ -12601,7 +12513,6 @@ export default function App() {
           <CriticalAlertPopup
             alerts={criticalAlerts}
             onDismiss={()=>{
-              // Save current total so alert only re-shows if queue grows by 50+
               const total = criticalAlerts[0]?.total || 0;
               setDismissedQueueTotal(total);
               setAlertDismissed(true);
