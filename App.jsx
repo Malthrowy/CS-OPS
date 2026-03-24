@@ -7,7 +7,7 @@ const T = {
     selectRole: "Select Your Role", yourName: "Your Name",
     selectName: "Select your name", agentNameLabel: "Select Your Name",
     agentHint: "View only — password required on first login",
-    password: "Password", signIn: "Sign In", signInAs: "Sign In as",
+    password: "Password", signIn: "Sign In", signInAs: "Sign in as",
     enterAs: "Enter as",
     setPassword: "Set Your Personal Password", firstLogin: "First time login",
     newPassword: "New Password (min. 4 characters)", confirmPassword: "Confirm Password",
@@ -289,6 +289,54 @@ function statusIcon(status) {
   };
   return map[status] || "⚪";
 }
+
+// ─── إضافات جديدة ───────────────────────────────────────────────────────────
+function playSoftDing() {
+  if (localStorage.getItem("csops_mute") === "1") return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 784;
+    osc.type = "sine";
+    const now = ctx.currentTime;
+    gain.gain.setValueAtTime(0.18, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    osc.start(now);
+    osc.stop(now + 0.45);
+    setTimeout(() => ctx.close(), 1000);
+  } catch (e) {}
+}
+
+let _toastId = 0;
+let _setToasts = null;
+
+function showToast(message, type = "info", duration = 3500) {
+  if (!_setToasts) return;
+  const id = ++_toastId;
+  _setToasts(prev => [...prev, { id, message, type }]);
+  setTimeout(() => {
+    _setToasts(prev => prev.filter(t => t.id !== id));
+  }, duration);
+}
+
+function ToastContainer() {
+  const [toasts, setToasts] = React.useState([]);
+  React.useEffect(() => { _setToasts = setToasts; }, []);
+  return (
+    <div style={{ position:"fixed", top:16, right:16, zIndex:9999, display:"flex", flexDirection:"column", gap:8, pointerEvents:"none" }}>
+      {toasts.map(t => (
+        <div key={t.id} style={{ background: t.type==="success"?"#166534":t.type==="error"?"#991B1B":t.type==="warning"?"#92400E":"#1E40AF", color:"#fff", borderRadius:12, padding:"12px 16px", boxShadow:"0 8px 24px rgba(0,0,0,0.4)", border:"1px solid rgba(255,255,255,0.15)", fontSize:13, fontWeight:600, maxWidth:300, display:"flex", alignItems:"center", gap:8, pointerEvents:"all", backdropFilter:"blur(8px)" }}>
+          <span>{t.type==="success"?"✅":t.type==="error"?"❌":t.type==="warning"?"⚠️":"ℹ️"}</span>
+          <span>{t.message}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const ALL_PAGES = ["Home","Messages","Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard","Attendance History","KPI Dashboard","Surveys","Gamification","Shift Handover"];
 const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics"); // Home + Leaderboard visible to all roles
 const AGENT_PAGES = ["Home","Messages","Schedule","Live Floor","Break","Performance","Queue","Leaderboard","Surveys","Gamification"];
@@ -430,9 +478,6 @@ const ROLE_DESC_EN = {
   "SME":          "Full access · Password required",
   "Agent":        "View only · Password on first login",
 };
-
-
-
 // Super Admin — protected by name AND role
 const SUPER_ADMIN = "Mohammed Nasser Althurwi";
 const OWNER_ROLE = "owner";
@@ -1474,7 +1519,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                 );
               })}
               <th style={{ padding:"10px 8px", borderBottom:`2px solid ${_theme.cardBorder}` }}></th>
-            </tr>
+             </tr>
           </thead>
           <tbody>
             {/* Flat or grouped rendering */}
@@ -1541,7 +1586,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                         {emp.gender||"M"}
                       </span>
                     </div>
-                  </td>
+                   </td>
                 {DAYS.map((day,di) => {
                   const val = (schedule[emp.id]||{})[day]||"OFF";
                   const sh  = shifts.find(s=>s.id===val);
@@ -1569,7 +1614,7 @@ function SchedulePage({ employees, setEmployees, schedule, setSchedule, shifts, 
                   <button onClick={()=>setEditEmp({...emp})}
                     style={{ background:"none", border:"1px solid #CBD5E1", borderRadius:6,
                       padding:"4px 8px", cursor:"pointer", fontSize:14 }}>✏️</button>
-                </td>
+                 </td>
                 </tr>
                 );
               });
@@ -1935,7 +1980,7 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
   function calcWorkDuration(checkIn, checkOut) {
     if (!checkIn || !checkOut) return null;
     let diff = toMin(checkOut) - toMin(checkIn);
-    if (diff < 0) diff += 1440; // midnight crossing
+    if (diff < 0) diff += 1440;
     return diff;
   }
   function fmtDuration(mins) {
@@ -2254,7 +2299,6 @@ function AttendancePage({ employees, schedule, setSchedule, shifts, attendance, 
     </div>
   );
 }
-
 // ─── PERFORMANCE PAGE ─────────────────────────────────────────────────────────
 function PerformancePage({ employees, schedule, shifts, performance, setPerformance, myShiftFilter, session }) {
   const [date, setDate] = useState(todayStr());
@@ -2376,7 +2420,7 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
             <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
               {["Rank","Employee","Tasks","Shift","Closed","Escalations",...(showQuality?["Quality %"]:[])]
                 .map(h=><th key={h} style={{ padding:"10px 8px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>)}
-            </tr>
+             </tr>
           </thead>
           <tbody>
             {sorted.map((emp,ri) => {
@@ -2397,26 +2441,1426 @@ function PerformancePage({ employees, schedule, shifts, performance, setPerforma
                         ) : null;
                       })()}
                     </div>
-                  </td>
+                   </td>
                   <td style={{ padding:"8px" }}>
                     <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
                       {emp.tasks.map(t=><span key={t} style={{ background:taskColor(t), color:"#fff", borderRadius:10, padding:"2px 6px", fontSize:10, fontWeight:600 }}>{t}</span>)}
                     </div>
-                  </td>
+                   </td>
                   <td style={{ padding:"8px", color:_theme.textSub }}>{getShiftLabel(emp.id)}</td>
                   <td style={{ padding:"8px" }}>
                     <input type="number" min="0" value={p.closed||""} onChange={e=>setPerf(emp.id,"closed",Number(e.target.value))}
                       style={{ ...I({ width:70, border: p.closed>0?"2px solid #10B981":"1px solid #CBD5E1" })}} placeholder="0"/>
-                  </td>
+                   </td>
                   <td style={{ padding:"8px" }}>
                     <input type="number" min="0" value={p.escalations||""} onChange={e=>setPerf(emp.id,"escalations",Number(e.target.value))}
                       style={{ ...I({ width:70, border: p.escalations>0?"2px solid #F59E0B":"1px solid #CBD5E1" })}} placeholder="0"/>
-                  </td>
+                   </td>
                   {showQuality && (
                     <td style={{ padding:"8px" }}>
                       <input type="number" min="0" max="100" value={p.quality||""} onChange={e=>setPerf(emp.id,"quality",Number(e.target.value))}
                         style={{ ...I({ width:70 })}} placeholder="0-100"/>
-                    </td>
+                     </td>
+                  )}
+                 </tr>
+              );
+            })}
+          </tbody>
+         </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── HEAT MAP PAGE -- reads data from Queue ────────────────────────────────────
+function HeatMapPage({ queueLog, alertThresholdCritical, alertThresholdWarning }) {
+  const [date, setDate]       = useState(todayStr());
+  const [threshold, setThreshold] = useState(300); // custom threshold for live alert
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [tick, setTick]         = useState(0);
+
+  // Auto-refresh every 2 minutes when on today's date
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const t = setInterval(() => setTick(p=>p+1), 2*60*1000);
+    return () => clearInterval(t);
+  }, [autoRefresh]);
+
+  // Collect all queue entries for this date across all shifts
+  // Build hourly map from baseTime and updTime entries
+  const hourlyData = useMemo(() => {
+    const map = {}; // "HH:00" → total cases
+    Object.entries(queueLog).forEach(([key, data]) => {
+      if (!key.startsWith(date+"_")) return;
+      // Use baseTime or updTime as the hour marker
+      const times = [data.baseTime, data.updTime].filter(Boolean);
+      times.forEach(t => {
+        const hr = t.slice(0,2)+":00";
+        // Sum all queue fields as inflow indicator
+        const fields = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2",
+                        "someKwt","someQat","someBah","someUae"];
+        const total = fields.reduce((s,f)=>s+Number(data[f+"Curr"]||0),0);
+        map[hr] = (map[hr]||0) + total;
+      });
+      // Also push calculated snapshot using updTime
+      if (data.updTime && data.calcSnapshot) {
+        const hr = data.updTime.slice(0,2)+":00";
+        map[hr] = (map[hr]||0) + (data.calcSnapshot||0);
+      }
+    });
+    return map;
+  }, [queueLog, date]);
+
+  const hours = Array.from({length:24}, (_,i) => pad(i)+":00");
+  const counts = hours.map(h => hourlyData[h]||0);
+  const maxCount = Math.max(...counts, 1);
+  const total = counts.reduce((a,b)=>a+b,0);
+  const peakHour = hours[counts.indexOf(Math.max(...counts))];
+  const sortedByCount = [...hours].sort((a,b) => (hourlyData[a]||0)-(hourlyData[b]||0));
+  const breakWindows = sortedByCount.slice(0,3);
+
+  function cellBg(count) {
+    if (!count) return "#F1F5F9";
+    const pct = count/maxCount;
+    if (pct>0.8) return "#FEE2E2";
+    if (pct>0.5) return "#FEF9C3";
+    if (pct>0.2) return "#DCFCE7";
+    return "#F0FDF4";
+  }
+  function cellBorder(count) {
+    if (!count) return "#E2E8F0";
+    const pct = count/maxCount;
+    if (pct>0.8) return "#EF4444";
+    if (pct>0.5) return "#F59E0B";
+    if (pct>0.2) return "#10B981";
+    return "#86EFAC";
+  }
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🌡️ Live Heat Map</span>
+        <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <label style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>Alert at:</label>
+          <input type="number" value={threshold} onChange={e=>setThreshold(Number(e.target.value))}
+            style={{ ...I({width:70}) }} min="50" max="2000"/>
+          <button onClick={()=>setAutoRefresh(a=>!a)}
+            style={{ border:`1.5px solid ${autoRefresh?"#10B981":"#CBD5E1"}`,
+              borderRadius:20, padding:"3px 10px", fontSize:11, cursor:"pointer",
+              background:autoRefresh?"#F0FDF4":"transparent",
+              color:autoRefresh?"#10B981":_theme.textMuted, fontWeight:700 }}>
+            {autoRefresh?"🔄 Live ON":"🔄 Live OFF"}
+          </button>
+        </div>
+      </div>
+
+      {/* Live threshold alert */}
+      {total > threshold && date === todayStr() && (
+        <div style={{ background:"#FEF2F2", border:"2px solid #EF4444",
+          borderRadius:10, padding:"10px 16px", marginBottom:14,
+          display:"flex", alignItems:"center", gap:10,
+          animation:"pulse 1s infinite" }}>
+          <span style={{ fontSize:20 }}>🚨</span>
+          <div>
+            <div style={{ fontWeight:800, color:"#EF4444", fontSize:13 }}>
+              Live Alert — Queue Load Exceeds Threshold
+            </div>
+            <div style={{ fontSize:12, color:"#991B1B" }}>
+              Current load: <strong>{total}</strong> cases · Threshold: <strong>{threshold}</strong> ·
+              Peak hour: <strong>{peakHour}</strong>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Summary */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:16 }}>
+        <div style={{ ...CRD(), borderTop:"3px solid #EF4444" }}>
+          <div style={LBL}>Peak Hour</div>
+          <div style={{ fontSize:22, fontWeight:800, color:"#EF4444" }}>{total>0 ? peakHour : "--"}</div>
+          <div style={{ fontSize:12, color:_theme.textMuted }}>{total>0 ? (hourlyData[peakHour]||0)+" cases" : "No data yet"}</div>
+        </div>
+        <div style={{ ...CRD(), borderTop:"3px solid #2563EB" }}>
+          <div style={LBL}>Total Queue Load</div>
+          <div style={{ fontSize:22, fontWeight:800, color:"#2563EB" }}>{total}</div>
+          <div style={{ fontSize:12, color:_theme.textMuted }}>across all recorded hours</div>
+        </div>
+        <div style={{ ...CRD(), borderTop:"3px solid #10B981" }}>
+          <div style={LBL}>Recommended Breaks</div>
+          <div style={{ fontSize:14, fontWeight:700, color:"#10B981" }}>{breakWindows.filter(h=>(hourlyData[h]||0)===0).slice(0,3).join(", ")||"--"}</div>
+          <div style={{ fontSize:12, color:_theme.textMuted }}>lowest activity windows</div>
+        </div>
+      </div>
+
+      {/* Grid */}
+      <div style={{ ...CRD(), padding:16 }}>
+        {total === 0 && (
+          <div style={{ textAlign:"center", padding:"24px 0", color:_theme.textMuted, fontSize:13 }}>
+            📭 No data yet -- enter Queue data and click <strong>Calculate</strong> to populate this chart.
+          </div>
+        )}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:8 }}>
+          {hours.map(h => {
+            const count = hourlyData[h]||0;
+            return (
+              <div key={h} style={{ background:cellBg(count), border:`1.5px solid ${cellBorder(count)}`, borderRadius:8, padding:"10px 8px", textAlign:"center" }}>
+                <div style={{ fontSize:11, fontWeight:700, color:_theme.textMuted, marginBottom:4 }}>{h}</div>
+                <div style={{ fontWeight:800, fontSize:18, color: count>0 ? cellBorder(count) : "#CBD5E1" }}>{count||0}</div>
+                {count>0 && <div style={{ fontSize:10, color:_theme.textMuted }}>{Math.round(count/maxCount*100)}%</div>}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display:"flex", gap:16, marginTop:16, flexWrap:"wrap" }}>
+          {[["#FEE2E2","#EF4444",">80% peak"],["#FEF9C3","#F59E0B",">50% peak"],["#DCFCE7","#10B981",">20% peak"],["#F1F5F9","#94A3B8","No data"]].map(([bg,border,label])=>(
+            <div key={label} style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <div style={{ width:16, height:16, background:bg, border:`1.5px solid ${border}`, borderRadius:3 }}/>
+              <span style={{ fontSize:12, color:_theme.textMuted }}>{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── QUEUE PAGE ───────────────────────────────────────────────────────────────
+function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session }) {
+  const todayKey = todayStr();
+
+  // ── Auto-detect current shift from system clock ──────────────────────────────
+  function detectShiftNow() {
+    if (!shifts.length) return "";
+    const nowMin = new Date().getHours()*60 + new Date().getMinutes();
+    for (const sh of shifts) {
+      const st=toMin(sh.start), en=toMin(sh.end);
+      if (en>st){ if(nowMin>=st&&nowMin<en) return sh.id; }
+      else       { if(nowMin>=st||nowMin<en) return sh.id; }
+    }
+    let best=shifts[0], minD=Infinity;
+    shifts.forEach(sh=>{ let d=nowMin-toMin(sh.start); if(d<0)d+=1440; if(d<minD){minD=d;best=sh;} });
+    return best.id;
+  }
+
+  // Auto baseline = shift start time; auto update = right now
+  function autoBase(sid) {
+    const sh = shifts.find(s=>s.id===sid);
+    return sh ? sh.start : pad(new Date().getHours())+":"+pad(new Date().getMinutes());
+  }
+  function autoNow() { return pad(new Date().getHours())+":"+pad(new Date().getMinutes()); }
+
+  // ── Default mode: auto shift + auto times ────────────────────────────────────
+  const [autoShiftId]   = useState(() => detectShiftNow());
+  const [calcDone, setCalcDone] = useState(false);
+
+  // ── Sidebar: shift-specific mode ─────────────────────────────────────────────
+  const [sbMode,     setSbMode]     = useState("single");   // "single"|"multi"
+  const [sbSelected, setSbSelected] = useState([]);         // selected shift ids
+  const [sbApplied,  setSbApplied]  = useState(false);      // true when user pressed Calculate
+  const [sbShifts,   setSbShifts]   = useState([]);         // applied shifts snapshot
+
+  // Active data key — uses sidebar shifts when applied, else auto-detected shift
+  const activeShiftId = sbApplied && sbShifts.length ? sbShifts[0] : autoShiftId;
+  const key = `${todayKey}_${activeShiftId}`;
+  const data = queueLog[key] || {};
+
+  // Resolved times: prefer stored, fall back to auto
+  const baseTimeVal = data.baseTime !== undefined ? data.baseTime : autoBase(activeShiftId);
+  const updTimeVal  = data.updTime  !== undefined ? data.updTime  : autoNow();
+
+  // Write auto-values to store on first access so editing works immediately
+  const [seeded, setSeeded] = useState(false);
+  useEffect(() => {
+    if (!seeded && !data.baseTime && !data.updTime) {
+      setQueueLog(prev => ({
+        ...prev,
+        [key]: {
+          ...(prev[key]||{}),
+          baseTime: autoBase(activeShiftId),
+          updTime:  autoNow(),
+        }
+      }));
+      setSeeded(true);
+    }
+  }, [key, seeded]);
+
+  function setQ(field, val) {
+    setQueueLog(prev => ({ ...prev, [key]: { ...(prev[key]||{}), [field]: val } }));
+    setCalcDone(false);
+  }
+
+  // ── Queue field definitions ──────────────────────────────────────────────────
+  const KSA_FIELDS = [
+    { key:"tga",  label:"TGA",  color:"#6366F1", flag:"🇸🇦" },
+    { key:"ob",   label:"OB",   color:"#0EA5E9", flag:"🇸🇦" },
+    { key:"oslo", label:"OSLO", color:"#8B5CF6", flag:"🇸🇦" },
+    { key:"some", label:"SOME", color:"#EC4899", flag:"🇸🇦" },
+  ];
+  const GCC_FIELDS = [
+    { key:"kwtT2",   label:"KWT T2 Cases",   color:"#10B981", flag:"🇰🇼" },
+    { key:"qatT2",   label:"QAT T2 Cases",   color:"#F59E0B", flag:"🇶🇦" },
+    { key:"bahT2",   label:"BAH T2 Cases",   color:"#EF4444", flag:"🇧🇭" },
+    { key:"uaeT2",   label:"UAE T2 Cases",   color:"#06B6D4", flag:"🇦🇪" },
+    { key:"someKwt", label:"SOME KWT Cases", color:"#14B8A6", flag:"🇰🇼" },
+    { key:"someQat", label:"SOME QAT Cases", color:"#F97316", flag:"🇶🇦" },
+    { key:"someBah", label:"SOME BAH Cases", color:"#A855F7", flag:"🇧🇭" },
+    { key:"someUae", label:"SOME UAE Cases", color:"#84CC16", flag:"🇦🇪" },
+  ];
+  const QUEUE_FIELDS = [...KSA_FIELDS, ...GCC_FIELDS];
+
+  // ── Calcs — when multi-shift applied, combine all selected shifts ─────────────
+  const calcs = useMemo(() => {
+    if (sbApplied && sbShifts.length > 1) {
+      // Combine data from all selected shifts
+      return QUEUE_FIELDS.map(f => {
+        let base=0, inflow=0, curr=0;
+        sbShifts.forEach(sid => {
+          const d2 = queueLog[`${todayKey}_${sid}`] || {};
+          base   += Number(d2[f.key+"Base"]  ||0);
+          inflow += Number(d2[f.key+"Inflow"]||0);
+          curr   += Number(d2[f.key+"Curr"]  ||0);
+        });
+        const resolved = base+inflow-curr;
+        return { ...f, base, inflow, curr, resolved, change: curr-base };
+      });
+    }
+    // Default: single key
+    return QUEUE_FIELDS.map(f => {
+      const base    = Number(data[f.key+"Base"]  ||0);
+      const inflow  = Number(data[f.key+"Inflow"]||0);
+      const curr    = Number(data[f.key+"Curr"]  ||0);
+      return { ...f, base, inflow, curr, resolved:base+inflow-curr, change:curr-base };
+    });
+  }, [data, sbApplied, sbShifts, queueLog, todayKey]);
+
+  const totalBase     = calcs.reduce((s,c)=>s+c.base,0);
+  const totalCurr     = calcs.reduce((s,c)=>s+c.curr,0);
+  const totalResolved = calcs.reduce((s,c)=>s+c.resolved,0);
+  const totalInflow   = calcs.reduce((s,c)=>s+c.inflow,0);
+
+  const status      = totalCurr>400?"🚨 CRITICAL":totalCurr>200?"⚠️ WARNING":"✅ NORMAL";
+  const statusColor = status.includes("CRITICAL")?"#EF4444":status.includes("WARNING")?"#F59E0B":"#10B981";
+
+  function timeDiff() {
+    const bt = baseTimeVal, ut = updTimeVal;
+    if (!bt||!ut) return null;
+    const d = toMin(ut)-toMin(bt);
+    const dd = d<0?d+1440:d;
+    return `${Math.floor(dd/60)}h ${dd%60}m`;
+  }
+
+  function calculate() {
+    const ut = updTimeVal;
+    if (!ut) return;
+    const hr = ut.slice(0,2)+":00";
+    setHeatmap(prev=>({ ...prev, [todayKey]:{ ...(prev[todayKey]||{}), [hr]:totalCurr } }));
+    setQueueLog(prev=>({ ...prev, [key]:{ ...(prev[key]||{}), calcSnapshot:totalCurr, calcTime:ut } }));
+    setCalcDone(true);
+  }
+
+  // Sidebar helpers
+  function toggleSbShift(sid) {
+    if (sbMode==="single") { setSbSelected([sid]); }
+    else { setSbSelected(prev=>prev.includes(sid)?prev.filter(x=>x!==sid):[...prev,sid]); }
+  }
+  function applyShifts() {
+    if (!sbSelected.length) return;
+    setSbShifts(sbSelected);
+    setSbApplied(true);
+    setCalcDone(false);
+  }
+  function resetToAuto() {
+    setSbApplied(false); setSbShifts([]); setSbSelected([]); setCalcDone(false);
+  }
+
+  const currentShift = shifts.find(s=>s.id===activeShiftId);
+
+  // ── Input border helper for numeric fields ────────────────────────────────────
+  function inflowBorder(val) {
+    return Number(val||0)>0?`2px solid ${_theme.primary}`:`1px solid ${_theme.inputBorder}`;
+  }
+  function currBorder(val) {
+    const n=Number(val||0);
+    return n>200?`2px solid #EF4444`:n>100?`2px solid #F59E0B`:`1px solid ${_theme.inputBorder}`;
+  }
+
+  return (
+    <div style={{ display:"flex", gap:16, alignItems:"flex-start" }}>
+
+      {/* ══════════════════════ SIDEBAR ══════════════════════════════════════ */}
+      <div style={{ width:230, flexShrink:0, display:"flex", flexDirection:"column", gap:12 }}>
+
+        {/* Active context info */}
+        <div style={{ ...CRD({ padding:"14px 16px" }),
+          borderLeft:`3px solid ${currentShift?.color||_theme.primary}` }}>
+          <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:700,
+            letterSpacing:"0.05em", marginBottom:8 }}>ACTIVE DATA SOURCE</div>
+          {sbApplied && sbShifts.length ? (
+            <div>
+              <div style={{ fontSize:12, fontWeight:700, color:_theme.primary, marginBottom:4 }}>
+                {sbShifts.length>1?`📊 ${sbShifts.length} Shifts Combined`:"📊 Single Shift (Manual)"}
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:3, marginBottom:10 }}>
+                {sbShifts.map(sid=>{
+                  const sh=shifts.find(s=>s.id===sid);
+                  return sh ? (
+                    <div key={sid} style={{ fontSize:11, color:sh.color, fontWeight:600,
+                      background:sh.color+"15", borderRadius:5, padding:"2px 7px" }}>
+                      ⏰ {sh.label}
+                    </div>
+                  ) : null;
+                })}
+              </div>
+              <button onClick={resetToAuto}
+                style={{ background:"none", border:`1px solid ${_theme.cardBorder}`,
+                  color:_theme.textMuted, borderRadius:6, padding:"4px 10px",
+                  fontSize:11, cursor:"pointer", width:"100%" }}>
+                ↩ Reset to Auto
+              </button>
+            </div>
+          ) : (
+            <div>
+              <div style={{ fontSize:11, fontWeight:700, color:_theme.success, marginBottom:4 }}>
+                🟢 Auto — Current Time
+              </div>
+              {currentShift && (
+                <div style={{ fontSize:11, color:currentShift.color, fontWeight:600,
+                  background:currentShift.color+"15", borderRadius:5, padding:"2px 7px",
+                  marginBottom:4, display:"inline-block" }}>
+                  ⏰ {currentShift.label}
+                </div>
+              )}
+              <div style={{ fontSize:10, color:_theme.textMuted, marginTop:4 }}>
+                Shift auto-detected from system clock
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Calculate Queue for Specific Shift(s) ── */}
+        <div style={{ ...CRD({ padding:"14px 16px" }),
+          border:`1.5px solid ${_theme.primary}30` }}>
+          <div style={{ fontSize:11, fontWeight:800, color:_theme.primary,
+            marginBottom:12, display:"flex", alignItems:"center", gap:6 }}>
+            🎯 Calculate Queue for Specific Shift(s)
+          </div>
+
+          {/* Mode toggle */}
+          <div style={{ display:"flex", gap:4, marginBottom:10 }}>
+            {[["single","Single"],["multi","Multiple"]].map(([m,l])=>(
+              <button key={m} onClick={()=>{ setSbMode(m); setSbSelected([]); }}
+                style={{ flex:1, border:`1.5px solid ${sbMode===m?_theme.primary:_theme.cardBorder}`,
+                  borderRadius:6, padding:"4px 6px", fontSize:11, cursor:"pointer", fontWeight:700,
+                  background: sbMode===m?_theme.primary+"22":"transparent",
+                  color: sbMode===m?_theme.primary:_theme.textMuted }}>
+                {l}
+              </button>
+            ))}
+          </div>
+
+          {/* Shift list */}
+          <div style={{ display:"flex", flexDirection:"column", gap:5, marginBottom:10,
+            maxHeight:200, overflowY:"auto" }}>
+            {shifts.map(sh => {
+              const sel = sbSelected.includes(sh.id);
+              return (
+                <div key={sh.id} onClick={()=>toggleSbShift(sh.id)}
+                  style={{ display:"flex", alignItems:"center", gap:8, padding:"7px 10px",
+                    borderRadius:7, cursor:"pointer", userSelect:"none",
+                    border:`1.5px solid ${sel?sh.color:_theme.cardBorder}`,
+                    background: sel?sh.color+"18":_theme.surface,
+                    transition:"all 0.12s" }}>
+                  <div style={{ width:10, height:10, borderRadius:3,
+                    background:sh.color, flexShrink:0 }}/>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:11, fontWeight:700,
+                      color:sel?sh.color:_theme.text, whiteSpace:"nowrap",
+                      overflow:"hidden", textOverflow:"ellipsis" }}>{sh.label}</div>
+                    <div style={{ fontSize:9, color:_theme.textMuted }}>{sh.start} – {sh.end}</div>
+                  </div>
+                  {sel && <span style={{ fontSize:12, color:sh.color, fontWeight:800 }}>✓</span>}
+                </div>
+              );
+            })}
+          </div>
+
+          {sbSelected.length > 0 && (
+            <div style={{ fontSize:11, color:_theme.textMuted, marginBottom:8, textAlign:"center" }}>
+              {sbSelected.length} shift{sbSelected.length>1?"s":""} selected
+            </div>
+          )}
+
+          <button onClick={applyShifts} disabled={!sbSelected.length}
+            style={{ width:"100%", background:sbSelected.length?_theme.primary:"#374151",
+              color:"#fff", border:"none", borderRadius:7, padding:"9px",
+              fontSize:12, cursor:sbSelected.length?"pointer":"default",
+              fontWeight:700, opacity:sbSelected.length?1:0.5,
+              transition:"all 0.15s" }}>
+            ⚡ Calculate / Apply
+          </button>
+        </div>
+
+        {/* Today info */}
+        <div style={{ ...CRD({ padding:"12px 14px" }) }}>
+          <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:700,
+            letterSpacing:"0.05em", marginBottom:6 }}>TODAY</div>
+          <div style={{ fontSize:12, fontWeight:700, color:_theme.text }}>
+            {new Date().toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"Asia/Riyadh"})}
+          </div>
+          <div style={{ fontSize:11, color:_theme.primary, fontWeight:600, marginTop:2 }}>
+            🕐 {autoNow()}
+          </div>
+        </div>
+
+      </div>
+      {/* ═══════════════════════ END SIDEBAR ═══════════════════════════════════ */}
+
+      {/* ══════════════════════ MAIN CONTENT ═════════════════════════════════ */}
+      <div style={{ flex:1, minWidth:0 }}>
+
+        {/* ── Top bar: Title + Status badge only ─────────────────────────────── */}
+        <div style={{ ...SBR({ marginBottom:14 }), alignItems:"center" }}>
+          <span style={{ fontWeight:800, fontSize:16, color:_theme.text }}>📊 Queue Data</span>
+          {sbApplied && sbShifts.length>1 && (
+            <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>
+              Combined: {sbShifts.map(sid=>shifts.find(s=>s.id===sid)?.label).join(" + ")}
+            </span>
+          )}
+          <div style={{ marginLeft:"auto", fontWeight:700, fontSize:13,
+            color:statusColor, background:statusColor+"18",
+            borderRadius:6, padding:"6px 14px",
+            border:`1px solid ${statusColor}40` }}>
+            {status}
+          </div>
+        </div>
+
+        {/* ── Time bar: Baseline + Update + Duration + Calculate ──────────────────── */}
+        <div style={{ ...CRD({ padding:"12px 16px" }), marginBottom:16,
+          display:"flex", gap:16, alignItems:"center", flexWrap:"wrap" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:13, color:_theme.textMuted, whiteSpace:"nowrap" }}>⏱ Baseline</span>
+            <input type="time" value={baseTimeVal}
+              onChange={e=>setQ("baseTime",e.target.value)}
+              style={{ ...I({ width:115 })}}/>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:13, color:_theme.textMuted, whiteSpace:"nowrap" }}>🔄 Update</span>
+            <input type="time" value={updTimeVal}
+              onChange={e=>setQ("updTime",e.target.value)}
+              style={{ ...I({ width:115 })}}/>
+          </div>
+          {timeDiff() && (
+            <div style={{ fontSize:13, color:_theme.textSub, fontWeight:600 }}>
+              ⏳ <strong>{timeDiff()}</strong>
+            </div>
+          )}
+          <button onClick={calculate}
+            style={{ ...PBT(calcDone?"#10B981":_theme.primary,
+              { padding:"8px 22px", fontSize:13, marginLeft:"auto",
+                boxShadow:calcDone?"none":`0 0 0 3px ${_theme.primary}30`,
+                transition:"all 0.2s" }) }}>
+            {calcDone ? "✅ Saved to Heat Map" : "🧮 Calculate"}
+          </button>
+        </div>
+
+        {/* ── Summary KPIs ────────────────────────────────────────────────────── */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:16 }}>
+          {[
+            ["Total Baseline", totalBase,     "#6B7280"],
+            ["New Inflow",     totalInflow,   _theme.primary],
+            ["Current Live",   totalCurr,     "#EF4444"],
+            ["Resolved",       totalResolved, "#10B981"],
+          ].map(([l,v,c])=>(
+            <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
+              <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>{l}</div>
+              <div style={{ fontSize:28, fontWeight:800, color:c }}>{v}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Queue Tables ─────────────────────────────────────────────────────── */}
+        {[
+          { title:"🇸🇦 KSA Queue", fields:KSA_FIELDS, accent:"#6366F1" },
+          { title:"🌍 GCC Queue",  fields:GCC_FIELDS,  accent:"#10B981" },
+        ].map(({ title, fields, accent }) => {
+          const groupCalcs  = calcs.filter(c=>fields.some(f=>f.key===c.key));
+          const gTotal      = groupCalcs.reduce((s,c)=>s+c.curr,0);
+          const gResolved   = groupCalcs.reduce((s,c)=>s+c.resolved,0);
+          // In multi-shift mode, data writes go to first selected shift
+          const isMulti = sbApplied && sbShifts.length > 1;
+          return (
+            <div key={title} style={{ ...CRD(), overflowX:"auto", marginBottom:16 }}>
+              <div style={{ display:"flex", alignItems:"center",
+                justifyContent:"space-between", marginBottom:12 }}>
+                <div style={{ fontWeight:800, color:accent, fontSize:15 }}>{title}</div>
+                <div style={{ display:"flex", gap:14, fontSize:12, color:_theme.textMuted }}>
+                  <span>Current: <strong style={{color:"#EF4444"}}>{gTotal}</strong></span>
+                  <span>Resolved: <strong style={{color:"#10B981"}}>{gResolved>0?"+":""}{gResolved}</strong></span>
+                </div>
+              </div>
+              {isMulti && (
+                <div style={{ fontSize:11, color:_theme.textMuted, background:_theme.surface,
+                  borderRadius:6, padding:"5px 10px", marginBottom:8 }}>
+                  ℹ️ Combined view — edit individual shifts to update values
+                </div>
+              )}
+              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+                <thead>
+                  <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+                    {["Queue","","Baseline","New Inflow","Current","Resolved","Trend"].map(h=>(
+                      <th key={h} style={{ padding:"8px 10px", textAlign:"left",
+                        fontWeight:700, color:_theme.text,
+                        borderBottom:`2px solid ${accent}40`, whiteSpace:"nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {groupCalcs.map((c,ri)=>(
+                    <tr key={c.key} style={{ background:ri%2===0?_theme.card:_theme.surface }}>
+                      <td style={{ padding:"8px 10px", fontWeight:700, color:c.color }}>{c.label}</td>
+                      <td style={{ padding:"8px 6px", fontSize:16 }}>{c.flag}</td>
+                      <td style={{ padding:"8px 10px" }}>
+                        <input type="number" min="0" disabled={isMulti}
+                          value={isMulti?c.base:(data[c.key+"Base"]||"")}
+                          onChange={e=>setQ(c.key+"Base",e.target.value)}
+                          style={{ ...I({ width:72, opacity:isMulti?.7:1 })}} placeholder="0"/>
+                       </td>
+                      <td style={{ padding:"8px 10px" }}>
+                        <input type="number" min="0" disabled={isMulti}
+                          value={isMulti?c.inflow:(data[c.key+"Inflow"]||"")}
+                          onChange={e=>setQ(c.key+"Inflow",e.target.value)}
+                          style={{ ...I({ width:72, border:isMulti?`1px solid ${_theme.inputBorder}`:inflowBorder(data[c.key+"Inflow"]),
+                            opacity:isMulti?.7:1 })}} placeholder="0"/>
+                       </td>
+                      <td style={{ padding:"8px 10px" }}>
+                        <input type="number" min="0" disabled={isMulti}
+                          value={isMulti?c.curr:(data[c.key+"Curr"]||"")}
+                          onChange={e=>setQ(c.key+"Curr",e.target.value)}
+                          style={{ ...I({ width:72, border:isMulti?`1px solid ${_theme.inputBorder}`:currBorder(data[c.key+"Curr"]),
+                            opacity:isMulti?.7:1 })}} placeholder="0"/>
+                       </td>
+                      <td style={{ padding:"8px 10px", fontWeight:700,
+                        color:c.resolved>0?"#10B981":c.resolved<0?"#EF4444":_theme.textMuted }}>
+                        {c.resolved>0?"+":""}{c.resolved}
+                       </td>
+                      <td style={{ padding:"8px 10px", fontSize:16 }}>
+                        {c.change>0?"📈":c.change<0?"📉":"➡️"}
+                        <span style={{ fontSize:11, color:_theme.textMuted, marginLeft:4 }}>
+                          {c.change>0?"+":""}{c.change||0}
+                        </span>
+                       </td>
+                     </tr>
+                  ))}
+                </tbody>
+               </table>
+            </div>
+          );
+        })}
+
+        {/* ── Comparison panel ────────────────────────────────────────────────── */}
+        {(baseTimeVal && updTimeVal) && (
+          <div style={{ ...CRD(), marginBottom:16 }}>
+            <div style={{ fontWeight:700, color:_theme.text, marginBottom:12, fontSize:14 }}>
+              📊 Comparison: {baseTimeVal} → {updTimeVal}
+              {timeDiff() && <span style={{ color:_theme.textMuted, fontWeight:400, marginLeft:8 }}>({timeDiff()})</span>}
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(110px,1fr))", gap:8 }}>
+              {calcs.filter(c=>c.base>0||c.curr>0).map(c=>(
+                <div key={c.key} style={{ background:c.color+"12",
+                  border:`1.5px solid ${c.color}30`, borderRadius:8,
+                  padding:"10px 12px", textAlign:"center" }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:c.color,
+                    marginBottom:4 }}>{c.flag} {c.label}</div>
+                  <div style={{ display:"flex", justifyContent:"center",
+                    alignItems:"center", gap:6, fontSize:13 }}>
+                    <span style={{ color:_theme.textMuted }}>{c.base}</span>
+                    <span style={{ color:_theme.textMuted }}>→</span>
+                    <span style={{ fontWeight:800, fontSize:16,
+                      color:c.curr>c.base?"#EF4444":c.curr<c.base?"#10B981":_theme.textSub }}>
+                      {c.curr}
+                    </span>
+                  </div>
+                  <div style={{ fontSize:11, marginTop:4, fontWeight:600,
+                    color:c.resolved>0?"#10B981":c.resolved<0?"#EF4444":_theme.textMuted }}>
+                    {c.resolved>0?"+":""}{c.resolved}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── SME Insights ─────────────────────────────────────────────────────── */}
+        <div style={CRD()}>
+          <label style={{ ...LBL, color:_theme.text }}>💡 SME Insights (Problem → Action → Result)</label>
+          <textarea value={data.insight||""} onChange={e=>setQ("insight",e.target.value)} rows={3}
+            style={{ ...I(), resize:"vertical" }} placeholder="Problem → Action → Result"/>
+        </div>
+
+      </div>
+      {/* ═══════════════════════ END MAIN CONTENT ═══════════════════════════════ */}
+
+    </div>
+  );
+}
+
+
+// ─── NOTES PAGE ───────────────────────────────────────────────────────────────
+function NotesPage({ notes, setNotes, session }) {
+  const [date, setDate] = useState(todayStr());
+  const [time, setTime] = useState(() => { const n=new Date(); return pad(n.getHours())+":"+pad(n.getMinutes()); });
+  const [text, setText] = useState("");
+  const [tag, setTag]     = useState("General");
+  const [recording, setRecording] = useState(false);
+  const [recMsg, setRecMsg]       = useState("");
+  const TAGS = ["General","Staffing Issue","Queue Alert","System Issue","Performance Note","Exceptional Event","Other"];
+
+  // ── Voice Notes via Web Speech API ──────────────────────────────────────────
+  function startVoiceNote() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { setRecMsg("⚠️ Your browser does not support voice recognition"); setTimeout(()=>setRecMsg(""),3000); return; }
+    const rec = new SR();
+    rec.lang = "en-US";
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.onstart  = () => setRecording(true);
+    rec.onend    = () => setRecording(false);
+    rec.onerror  = (e) => { setRecording(false); setRecMsg("Recording error: "+e.error); setTimeout(()=>setRecMsg(""),3000); };
+    rec.onresult = (e) => {
+      const transcript = Array.from(e.results).map(r=>r[0].transcript).join(" ");
+      setText(prev => prev ? prev+" "+transcript : transcript);
+      setRecMsg("✅ Recognized: "+transcript.slice(0,40));
+      setTimeout(()=>setRecMsg(""),3000);
+    };
+    rec.start();
+  }
+  const TAG_COLORS = {"General":"#64748B","Staffing Issue":"#EF4444","Queue Alert":"#F59E0B","System Issue":"#8B5CF6","Performance Note":"#2563EB","Exceptional Event":"#EC4899","Other":"#10B981"};
+
+  const [filterTag,  setFilterTag]  = useState("All");
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo,   setFilterTo]   = useState("");
+
+  const allNotes = useMemo(()=>{
+    let list = Array.isArray(notes) ? [...notes] : [];
+    // Hide private Direct Messages and targeted Manager Messages from Notes page
+    // Only show general notes, not personal messages
+    list = list.filter(n => {
+      if (n.tag === "Direct Message") return false; // Always hidden - use Messages page
+      if (n.tag === "Manager Message") return !n.target || n.target === "all"; // Only show broadcast messages
+      if (n.tag === "Short Break Request") return false;
+      if (n.tag === "Swap Request") return false;
+      if (n.tag === "Break Swap Request") return false;
+      if (n.tag === "Survey") return false;
+      if (n.tag === "Survey Response") return false;
+      return true;
+    });
+    if (filterTag !== "All") list = list.filter(n=>n.tag===filterTag);
+    if (filterFrom) list = list.filter(n=>n.date>=filterFrom);
+    if (filterTo)   list = list.filter(n=>n.date<=filterTo);
+    return list.sort((a,b)=>b.ts.localeCompare(a.ts));
+  }, [notes, filterTag, filterFrom, filterTo]);
+
+  function addNote() {
+    if (!text.trim()) return;
+    const entry = { id:"n"+Date.now(), ts:`${date}T${time}:00`, date, time, tag, text };
+    setNotes(prev => [entry, ...(Array.isArray(prev)?prev:[])].slice(0,500));
+    setText(""); setTime(pad(new Date().getHours())+":"+pad(new Date().getMinutes()));
+  }
+  function deleteNote(id) { setNotes(prev=>(prev||[]).filter(n=>n.id!==id)); }
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>📝 Notes & Exceptional Events</span>
+        <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
+      </div>
+      {/* Filter bar */}
+      <div style={{ display:"flex", gap:8, marginBottom:12, flexWrap:"wrap", alignItems:"center" }}>
+        <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>Filter:</span>
+        <select value={filterTag} onChange={e=>setFilterTag(e.target.value)}
+          style={{ ...I({width:160}) }}>
+          <option value="All">All Types</option>
+          {TAGS.map(t=><option key={t} value={t}>{t}</option>)}
+        </select>
+        <input type="date" value={filterFrom} onChange={e=>setFilterFrom(e.target.value)}
+          style={{ ...I({width:140}) }} placeholder="From date"/>
+        <input type="date" value={filterTo} onChange={e=>setFilterTo(e.target.value)}
+          style={{ ...I({width:140}) }} placeholder="To date"/>
+        {(filterTag!=="All"||filterFrom||filterTo) && (
+          <button onClick={()=>{setFilterTag("All");setFilterFrom("");setFilterTo("");}}
+            style={{ ...PBT("#94A3B8",{padding:"5px 10px",fontSize:11}) }}>✕ Clear</button>
+        )}
+        <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>
+          {allNotes.length} notes
+        </span>
+      </div>
+      <div style={{ ...CRD(), marginBottom:16 }}>
+        <div style={{ fontWeight:700, color:_theme.text, marginBottom:12 }}>Add Note</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr auto", gap:10, marginBottom:10 }}>
+          <div><label style={LBL}>Date</label><input type="date" value={date} onChange={e=>setDate(e.target.value)} style={I()}/></div>
+          <div><label style={LBL}>Time</label><input type="time" value={time} onChange={e=>setTime(e.target.value)} style={I()}/></div>
+          <div><label style={LBL}>Tag</label>
+            <select value={tag} onChange={e=>setTag(e.target.value)} style={{ ...I(), border:`2px solid ${TAG_COLORS[tag]}` }}>
+              {TAGS.map(t=><option key={t}>{t}</option>)}
+            </select>
+          </div>
+        </div>
+        <textarea value={text} onChange={e=>setText(e.target.value)} rows={3}
+          style={{ ...I(), resize:"vertical", marginBottom:10 }}
+          placeholder="Describe the exceptional circumstance, issue, or note that affected operations today..."/>
+        {recMsg && <div style={{ fontSize:12, color:recording?"#EF4444":"#10B981",
+          fontWeight:600, marginBottom:6 }}>{recMsg}</div>}
+        <div style={{ display:"flex", gap:8 }}>
+          <button style={PBT("#2563EB",{padding:"8px 20px",flex:1})} onClick={addNote}>+ Save Note</button>
+          {"SpeechRecognition" in window || "webkitSpeechRecognition" in window ? (
+            <button onClick={startVoiceNote}
+              style={{ background:recording?"#EF4444":"#6366F1", color:"#fff", border:"none",
+                borderRadius:8, padding:"8px 16px", fontSize:13, cursor:"pointer", fontWeight:600,
+                display:"flex", alignItems:"center", gap:5 }}>
+              {recording ? "⏹ Recording..." : "🎙️ Voice Note"}
+            </button>
+          ) : null}
+        </div>
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+        {allNotes.length===0 && <div style={{ ...CRD(), textAlign:"center", padding:32, color:_theme.textMuted }}>📭 No notes yet</div>}
+        {allNotes.map(n=>(
+          <div key={n.id} style={{ ...CRD(), borderLeft:`4px solid ${TAG_COLORS[n.tag]||"#64748B"}` }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+              <span style={{ background:TAG_COLORS[n.tag]+"20", color:TAG_COLORS[n.tag], border:`1px solid ${TAG_COLORS[n.tag]}40`,
+                borderRadius:6, padding:"2px 10px", fontSize:11, fontWeight:700 }}>{n.tag}</span>
+              <span style={{ fontSize:12, color:_theme.textMuted }}>📅 {n.date} · 🕐 {n.time}</span>
+              <button onClick={()=>deleteNote(n.id)} style={{ marginLeft:"auto", background:"none", border:"1px solid #FCA5A5",
+                color:"#EF4444", borderRadius:4, padding:"2px 8px", cursor:"pointer", fontSize:11 }}>✕</button>
+            </div>
+            <div style={{ fontSize:13, color:_theme.text, lineHeight:1.6, whiteSpace:"pre-wrap" }}>{n.text}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── BREAK DURATION HELPER ────────────────────────────────────────────────────
+function getDefaultBreakDuration(dateStr) {
+  const cutoff = new Date("2026-03-20");
+  const d = dateStr ? new Date(dateStr+"T00:00:00") : new Date();
+  return d >= cutoff ? 60 : 30;
+}
+
+// ─── BREAK PAGE ─────────────────────────────────────────────────────────────────
+function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedule, canEdit, addAudit, session, notes, setNotes, myShiftFilter }) {
+  const [date, setDate]     = useState(todayStr());
+  // If myShiftFilter is on, auto-select my shift
+  const _myShiftEmp = session ? employees.find(e=>e.name===session.name) : null;
+  const _myShiftDayName = DAYS[new Date().getDay()];
+  const _myShiftId = _myShiftEmp ? (schedule[_myShiftEmp.id]||{})[_myShiftDayName] : null;
+  const [shiftId, setShiftId] = useState(() => {
+    // myShiftFilter unified via parent employee list
+    return shifts[0]?.id||"";
+  });
+  const isOwner = session && isOwnerUser(session);
+
+  const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
+  const key = `${date}_${shiftId}`;
+  const sh  = shifts.find(s => s.id === shiftId);
+
+  // Shift length in minutes
+  const shiftLenMin = useMemo(() => {
+    if (!sh) return 480;
+    let l = toMin(sh.end) - toMin(sh.start);
+    if (l <= 0) l += 1440;
+    return l;
+  }, [sh]);
+  const shiftLenHours = (shiftLenMin / 60).toFixed(1);
+
+  // Employees on this shift
+  const shiftEmps = useMemo(() =>
+    employees.filter(emp => (schedule[emp.id]||{})[dayName] === shiftId),
+    [employees, schedule, shiftId, dayName]
+  );
+
+  // Entry: { offsetHours, offsetMins, durationMin, overMin }
+  function getEntry(empId) {
+    const def = getDefaultBreakDuration(date);
+    return ((breakSchedule[key]||{})[empId]) || {
+      offsetHours: 0, offsetMins: 0, durationMin: def, overMin: 0
+    };
+  }
+
+  function setEntry(empId, field, val) {
+    if (!canEdit) return;
+    setBreakSchedule(prev => ({
+      ...prev,
+      [key]: {
+        ...(prev[key]||{}),
+        [empId]: { ...getEntry(empId), [field]: val }
+      }
+    }));
+    if (addAudit) addAudit("Break Updated", employees.find(e=>e.id===empId)?.name||empId,
+      `${field}=${val} | date=${date}`);
+  }
+
+  // Calculate actual break start time from offset + shift start
+  function calcBreakStart(empId) {
+    if (!sh) return "";
+    const entry = getEntry(empId);
+    const totalOffsetMin = (Number(entry.offsetHours)||0)*60 + (Number(entry.offsetMins)||0);
+    const shiftStartMin  = toMin(sh.start);
+    const breakStartMin  = (shiftStartMin + totalOffsetMin) % 1440;
+    return pad(Math.floor(breakStartMin/60)) + ":" + pad(breakStartMin%60);
+  }
+
+  function calcBreakEnd(empId) {
+    const startStr = calcBreakStart(empId);
+    if (!startStr) return "";
+    const entry = getEntry(empId);
+    const endMin = (toMin(startStr) + Number(entry.durationMin)) % 1440;
+    return pad(Math.floor(endMin/60)) + ":" + pad(endMin%60);
+  }
+
+  // Validation: offset must not exceed shift length
+  function isOverShift(empId) {
+    const entry = getEntry(empId);
+    const totalOffset = (Number(entry.offsetHours)||0)*60 + (Number(entry.offsetMins)||0);
+    return totalOffset >= shiftLenMin;
+  }
+
+  // Live status
+  function getLiveStatus(empId) {
+    const startStr = calcBreakStart(empId);
+    const entry    = getEntry(empId);
+    if (!startStr || (!entry.offsetHours && !entry.offsetMins)) return { status:"pending" };
+    const now     = new Date();
+    const nowMin  = now.getHours()*60 + now.getMinutes();
+    const bStart  = toMin(startStr);
+    const dur     = Number(entry.durationMin) || 60;
+    const bEnd    = (bStart + dur) % 1440;
+    let onBreak   = bEnd > bStart ? nowMin>=bStart && nowMin<bEnd : nowMin>=bStart||nowMin<bEnd;
+    if (onBreak) {
+      const elapsed = nowMin >= bStart ? nowMin - bStart : nowMin + 1440 - bStart;
+      return { status:"on_break", elapsed, over: Math.max(0, elapsed - dur) };
+    }
+    let finished = bEnd > bStart ? nowMin >= bEnd : nowMin>=bEnd && nowMin<bStart;
+    if (finished) return { status:"finished" };
+    return { status:"pending" };
+  }
+
+  // Summary counts
+  const statuses   = shiftEmps.map(e => getLiveStatus(e.id));
+  const onBreakCnt = statuses.filter(s => s.status==="on_break").length;
+  const finishCnt  = statuses.filter(s => s.status==="finished").length;
+  const pendingCnt = statuses.filter(s => s.status==="pending").length;
+  const overCnt    = statuses.filter(s => s.status==="on_break" && s.over>0).length;
+
+  const defaultDur = getDefaultBreakDuration(date);
+
+  const [bTab, setBTab] = useState("schedule");
+
+  return (
+    <div>
+      {/* Break Page Tab Bar */}
+      <div style={{ display:"flex", gap:6, marginBottom:14, flexWrap:"wrap" }}>
+        {[
+          ["schedule","☕ Break Schedule"],
+          ["swap",    "🔄 Swap Requests"],
+          ["request", canEdit?"📥 Break Requests":"☕ Request Break"],
+        ].map(([k,l])=>(
+          <button key={k} onClick={()=>setBTab(k)}
+            style={{ border:`2px solid ${bTab===k?_theme.primary:"#CBD5E1"}`,
+              borderRadius:20, padding:"6px 16px", fontSize:12,
+              cursor:"pointer", fontWeight:700,
+              background:bTab===k?_theme.primary:"transparent",
+              color:bTab===k?"#fff":_theme.textSub,
+              display:"flex", alignItems:"center", gap:6 }}>
+            {l}
+            {k==="swap" && (() => {
+              const cnt=(Array.isArray(notes)?notes:[]).filter(n=>{
+                if(n.tag!=="Break Swap Request") return false;
+                try{const d=JSON.parse(n.text||"{}");
+                  return d.status==="pending_b"||d.status==="pending_supervisor";}catch{return false;}
+              }).length;
+              return cnt>0?<span style={{background:"#EF4444",color:"#fff",borderRadius:"50%",
+                width:16,height:16,fontSize:9,fontWeight:800,
+                display:"flex",alignItems:"center",justifyContent:"center"}}>{cnt}</span>:null;
+            })()}
+            {k==="request" && !canEdit && (() => {
+              const mine=(Array.isArray(notes)?notes:[]).find(n=>{
+                if(n.tag!=="Short Break Request") return false;
+                try{const d=JSON.parse(n.text||"{}");
+                  return d.empName===session?.name&&d.status==="pending";}catch{return false;}
+              });
+              return mine?<span style={{background:"#F59E0B",color:"#fff",borderRadius:"50%",
+                width:16,height:16,fontSize:9,fontWeight:800,
+                display:"flex",alignItems:"center",justifyContent:"center"}}>!</span>:null;
+            })()}
+          </button>
+        ))}
+      </div>
+
+      {/* Schedule Tab */}
+      {bTab==="schedule" && <div>
+      {/* Toolbar */}
+      <div style={SBR()}>
+        <span style={{ fontWeight:800, fontSize:15, color:_theme.text }}>☕ Break Schedule</span>
+        <input type="date" value={date} onChange={e=>setDate(e.target.value)}
+          style={{ ...I(), width:150 }}/>
+        <select value={shiftId} onChange={e=>setShiftId(e.target.value)}
+          style={{ ...I(), width:170 }}>
+          {shifts.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}
+        </select>
+        <div style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
+          borderRadius:20, padding:"4px 14px", fontSize:12, fontWeight:700,
+          color:_theme.textSub }}>
+          ⏱ Default: {defaultDur}m
+        </div>
+        {!canEdit && (
+          <div style={{ background:"rgba(245,158,11,0.1)", border:"1px solid rgba(245,158,11,0.3)",
+            borderRadius:8, padding:"5px 12px", fontSize:12, color:"#F59E0B", fontWeight:600 }}>
+            👁️ View Only
+          </div>
+        )}
+      </div>
+
+      {/* Shift info */}
+      {sh && (
+        <div style={{ background:sh.color+"18", border:`1.5px solid ${sh.color}40`,
+          borderRadius:10, padding:"10px 18px", marginBottom:14,
+          display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
+          <span style={{ fontWeight:800, color:sh.color, fontSize:14 }}>⏰ {sh.label}</span>
+          <span style={{ fontSize:12, color:_theme.textSub }}>
+            {shiftEmps.length} employees · Shift length: <strong>{shiftLenHours}h ({shiftLenMin}m)</strong>
+          </span>
+          <span style={{ fontSize:12, color:_theme.textMuted }}>{dayName} · {date}</span>
+        </div>
+      )}
+
+      {/* Live summary KPIs */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:16 }}>
+        {[["☕ On Break",onBreakCnt,"#F59E0B"],["✅ Finished",finishCnt,"#3FB950"],
+          ["⏳ Pending",pendingCnt,"#8B949E"],["⚠️ Overtime",overCnt,"#F85149"]].map(([l,v,c])=>(
+          <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
+            <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>{l}</div>
+            <div style={{ fontSize:26, fontWeight:800, color:c }}>{v}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Info for viewers only */}
+      {!canEdit && (
+        <div style={{ background:"rgba(245,158,11,0.08)", border:"1px solid rgba(245,158,11,0.2)",
+          borderRadius:8, padding:"10px 16px", marginBottom:14, fontSize:12, color:_theme.textSub }}>
+          👁️ View only — editing requires supervisor access.
+        </div>
+      )}
+
+      {/* Break table */}
+      <div style={{ ...CRD(), overflowX:"auto" }}>
+        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+          <thead>
+            <tr style={{ background:_theme.tableHead }}>
+              {["#","Employee","Shift Start",
+                canEdit ? "Offset from Shift Start" : "Break Offset",
+                "Duration",
+                "Break Start","Break End","Status"].map(h => (
+                <th key={h} style={{ padding:"10px 10px", textAlign:"left", fontWeight:700,
+                  color:_theme.text, borderBottom:`2px solid ${_theme.tableBorder}`,
+                  whiteSpace:"nowrap", fontSize:12 }}>{h}</th>
+              ))}
+             </tr>
+          </thead>
+          <tbody>
+            {shiftEmps.map((emp, ri) => {
+              const entry   = getEntry(emp.id);
+              const bStart  = calcBreakStart(emp.id);
+              const bEnd    = calcBreakEnd(emp.id);
+              const ls      = getLiveStatus(emp.id);
+              const overShift = isOverShift(emp.id);
+              const statusColor = ls.status==="on_break" ? (ls.over>0?"#F85149":"#F59E0B")
+                                : ls.status==="finished" ? "#3FB950" : "#8B949E";
+              const statusLabel = ls.status==="on_break"
+                ? (ls.over>0 ? `⚠️ +${ls.over}m OVER` : `☕ ${ls.elapsed}m`)
+                : ls.status==="finished" ? "✅ Done" : "⏳ Pending";
+
+              return (
+                <tr key={emp.id} style={{
+                  background: ri%2===0 ? _theme.tableRow : _theme.tableRowAlt,
+                  opacity: overShift ? 0.7 : 1
+                }}>
+                  <td style={{ padding:"8px 10px", color:_theme.textMuted, fontWeight:600 }}>{ri+1}</td>
+                  <td style={{ padding:"8px 10px", fontWeight:700, color:_theme.text }}>
+                    {emp.name}
+                    <span style={{ marginLeft:6, fontSize:9, fontWeight:800, padding:"1px 5px",
+                      borderRadius:4,
+                      background:emp.gender==="F"?"#FCE7F3":"#EFF6FF",
+                      color:emp.gender==="F"?"#BE185D":"#1D4ED8" }}>
+                      {emp.gender||"M"}
+                    </span>
+                    <div style={{ fontSize:11, color:_theme.textMuted }}>{emp.role}</div>
+                   </td>
+                  <td style={{ padding:"8px 10px", color:_theme.textSub, fontWeight:600 }}>
+                    {sh?.start || "--"}
+                   </td>
+
+                  {/* Offset input — only owner can edit */}
+                  <td style={{ padding:"8px 10px" }}>
+                    {canEdit ? (
+                      <div>
+                        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
+                          {/* Hours */}
+                          <div style={{ display:"flex", alignItems:"center", gap:2 }}>
+                            <button onClick={()=>setEntry(emp.id,"offsetHours",Math.max(0,Number(entry.offsetHours||0)-1))}
+                              style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
+                                color:_theme.text, borderRadius:6, width:24, height:24,
+                                cursor:"pointer", fontSize:14, fontWeight:700, display:"flex",
+                                alignItems:"center", justifyContent:"center" }}>−</button>
+                            <input type="number" min="0" max="23"
+                              value={entry.offsetHours||0}
+                              onChange={e=>setEntry(emp.id,"offsetHours",Math.max(0,Number(e.target.value)))}
+                              style={{ ...I({ width:46, textAlign:"center", padding:"4px 6px" })}}/>
+                            <button onClick={()=>setEntry(emp.id,"offsetHours",Math.min(23,Number(entry.offsetHours||0)+1))}
+                              style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
+                                color:_theme.text, borderRadius:6, width:24, height:24,
+                                cursor:"pointer", fontSize:14, fontWeight:700, display:"flex",
+                                alignItems:"center", justifyContent:"center" }}>+</button>
+                            <span style={{ fontSize:11, color:_theme.textMuted }}>h</span>
+                          </div>
+                          {/* Minutes */}
+                          <div style={{ display:"flex", alignItems:"center", gap:2 }}>
+                            <button onClick={()=>setEntry(emp.id,"offsetMins",Math.max(0,Number(entry.offsetMins||0)-5))}
+                              style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
+                                color:_theme.text, borderRadius:6, width:24, height:24,
+                                cursor:"pointer", fontSize:14, fontWeight:700, display:"flex",
+                                alignItems:"center", justifyContent:"center" }}>−</button>
+                            <input type="number" min="0" max="59"
+                              value={entry.offsetMins||0}
+                              onChange={e=>setEntry(emp.id,"offsetMins",Math.max(0,Number(e.target.value)))}
+                              style={{ ...I({ width:46, textAlign:"center", padding:"4px 6px" })}}/>
+                            <button onClick={()=>setEntry(emp.id,"offsetMins",Math.min(55,Number(entry.offsetMins||0)+5))}
+                              style={{ background:_theme.surface, border:`1px solid ${_theme.cardBorder}`,
+                                color:_theme.text, borderRadius:6, width:24, height:24,
+                                cursor:"pointer", fontSize:14, fontWeight:700, display:"flex",
+                                alignItems:"center", justifyContent:"center" }}>+</button>
+                            <span style={{ fontSize:11, color:_theme.textMuted }}>m</span>
+                          </div>
+                        </div>
+                        {overShift && (
+                          <div style={{ fontSize:10, color:"#F85149", fontWeight:700 }}>
+                            ⚠️ Exceeds shift ({shiftLenHours}h)
+                          </div>
+                        )}
+                        <div style={{ fontSize:10, color:_theme.textMuted }}>
+                          = after {(Number(entry.offsetHours||0)*60+Number(entry.offsetMins||0))}m from {sh?.start}
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ color:_theme.textSub, fontWeight:600 }}>
+                        +{entry.offsetHours||0}h {entry.offsetMins||0}m
+                      </div>
+                    )}
+                   </td>
+
+                  {/* Duration */}
+                  <td style={{ padding:"8px 10px" }}>
+                    {canEdit ? (
+                      <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
+                        {[30,45,60,90].map(d => {
+                          const isDef = d === defaultDur;
+                          const isSel = entry.durationMin === d;
+                          return (
+                            <button key={d} onClick={()=>setEntry(emp.id,"durationMin",d)}
+                              style={{ border:`1.5px solid ${isSel?"#58A6FF":isDef?"#3FB950":_theme.cardBorder}`,
+                                borderRadius:6, padding:"3px 8px", fontSize:11, cursor:"pointer",
+                                background:isSel?"#58A6FF18":isDef?"#3FB95018":_theme.surface,
+                                color:isSel?"#58A6FF":isDef?"#3FB950":_theme.textSub, fontWeight:700 }}>
+                              {d}m{isDef&&!isSel?" ★":""}
+                            </button>
+                          );
+                        })}
+                        <input type="number" min="10" max="120" value={entry.durationMin||defaultDur}
+                          onChange={e=>setEntry(emp.id,"durationMin",Number(e.target.value))}
+                          style={{ ...I({ width:55, padding:"3px 6px" })}} placeholder="min"/>
+                      </div>
+                    ) : (
+                      <span style={{ fontWeight:600, color:_theme.textSub }}>{entry.durationMin||defaultDur}m</span>
+                    )}
+                   </td>
+
+                  {/* Break Start / End */}
+                  <td style={{ padding:"8px 10px", fontWeight:700,
+                    color: bStart ? _theme.primary : _theme.textMuted }}>
+                    {bStart || "—"}
+                   </td>
+                  <td style={{ padding:"8px 10px", fontWeight:700, color:_theme.textSub }}>
+                    {bEnd || "—"}
+                   </td>
+
+                  {/* Status */}
+                  <td style={{ padding:"8px 10px" }}>
+                    <span style={{ background:statusColor+"18", color:statusColor,
+                      border:`1px solid ${statusColor}40`, borderRadius:20,
+                      padding:"3px 10px", fontSize:11, fontWeight:700, whiteSpace:"nowrap" }}>
+                      {statusLabel}
+                    </span>
+                   </td>
+                 </tr>
+              );
+            })}
+            {shiftEmps.length === 0 && (
+               <td colSpan={8} style={{ padding:32, textAlign:"center", color:_theme.textMuted }}>
+                No employees scheduled for this shift on {dayName}
+               </td>
+            )}
+          </tbody>
+         </table>
+      </div>
+
+      {/* Owner-only: Bulk set offset */}
+      {canEdit && shiftEmps.length > 0 && (
+        <div style={{ ...CRD({ padding:"14px 18px" }), marginTop:14 }}>
+          <div style={{ fontWeight:700, color:_theme.text, marginBottom:10, fontSize:13 }}>
+            ⚡ Bulk Set Offset — apply same offset to all employees in this shift
+          </div>
+          <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
+            {[1,2,3,4,5,6].map(h => (
+              <button key={h} onClick={() => {
+                const updates = {};
+                shiftEmps.forEach(emp => {
+                  updates[emp.id] = { ...getEntry(emp.id), offsetHours: h, offsetMins: 0 };
+                });
+                setBreakSchedule(prev => ({ ...prev, [key]: { ...(prev[key]||{}), ...updates } }));
+                if (addAudit) addAudit("Break Bulk Set", `Shift ${shiftId}`, `All employees: +${h}h offset`);
+              }}
+                style={{ background:_theme.surface, border:`1.5px solid ${_theme.cardBorder}`,
+                  borderRadius:8, padding:"7px 16px", fontSize:13, cursor:"pointer",
+                  color:_theme.text, fontWeight:700, transition:"all 0.15s" }}>
+                +{h}h
+              </button>
+            ))}
+            <span style={{ fontSize:12, color:_theme.textMuted }}>
+              from shift start ({sh?.start})
+            </span>
+          </div>
+        </div>
+      )}
+
+      </div>} {/* end schedule tab */}
+
+      {/* Swap Tab */}
+      {bTab==="swap" && (
+      <BreakSwapPanel
+        employees={employees}
+        schedule={schedule}
+        shifts={shifts}
+        breakSchedule={breakSchedule}
+        setBreakSchedule={setBreakSchedule}
+        notes={typeof notes !== "undefined" ? notes : []}
+        setNotes={typeof setNotes !== "undefined" ? setNotes : (v=>v)}
+        session={session}
+        canEdit={canEdit}
+      />
+
+      )} {/* end swap tab */}
+
+      {/* Request Tab */}
+      {bTab==="request" && (canEdit ? (
+        <div style={{ marginTop:16 }}>
+          <div style={{ fontWeight:800, fontSize:14, color:_theme.text, marginBottom:12 }}>
+            ☕ Short Break Requests
+          </div>
+          <SupervisorBreakDashboard
+            employees={employees}
+            notes={typeof notes !== "undefined" ? notes : []}
+            setNotes={typeof setNotes !== "undefined" ? setNotes : (v=>v)}
+            session={session}
+            breakSchedule={breakSchedule}
+            shifts={shifts}
+            schedule={schedule}
+            queueLog={typeof queueLog !== "undefined" ? queueLog : {}}
+          />
+        </div>
+      ) : (
+        <div style={{ marginTop:16 }}>
+          <div style={{ fontWeight:800, fontSize:14, color:_theme.text, marginBottom:12 }}>
+            ☕ My Break Request
+          </div>
+          <ShortBreakRequestForm
+            session={session}
+            employees={employees}
+            notes={typeof notes !== "undefined" ? notes : []}
+            setNotes={typeof setNotes !== "undefined" ? setNotes : (v=>v)}
+            breakSchedule={breakSchedule}
+            shifts={shifts}
+            schedule={schedule}
+          />
+        </div>
+      ))} {/* end request tab */}
+    </div>
+  );
+}
+// ─── PERFORMANCE PAGE ─────────────────────────────────────────────────────────
+function PerformancePage({ employees, schedule, shifts, performance, setPerformance, myShiftFilter, session }) {
+  const [date, setDate] = useState(todayStr());
+  const [showQuality, setShowQuality] = useState(false);
+  const [dailyTarget, setDailyTarget] = useState(() => {
+    return Number(localStorage.getItem("csops_perf_target")||"25");
+  });
+  const [showTargetEdit, setShowTargetEdit] = useState(false);
+  const ESC_WARN_PCT = 20;
+  const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
+  const isAgentView = session?.role === "Agent";
+
+  const dayEmps = employees.filter(emp => {
+    // Agent sees ONLY their own data
+    if (isAgentView) return emp.name === session?.name;
+    const v=(schedule[emp.id]||{})[dayName];
+    if (!v || v==="OFF" || v==="LEAVE" || v==="PH") return false;
+    return true;
+  });
+
+  function getPerf(empId) {
+    return ((performance[date]||{})[empId]) || { closed:0, reopened:0, escalations:0, quality:"" };
+  }
+  function setPerf(empId, field, val) {
+    setPerformance(prev => {
+      const d = { ...(prev[date]||{}) };
+      d[empId] = { ...getPerf(empId), [field]: val };
+      return { ...prev, [date]: d };
+    });
+  }
+
+  const sorted = [...dayEmps].sort((a,b) => (getPerf(b.id).closed||0) - (getPerf(a.id).closed||0));
+  const totalClosed = dayEmps.reduce((s,e)=>s+(getPerf(e.id).closed||0),0);
+  const totalEsc = dayEmps.reduce((s,e)=>s+(getPerf(e.id).escalations||0),0);
+  const medals = ["🥇","🥈","🥉"];
+
+  // Chart data: last 7 days totals
+  const last7 = Array.from({length:7},(_,i)=>{
+    const d = new Date(); d.setDate(d.getDate()-6+i);
+    const dk = d.toISOString().slice(0,10);
+    return employees.reduce((s,e)=>s+((performance[dk]||{})[e.id]?.closed||0),0);
+  });
+  const last7Esc = Array.from({length:7},(_,i)=>{
+    const d = new Date(); d.setDate(d.getDate()-6+i);
+    const dk = d.toISOString().slice(0,10);
+    return employees.reduce((s,e)=>s+((performance[dk]||{})[e.id]?.escalations||0),0);
+  });
+
+  function getShiftLabel(empId) {
+    const sid = (schedule[empId]||{})[dayName];
+    if (!sid||sid==="OFF") return "--";
+    return shifts.find(s=>s.id===sid)?.label||"--";
+  }
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>⚡ Performance Tracker</span>
+        <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
+        <label style={{ display:"flex", alignItems:"center", gap:6, fontSize:13, cursor:"pointer", color:_theme.textSub }}>
+          <input type="checkbox" checked={showQuality} onChange={e=>setShowQuality(e.target.checked)}/> Show Quality %
+        </label>
+      </div>
+
+      {/* Daily Target Bar */}
+      <div style={{ ...CRD({padding:"10px 16px"}), marginBottom:10, display:"flex",
+        alignItems:"center", gap:12, flexWrap:"wrap" }}>
+        <span style={{ fontSize:12, fontWeight:700, color:_theme.text }}>🎯 Daily Target:</span>
+        {showTargetEdit ? (
+          <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+            <input type="number" min="1" max="500" defaultValue={dailyTarget}
+              style={{ ...I({width:80}) }}
+              onBlur={e=>{ const v=Number(e.target.value)||25;
+                setDailyTarget(v); localStorage.setItem("csops_perf_target",String(v));
+                setShowTargetEdit(false); }}
+              autoFocus/>
+          </div>
+        ) : (
+          <span style={{ fontWeight:800, fontSize:16, color:_theme.primary, cursor:"pointer" }}
+            onClick={()=>setShowTargetEdit(true)}>{dailyTarget} cases ✏️</span>
+        )}
+        <div style={{ flex:1, background:_theme.surface, borderRadius:20, height:12,
+          overflow:"hidden", minWidth:120 }}>
+          <div style={{ height:"100%", borderRadius:20, transition:"width 0.5s",
+            width:`${Math.min(100,Math.round((totalClosed/dailyTarget)*100))}%`,
+            background: totalClosed>=dailyTarget?"#10B981":totalClosed>=dailyTarget*0.8?"#F59E0B":"#3B82F6" }}/>
+        </div>
+        <span style={{ fontSize:12, fontWeight:700,
+          color:totalClosed>=dailyTarget?"#10B981":_theme.textSub }}>
+          {totalClosed}/{dailyTarget} ({Math.round((totalClosed/dailyTarget)*100)}%)
+          {totalClosed>=dailyTarget?" 🎉":""}
+        </span>
+      </div>
+
+      {/* KPI Cards + Charts */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:16 }}>
+        <div style={{ ...CRD({padding:"12px 16px"}), borderTop:"3px solid #10B981" }}>
+          <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>Today Closed</div>
+          <div style={{ fontSize:28, fontWeight:800, color:"#10B981" }}>{totalClosed}</div>
+        </div>
+        <div style={{ ...CRD({padding:"12px 16px"}), borderTop:"3px solid #F59E0B" }}>
+          <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>Today Escalations</div>
+          <div style={{ fontSize:28, fontWeight:800, color:"#F59E0B" }}>{totalEsc}</div>
+        </div>
+        <div style={{ ...CRD({padding:"12px 16px"}), borderTop:"3px solid #3B82F6" }}>
+          <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600, marginBottom:6 }}>7-Day Closed</div>
+          <SparkBar values={last7} color="#3B82F6" height={44} width={140}/>
+        </div>
+        <div style={{ ...CRD({padding:"12px 16px"}), borderTop:"3px solid #F59E0B" }}>
+          <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600, marginBottom:6 }}>7-Day Escalations</div>
+          <SparkLine values={last7Esc} color="#F59E0B" height={44} width={140}/>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div style={{ ...CRD(), overflowX:"auto" }}>
+        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+          <thead>
+            <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+              {["Rank","Employee","Tasks","Shift","Closed","Escalations",...(showQuality?["Quality %"]:[])]
+                .map(h=><th key={h} style={{ padding:"10px 8px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>)}
+             </tr>
+          </thead>
+          <tbody>
+            {sorted.map((emp,ri) => {
+              const p = getPerf(emp.id);
+              return (
+                <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
+                  <td style={{ padding:"8px", fontSize:18, textAlign:"center" }}>{medals[ri]||ri+1}</td>
+                  <td style={{ padding:"8px", fontWeight:600 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+                      <span>{emp.name}</span>
+                      {(() => {
+                        const p = getPerf(emp.id);
+                        const escPct = p.closed > 0 ? Math.round((p.escalations/p.closed)*100) : 0;
+                        return escPct >= ESC_WARN_PCT && p.escalations > 0 ? (
+                          <span style={{ fontSize:10, fontWeight:800, background:"#FEF2F2",
+                            color:"#EF4444", border:"1px solid #FCA5A5",
+                            borderRadius:20, padding:"1px 7px" }}>⚠️ Esc {escPct}%</span>
+                        ) : null;
+                      })()}
+                    </div>
+                   </td>
+                  <td style={{ padding:"8px" }}>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
+                      {emp.tasks.map(t=><span key={t} style={{ background:taskColor(t), color:"#fff", borderRadius:10, padding:"2px 6px", fontSize:10, fontWeight:600 }}>{t}</span>)}
+                    </div>
+                   </td>
+                  <td style={{ padding:"8px", color:_theme.textSub }}>{getShiftLabel(emp.id)}</td>
+                  <td style={{ padding:"8px" }}>
+                    <input type="number" min="0" value={p.closed||""} onChange={e=>setPerf(emp.id,"closed",Number(e.target.value))}
+                      style={{ ...I({ width:70, border: p.closed>0?"2px solid #10B981":"1px solid #CBD5E1" })}} placeholder="0"/>
+                   </td>
+                  <td style={{ padding:"8px" }}>
+                    <input type="number" min="0" value={p.escalations||""} onChange={e=>setPerf(emp.id,"escalations",Number(e.target.value))}
+                      style={{ ...I({ width:70, border: p.escalations>0?"2px solid #F59E0B":"1px solid #CBD5E1" })}} placeholder="0"/>
+                   </td>
+                  {showQuality && (
+                    <td style={{ padding:"8px" }}>
+                      <input type="number" min="0" max="100" value={p.quality||""} onChange={e=>setPerf(emp.id,"quality",Number(e.target.value))}
+                        style={{ ...I({ width:70 })}} placeholder="0-100"/>
+                     </td>
                   )}
                 </tr>
               );
@@ -2981,31 +4425,31 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session
                           value={isMulti?c.base:(data[c.key+"Base"]||"")}
                           onChange={e=>setQ(c.key+"Base",e.target.value)}
                           style={{ ...I({ width:72, opacity:isMulti?.7:1 })}} placeholder="0"/>
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 10px" }}>
                         <input type="number" min="0" disabled={isMulti}
                           value={isMulti?c.inflow:(data[c.key+"Inflow"]||"")}
                           onChange={e=>setQ(c.key+"Inflow",e.target.value)}
                           style={{ ...I({ width:72, border:isMulti?`1px solid ${_theme.inputBorder}`:inflowBorder(data[c.key+"Inflow"]),
                             opacity:isMulti?.7:1 })}} placeholder="0"/>
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 10px" }}>
                         <input type="number" min="0" disabled={isMulti}
                           value={isMulti?c.curr:(data[c.key+"Curr"]||"")}
                           onChange={e=>setQ(c.key+"Curr",e.target.value)}
                           style={{ ...I({ width:72, border:isMulti?`1px solid ${_theme.inputBorder}`:currBorder(data[c.key+"Curr"]),
                             opacity:isMulti?.7:1 })}} placeholder="0"/>
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 10px", fontWeight:700,
                         color:c.resolved>0?"#10B981":c.resolved<0?"#EF4444":_theme.textMuted }}>
                         {c.resolved>0?"+":""}{c.resolved}
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 10px", fontSize:16 }}>
                         {c.change>0?"📈":c.change<0?"📉":"➡️"}
                         <span style={{ fontSize:11, color:_theme.textMuted, marginLeft:4 }}>
                           {c.change>0?"+":""}{c.change||0}
                         </span>
-                      </td>
+                       </td>
                     </tr>
                   ))}
                 </tbody>
@@ -3060,8 +4504,811 @@ function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session
     </div>
   );
 }
+// ─── PERFORMANCE PAGE ─────────────────────────────────────────────────────────
+function PerformancePage({ employees, schedule, shifts, performance, setPerformance, myShiftFilter, session }) {
+  const [date, setDate] = useState(todayStr());
+  const [showQuality, setShowQuality] = useState(false);
+  const [dailyTarget, setDailyTarget] = useState(() => {
+    return Number(localStorage.getItem("csops_perf_target")||"25");
+  });
+  const [showTargetEdit, setShowTargetEdit] = useState(false);
+  const ESC_WARN_PCT = 20;
+  const dayName = DAYS[new Date(date+"T12:00:00").getDay()];
+  const isAgentView = session?.role === "Agent";
 
+  const dayEmps = employees.filter(emp => {
+    // Agent sees ONLY their own data
+    if (isAgentView) return emp.name === session?.name;
+    const v=(schedule[emp.id]||{})[dayName];
+    if (!v || v==="OFF" || v==="LEAVE" || v==="PH") return false;
+    return true;
+  });
 
+  function getPerf(empId) {
+    return ((performance[date]||{})[empId]) || { closed:0, reopened:0, escalations:0, quality:"" };
+  }
+  function setPerf(empId, field, val) {
+    setPerformance(prev => {
+      const d = { ...(prev[date]||{}) };
+      d[empId] = { ...getPerf(empId), [field]: val };
+      return { ...prev, [date]: d };
+    });
+  }
+
+  const sorted = [...dayEmps].sort((a,b) => (getPerf(b.id).closed||0) - (getPerf(a.id).closed||0));
+  const totalClosed = dayEmps.reduce((s,e)=>s+(getPerf(e.id).closed||0),0);
+  const totalEsc = dayEmps.reduce((s,e)=>s+(getPerf(e.id).escalations||0),0);
+  const medals = ["🥇","🥈","🥉"];
+
+  // Chart data: last 7 days totals
+  const last7 = Array.from({length:7},(_,i)=>{
+    const d = new Date(); d.setDate(d.getDate()-6+i);
+    const dk = d.toISOString().slice(0,10);
+    return employees.reduce((s,e)=>s+((performance[dk]||{})[e.id]?.closed||0),0);
+  });
+  const last7Esc = Array.from({length:7},(_,i)=>{
+    const d = new Date(); d.setDate(d.getDate()-6+i);
+    const dk = d.toISOString().slice(0,10);
+    return employees.reduce((s,e)=>s+((performance[dk]||{})[e.id]?.escalations||0),0);
+  });
+
+  function getShiftLabel(empId) {
+    const sid = (schedule[empId]||{})[dayName];
+    if (!sid||sid==="OFF") return "--";
+    return shifts.find(s=>s.id===sid)?.label||"--";
+  }
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>⚡ Performance Tracker</span>
+        <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
+        <label style={{ display:"flex", alignItems:"center", gap:6, fontSize:13, cursor:"pointer", color:_theme.textSub }}>
+          <input type="checkbox" checked={showQuality} onChange={e=>setShowQuality(e.target.checked)}/> Show Quality %
+        </label>
+      </div>
+
+      {/* Daily Target Bar */}
+      <div style={{ ...CRD({padding:"10px 16px"}), marginBottom:10, display:"flex",
+        alignItems:"center", gap:12, flexWrap:"wrap" }}>
+        <span style={{ fontSize:12, fontWeight:700, color:_theme.text }}>🎯 Daily Target:</span>
+        {showTargetEdit ? (
+          <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+            <input type="number" min="1" max="500" defaultValue={dailyTarget}
+              style={{ ...I({width:80}) }}
+              onBlur={e=>{ const v=Number(e.target.value)||25;
+                setDailyTarget(v); localStorage.setItem("csops_perf_target",String(v));
+                setShowTargetEdit(false); }}
+              autoFocus/>
+          </div>
+        ) : (
+          <span style={{ fontWeight:800, fontSize:16, color:_theme.primary, cursor:"pointer" }}
+            onClick={()=>setShowTargetEdit(true)}>{dailyTarget} cases ✏️</span>
+        )}
+        <div style={{ flex:1, background:_theme.surface, borderRadius:20, height:12,
+          overflow:"hidden", minWidth:120 }}>
+          <div style={{ height:"100%", borderRadius:20, transition:"width 0.5s",
+            width:`${Math.min(100,Math.round((totalClosed/dailyTarget)*100))}%`,
+            background: totalClosed>=dailyTarget?"#10B981":totalClosed>=dailyTarget*0.8?"#F59E0B":"#3B82F6" }}/>
+        </div>
+        <span style={{ fontSize:12, fontWeight:700,
+          color:totalClosed>=dailyTarget?"#10B981":_theme.textSub }}>
+          {totalClosed}/{dailyTarget} ({Math.round((totalClosed/dailyTarget)*100)}%)
+          {totalClosed>=dailyTarget?" 🎉":""}
+        </span>
+      </div>
+
+      {/* KPI Cards + Charts */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:16 }}>
+        <div style={{ ...CRD({padding:"12px 16px"}), borderTop:"3px solid #10B981" }}>
+          <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>Today Closed</div>
+          <div style={{ fontSize:28, fontWeight:800, color:"#10B981" }}>{totalClosed}</div>
+        </div>
+        <div style={{ ...CRD({padding:"12px 16px"}), borderTop:"3px solid #F59E0B" }}>
+          <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>Today Escalations</div>
+          <div style={{ fontSize:28, fontWeight:800, color:"#F59E0B" }}>{totalEsc}</div>
+        </div>
+        <div style={{ ...CRD({padding:"12px 16px"}), borderTop:"3px solid #3B82F6" }}>
+          <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600, marginBottom:6 }}>7-Day Closed</div>
+          <SparkBar values={last7} color="#3B82F6" height={44} width={140}/>
+        </div>
+        <div style={{ ...CRD({padding:"12px 16px"}), borderTop:"3px solid #F59E0B" }}>
+          <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600, marginBottom:6 }}>7-Day Escalations</div>
+          <SparkLine values={last7Esc} color="#F59E0B" height={44} width={140}/>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div style={{ ...CRD(), overflowX:"auto" }}>
+        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+          <thead>
+            <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+              {["Rank","Employee","Tasks","Shift","Closed","Escalations",...(showQuality?["Quality %"]:[])]
+                .map(h=><th key={h} style={{ padding:"10px 8px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>)}
+             </tr>
+          </thead>
+          <tbody>
+            {sorted.map((emp,ri) => {
+              const p = getPerf(emp.id);
+              return (
+                <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
+                  <td style={{ padding:"8px", fontSize:18, textAlign:"center" }}>{medals[ri]||ri+1}</td>
+                  <td style={{ padding:"8px", fontWeight:600 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+                      <span>{emp.name}</span>
+                      {(() => {
+                        const p = getPerf(emp.id);
+                        const escPct = p.closed > 0 ? Math.round((p.escalations/p.closed)*100) : 0;
+                        return escPct >= ESC_WARN_PCT && p.escalations > 0 ? (
+                          <span style={{ fontSize:10, fontWeight:800, background:"#FEF2F2",
+                            color:"#EF4444", border:"1px solid #FCA5A5",
+                            borderRadius:20, padding:"1px 7px" }}>⚠️ Esc {escPct}%</span>
+                        ) : null;
+                      })()}
+                    </div>
+                   </td>
+                  <td style={{ padding:"8px" }}>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
+                      {emp.tasks.map(t=><span key={t} style={{ background:taskColor(t), color:"#fff", borderRadius:10, padding:"2px 6px", fontSize:10, fontWeight:600 }}>{t}</span>)}
+                    </div>
+                   </td>
+                  <td style={{ padding:"8px", color:_theme.textSub }}>{getShiftLabel(emp.id)}</td>
+                  <td style={{ padding:"8px" }}>
+                    <input type="number" min="0" value={p.closed||""} onChange={e=>setPerf(emp.id,"closed",Number(e.target.value))}
+                      style={{ ...I({ width:70, border: p.closed>0?"2px solid #10B981":"1px solid #CBD5E1" })}} placeholder="0"/>
+                   </td>
+                  <td style={{ padding:"8px" }}>
+                    <input type="number" min="0" value={p.escalations||""} onChange={e=>setPerf(emp.id,"escalations",Number(e.target.value))}
+                      style={{ ...I({ width:70, border: p.escalations>0?"2px solid #F59E0B":"1px solid #CBD5E1" })}} placeholder="0"/>
+                   </td>
+                  {showQuality && (
+                    <td style={{ padding:"8px" }}>
+                      <input type="number" min="0" max="100" value={p.quality||""} onChange={e=>setPerf(emp.id,"quality",Number(e.target.value))}
+                        style={{ ...I({ width:70 })}} placeholder="0-100"/>
+                     </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── HEAT MAP PAGE -- reads data from Queue ────────────────────────────────────
+function HeatMapPage({ queueLog, alertThresholdCritical, alertThresholdWarning }) {
+  const [date, setDate]       = useState(todayStr());
+  const [threshold, setThreshold] = useState(300); // custom threshold for live alert
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [tick, setTick]         = useState(0);
+
+  // Auto-refresh every 2 minutes when on today's date
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const t = setInterval(() => setTick(p=>p+1), 2*60*1000);
+    return () => clearInterval(t);
+  }, [autoRefresh]);
+
+  // Collect all queue entries for this date across all shifts
+  // Build hourly map from baseTime and updTime entries
+  const hourlyData = useMemo(() => {
+    const map = {}; // "HH:00" → total cases
+    Object.entries(queueLog).forEach(([key, data]) => {
+      if (!key.startsWith(date+"_")) return;
+      // Use baseTime or updTime as the hour marker
+      const times = [data.baseTime, data.updTime].filter(Boolean);
+      times.forEach(t => {
+        const hr = t.slice(0,2)+":00";
+        // Sum all queue fields as inflow indicator
+        const fields = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2",
+                        "someKwt","someQat","someBah","someUae"];
+        const total = fields.reduce((s,f)=>s+Number(data[f+"Curr"]||0),0);
+        map[hr] = (map[hr]||0) + total;
+      });
+      // Also push calculated snapshot using updTime
+      if (data.updTime && data.calcSnapshot) {
+        const hr = data.updTime.slice(0,2)+":00";
+        map[hr] = (map[hr]||0) + (data.calcSnapshot||0);
+      }
+    });
+    return map;
+  }, [queueLog, date]);
+
+  const hours = Array.from({length:24}, (_,i) => pad(i)+":00");
+  const counts = hours.map(h => hourlyData[h]||0);
+  const maxCount = Math.max(...counts, 1);
+  const total = counts.reduce((a,b)=>a+b,0);
+  const peakHour = hours[counts.indexOf(Math.max(...counts))];
+  const sortedByCount = [...hours].sort((a,b) => (hourlyData[a]||0)-(hourlyData[b]||0));
+  const breakWindows = sortedByCount.slice(0,3);
+
+  function cellBg(count) {
+    if (!count) return "#F1F5F9";
+    const pct = count/maxCount;
+    if (pct>0.8) return "#FEE2E2";
+    if (pct>0.5) return "#FEF9C3";
+    if (pct>0.2) return "#DCFCE7";
+    return "#F0FDF4";
+  }
+  function cellBorder(count) {
+    if (!count) return "#E2E8F0";
+    const pct = count/maxCount;
+    if (pct>0.8) return "#EF4444";
+    if (pct>0.5) return "#F59E0B";
+    if (pct>0.2) return "#10B981";
+    return "#86EFAC";
+  }
+
+  return (
+    <div>
+      <div style={SBR()}>
+        <span style={{ fontWeight:700, fontSize:15, color:_theme.text }}>🌡️ Live Heat Map</span>
+        <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...I(), width:150 }}/>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <label style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>Alert at:</label>
+          <input type="number" value={threshold} onChange={e=>setThreshold(Number(e.target.value))}
+            style={{ ...I({width:70}) }} min="50" max="2000"/>
+          <button onClick={()=>setAutoRefresh(a=>!a)}
+            style={{ border:`1.5px solid ${autoRefresh?"#10B981":"#CBD5E1"}`,
+              borderRadius:20, padding:"3px 10px", fontSize:11, cursor:"pointer",
+              background:autoRefresh?"#F0FDF4":"transparent",
+              color:autoRefresh?"#10B981":_theme.textMuted, fontWeight:700 }}>
+            {autoRefresh?"🔄 Live ON":"🔄 Live OFF"}
+          </button>
+        </div>
+      </div>
+
+      {/* Live threshold alert */}
+      {total > threshold && date === todayStr() && (
+        <div style={{ background:"#FEF2F2", border:"2px solid #EF4444",
+          borderRadius:10, padding:"10px 16px", marginBottom:14,
+          display:"flex", alignItems:"center", gap:10,
+          animation:"pulse 1s infinite" }}>
+          <span style={{ fontSize:20 }}>🚨</span>
+          <div>
+            <div style={{ fontWeight:800, color:"#EF4444", fontSize:13 }}>
+              Live Alert — Queue Load Exceeds Threshold
+            </div>
+            <div style={{ fontSize:12, color:"#991B1B" }}>
+              Current load: <strong>{total}</strong> cases · Threshold: <strong>{threshold}</strong> ·
+              Peak hour: <strong>{peakHour}</strong>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Summary */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:16 }}>
+        <div style={{ ...CRD(), borderTop:"3px solid #EF4444" }}>
+          <div style={LBL}>Peak Hour</div>
+          <div style={{ fontSize:22, fontWeight:800, color:"#EF4444" }}>{total>0 ? peakHour : "--"}</div>
+          <div style={{ fontSize:12, color:_theme.textMuted }}>{total>0 ? (hourlyData[peakHour]||0)+" cases" : "No data yet"}</div>
+        </div>
+        <div style={{ ...CRD(), borderTop:"3px solid #2563EB" }}>
+          <div style={LBL}>Total Queue Load</div>
+          <div style={{ fontSize:22, fontWeight:800, color:"#2563EB" }}>{total}</div>
+          <div style={{ fontSize:12, color:_theme.textMuted }}>across all recorded hours</div>
+        </div>
+        <div style={{ ...CRD(), borderTop:"3px solid #10B981" }}>
+          <div style={LBL}>Recommended Breaks</div>
+          <div style={{ fontSize:14, fontWeight:700, color:"#10B981" }}>{breakWindows.filter(h=>(hourlyData[h]||0)===0).slice(0,3).join(", ")||"--"}</div>
+          <div style={{ fontSize:12, color:_theme.textMuted }}>lowest activity windows</div>
+        </div>
+      </div>
+
+      {/* Grid */}
+      <div style={{ ...CRD(), padding:16 }}>
+        {total === 0 && (
+          <div style={{ textAlign:"center", padding:"24px 0", color:_theme.textMuted, fontSize:13 }}>
+            📭 No data yet -- enter Queue data and click <strong>Calculate</strong> to populate this chart.
+          </div>
+        )}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:8 }}>
+          {hours.map(h => {
+            const count = hourlyData[h]||0;
+            return (
+              <div key={h} style={{ background:cellBg(count), border:`1.5px solid ${cellBorder(count)}`, borderRadius:8, padding:"10px 8px", textAlign:"center" }}>
+                <div style={{ fontSize:11, fontWeight:700, color:_theme.textMuted, marginBottom:4 }}>{h}</div>
+                <div style={{ fontWeight:800, fontSize:18, color: count>0 ? cellBorder(count) : "#CBD5E1" }}>{count||0}</div>
+                {count>0 && <div style={{ fontSize:10, color:_theme.textMuted }}>{Math.round(count/maxCount*100)}%</div>}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display:"flex", gap:16, marginTop:16, flexWrap:"wrap" }}>
+          {[["#FEE2E2","#EF4444",">80% peak"],["#FEF9C3","#F59E0B",">50% peak"],["#DCFCE7","#10B981",">20% peak"],["#F1F5F9","#94A3B8","No data"]].map(([bg,border,label])=>(
+            <div key={label} style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <div style={{ width:16, height:16, background:bg, border:`1.5px solid ${border}`, borderRadius:3 }}/>
+              <span style={{ fontSize:12, color:_theme.textMuted }}>{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── QUEUE PAGE ───────────────────────────────────────────────────────────────
+function QueuePage({ shifts, queueLog, setQueueLog, setHeatmap, canEdit, session }) {
+  const todayKey = todayStr();
+
+  // ── Auto-detect current shift from system clock ──────────────────────────────
+  function detectShiftNow() {
+    if (!shifts.length) return "";
+    const nowMin = new Date().getHours()*60 + new Date().getMinutes();
+    for (const sh of shifts) {
+      const st=toMin(sh.start), en=toMin(sh.end);
+      if (en>st){ if(nowMin>=st&&nowMin<en) return sh.id; }
+      else       { if(nowMin>=st||nowMin<en) return sh.id; }
+    }
+    let best=shifts[0], minD=Infinity;
+    shifts.forEach(sh=>{ let d=nowMin-toMin(sh.start); if(d<0)d+=1440; if(d<minD){minD=d;best=sh;} });
+    return best.id;
+  }
+
+  // Auto baseline = shift start time; auto update = right now
+  function autoBase(sid) {
+    const sh = shifts.find(s=>s.id===sid);
+    return sh ? sh.start : pad(new Date().getHours())+":"+pad(new Date().getMinutes());
+  }
+  function autoNow() { return pad(new Date().getHours())+":"+pad(new Date().getMinutes()); }
+
+  // ── Default mode: auto shift + auto times ────────────────────────────────────
+  const [autoShiftId]   = useState(() => detectShiftNow());
+  const [calcDone, setCalcDone] = useState(false);
+
+  // ── Sidebar: shift-specific mode ─────────────────────────────────────────────
+  const [sbMode,     setSbMode]     = useState("single");   // "single"|"multi"
+  const [sbSelected, setSbSelected] = useState([]);         // selected shift ids
+  const [sbApplied,  setSbApplied]  = useState(false);      // true when user pressed Calculate
+  const [sbShifts,   setSbShifts]   = useState([]);         // applied shifts snapshot
+
+  // Active data key — uses sidebar shifts when applied, else auto-detected shift
+  const activeShiftId = sbApplied && sbShifts.length ? sbShifts[0] : autoShiftId;
+  const key = `${todayKey}_${activeShiftId}`;
+  const data = queueLog[key] || {};
+
+  // Resolved times: prefer stored, fall back to auto
+  const baseTimeVal = data.baseTime !== undefined ? data.baseTime : autoBase(activeShiftId);
+  const updTimeVal  = data.updTime  !== undefined ? data.updTime  : autoNow();
+
+  // Write auto-values to store on first access so editing works immediately
+  const [seeded, setSeeded] = useState(false);
+  useEffect(() => {
+    if (!seeded && !data.baseTime && !data.updTime) {
+      setQueueLog(prev => ({
+        ...prev,
+        [key]: {
+          ...(prev[key]||{}),
+          baseTime: autoBase(activeShiftId),
+          updTime:  autoNow(),
+        }
+      }));
+      setSeeded(true);
+    }
+  }, [key, seeded]);
+
+  function setQ(field, val) {
+    setQueueLog(prev => ({ ...prev, [key]: { ...(prev[key]||{}), [field]: val } }));
+    setCalcDone(false);
+  }
+
+  // ── Queue field definitions ──────────────────────────────────────────────────
+  const KSA_FIELDS = [
+    { key:"tga",  label:"TGA",  color:"#6366F1", flag:"🇸🇦" },
+    { key:"ob",   label:"OB",   color:"#0EA5E9", flag:"🇸🇦" },
+    { key:"oslo", label:"OSLO", color:"#8B5CF6", flag:"🇸🇦" },
+    { key:"some", label:"SOME", color:"#EC4899", flag:"🇸🇦" },
+  ];
+  const GCC_FIELDS = [
+    { key:"kwtT2",   label:"KWT T2 Cases",   color:"#10B981", flag:"🇰🇼" },
+    { key:"qatT2",   label:"QAT T2 Cases",   color:"#F59E0B", flag:"🇶🇦" },
+    { key:"bahT2",   label:"BAH T2 Cases",   color:"#EF4444", flag:"🇧🇭" },
+    { key:"uaeT2",   label:"UAE T2 Cases",   color:"#06B6D4", flag:"🇦🇪" },
+    { key:"someKwt", label:"SOME KWT Cases", color:"#14B8A6", flag:"🇰🇼" },
+    { key:"someQat", label:"SOME QAT Cases", color:"#F97316", flag:"🇶🇦" },
+    { key:"someBah", label:"SOME BAH Cases", color:"#A855F7", flag:"🇧🇭" },
+    { key:"someUae", label:"SOME UAE Cases", color:"#84CC16", flag:"🇦🇪" },
+  ];
+  const QUEUE_FIELDS = [...KSA_FIELDS, ...GCC_FIELDS];
+
+  // ── Calcs — when multi-shift applied, combine all selected shifts ─────────────
+  const calcs = useMemo(() => {
+    if (sbApplied && sbShifts.length > 1) {
+      // Combine data from all selected shifts
+      return QUEUE_FIELDS.map(f => {
+        let base=0, inflow=0, curr=0;
+        sbShifts.forEach(sid => {
+          const d2 = queueLog[`${todayKey}_${sid}`] || {};
+          base   += Number(d2[f.key+"Base"]  ||0);
+          inflow += Number(d2[f.key+"Inflow"]||0);
+          curr   += Number(d2[f.key+"Curr"]  ||0);
+        });
+        const resolved = base+inflow-curr;
+        return { ...f, base, inflow, curr, resolved, change: curr-base };
+      });
+    }
+    // Default: single key
+    return QUEUE_FIELDS.map(f => {
+      const base    = Number(data[f.key+"Base"]  ||0);
+      const inflow  = Number(data[f.key+"Inflow"]||0);
+      const curr    = Number(data[f.key+"Curr"]  ||0);
+      return { ...f, base, inflow, curr, resolved:base+inflow-curr, change:curr-base };
+    });
+  }, [data, sbApplied, sbShifts, queueLog, todayKey]);
+
+  const totalBase     = calcs.reduce((s,c)=>s+c.base,0);
+  const totalCurr     = calcs.reduce((s,c)=>s+c.curr,0);
+  const totalResolved = calcs.reduce((s,c)=>s+c.resolved,0);
+  const totalInflow   = calcs.reduce((s,c)=>s+c.inflow,0);
+
+  const status      = totalCurr>400?"🚨 CRITICAL":totalCurr>200?"⚠️ WARNING":"✅ NORMAL";
+  const statusColor = status.includes("CRITICAL")?"#EF4444":status.includes("WARNING")?"#F59E0B":"#10B981";
+
+  function timeDiff() {
+    const bt = baseTimeVal, ut = updTimeVal;
+    if (!bt||!ut) return null;
+    const d = toMin(ut)-toMin(bt);
+    const dd = d<0?d+1440:d;
+    return `${Math.floor(dd/60)}h ${dd%60}m`;
+  }
+
+  function calculate() {
+    const ut = updTimeVal;
+    if (!ut) return;
+    const hr = ut.slice(0,2)+":00";
+    setHeatmap(prev=>({ ...prev, [todayKey]:{ ...(prev[todayKey]||{}), [hr]:totalCurr } }));
+    setQueueLog(prev=>({ ...prev, [key]:{ ...(prev[key]||{}), calcSnapshot:totalCurr, calcTime:ut } }));
+    setCalcDone(true);
+  }
+
+  // Sidebar helpers
+  function toggleSbShift(sid) {
+    if (sbMode==="single") { setSbSelected([sid]); }
+    else { setSbSelected(prev=>prev.includes(sid)?prev.filter(x=>x!==sid):[...prev,sid]); }
+  }
+  function applyShifts() {
+    if (!sbSelected.length) return;
+    setSbShifts(sbSelected);
+    setSbApplied(true);
+    setCalcDone(false);
+  }
+  function resetToAuto() {
+    setSbApplied(false); setSbShifts([]); setSbSelected([]); setCalcDone(false);
+  }
+
+  const currentShift = shifts.find(s=>s.id===activeShiftId);
+
+  // ── Input border helper for numeric fields ────────────────────────────────────
+  function inflowBorder(val) {
+    return Number(val||0)>0?`2px solid ${_theme.primary}`:`1px solid ${_theme.inputBorder}`;
+  }
+  function currBorder(val) {
+    const n=Number(val||0);
+    return n>200?`2px solid #EF4444`:n>100?`2px solid #F59E0B`:`1px solid ${_theme.inputBorder}`;
+  }
+
+  return (
+    <div style={{ display:"flex", gap:16, alignItems:"flex-start" }}>
+
+      {/* ══════════════════════ SIDEBAR ══════════════════════════════════════ */}
+      <div style={{ width:230, flexShrink:0, display:"flex", flexDirection:"column", gap:12 }}>
+
+        {/* Active context info */}
+        <div style={{ ...CRD({ padding:"14px 16px" }),
+          borderLeft:`3px solid ${currentShift?.color||_theme.primary}` }}>
+          <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:700,
+            letterSpacing:"0.05em", marginBottom:8 }}>ACTIVE DATA SOURCE</div>
+          {sbApplied && sbShifts.length ? (
+            <div>
+              <div style={{ fontSize:12, fontWeight:700, color:_theme.primary, marginBottom:4 }}>
+                {sbShifts.length>1?`📊 ${sbShifts.length} Shifts Combined`:"📊 Single Shift (Manual)"}
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:3, marginBottom:10 }}>
+                {sbShifts.map(sid=>{
+                  const sh=shifts.find(s=>s.id===sid);
+                  return sh ? (
+                    <div key={sid} style={{ fontSize:11, color:sh.color, fontWeight:600,
+                      background:sh.color+"15", borderRadius:5, padding:"2px 7px" }}>
+                      ⏰ {sh.label}
+                    </div>
+                  ) : null;
+                })}
+              </div>
+              <button onClick={resetToAuto}
+                style={{ background:"none", border:`1px solid ${_theme.cardBorder}`,
+                  color:_theme.textMuted, borderRadius:6, padding:"4px 10px",
+                  fontSize:11, cursor:"pointer", width:"100%" }}>
+                ↩ Reset to Auto
+              </button>
+            </div>
+          ) : (
+            <div>
+              <div style={{ fontSize:11, fontWeight:700, color:_theme.success, marginBottom:4 }}>
+                🟢 Auto — Current Time
+              </div>
+              {currentShift && (
+                <div style={{ fontSize:11, color:currentShift.color, fontWeight:600,
+                  background:currentShift.color+"15", borderRadius:5, padding:"2px 7px",
+                  marginBottom:4, display:"inline-block" }}>
+                  ⏰ {currentShift.label}
+                </div>
+              )}
+              <div style={{ fontSize:10, color:_theme.textMuted, marginTop:4 }}>
+                Shift auto-detected from system clock
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Calculate Queue for Specific Shift(s) ── */}
+        <div style={{ ...CRD({ padding:"14px 16px" }),
+          border:`1.5px solid ${_theme.primary}30` }}>
+          <div style={{ fontSize:11, fontWeight:800, color:_theme.primary,
+            marginBottom:12, display:"flex", alignItems:"center", gap:6 }}>
+            🎯 Calculate Queue for Specific Shift(s)
+          </div>
+
+          {/* Mode toggle */}
+          <div style={{ display:"flex", gap:4, marginBottom:10 }}>
+            {[["single","Single"],["multi","Multiple"]].map(([m,l])=>(
+              <button key={m} onClick={()=>{ setSbMode(m); setSbSelected([]); }}
+                style={{ flex:1, border:`1.5px solid ${sbMode===m?_theme.primary:_theme.cardBorder}`,
+                  borderRadius:6, padding:"4px 6px", fontSize:11, cursor:"pointer", fontWeight:700,
+                  background: sbMode===m?_theme.primary+"22":"transparent",
+                  color: sbMode===m?_theme.primary:_theme.textMuted }}>
+                {l}
+              </button>
+            ))}
+          </div>
+
+          {/* Shift list */}
+          <div style={{ display:"flex", flexDirection:"column", gap:5, marginBottom:10,
+            maxHeight:200, overflowY:"auto" }}>
+            {shifts.map(sh => {
+              const sel = sbSelected.includes(sh.id);
+              return (
+                <div key={sh.id} onClick={()=>toggleSbShift(sh.id)}
+                  style={{ display:"flex", alignItems:"center", gap:8, padding:"7px 10px",
+                    borderRadius:7, cursor:"pointer", userSelect:"none",
+                    border:`1.5px solid ${sel?sh.color:_theme.cardBorder}`,
+                    background: sel?sh.color+"18":_theme.surface,
+                    transition:"all 0.12s" }}>
+                  <div style={{ width:10, height:10, borderRadius:3,
+                    background:sh.color, flexShrink:0 }}/>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:11, fontWeight:700,
+                      color:sel?sh.color:_theme.text, whiteSpace:"nowrap",
+                      overflow:"hidden", textOverflow:"ellipsis" }}>{sh.label}</div>
+                    <div style={{ fontSize:9, color:_theme.textMuted }}>{sh.start} – {sh.end}</div>
+                  </div>
+                  {sel && <span style={{ fontSize:12, color:sh.color, fontWeight:800 }}>✓</span>}
+                </div>
+              );
+            })}
+          </div>
+
+          {sbSelected.length > 0 && (
+            <div style={{ fontSize:11, color:_theme.textMuted, marginBottom:8, textAlign:"center" }}>
+              {sbSelected.length} shift{sbSelected.length>1?"s":""} selected
+            </div>
+          )}
+
+          <button onClick={applyShifts} disabled={!sbSelected.length}
+            style={{ width:"100%", background:sbSelected.length?_theme.primary:"#374151",
+              color:"#fff", border:"none", borderRadius:7, padding:"9px",
+              fontSize:12, cursor:sbSelected.length?"pointer":"default",
+              fontWeight:700, opacity:sbSelected.length?1:0.5,
+              transition:"all 0.15s" }}>
+            ⚡ Calculate / Apply
+          </button>
+        </div>
+
+        {/* Today info */}
+        <div style={{ ...CRD({ padding:"12px 14px" }) }}>
+          <div style={{ fontSize:10, color:_theme.textMuted, fontWeight:700,
+            letterSpacing:"0.05em", marginBottom:6 }}>TODAY</div>
+          <div style={{ fontSize:12, fontWeight:700, color:_theme.text }}>
+            {new Date().toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"Asia/Riyadh"})}
+          </div>
+          <div style={{ fontSize:11, color:_theme.primary, fontWeight:600, marginTop:2 }}>
+            🕐 {autoNow()}
+          </div>
+        </div>
+
+      </div>
+      {/* ═══════════════════════ END SIDEBAR ═══════════════════════════════════ */}
+
+      {/* ══════════════════════ MAIN CONTENT ═════════════════════════════════ */}
+      <div style={{ flex:1, minWidth:0 }}>
+
+        {/* ── Top bar: Title + Status badge only ─────────────────────────────── */}
+        <div style={{ ...SBR({ marginBottom:14 }), alignItems:"center" }}>
+          <span style={{ fontWeight:800, fontSize:16, color:_theme.text }}>📊 Queue Data</span>
+          {sbApplied && sbShifts.length>1 && (
+            <span style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>
+              Combined: {sbShifts.map(sid=>shifts.find(s=>s.id===sid)?.label).join(" + ")}
+            </span>
+          )}
+          <div style={{ marginLeft:"auto", fontWeight:700, fontSize:13,
+            color:statusColor, background:statusColor+"18",
+            borderRadius:6, padding:"6px 14px",
+            border:`1px solid ${statusColor}40` }}>
+            {status}
+          </div>
+        </div>
+
+        {/* ── Time bar: Baseline + Update + Duration + Calculate ──────────────────── */}
+        <div style={{ ...CRD({ padding:"12px 16px" }), marginBottom:16,
+          display:"flex", gap:16, alignItems:"center", flexWrap:"wrap" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:13, color:_theme.textMuted, whiteSpace:"nowrap" }}>⏱ Baseline</span>
+            <input type="time" value={baseTimeVal}
+              onChange={e=>setQ("baseTime",e.target.value)}
+              style={{ ...I({ width:115 })}}/>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:13, color:_theme.textMuted, whiteSpace:"nowrap" }}>🔄 Update</span>
+            <input type="time" value={updTimeVal}
+              onChange={e=>setQ("updTime",e.target.value)}
+              style={{ ...I({ width:115 })}}/>
+          </div>
+          {timeDiff() && (
+            <div style={{ fontSize:13, color:_theme.textSub, fontWeight:600 }}>
+              ⏳ <strong>{timeDiff()}</strong>
+            </div>
+          )}
+          <button onClick={calculate}
+            style={{ ...PBT(calcDone?"#10B981":_theme.primary,
+              { padding:"8px 22px", fontSize:13, marginLeft:"auto",
+                boxShadow:calcDone?"none":`0 0 0 3px ${_theme.primary}30`,
+                transition:"all 0.2s" }) }}>
+            {calcDone ? "✅ Saved to Heat Map" : "🧮 Calculate"}
+          </button>
+        </div>
+
+        {/* ── Summary KPIs ────────────────────────────────────────────────────── */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:16 }}>
+          {[
+            ["Total Baseline", totalBase,     "#6B7280"],
+            ["New Inflow",     totalInflow,   _theme.primary],
+            ["Current Live",   totalCurr,     "#EF4444"],
+            ["Resolved",       totalResolved, "#10B981"],
+          ].map(([l,v,c])=>(
+            <div key={l} style={{ ...CRD({ padding:"12px 16px" }), borderTop:`3px solid ${c}` }}>
+              <div style={{ fontSize:11, color:_theme.textMuted, fontWeight:600 }}>{l}</div>
+              <div style={{ fontSize:28, fontWeight:800, color:c }}>{v}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Queue Tables ─────────────────────────────────────────────────────── */}
+        {[
+          { title:"🇸🇦 KSA Queue", fields:KSA_FIELDS, accent:"#6366F1" },
+          { title:"🌍 GCC Queue",  fields:GCC_FIELDS,  accent:"#10B981" },
+        ].map(({ title, fields, accent }) => {
+          const groupCalcs  = calcs.filter(c=>fields.some(f=>f.key===c.key));
+          const gTotal      = groupCalcs.reduce((s,c)=>s+c.curr,0);
+          const gResolved   = groupCalcs.reduce((s,c)=>s+c.resolved,0);
+          // In multi-shift mode, data writes go to first selected shift
+          const isMulti = sbApplied && sbShifts.length > 1;
+          return (
+            <div key={title} style={{ ...CRD(), overflowX:"auto", marginBottom:16 }}>
+              <div style={{ display:"flex", alignItems:"center",
+                justifyContent:"space-between", marginBottom:12 }}>
+                <div style={{ fontWeight:800, color:accent, fontSize:15 }}>{title}</div>
+                <div style={{ display:"flex", gap:14, fontSize:12, color:_theme.textMuted }}>
+                  <span>Current: <strong style={{color:"#EF4444"}}>{gTotal}</strong></span>
+                  <span>Resolved: <strong style={{color:"#10B981"}}>{gResolved>0?"+":""}{gResolved}</strong></span>
+                </div>
+              </div>
+              {isMulti && (
+                <div style={{ fontSize:11, color:_theme.textMuted, background:_theme.surface,
+                  borderRadius:6, padding:"5px 10px", marginBottom:8 }}>
+                  ℹ️ Combined view — edit individual shifts to update values
+                </div>
+              )}
+              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+                <thead>
+                  <tr style={{ background:_theme.isDark?"#0D1117":"#F8FAFC" }}>
+                    {["Queue","","Baseline","New Inflow","Current","Resolved","Trend"].map(h=>(
+                      <th key={h} style={{ padding:"8px 10px", textAlign:"left",
+                        fontWeight:700, color:_theme.text,
+                        borderBottom:`2px solid ${accent}40`, whiteSpace:"nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {groupCalcs.map((c,ri)=>(
+                    <tr key={c.key} style={{ background:ri%2===0?_theme.card:_theme.surface }}>
+                      <td style={{ padding:"8px 10px", fontWeight:700, color:c.color }}>{c.label}</td>
+                      <td style={{ padding:"8px 6px", fontSize:16 }}>{c.flag}</td>
+                      <td style={{ padding:"8px 10px" }}>
+                        <input type="number" min="0" disabled={isMulti}
+                          value={isMulti?c.base:(data[c.key+"Base"]||"")}
+                          onChange={e=>setQ(c.key+"Base",e.target.value)}
+                          style={{ ...I({ width:72, opacity:isMulti?.7:1 })}} placeholder="0"/>
+                       </td>
+                      <td style={{ padding:"8px 10px" }}>
+                        <input type="number" min="0" disabled={isMulti}
+                          value={isMulti?c.inflow:(data[c.key+"Inflow"]||"")}
+                          onChange={e=>setQ(c.key+"Inflow",e.target.value)}
+                          style={{ ...I({ width:72, border:isMulti?`1px solid ${_theme.inputBorder}`:inflowBorder(data[c.key+"Inflow"]),
+                            opacity:isMulti?.7:1 })}} placeholder="0"/>
+                       </td>
+                      <td style={{ padding:"8px 10px" }}>
+                        <input type="number" min="0" disabled={isMulti}
+                          value={isMulti?c.curr:(data[c.key+"Curr"]||"")}
+                          onChange={e=>setQ(c.key+"Curr",e.target.value)}
+                          style={{ ...I({ width:72, border:isMulti?`1px solid ${_theme.inputBorder}`:currBorder(data[c.key+"Curr"]),
+                            opacity:isMulti?.7:1 })}} placeholder="0"/>
+                       </td>
+                      <td style={{ padding:"8px 10px", fontWeight:700,
+                        color:c.resolved>0?"#10B981":c.resolved<0?"#EF4444":_theme.textMuted }}>
+                        {c.resolved>0?"+":""}{c.resolved}
+                       </td>
+                      <td style={{ padding:"8px 10px", fontSize:16 }}>
+                        {c.change>0?"📈":c.change<0?"📉":"➡️"}
+                        <span style={{ fontSize:11, color:_theme.textMuted, marginLeft:4 }}>
+                          {c.change>0?"+":""}{c.change||0}
+                        </span>
+                       </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })}
+
+        {/* ── Comparison panel ────────────────────────────────────────────────── */}
+        {(baseTimeVal && updTimeVal) && (
+          <div style={{ ...CRD(), marginBottom:16 }}>
+            <div style={{ fontWeight:700, color:_theme.text, marginBottom:12, fontSize:14 }}>
+              📊 Comparison: {baseTimeVal} → {updTimeVal}
+              {timeDiff() && <span style={{ color:_theme.textMuted, fontWeight:400, marginLeft:8 }}>({timeDiff()})</span>}
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(110px,1fr))", gap:8 }}>
+              {calcs.filter(c=>c.base>0||c.curr>0).map(c=>(
+                <div key={c.key} style={{ background:c.color+"12",
+                  border:`1.5px solid ${c.color}30`, borderRadius:8,
+                  padding:"10px 12px", textAlign:"center" }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:c.color,
+                    marginBottom:4 }}>{c.flag} {c.label}</div>
+                  <div style={{ display:"flex", justifyContent:"center",
+                    alignItems:"center", gap:6, fontSize:13 }}>
+                    <span style={{ color:_theme.textMuted }}>{c.base}</span>
+                    <span style={{ color:_theme.textMuted }}>→</span>
+                    <span style={{ fontWeight:800, fontSize:16,
+                      color:c.curr>c.base?"#EF4444":c.curr<c.base?"#10B981":_theme.textSub }}>
+                      {c.curr}
+                    </span>
+                  </div>
+                  <div style={{ fontSize:11, marginTop:4, fontWeight:600,
+                    color:c.resolved>0?"#10B981":c.resolved<0?"#EF4444":_theme.textMuted }}>
+                    {c.resolved>0?"+":""}{c.resolved}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── SME Insights ─────────────────────────────────────────────────────── */}
+        <div style={CRD()}>
+          <label style={{ ...LBL, color:_theme.text }}>💡 SME Insights (Problem → Action → Result)</label>
+          <textarea value={data.insight||""} onChange={e=>setQ("insight",e.target.value)} rows={3}
+            style={{ ...I(), resize:"vertical" }} placeholder="Problem → Action → Result"/>
+        </div>
+
+      </div>
+      {/* ═══════════════════════ END MAIN CONTENT ═══════════════════════════════ */}
+
+    </div>
+  );
+}
 // ─── NOTES PAGE ───────────────────────────────────────────────────────────────
 function NotesPage({ notes, setNotes, session }) {
   const [date, setDate] = useState(todayStr());
@@ -3206,7 +5453,7 @@ function getDefaultBreakDuration(dateStr) {
 }
 
 // ─── BREAK PAGE ─────────────────────────────────────────────────────────────────
-function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedule, canEdit, addAudit, session, notes, setNotes, myShiftFilter }) {
+function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedule, canEdit, addAudit, session, notes, setNotes, myShiftFilter, queueLog }) {
   const [date, setDate]     = useState(todayStr());
   // If myShiftFilter is on, auto-select my shift
   const _myShiftEmp = session ? employees.find(e=>e.name===session.name) : null;
@@ -3424,8 +5671,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                   color:_theme.text, borderBottom:`2px solid ${_theme.tableBorder}`,
                   whiteSpace:"nowrap", fontSize:12 }}>{h}</th>
               ))}
-            </tr>
-          </thead>
+             </thead>
           <tbody>
             {shiftEmps.map((emp, ri) => {
               const entry   = getEntry(emp.id);
@@ -3444,7 +5690,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                   background: ri%2===0 ? _theme.tableRow : _theme.tableRowAlt,
                   opacity: overShift ? 0.7 : 1
                 }}>
-                  <td style={{ padding:"8px 10px", color:_theme.textMuted, fontWeight:600 }}>{ri+1}</td>
+                  <td style={{ padding:"8px 10px", color:_theme.textMuted, fontWeight:600 }}>{ri+1} </td>
                   <td style={{ padding:"8px 10px", fontWeight:700, color:_theme.text }}>
                     {emp.name}
                     <span style={{ marginLeft:6, fontSize:9, fontWeight:800, padding:"1px 5px",
@@ -3454,10 +5700,10 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                       {emp.gender||"M"}
                     </span>
                     <div style={{ fontSize:11, color:_theme.textMuted }}>{emp.role}</div>
-                  </td>
+                   </td>
                   <td style={{ padding:"8px 10px", color:_theme.textSub, fontWeight:600 }}>
                     {sh?.start || "--"}
-                  </td>
+                   </td>
 
                   {/* Offset input — only owner can edit */}
                   <td style={{ padding:"8px 10px" }}>
@@ -3515,7 +5761,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                         +{entry.offsetHours||0}h {entry.offsetMins||0}m
                       </div>
                     )}
-                  </td>
+                   </td>
 
                   {/* Duration */}
                   <td style={{ padding:"8px 10px" }}>
@@ -3541,16 +5787,16 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                     ) : (
                       <span style={{ fontWeight:600, color:_theme.textSub }}>{entry.durationMin||defaultDur}m</span>
                     )}
-                  </td>
+                   </td>
 
                   {/* Break Start / End */}
                   <td style={{ padding:"8px 10px", fontWeight:700,
                     color: bStart ? _theme.primary : _theme.textMuted }}>
                     {bStart || "—"}
-                  </td>
+                   </td>
                   <td style={{ padding:"8px 10px", fontWeight:700, color:_theme.textSub }}>
                     {bEnd || "—"}
-                  </td>
+                   </td>
 
                   {/* Status */}
                   <td style={{ padding:"8px 10px" }}>
@@ -3559,17 +5805,17 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
                       padding:"3px 10px", fontSize:11, fontWeight:700, whiteSpace:"nowrap" }}>
                       {statusLabel}
                     </span>
-                  </td>
-                </tr>
+                   </td>
+                 </tr>
               );
             })}
             {shiftEmps.length === 0 && (
-              <tr><td colSpan={8} style={{ padding:32, textAlign:"center", color:_theme.textMuted }}>
+               <td colSpan={8} style={{ padding:32, textAlign:"center", color:_theme.textMuted }}>
                 No employees scheduled for this shift on {dayName}
-              </td></tr>
+               </td>
             )}
           </tbody>
-        </table>
+         </table>
       </div>
 
       {/* Owner-only: Bulk set offset */}
@@ -3633,7 +5879,7 @@ function BreakPage({ employees, schedule, shifts, breakSchedule, setBreakSchedul
             breakSchedule={breakSchedule}
             shifts={shifts}
             schedule={schedule}
-            queueLog={typeof queueLog !== "undefined" ? queueLog : {}}
+            queueLog={queueLog}
           />
         </div>
       ) : (
@@ -4156,8 +6402,7 @@ function RosterPage({ employees, setEmployees, schedule, setSchedule, shifts }) 
               {["#","Name","Role","Tasks","Actions"].map(h=>(
                 <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
               ))}
-            </tr>
-          </thead>
+             </thead>
           <tbody>
             {shiftEmployees.map((emp, ri) => (
               <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
@@ -4549,9 +6794,9 @@ Time of Update: ${opsUpdTime} (Comparative Analysis: ${opsBaseTime} vs ${opsUpdT
 Subject: Operations Performance, Productivity Analysis & Shift Allocation
 Overall Operations Status: ${opsStatus}${opsStatusNote ? ` (${opsStatusNote})` : ""}
 
-${"═".repeat(65)}
+${"=".repeat(65)}
 1. Productivity & Deep Dive Analysis (${opsBaseTime} - ${opsUpdTime})
-${"═".repeat(65)}
+${"=".repeat(65)}
 ${dur ? `Over the past ${dur}, the operations floor experienced the following:` : ""}
 ${opsNarrative ? `\n${opsNarrative}\n` : ""}
 ${n(ksaOBBase)>0 ? `• ${ksaOBNet>0?"🔴":"🟢"} KSA Queue - Outbound (Productivity Breakdown):
@@ -4569,9 +6814,9 @@ ${n(ksaOBBase)>0 ? `• ${ksaOBNet>0?"🔴":"🟢"} KSA Queue - Outbound (Produc
 ` : ""}
 📊 Total Cases Closed (All Queues): ${totalClosed > 0 ? totalClosed : ksaOBRes+ksaSomeRes+ksaOsloRes+gccT2Res+gccSomeRes} cases
 
-${"═".repeat(65)}
+${"=".repeat(65)}
 2. Live Metrics & Queue Status (Net Variance)
-${"═".repeat(65)}
+${"=".repeat(65)}
 ${n(ksaOBCurr)+n(ksaSomeCurr)+n(ksaOsloCurr)>0 ? `${ksaCritical?"🔴":"🟡"} KSA Queue [${ksaCritical?"CRITICAL":"MONITOR"}]
 ${n(ksaOBCurr)>0?`• Outbound: ${ksaOBCurr} (${netStr(ksaOBNet)})`:""}
 ${n(ksaSomeCurr)>0?`• "Some" Cases: ${ksaSomeCurr} (${netStr(ksaSomeNet)})`:""}
@@ -4580,20 +6825,20 @@ ${n(ksaOsloCurr)>0?`• OSLO: ${ksaOsloCurr} (${netStr(ksaOsloNet)})`:""}
 ${n(gccT2Curr)>0?`• Tier 2: ${gccT2Curr} (${netStr(gccT2Net)})`:""}
 ${n(gccSomeCurr)>0?`• "Some" Cases: ${gccSomeCurr} (${netStr(gccSomeNet)})`:""}
 ` : ""}
-${"═".repeat(65)}
+${"=".repeat(65)}
 3. Attendance
-${"═".repeat(65)}
+${"=".repeat(65)}
 Scheduled: ${dayEmps.length} | Present: ${present} | Absent: ${absent.length} | Late: ${late.length}
 ${absent.length>0?`Absent: ${absent.map(e=>e.name).join(", ")}`:""}
 ${late.length>0?`Late: ${late.map(e=>`${e.name} (${attMap[e.id]?.lateMin||0}m)`).join(", ")}`:""}
 
-${"═".repeat(65)}
+${"=".repeat(65)}
 4. Strategic Workforce Allocation (Starting ${opsUpdTime} Shift)
-${"═".repeat(65)}
+${"=".repeat(65)}
 ${allocRows.filter(r=>r.team&&r.agents).map(r=>`• ${r.team}:\n${r.agents.split("\n").map(a=>a.trim()).filter(Boolean).map(a=>`  - ${a}`).join("\n")}`).join("\n\n")}
 ${opsExecNote ? `\nExecutive Note: ${opsExecNote}` : ""}
 
-${"═".repeat(65)}
+${"=".repeat(65)}
 Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:false})}`;
   }
 
@@ -4793,8 +7038,7 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
                       <th key={h} style={{ padding:"10px 12px", textAlign:"right", fontWeight:700,
                         color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
                     ))}
-                  </tr>
-                </thead>
+                   </thead>
                 <tbody>
                   {monthData.map((d,ri)=>{
                     const isLast = ri===monthData.length-1;
@@ -4982,8 +7226,7 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
                   {["Rank","Employee","Attendance %","Avg Work Hours","Punctuality","Score"].map(h=>(
                     <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
                   ))}
-                </tr>
-              </thead>
+                 </thead>
               <tbody>
                 {scoreData.map((s,ri) => {
                   const scoreColor = s.score>=80?"#10B981":s.score>=60?"#F59E0B":"#EF4444";
@@ -4993,7 +7236,7 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
                       <td style={{ padding:"10px 12px", fontWeight:700 }}>
                         {s.emp.name}
                         <div style={{ fontSize:11, color:_theme.textMuted }}>{s.emp.role}</div>
-                      </td>
+                       </td>
                       <td style={{ padding:"10px 12px" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                           <div style={{ background:"#E2E8F0", borderRadius:10, height:8, width:80, overflow:"hidden" }}>
@@ -5002,27 +7245,27 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
                           <span style={{ fontWeight:600 }}>{s.attRate}%</span>
                         </div>
                         <div style={{ fontSize:11, color:_theme.textMuted }}>Abs: {s.s.abs} · Late: {s.s.lateCount}x</div>
-                      </td>
+                       </td>
                       <td style={{ padding:"10px 12px" }}>
                         <div style={{ fontWeight:700, color: s.workScore>=80?"#10B981":s.workScore>=60?"#F59E0B":"#EF4444" }}>
                           {s.avgWorkHFmt}
                         </div>
                         <div style={{ fontSize:11, color:_theme.textMuted }}>Score: {s.workScore}</div>
-                      </td>
+                       </td>
                       <td style={{ padding:"10px 12px" }}>
                         <div style={{ fontWeight:700, color: s.punctScore>=90?"#10B981":s.punctScore>=70?"#F59E0B":"#EF4444" }}>
                           {s.punctScore}/100
                         </div>
                         <div style={{ fontSize:11, color:_theme.textMuted }}>Late {s.s.lateCount}x · {s.s.lateMin}m total</div>
-                      </td>
+                       </td>
                       <td style={{ padding:"10px 12px" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                           <DonutChart value={s.score} max={100} color={scoreColor} size={52}/>
                           <span style={{ background:scoreColor+"20", color:scoreColor, border:`1.5px solid ${scoreColor}`,
                             borderRadius:20, padding:"4px 14px", fontWeight:800, fontSize:15 }}>{s.score}</span>
                         </div>
-                      </td>
-                    </tr>
+                       </td>
+                     </tr>
                   );
                 })}
                 {scoreData.length===0 && (
@@ -5075,9 +7318,7 @@ Generated: ${new Date().toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:fa
     </div>
   );
 }
-
-
-// ─── TASK ASSIGNMENTS PAGE ────────────────────────────────────────────────────
+   // ─── TASK ASSIGNMENTS PAGE ────────────────────────────────────────────────────
 function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, session }) {
   const [search, setSearch] = useState("");
   const [filterTask, setFilterTask] = useState("");
@@ -5155,23 +7396,22 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
               {["#","Employee","Role","Assigned Tasks","Assigned By","Actions"].map(h=>(
                 <th key={h} style={{ padding:"10px 12px", textAlign:"left", fontWeight:700, color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
               ))}
-            </tr>
-          </thead>
+             </thead>
           <tbody>
             {filtered.map((emp, ri) => {
               // Find last audit entry for this employee's tasks
               const lastEdit = (auditLog||[]).find(a => a.target===emp.name && a.action==="Task Assignment");
               return (
                 <tr key={emp.id} style={{ background: ri%2===0?_theme.card:_theme.surface }}>
-                  <td style={{ padding:"10px 12px", color:_theme.textMuted, fontWeight:600 }}>{ri+1}</td>
+                  <td style={{ padding:"10px 12px", color:_theme.textMuted, fontWeight:600 }}>{ri+1}  </td>
                   <td style={{ padding:"10px 12px", fontWeight:700, color:_theme.text }}>
                     {emp.name}
                     <div style={{ fontSize:11, color:_theme.textMuted }}>{emp.role}</div>
-                  </td>
+                    </td>
                   <td style={{ padding:"10px 12px" }}>
                     <span style={{ background:ROLE_COLORS[emp.role]||"#64748B", color:"#fff",
                       borderRadius:6, padding:"2px 8px", fontSize:11, fontWeight:600 }}>{emp.role}</span>
-                  </td>
+                    </td>
                   <td style={{ padding:"10px 12px" }}>
                     {(emp.tasks||[]).length === 0
                       ? <span style={{ color:_theme.textMuted, fontSize:12 }}>No tasks assigned</span>
@@ -5182,7 +7422,7 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
                           ))}
                         </div>
                     }
-                  </td>
+                    </td>
                   <td style={{ padding:"10px 12px", fontSize:12, color:_theme.textMuted }}>
                     {lastEdit
                       ? <div>
@@ -5193,12 +7433,12 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
                         </div>
                       : <span style={{ color:"#CBD5E1" }}>--</span>
                     }
-                  </td>
+                    </td>
                   <td style={{ padding:"10px 12px" }}>
                     <button onClick={()=>openEdit(emp)}
                       style={{ ...PBT("#2563EB",{ padding:"5px 12px", fontSize:12 }) }}>✏️ Edit Tasks</button>
-                  </td>
-                </tr>
+                    </td>
+                 </tr>
               );
             })}
           </tbody>
@@ -5559,10 +7799,6 @@ function AuditLogPage({ auditLog, session }) {
   );
 }
 
-
-
-
-
 // ─── OWNER EMPLOYEE MANAGER ──────────────────────────────────────────────────
 // Full employee management panel exclusive to Owner (Super Admin)
 function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNotes }) {
@@ -5580,6 +7816,22 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
     "Live Floor":"🏢","Break":"☕","Heat Map":"🌡️","Audit Log":"🔍",
     "Notes":"📝","Shifts":"⏰","Performance":"⚡","Reports":"📑","Leaderboard":"🏆"
   };
+
+  // Safe base64 functions for Unicode
+  function safeBase64Decode(str) {
+    try {
+      return decodeURIComponent(escape(atob(str)));
+    } catch (e) {
+      return str;
+    }
+  }
+  function safeBase64Encode(str) {
+    try {
+      return btoa(unescape(encodeURIComponent(str)));
+    } catch (e) {
+      return str;
+    }
+  }
 
   const filtered = employees.filter(e =>
     e.name.toLowerCase().includes(search.toLowerCase())
@@ -5640,7 +7892,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
   function getDarkNote(empName) {
     const n = (Array.isArray(notes)?notes:[]).find(n => n.tag==="Dark Note" && n.target===empName);
     if (!n) return "";
-    try { return atob(n.text||""); } catch { return n.text||""; }
+    return safeBase64Decode(n.text||"");
   }
   function saveDarkNote(empName, text) {
     const existing = (Array.isArray(notes)?notes:[]).filter(n => !(n.tag==="Dark Note" && n.target===empName));
@@ -5650,7 +7902,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
       date: new Date().toISOString().slice(0,10),
       time: "00:00",
       tag: "Dark Note",
-      text: btoa(unescape(encodeURIComponent(text))),
+      text: safeBase64Encode(text),
       from: session?.name||"",
       target: empName,
       msgType: "dark_note",
@@ -5705,8 +7957,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                   <th key={h} style={{ padding:"10px 10px", textAlign:"right", fontWeight:700,
                     color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
                 ))}
-              </tr>
-            </thead>
+               </thead>
             <tbody>
               {filtered.map((emp,ri) => {
                 const isSelf = emp.name === session?.name;
@@ -5722,7 +7973,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                         {isSelf && <span style={{ fontSize:10, color:_theme.textMuted }}>(You)</span>}
                       </div>
                       <div style={{ fontSize:10, color:_theme.textMuted }}>{emp.id}</div>
-                    </td>
+                      </td>
 
                     {/* Gender */}
                     <td style={{ padding:"8px 10px", textAlign:"center" }}>
@@ -5739,7 +7990,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                           </button>
                         ))}
                       </div>
-                    </td>
+                      </td>
 
                     {/* Current role badge */}
                     <td style={{ padding:"8px 10px", whiteSpace:"nowrap" }}>
@@ -5749,7 +8000,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                         borderRadius:6, padding:"3px 10px", fontSize:11, fontWeight:700 }}>
                         {ROLE_ICONS[emp.role]||"👤"} {emp.role}
                       </span>
-                    </td>
+                      </td>
 
                     {/* Role buttons */}
                     <td style={{ padding:"8px 10px" }}>
@@ -5769,7 +8020,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                           </button>
                         ))}
                       </div>
-                    </td>
+                      </td>
 
                     {/* Admin toggle */}
                     <td style={{ padding:"8px 10px", textAlign:"center" }}>
@@ -5783,7 +8034,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                           opacity:isSelf?0.4:1 }}>
                         {emp.isAdmin ? "⚡ Admin" : "+ Admin"}
                       </button>
-                    </td>
+                      </td>
 
                     {/* Tasks */}
                     <td style={{ padding:"8px 10px" }}>
@@ -5806,7 +8057,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                           );
                         })}
                       </div>
-                    </td>
+                      </td>
 
                     {/* Delete */}
                     <td style={{ padding:"8px 10px", textAlign:"center" }}>
@@ -5820,8 +8071,8 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                           fontSize:12, fontWeight:700 }}>
                         🗑️
                       </button>
-                    </td>
-                  </tr>
+                      </td>
+                   </tr>
                 );
               })}
               {filtered.length===0 && (
@@ -6424,12 +8675,10 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
         </div>
       </div>
 
-
-      {/* ══════════ EMPLOYEE MANAGEMENT ══════════ */}
+      {/* Employee Management Component */}
       <OwnerEmployeeManager employees={employees} setEmployees={setEmployees} session={session} notes={notes} setNotes={setNotes}/>
 
-
-      {/* ── Weekly Team Review ── */}
+      {/* Weekly Team Review */}
       <div style={{ background:_theme.card, border:`1.5px solid ${_theme.primary}20`,
         borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
@@ -6483,8 +8732,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
                         <th key={h} style={{ padding:"8px 10px", textAlign:"right", fontWeight:700,
                           color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}` }}>{h}</th>
                       ))}
-                    </tr>
-                  </thead>
+                     </thead>
                   <tbody>
                     {weekStats.map((d,ri)=>(
                       <tr key={d.date} style={{ background:ri%2===0?_theme.card:_theme.surface }}>
@@ -6494,7 +8742,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
                         <td style={{ padding:"7px 10px", color:d.absent>0?"#EF4444":_theme.textMuted, fontWeight:600 }}>{d.absent||"—"}</td>
                         <td style={{ padding:"7px 10px", color:"#3B82F6", fontWeight:700 }}>{d.closed||"—"}</td>
                         <td style={{ padding:"7px 10px", color:d.esc>0?"#F59E0B":_theme.textMuted, fontWeight:600 }}>{d.esc||"—"}</td>
-                      </tr>
+                       </tr>
                     ))}
                   </tbody>
                 </table>
@@ -6503,7 +8751,8 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
           );
         })()}
       </div>
-      {/* ── Manager Messages Panel ── */}
+
+      {/* Manager Messages Panel */}
       <div style={{ background:_theme.card, border:`1.5px solid ${_theme.accent}30`,
         borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, flexWrap:"wrap" }}>
@@ -6634,7 +8883,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
         )}
       </div>
 
-      {/* ── Data Edit History ── */}
+      {/* Data Edit History */}
       <div style={{ background:_theme.card, borderRadius:12, padding:"16px 20px",
         border:`2px solid #6366F130`, marginBottom:20 }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
@@ -6704,7 +8953,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
         )}
       </div>
 
-      {/* ── Live Activity Panel ── */}
+      {/* Live Activity Panel */}
       <div style={{ marginBottom:20 }}>
         <div style={{ fontWeight:700, fontSize:14, color:_theme.text, marginBottom:10,
           display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
@@ -6771,7 +9020,7 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
         )}
       </div>
 
-      {/* ── Full Audit Log ── */}
+      {/* Full Audit Log */}
       <div style={{ background:_theme.surface, borderRadius:10, padding:"12px 16px",
         marginBottom:14, display:"flex", alignItems:"center", gap:10, flexWrap:"wrap",
         border:`1px solid ${_theme.cardBorder}` }}>
@@ -6847,7 +9096,6 @@ function OwnerAnalyticsPage({ auditLog, session, employees, setEmployees, schedu
   );
 }
 
-
 // ─── CRITICAL ALERT POPUP ─────────────────────────────────────────────────────
 function CriticalAlertPopup({ onDismiss, alerts }) {
   if (!alerts || !alerts.length) return null;
@@ -6904,7 +9152,6 @@ function CriticalAlertPopup({ onDismiss, alerts }) {
       </div>
   );
 }
-
 
 // ─── LEADERBOARD PAGE (Agent view) ────────────────────────────────────────────
 function LeaderboardPage({ employees, schedule, performance, session, notes, setNotes, canEdit }) {
@@ -7263,6 +9510,7 @@ function LeaderboardPage({ employees, schedule, performance, session, notes, set
     </div>
   );
 }
+
 // Deferred XLSX load to avoid TDZ issues during module initialization
 if (typeof window !== "undefined") {
   window.addEventListener("load", () => {
@@ -7364,24 +9612,6 @@ function playAlertSound(type = "critical") {
       });
     }
     setTimeout(() => ctx.close(), 2000);
-  } catch {}
-}
-
-// Play a subtle "ding" for new messages / info
-function playSoftDing() {
-  if (localStorage.getItem("csops_mute") === "1") return;
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.frequency.value = 784; // G5
-    osc.type = "sine";
-    const now = ctx.currentTime;
-    gain.gain.setValueAtTime(0.18, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-    osc.start(now); osc.stop(now + 0.45);
-    setTimeout(() => ctx.close(), 1000);
   } catch {}
 }
 
@@ -7502,8 +9732,6 @@ const sb = {
   }
 };
 
-// (useSupabaseState removed — state is managed directly in App with Realtime subscriptions)
-
 // ─── PASSWORD SYSTEM (Supabase-backed) ───────────────────────────────────────
 const RESET_ADMINS = ["Team Lead", "Shift Leader", "SME", "Mohammed Nasser Althurwi"];
 function canResetPasswords(role, name) {
@@ -7592,6 +9820,38 @@ function AttendanceHistoryPage({ employees, schedule, shifts, attendance }) {
   const [month, setMonth]             = useState(new Date().toISOString().slice(0,7));
   const [search, setSearch]           = useState("");
 
+  // Local statusColor and statusIcon for the page
+  function statusColor(s) {
+    const map = {
+      "Present": "#10B981",
+      "Absent": "#EF4444",
+      "Late": "#F59E0B",
+      "Early Leave": "#8B5CF6",
+      "Annual Leave": "#0EA5E9",
+      "Sick Leave": "#EC4899",
+      "Work From Home": "#6366F1",
+      "On Training": "#14B8A6",
+      "Business Trip": "#F97316",
+      "Day Off": "#64748B"
+    };
+    return map[s] || "#64748B";
+  }
+  function statusIcon(s) {
+    const map = {
+      "Present": "✅",
+      "Absent": "❌",
+      "Late": "⏰",
+      "Early Leave": "🔆",
+      "Annual Leave": "🏖️",
+      "Sick Leave": "🏥",
+      "Work From Home": "🏠",
+      "On Training": "📚",
+      "Business Trip": "✈️",
+      "Day Off": "🔘"
+    };
+    return map[s] || "⚪";
+  }
+
   const [y, m] = month.split("-").map(Number);
   const dates  = monthDates(y, m-1);
 
@@ -7622,21 +9882,6 @@ function AttendanceHistoryPage({ employees, schedule, shifts, attendance }) {
     const avgWork = workDays > 0 ? Math.round(totalWorkMin/workDays) : 0;
     return { present, absent, late, earlyLeave, dayOff, totalLateMin, workDays, attRate, avgWork };
   }, [emp, dates, schedule, attendance]);
-
-  function statusColor(s) {
-    if (s==="Present")     return "#10B981";
-    if (s==="Absent")      return "#EF4444";
-    if (s==="Late")        return "#F59E0B";
-    if (s==="Early Leave") return "#8B5CF6";
-    return "#94A3B8";
-  }
-  function statusIcon(s) {
-    if (s==="Present")     return "✅";
-    if (s==="Absent")      return "❌";
-    if (s==="Late")        return "⏰";
-    if (s==="Early Leave") return "🔆";
-    return "—";
-  }
 
   return (
     <div>
@@ -7716,8 +9961,7 @@ function AttendanceHistoryPage({ employees, schedule, shifts, attendance }) {
                       <th key={h} style={{ padding:"9px 8px", textAlign:"right", fontWeight:700,
                         color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
                     ))}
-                  </tr>
-                </thead>
+                   </thead>
                 <tbody>
                   {dates.map((d,ri) => {
                     const dayName = DAYS[new Date(d+"T12:00:00").getDay()];
@@ -9177,8 +11421,7 @@ function GamificationPage({ employees, performance, attendance, schedule, notes,
                       color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`,
                       whiteSpace:"nowrap" }}>{h}</th>
                   ))}
-                </tr>
-              </thead>
+                 </thead>
               <tbody>
                 {filtered.map((e,ri) => {
                   const pct = maxPts > 0 ? (e.pts/maxPts)*100 : 0;
@@ -9191,13 +11434,13 @@ function GamificationPage({ employees, performance, attendance, schedule, notes,
                       <td style={{ padding:"8px 10px", fontWeight:800, fontSize:14,
                         color:ri===0?"#F59E0B":ri===1?"#94A3B8":ri===2?"#CD7F32":_theme.textMuted }}>
                         {ri===0?"🥇":ri===1?"🥈":ri===2?"🥉":`#${ri+1}`}
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 10px", fontWeight:600, color:_theme.text }}>
                         {e.name}
                         {isMe && <span style={{ fontSize:10, color:_theme.primary,
                           background:_theme.primary+"18", borderRadius:10,
                           padding:"1px 6px", marginLeft:5 }}>You</span>}
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 10px" }}>
                         <span style={{ fontSize:10, fontWeight:700,
                           color:ROLE_COLORS[e.role]||"#64748B",
@@ -9205,27 +11448,27 @@ function GamificationPage({ employees, performance, attendance, schedule, notes,
                           borderRadius:4, padding:"1px 5px" }}>
                           {ROLE_ICONS[e.role]} {e.role}
                         </span>
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 10px" }}>
                         <BadgesDisplay badgeIds={e.badges} size="small"/>
                         {e.badges.length===0 && <span style={{ fontSize:11, color:_theme.textMuted }}>—</span>}
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 10px", fontWeight:800,
                         color: e.pts>=500?"#F59E0B":e.pts>=200?"#3B82F6":_theme.text,
                         fontSize:14 }}>
                         {e.pts.toLocaleString("en-GB",{timeZone:"Asia/Riyadh",hour12:false})}
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 10px", color:"#10B981", fontWeight:700 }}>
                         {e.todayPerf.closed||0}
-                      </td>
+                       </td>
                       <td style={{ padding:"8px 20px 8px 10px", minWidth:120 }}>
                         <div style={{ background:_theme.surface, borderRadius:20, height:8, overflow:"hidden" }}>
                           <div style={{ height:"100%", borderRadius:20,
                             width:`${pct}%`, transition:"width 0.5s",
                             background: pct>80?"#F59E0B":pct>50?"#3B82F6":"#10B981" }}/>
                         </div>
-                      </td>
-                    </tr>
+                       </td>
+                     </tr>
                   );
                 })}
               </tbody>
@@ -10351,1192 +12594,6 @@ This will go to a supervisor for final approval.`
   );
 }
 
-// ─── HOME DASHBOARD — Personal per role ──────────────────────────────────────
-function HomeDashboard({ session, employees, schedule, attendance, performance,
-                         queueLog, notes, setNotes, breakSchedule, shifts, auditLog,
-                         canEdit, isSuperAdmin, onNavigate }) {
-  const todayKey  = todayStr();
-  const dayName   = DAYS[new Date().getDay()];
-  const now       = new Date();
-  const timeStr   = now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"});
-  const dateStr   = now.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",timeZone:"Asia/Riyadh"});
-
-  const myId      = employees.find(e=>e.name===session?.name)?.id;
-  const myRole    = session?.role;
-
-  // ── Presence Status ────────────────────────────────────────────────────────
-  const [myStatus, setMyStatus] = useState(() => {
-    try { return localStorage.getItem("csops_status_"+session?.name) || "Online"; } catch { return "Online"; }
-  });
-
-  function changeStatus(newStatus) {
-    setMyStatus(newStatus);
-    try { localStorage.setItem("csops_status_"+session?.name, newStatus); } catch {}
-    // Save to notes for realtime sync
-    const entry = {
-      id: "st"+Date.now(),
-      ts: new Date().toISOString(),
-      date: todayStr(),
-      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
-      tag: "UserStatus",
-      text: JSON.stringify({ status: newStatus, empName: session?.name, empRole: session?.role }),
-      from: session?.name||"",
-      target: "all",
-      msgType: "user_status",
-    };
-    if (setNotes) setNotes(prev => {
-      const filtered = (Array.isArray(prev)?prev:[]).filter(n => !(n.tag==="UserStatus"&&n.from===session?.name));
-      return [entry, ...filtered];
-    });
-    // Show Arabic message
-    const arabicMsg = STATUS_ARABIC_MSGS[newStatus];
-    if (arabicMsg) showToast(arabicMsg, "info", 4000);
-  }
-
-  // Get all users current status for admin view
-  const allStatuses = useMemo(() => {
-    const map = {};
-    (Array.isArray(notes)?notes:[])
-      .filter(n => n.tag === "UserStatus")
-      .forEach(n => {
-        try {
-          const d = JSON.parse(n.text||"{}");
-          if (!map[d.empName] || n.ts > map[d.empName].ts) {
-            map[d.empName] = { status: d.status, ts: n.ts, role: d.empRole };
-          }
-        } catch {}
-      });
-    return map;
-  }, [notes]);
-
-  // ── Shared computed values ─────────────────────────────────────────────────
-  const todayEmps = employees.filter(e=>{
-    const v=(schedule[e.id]||{})[dayName]; return v&&v!=="OFF"&&v!=="LEAVE"&&v!=="PH";
-  });
-  const todayAtt  = attendance[todayKey]||{};
-  const todayPerf = performance[todayKey]||{};
-  const presentCnt= Object.values(todayAtt).filter(a=>isPresent(a.status)).length;
-  const absentCnt = Object.values(todayAtt).filter(a=>isAbsent(a.status)).length;
-  const lateCnt   = Object.values(todayAtt).filter(a=>(a.lateMin||0)>=7).length;
-  const totalClosed= Object.values(todayPerf).reduce((s,p)=>s+(p.closed||0),0);
-  const totalEsc  = Object.values(todayPerf).reduce((s,p)=>s+(p.escalations||0),0);
-
-  // Queue
-  const QKEYS     = ["tga","ob","oslo","some","kwtT2","qatT2","bahT2","uaeT2","someKwt","someQat","someBah","someUae"];
-  const todayQEntries = Object.entries(queueLog||{}).filter(([k])=>k.startsWith(todayKey)).map(([,v])=>v);
-  const latestQ   = todayQEntries.length>0
-    ? todayQEntries.reduce((b,e)=>(e.updTime||"")>(b.updTime||"")?e:b, todayQEntries[0])
-    : null;
-  const totalQueue= latestQ ? QKEYS.reduce((s,k)=>s+Number(latestQ[k+"Curr"]||0),0) : 0;
-
-  // My shift info (for agent/shift leader)
-  const myShiftId = myId ? (schedule[myId]||{})[dayName] : null;
-  const myShift   = shifts.find(s=>s.id===myShiftId);
-
-  // My break info
-  const myBreakKey = myShiftId ? `${todayKey}_${myShiftId}` : null;
-  const myBreakEntry = myBreakKey&&myId ? (breakSchedule[myBreakKey]||{})[myId] : null;
-  const myBreakStart = myBreakEntry&&myShift ? (()=>{
-    const off = (Number(myBreakEntry.offsetHours)||0)*60+(Number(myBreakEntry.offsetMins)||0);
-    const bm  = (toMin(myShift.start)+off)%1440;
-    return pad(Math.floor(bm/60))+":"+pad(bm%60);
-  })() : null;
-
-  // Unread messages for me
-  const myMessages = (Array.isArray(notes)?notes:[]).filter(n=>{
-    if(n.tag!=="Manager Message") return false;
-    return !n.target||n.target==="all"||n.target===session?.name;
-  }).filter(n=>{
-    // simple unread: created in last 24h
-    return (Date.now()-new Date(n.ts).getTime()) < 24*60*60*1000;
-  });
-
-  // Pending swap requests for me
-  const myPendingSwaps = (Array.isArray(notes)?notes:[]).filter(n=>{
-    if(n.tag!=="Swap Request"&&n.tag!=="Break Swap Request") return false;
-    try{
-      const d=JSON.parse(n.text||"{}");
-      return (d.toId===myId&&d.status==="pending_b")||(d.fromId===myId&&(d.status==="pending_b"||d.status==="pending_supervisor"));
-    }catch{return false;}
-  });
-
-  // My performance today
-  const myPerf    = myId ? todayPerf[myId] : null;
-  const myAtt     = myId ? todayAtt[myId]  : null;
-
-  // Recent audit events (last 5 for owner)
-  const recentEvents = (Array.isArray(auditLog)?auditLog:[])
-    .filter(l=>l.action!=="Page View")
-    .slice(0,5);
-
-  // Top performer today
-  const topPerf   = Object.entries(todayPerf)
-    .map(([id,p])=>({emp:employees.find(e=>e.id===id),closed:p.closed||0}))
-    .filter(x=>x.emp&&x.closed>0)
-    .sort((a,b)=>b.closed-a.closed)[0];
-
-  // Absent supervisors warning
-  const absentSupervisors = employees.filter(e=>{
-    if(e.role==="Agent") return false;
-    const onToday = (schedule[e.id]||{})[dayName];
-    if(!onToday||onToday==="OFF") return false;
-    const a = todayAtt[e.id];
-    return a?.status==="Absent";
-  });
-
-  // My shift colleagues (for shift leader / agent)
-  const myShiftColleagues = myShiftId
-    ? employees.filter(e=>e.id!==myId&&(schedule[e.id]||{})[dayName]===myShiftId)
-    : [];
-
-  // ── Card builder ──────────────────────────────────────────────────────────
-  function KPICard({icon,label,value,sub,color,onClick,alert}) {
-    return (
-      <div onClick={onClick}
-        className={_theme.isDark?"glass-card":"glass-card-light"}
-        style={{ ...CRD({padding:"16px 18px"}),
-          borderTop:`3px solid ${color}`,
-          cursor:onClick?"pointer":"default",
-          position:"relative",
-          background: alert ? color+"18" : undefined }}
-        onMouseEnter={e=>{if(onClick){e.currentTarget.style.transform="translateY(-3px)";
-          e.currentTarget.style.boxShadow=`0 8px 24px ${color}30`;}}}
-        onMouseLeave={e=>{e.currentTarget.style.transform="none";
-          e.currentTarget.style.boxShadow="";}}>
-        {alert&&(
-          <span style={{position:"absolute",top:10,right:10,fontSize:10,
-            background:color,color:"#fff",borderRadius:20,padding:"2px 7px",
-            fontWeight:800,boxShadow:`0 2px 8px ${color}60`}}>!</span>
-        )}
-        <div style={{fontSize:11,color:_theme.textMuted,fontWeight:700,
-          marginBottom:6,textTransform:"uppercase",letterSpacing:"0.05em"}}>
-          {icon} {label}
-        </div>
-        <div style={{fontSize:32,fontWeight:900,color,lineHeight:1,
-          fontVariantNumeric:"tabular-nums"}}>{value}</div>
-        {sub&&<div style={{fontSize:11,color:_theme.textMuted,marginTop:6,
-          fontWeight:500}}>{sub}</div>}
-      </div>
-    );
-  }
-
-  function SectionTitle({children}) {
-    return <div style={{fontWeight:800,fontSize:13,color:_theme.text,margin:"20px 0 10px"}}>{children}</div>;
-  }
-
-  // ── OWNER Dashboard ───────────────────────────────────────────────────────
-  if(isSuperAdmin) return (
-    <div>
-      {/* Owner Master Console Header */}
-      <div style={{marginBottom:20, background:"linear-gradient(135deg,rgba(255,215,0,0.1),rgba(255,215,0,0.05))",
-        border:"1px solid rgba(255,215,0,0.3)", borderRadius:14, padding:"16px 20px"}}>
-        <div style={{fontSize:22,fontWeight:900,color:"#FFD700",
-          textShadow:"0 0 20px rgba(255,215,0,0.4)"}}>
-          👑 Master Console — {timeStr}
-        </div>
-        <div style={{fontSize:12,color:"rgba(255,215,0,0.6)",marginTop:4,fontWeight:600}}>
-          {dateStr} · Full Stealth Engaged · All Nodes Linked
-        </div>
-        {/* Live Status Bar */}
-        <div style={{display:"flex",gap:12,marginTop:12,flexWrap:"wrap"}}>
-          {[
-            {label:"Online Now",value:Object.values(allStatuses).filter(s=>s.status==="Online").length,color:"#00FF88"},
-            {label:"On Break",value:Object.values(allStatuses).filter(s=>s.status==="Break").length,color:"#FFB800"},
-            {label:"In Meeting",value:Object.values(allStatuses).filter(s=>s.status==="Meeting").length,color:"#60A5FA"},
-            {label:"Training",value:Object.values(allStatuses).filter(s=>s.status==="Training").length,color:"#A78BFA"},
-            {label:"Total Queue",value:totalQueue,color:"#FF3366"},
-          ].map(item=>(
-            <div key={item.label} style={{background:"rgba(0,0,0,0.3)",borderRadius:8,
-              padding:"6px 12px",border:`1px solid ${item.color}30`}}>
-              <div style={{fontSize:10,color:item.color,fontWeight:700}}>{item.label}</div>
-              <div style={{fontSize:18,fontWeight:900,color:item.color}}>{item.value}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {absentSupervisors.length>0&&(
-        <div style={{background:"#FEF2F2",border:"2px solid #EF4444",borderRadius:10,
-          padding:"10px 16px",marginBottom:16,display:"flex",gap:10,alignItems:"center"}}>
-          <span style={{fontSize:20}}>⚠️</span>
-          <div>
-            <div style={{fontWeight:800,color:"#EF4444",fontSize:13}}>Supervisor Absence Alert</div>
-            <div style={{fontSize:12,color:"#991B1B"}}>
-              {absentSupervisors.map(e=>`${e.name} (${e.role})`).join(" · ")} absent today — ensure coverage
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:10,marginBottom:6}}>
-        <KPICard icon="👥" label="Present Today" value={presentCnt}
-          sub={`${absentCnt} absent · ${lateCnt} late`}
-          color="#10B981" onClick={()=>onNavigate("Attendance")}/>
-        <KPICard icon="📊" label="Queue Now" value={totalQueue}
-          sub={totalQueue>300?"⚠️ High load":totalQueue>150?"Moderate":"Normal"}
-          color={totalQueue>300?"#EF4444":totalQueue>150?"#F59E0B":"#10B981"}
-          alert={totalQueue>300} onClick={()=>onNavigate("Queue")}/>
-        <KPICard icon="✅" label="Cases Closed" value={totalClosed}
-          sub={`${totalEsc} escalations`} color="#3B82F6"
-          onClick={()=>onNavigate("Performance")}/>
-        <KPICard icon="🏆" label="Top Performer" value={topPerf?.emp?.name?.split(" ")[0]||"—"}
-          sub={topPerf?`${topPerf.closed} cases`:"No data yet"} color="#F59E0B"
-          onClick={()=>onNavigate("Leaderboard")}/>
-        <KPICard icon="🏅" label="Surveys Pending" value={
-          (Array.isArray(notes)?notes:[]).filter(n=>{
-            try{return n.tag==="Survey"&&JSON.parse(n.text||"{}").status!=="closed";}catch{return false;}
-          }).length
-        } sub="Active surveys" color="#8B5CF6" onClick={()=>onNavigate("Surveys")}/>
-        <KPICard icon="📋" label="Scheduled Today" value={todayEmps.length}
-          sub={`of ${employees.length} total`} color="#6366F1"
-          onClick={()=>onNavigate("Schedule")}/>
-      </div>
-
-      <SectionTitle>⚡ Recent Activity</SectionTitle>
-      <div style={{...CRD({padding:0}),overflow:"hidden"}}>
-        {recentEvents.length===0
-          ?<div style={{padding:"16px",color:_theme.textMuted,fontSize:13}}>No recent activity</div>
-          :recentEvents.map((e,i)=>(
-          <div key={i} style={{display:"flex",gap:10,padding:"10px 14px",
-            borderBottom:i<recentEvents.length-1?`1px solid ${_theme.cardBorder}20`:"none",
-            alignItems:"center"}}>
-            <div style={{width:8,height:8,borderRadius:"50%",background:_theme.primary,flexShrink:0}}/>
-            <div style={{flex:1}}>
-              <span style={{fontWeight:700,fontSize:12,color:_theme.text}}>{e.by}</span>
-              <span style={{fontSize:12,color:_theme.textMuted}}> · {e.action}</span>
-              {e.target&&<span style={{fontSize:11,color:_theme.textMuted}}> → {e.target}</span>}
-            </div>
-            <span style={{fontSize:10,color:_theme.textMuted,flexShrink:0}}>
-              {new Date(e.ts).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Riyadh"})}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div style={{display:"flex",gap:8,marginTop:16,flexWrap:"wrap"}}>
-        {[["📅 Schedule","Schedule"],["📋 Attendance","Attendance"],
-          ["📑 Reports","Reports"],["👁️ Owner Analytics","Owner Analytics"]].map(([l,p])=>(
-          <button key={p} onClick={()=>onNavigate(p)}
-            style={{...PBT(_theme.primary,{fontSize:12,padding:"8px 16px"})}}>{l}</button>
-        ))}
-      </div>
-    </div>
-  );
-
-  // ── TEAM LEAD Dashboard ───────────────────────────────────────────────────
-  if(myRole==="Team Lead") return (
-    <div>
-      <div style={{marginBottom:20}}>
-        <div style={{fontSize:20,fontWeight:900,color:_theme.text}}>Team Lead Dashboard 👑</div>
-        <div style={{fontSize:13,color:_theme.textMuted}}>{session?.name} · {dateStr} · {timeStr}</div>
-      </div>
-
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:10,marginBottom:6}}>
-        <KPICard icon="👥" label="Present" value={presentCnt}
-          sub={`${absentCnt} absent · ${lateCnt} late`}
-          color="#10B981" alert={absentCnt>3} onClick={()=>onNavigate("Attendance")}/>
-        <KPICard icon="📊" label="Queue" value={totalQueue}
-          sub={totalQueue>300?"Critical!":totalQueue>150?"Warning":"Normal"}
-          color={totalQueue>300?"#EF4444":totalQueue>150?"#F59E0B":"#10B981"}
-          alert={totalQueue>300} onClick={()=>onNavigate("Queue")}/>
-        <KPICard icon="✅" label="Closed Today" value={totalClosed}
-          sub={`${totalEsc} escalations · ${totalClosed>0?Math.round(totalEsc/totalClosed*100):0}% rate`}
-          color="#3B82F6" onClick={()=>onNavigate("Performance")}/>
-        <KPICard icon="☕" label="On Break Now" value={
-          (() => {
-            const nm=new Date().getHours()*60+new Date().getMinutes();
-            return employees.filter(e=>{
-              const sid=(schedule[e.id]||{})[dayName];
-              if(!sid) return false;
-              const bk=`${todayKey}_${sid}`;
-              const en=(breakSchedule[bk]||{})[e.id];
-              if(!en) return false;
-              const sh=shifts.find(s=>s.id===sid);
-              if(!sh) return false;
-              const off=(Number(en.offsetHours)||0)*60+(Number(en.offsetMins)||0);
-              const bs=(toMin(sh.start)+off)%1440;
-              const be=(bs+Number(en.durationMin))%1440;
-              return nm>=bs&&nm<=be;
-            }).length;
-          })()
-        } sub="employees on break" color="#8B5CF6" onClick={()=>onNavigate("Break")}/>
-        <KPICard icon="💬" label="New Messages" value={myMessages.length}
-          sub="last 24h" color="#F59E0B" onClick={()=>onNavigate("Leaderboard")}/>
-        <KPICard icon="🔄" label="Swap Requests" value={myPendingSwaps.length}
-          sub="need action" color="#6366F1" alert={myPendingSwaps.length>0}
-          onClick={()=>onNavigate("Schedule")}/>
-      </div>
-
-      {absentSupervisors.length>0&&(
-        <div style={{background:"#FEF2F2",border:"1.5px solid #EF4444",borderRadius:10,
-          padding:"10px 14px",marginBottom:14}}>
-          <div style={{fontWeight:700,color:"#EF4444",fontSize:12}}>
-            ⚠️ Supervisor absent: {absentSupervisors.map(e=>e.name).join(", ")}
-          </div>
-        </div>
-      )}
-
-      {/* ── My Status Selector ── */}
-      <div style={{...CRD({padding:"14px 18px"}), marginBottom:14}}>
-        <div style={{fontWeight:700,fontSize:13,color:_theme.text,marginBottom:12,
-          display:"flex",alignItems:"center",gap:8}}>
-          {PRESENCE_ICONS[myStatus]||"🟢"} My Status
-          <span style={{fontSize:11,color:_theme.textMuted,fontWeight:400}}>— visible to supervisors in real-time</span>
-        </div>
-        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          {PRESENCE_STATUSES.map(s=>(
-            <button key={s} onClick={()=>changeStatus(s)}
-              style={{border:`2px solid ${myStatus===s?_theme.primary:"#CBD5E1"}`,
-                borderRadius:20, padding:"7px 16px", fontSize:12, cursor:"pointer",
-                fontWeight:700,
-                background:myStatus===s?_theme.primary+"22":"transparent",
-                color:myStatus===s?_theme.primary:_theme.textSub,
-                display:"flex",alignItems:"center",gap:6,
-                boxShadow:myStatus===s?`0 2px 8px ${_theme.primary}30`:"none",
-                transition:"all 0.15s"}}>
-              {PRESENCE_ICONS[s]} {s}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Admin: Live Team Status Board ── */}
-      {(session?.role==="Team Lead"||session?.role==="Shift Leader"||session?.role==="SME") && (() => {
-        const [statusFilter, setStatusFilter] = React.useState("All");
-        const [teamFilter, setTeamFilter] = React.useState("All");
-        const liveEmployees = employees.map(e => ({
-          ...e,
-          currentStatus: allStatuses[e.name]?.status || "Offline",
-        })).filter(e => {
-          if (statusFilter !== "All" && e.currentStatus !== statusFilter) return false;
-          if (teamFilter !== "All" && !(e.tasks||[]).includes(teamFilter)) return false;
-          return true;
-        });
-        return (
-          <div style={{...CRD({padding:"14px 18px"}),marginBottom:14}}>
-            <div style={{fontWeight:700,fontSize:13,color:_theme.text,marginBottom:12,
-              display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-              📡 Live Team Status
-              <span style={{fontSize:10,color:_theme.success,fontWeight:600,
-                background:_theme.success+"20",borderRadius:10,padding:"2px 8px",
-                animation:"pulse 2s infinite"}}>● LIVE</span>
-              <div style={{marginLeft:"auto",display:"flex",gap:6,flexWrap:"wrap"}}>
-                {/* Status filter */}
-                <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}
-                  style={{...I({width:"auto",padding:"4px 10px",fontSize:11})}}>
-                  <option value="All">All Status</option>
-                  {PRESENCE_STATUSES.map(s=><option key={s} value={s}>{PRESENCE_ICONS[s]} {s}</option>)}
-                </select>
-                {/* Team filter */}
-                <select value={teamFilter} onChange={e=>setTeamFilter(e.target.value)}
-                  style={{...I({width:"auto",padding:"4px 10px",fontSize:11})}}>
-                  <option value="All">All Teams</option>
-                  <option value="KFOOD">KFOOD</option>
-                  <option value="KEEMRT">KEEMRT</option>
-                </select>
-              </div>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:8}}>
-              {liveEmployees.slice(0,20).map(emp=>{
-                const st = emp.currentStatus;
-                const stColor = st==="Online"?"#00FF88":st==="Break"?"#FFB800":st==="Meeting"?"#60A5FA":st==="Training"?"#A78BFA":"#6B7280";
-                return (
-                  <div key={emp.id} style={{background:_theme.surface,
-                    border:`1px solid ${stColor}30`,borderRadius:10,padding:"10px 12px",
-                    display:"flex",alignItems:"center",gap:8}}>
-                    <div style={{width:8,height:8,borderRadius:"50%",background:stColor,
-                      boxShadow:`0 0 6px ${stColor}`,flexShrink:0,
-                      animation:st==="Online"?"pulse 2s infinite":"none"}}/>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:11,fontWeight:700,color:_theme.text,
-                        overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                        {emp.name.split(" ").slice(0,2).join(" ")}
-                      </div>
-                      <div style={{fontSize:10,color:stColor,fontWeight:600}}>{st}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })()}
-
-      <SectionTitle>⚡ Performance Snapshot</SectionTitle>
-      <div style={{...CRD({padding:0}),overflowX:"auto",marginBottom:14}}>
-        <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-          <thead>
-            <tr style={{background:_theme.isDark?"#0D1117":"#F8FAFC"}}>
-              {["Employee","Status","Closed","Esc Rate","Break"].map(h=>(
-                <th key={h} style={{padding:"8px 10px",textAlign:"left",fontWeight:700,
-                  color:_theme.text,borderBottom:`2px solid ${_theme.cardBorder}`}}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {todayEmps.slice(0,8).map((emp,ri)=>{
-              const a=todayAtt[emp.id]; const p=todayPerf[emp.id];
-              const escR=p?.closed>0?Math.round((p.escalations||0)/p.closed*100):0;
-              const sid=(schedule[emp.id]||{})[dayName];
-              const bk=`${todayKey}_${sid}`;
-              const be=(breakSchedule[bk]||{})[emp.id];
-              const sh=shifts.find(s=>s.id===sid);
-              let breakStr="—";
-              if(be&&sh){
-                const off=(Number(be.offsetHours)||0)*60+(Number(be.offsetMins)||0);
-                const bm=(toMin(sh.start)+off)%1440;
-                breakStr=pad(Math.floor(bm/60))+":"+pad(bm%60);
-              }
-              return (
-                <tr key={emp.id} style={{background:ri%2===0?_theme.card:_theme.surface}}>
-                  <td style={{padding:"7px 10px",fontWeight:600,color:_theme.text}}>{emp.name}</td>
-                  <td style={{padding:"7px 10px"}}>
-                    <span style={{fontSize:10,fontWeight:700,borderRadius:20,padding:"2px 8px",
-                      background:a?.status==="Present"?"#F0FDF4":a?.status==="Absent"?"#FEF2F2":a?.status==="Late"?"#FEF9C3":"#F1F5F9",
-                      color:a?.status==="Present"?"#166534":a?.status==="Absent"?"#991B1B":a?.status==="Late"?"#B45309":"#64748B"}}>
-                      {a?.status||"—"}
-                    </span>
-                  </td>
-                  <td style={{padding:"7px 10px",fontWeight:700,color:"#10B981"}}>{p?.closed||0}</td>
-                  <td style={{padding:"7px 10px",fontWeight:700,
-                    color:escR>=20?"#EF4444":escR>=10?"#F59E0B":"#10B981"}}>
-                    {p?.closed>0?`${escR}%`:"—"}
-                  </td>
-                  <td style={{padding:"7px 10px",color:_theme.textMuted}}>{breakStr}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {todayEmps.length>8&&(
-          <div style={{padding:"8px 12px",fontSize:11,color:_theme.textMuted,
-            borderTop:`1px solid ${_theme.cardBorder}`}}>
-            +{todayEmps.length-8} more — <span style={{color:_theme.primary,cursor:"pointer"}}
-              onClick={()=>onNavigate("Performance")}>View all in Performance →</span>
-          </div>
-        )}
-      </div>
-
-      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-        {[["📋 Attendance","Attendance"],["⚡ Performance","Performance"],
-          ["☕ Break","Break"],["📊 Queue","Queue"],["📑 Reports","Reports"]].map(([l,p])=>(
-          <button key={p} onClick={()=>onNavigate(p)}
-            style={{...PBT(_theme.primary,{fontSize:12,padding:"7px 14px"})}}>{l}</button>
-        ))}
-      </div>
-    </div>
-  );
-
-  // ── SHIFT LEADER Dashboard ────────────────────────────────────────────────
-  if(myRole==="Shift Leader") return (
-    <div>
-      <div style={{marginBottom:20}}>
-        <div style={{fontSize:20,fontWeight:900,color:_theme.text}}>Shift Leader Dashboard 🛡️</div>
-        <div style={{fontSize:13,color:_theme.textMuted}}>
-          {session?.name} · {myShift?myShift.label:"No shift"} · {dateStr}
-        </div>
-      </div>
-
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:10,marginBottom:14}}>
-        <KPICard icon="👥" label="My Shift Team" value={myShiftColleagues.length+1}
-          sub={myShift?.label||"—"} color="#3B82F6" onClick={()=>onNavigate("Schedule")}/>
-        <KPICard icon="✅" label="My Shift Closed" value={
-          myShiftColleagues.concat(myId?[{id:myId}]:[])
-            .reduce((s,e)=>s+(todayPerf[e.id]?.closed||0),0)
-        } sub="cases today" color="#10B981" onClick={()=>onNavigate("Performance")}/>
-        <KPICard icon="📊" label="Queue Now" value={totalQueue}
-          color={totalQueue>300?"#EF4444":totalQueue>150?"#F59E0B":"#10B981"}
-          sub={totalQueue>300?"Critical":"Normal"} alert={totalQueue>300}
-          onClick={()=>onNavigate("Queue")}/>
-        <KPICard icon="🔄" label="Swap Requests" value={myPendingSwaps.length}
-          sub="need approval" color="#8B5CF6" alert={myPendingSwaps.length>0}
-          onClick={()=>onNavigate("Schedule")}/>
-      </div>
-
-      <SectionTitle>👥 My Shift — {myShift?.label||"Today"}</SectionTitle>
-      <div style={{...CRD({padding:0}),overflowX:"auto",marginBottom:14}}>
-        <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-          <thead>
-            <tr style={{background:_theme.isDark?"#0D1117":"#F8FAFC"}}>
-              {["Employee","Role","Attendance","Closed","Break Time"].map(h=>(
-                <th key={h} style={{padding:"8px 10px",textAlign:"left",fontWeight:700,
-                  color:_theme.text,borderBottom:`2px solid ${_theme.cardBorder}`}}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {myShiftColleagues.map((emp,ri)=>{
-              const a=todayAtt[emp.id]; const p=todayPerf[emp.id];
-              const bk=`${todayKey}_${myShiftId}`;
-              const be=(breakSchedule[bk]||{})[emp.id];
-              let breakStr="Not set";
-              if(be&&myShift){
-                const off=(Number(be.offsetHours)||0)*60+(Number(be.offsetMins)||0);
-                const bm=(toMin(myShift.start)+off)%1440;
-                breakStr=pad(Math.floor(bm/60))+":"+pad(bm%60)+" ("+be.durationMin+"m)";
-              }
-              return (
-                <tr key={emp.id} style={{background:ri%2===0?_theme.card:_theme.surface}}>
-                  <td style={{padding:"7px 10px",fontWeight:600,color:_theme.text}}>{emp.name}</td>
-                  <td style={{padding:"7px 10px"}}>
-                    <span style={{fontSize:10,color:ROLE_COLORS[emp.role]||"#64748B",fontWeight:700}}>
-                      {ROLE_ICONS[emp.role]} {emp.role}
-                    </span>
-                  </td>
-                  <td style={{padding:"7px 10px"}}>
-                    <span style={{fontSize:10,fontWeight:700,borderRadius:20,padding:"2px 8px",
-                      background:a?.status==="Present"?"#F0FDF4":a?.status==="Absent"?"#FEF2F2":"#FEF9C3",
-                      color:a?.status==="Present"?"#166534":a?.status==="Absent"?"#991B1B":"#B45309"}}>
-                      {a?.status||"Not recorded"}
-                    </span>
-                  </td>
-                  <td style={{padding:"7px 10px",fontWeight:700,color:"#10B981"}}>{p?.closed||0}</td>
-                  <td style={{padding:"7px 10px",color:_theme.textMuted,fontSize:11}}>{breakStr}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-        {[["📋 Attendance","Attendance"],["☕ Break","Break"],
-          ["⚡ Performance","Performance"],["📝 Notes","Notes"]].map(([l,p])=>(
-          <button key={p} onClick={()=>onNavigate(p)}
-            style={{...PBT(_theme.primary,{fontSize:12,padding:"7px 14px"})}}>{l}</button>
-        ))}
-      </div>
-    </div>
-  );
-
-  // ── AGENT Dashboard ───────────────────────────────────────────────────────
-  return (
-    <div>
-      <div style={{marginBottom:20}}>
-        <div style={{fontSize:20,fontWeight:900,color:_theme.text}}>
-          Good {now.getHours()<12?"morning":now.getHours()<17?"afternoon":"evening"} {session?.name?.split(" ")[0]} 👋
-        </div>
-        <div style={{fontSize:13,color:_theme.textMuted}}>{dateStr} · {timeStr}</div>
-      </div>
-
-      {/* My shift + break card */}
-      <div style={{...CRD({padding:"16px 18px"}),marginBottom:14,
-        borderTop:`4px solid ${myShift?myShift.color:_theme.primary}`,
-        background:`linear-gradient(135deg,${myShift?myShift.color:_theme.primary}12,${_theme.card})`}}>
-        <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
-          <div>
-            <div style={{fontSize:11,color:_theme.textMuted,fontWeight:600}}>Today's Shift</div>
-            <div style={{fontSize:22,fontWeight:900,color:myShift?.color||_theme.primary}}>
-              {myShift?myShift.label:myShiftId==="OFF"||!myShiftId?"Day Off":"—"}
-            </div>
-            {myShift&&<div style={{fontSize:11,color:_theme.textMuted}}>{myShift.start} – {myShift.end}</div>}
-          </div>
-          {myBreakStart&&myBreakEntry&&(
-            <div>
-              <div style={{fontSize:11,color:_theme.textMuted,fontWeight:600}}>My Break</div>
-              <div style={{fontSize:22,fontWeight:900,color:"#8B5CF6"}}>{myBreakStart}</div>
-              <div style={{fontSize:11,color:_theme.textMuted}}>{myBreakEntry.durationMin} min</div>
-            </div>
-          )}
-          {myAtt&&(
-            <div>
-              <div style={{fontSize:11,color:_theme.textMuted,fontWeight:600}}>Attendance</div>
-              <div style={{fontSize:16,fontWeight:800,
-                color:myAtt.status==="Present"?"#10B981":myAtt.status==="Late"?"#F59E0B":"#EF4444"}}>
-                {myAtt.status}
-                {myAtt.lateMin>0&&<span style={{fontSize:11}}> (+{myAtt.lateMin}m)</span>}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* My performance today */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
-        <KPICard icon="✅" label="Closed Today" value={myPerf?.closed||0}
-          sub="cases" color="#10B981" onClick={()=>onNavigate("Performance")}/>
-        <KPICard icon="🏆" label="My Ranking" value={
-          (() => {
-            const sorted=[...Object.entries(todayPerf)]
-              .sort((a,b)=>(b[1].closed||0)-(a[1].closed||0));
-            const rank=sorted.findIndex(([id])=>id===myId);
-            return rank>=0?`#${rank+1}`:"—";
-          })()
-        } sub={`of ${todayEmps.length}`} color="#F59E0B" onClick={()=>onNavigate("Leaderboard")}/>
-        <KPICard icon="💬" label="Messages" value={myMessages.length}
-          sub="new today" color="#3B82F6" alert={myMessages.length>0}
-          onClick={()=>onNavigate("Leaderboard")}/>
-      </div>
-
-      {/* My badges preview */}
-      {(()=>{
-        const autoBadges=detectBadges(myId,performance,attendance,employees,[]);
-        const manualB=(Array.isArray(notes)?notes:[])
-          .filter(n=>n.tag==="Badge Award")
-          .map(n=>{try{const d=JSON.parse(n.text||"{}");return d.empId===myId?d.badgeId:null;}catch{return null;}})
-          .filter(Boolean);
-        const all=[...new Set([...autoBadges,...manualB])];
-        if(all.length===0) return null;
-        return (
-          <div style={{...CRD({padding:"12px 14px"}),marginBottom:14}}>
-            <div style={{fontSize:11,fontWeight:700,color:_theme.text,marginBottom:8}}>🏅 My Badges</div>
-            <BadgesDisplay badgeIds={all}/>
-          </div>
-        );
-      })()}
-
-      {/* Pending swap requests */}
-      {myPendingSwaps.length>0&&(
-        <div style={{background:"#FEF3C7",border:"1.5px solid #FCD34D",borderRadius:10,
-          padding:"10px 14px",marginBottom:14,cursor:"pointer"}}
-          onClick={()=>onNavigate("Schedule")}>
-          <div style={{fontWeight:700,color:"#B45309",fontSize:12}}>
-            🔄 You have {myPendingSwaps.length} pending swap request(s) — tap to review
-          </div>
-        </div>
-      )}
-
-      {/* Quick messages */}
-      {myMessages.length>0&&(
-        <div style={{...CRD({padding:"12px 14px"}),marginBottom:14,
-          border:`1.5px solid ${_theme.primary}30`}}>
-          <div style={{fontSize:11,fontWeight:700,color:_theme.text,marginBottom:8}}>
-            💬 Latest Message
-          </div>
-          {myMessages.slice(0,1).map(m=>(
-            <div key={m.id} style={{fontSize:13,color:_theme.text,lineHeight:1.6}}>
-              <span style={{color:_theme.textMuted,fontSize:11}}>from {m.from||"Manager"} · </span>
-              {m.text?.slice(0,100)}{(m.text?.length||0)>100?"...":""}
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-        {[["🏆 Leaderboard","Leaderboard"],["⚡ Performance","Performance"],
-          ["📋 Surveys","Surveys"],["🏅 Gamification","Gamification"]].map(([l,p])=>(
-          <button key={p} onClick={()=>onNavigate(p)}
-            style={{...PBT(_theme.primary,{fontSize:12,padding:"7px 14px"})}}>{l}</button>
-        ))}
-      </div>
-    </div>
-  );
-}
-// ─── INTERNAL DIRECT MESSAGING ───────────────────────────────────────────────
-// Person-to-person messaging inside the app
-// Stored in notes with tag: "Direct Message"
-
-function DirectMessagesPanel({ employees, notes, setNotes, session, canEdit }) {
-  const [tab, setTab]         = useState("inbox");
-  const [showCompose, setShowCompose] = useState(false);
-  const [toEmp, setToEmp]     = useState("");
-  const [msgText, setMsgText] = useState("");
-  const [priority, setPriority] = useState("normal"); // normal | urgent
-  const [sent, setSent]       = useState("");
-
-  const myName = session?.name;
-  const myRole = session?.role;
-
-  const allDMs = (Array.isArray(notes)?notes:[])
-    .filter(n=>n.tag==="Direct Message")
-    .sort((a,b)=>b.ts.localeCompare(a.ts));
-
-  const inbox   = allDMs.filter(n=>n.target===myName);
-  const outbox  = allDMs.filter(n=>n.from===myName);
-  const unread  = inbox.filter(n=>{
-    try{return !JSON.parse(n.text||"{}").read;}catch{return true;}
-  });
-
-  function sendMessage() {
-    if(!toEmp||!msgText.trim()){setSent("❌ Select recipient and write a message");return;}
-    const dm = {
-      id:"dm"+Date.now(),
-      ts:new Date().toISOString(),
-      date:todayStr(),
-      time:pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
-      tag:"Direct Message",
-      text:JSON.stringify({body:msgText.trim(),priority,read:false,
-        senderRole:myRole}),
-      from:myName||"",
-      target:toEmp,
-      msgType:"direct_message",
-    };
-    setNotes(prev=>[dm,...(Array.isArray(prev)?prev:[])]);
-    setSent(`✅ Message sent to ${toEmp}`);
-    setMsgText(""); setToEmp(""); setShowCompose(false);
-    setTimeout(()=>setSent(""),3000);
-    // Play soft ding
-    playSoftDing();
-  }
-
-  function markRead(id) {
-    setNotes(prev=>(Array.isArray(prev)?prev:[]).map(n=>{
-      if(n.id!==id) return n;
-      try{const d=JSON.parse(n.text||"{}");
-        return {...n,text:JSON.stringify({...d,read:true})};}
-      catch{return n;}
-    }));
-  }
-
-  function deleteMsg(id) {
-    setNotes(prev=>(Array.isArray(prev)?prev:[]).filter(n=>n.id!==id));
-  }
-
-  function priorityBadge(p) {
-    if(p==="urgent") return (
-      <span style={{background:"#FEF2F2",color:"#EF4444",border:"1px solid #FCA5A5",
-        borderRadius:20,padding:"1px 7px",fontSize:10,fontWeight:800}}>🔴 URGENT</span>
-    );
-    return null;
-  }
-
-  function MsgCard({msg, isInbox}) {
-    let d={body:"",priority:"normal",read:false};
-    try{d=JSON.parse(msg.text||"{}");}catch{}
-    const isUnread=isInbox&&!d.read;
-    return (
-      <div style={{background:isUnread?_theme.primary+"10":_theme.surface,
-        border:`1.5px solid ${isUnread?_theme.primary+"50":_theme.cardBorder}`,
-        borderRadius:10,padding:"12px 14px",marginBottom:8,
-        borderLeft:d.priority==="urgent"?"4px solid #EF4444":
-          isUnread?`4px solid ${_theme.primary}`:"4px solid transparent"}}>
-        <div style={{display:"flex",justifyContent:"space-between",
-          alignItems:"flex-start",marginBottom:6,gap:8}}>
-          <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-            <span style={{fontWeight:700,fontSize:12,color:_theme.text}}>
-              {isInbox?`From: ${msg.from||"Unknown"}`:
-                `To: ${msg.target||"Unknown"}`}
-            </span>
-            {priorityBadge(d.priority)}
-            {isUnread&&<span style={{background:_theme.primary,color:"#fff",
-              borderRadius:20,padding:"1px 6px",fontSize:9,fontWeight:800}}>NEW</span>}
-          </div>
-          <div style={{display:"flex",gap:4,flexShrink:0}}>
-            <span style={{fontSize:10,color:_theme.textMuted}}>{msg.time}</span>
-            {isInbox&&isUnread&&(
-              <button onClick={()=>markRead(msg.id)}
-                style={{background:"none",border:"none",color:_theme.primary,
-                  cursor:"pointer",fontSize:10,fontWeight:700,padding:"0 4px"}}>
-                Mark read
-              </button>
-            )}
-            <button onClick={()=>deleteMsg(msg.id)}
-              style={{background:"none",border:"none",color:"#94A3B8",
-                cursor:"pointer",fontSize:14,padding:"0 2px"}}>✕</button>
-          </div>
-        </div>
-        <div style={{fontSize:13,color:_theme.text,lineHeight:1.7,
-          whiteSpace:"pre-wrap"}}>{d.body}</div>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{...CRD({padding:"14px 18px"}),marginBottom:20}}>
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,flexWrap:"wrap"}}>
-        <span style={{fontSize:16}}>💬</span>
-        <span style={{fontWeight:800,fontSize:14,color:_theme.text}}>Direct Messages</span>
-        {unread.length>0&&(
-          <span style={{background:"#EF4444",color:"#fff",
-            borderRadius:20,padding:"2px 10px",fontSize:11,fontWeight:700}}>
-            {unread.length} unread
-          </span>
-        )}
-        <div style={{marginLeft:"auto"}}>
-          <button onClick={()=>setShowCompose(s=>!s)}
-            style={{...PBT(_theme.primary,{fontSize:12,padding:"6px 14px"})}}>
-            {showCompose?"✕ Cancel":"✉️ New Message"}
-          </button>
-        </div>
-      </div>
-
-      {/* Compose — Hierarchy Messaging Rules */}
-      {showCompose&&(
-        <div style={{background:_theme.surface,borderRadius:10,padding:"14px 16px",
-          marginBottom:14,border:`1px solid ${_theme.cardBorder}`}}>
-
-          {/* Hierarchy info banner */}
-          <div style={{background:`${_theme.primary}10`,border:`1px solid ${_theme.primary}25`,
-            borderRadius:8,padding:"8px 12px",marginBottom:12,fontSize:11,color:_theme.textSub}}>
-            {myRole==="Agent"
-              ? "📨 You can reply to messages from supervisors. Direct messaging to management is restricted."
-              : myRole==="SME" || myRole==="Shift Leader"
-              ? "📨 Send to your team members or other supervisors."
-              : "📨 Broadcast to all or send directly to any team member."}
-          </div>
-
-          <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:10,marginBottom:10}}>
-            <div>
-              <label style={LBL}>Send To</label>
-              <select value={toEmp} onChange={e=>setToEmp(e.target.value)}
-                style={{...I({width:"100%"})}}>
-                <option value="">— Select recipient —</option>
-                {/* Hierarchy filtering */}
-                {employees
-                  .filter(e=>e.name!==myName)
-                  .filter(e=>{
-                    // Owner/Team Lead: can message anyone
-                    if(myRole==="Team Lead") return true;
-                    // Shift Leader & SME: can message anyone except owner
-                    if(myRole==="Shift Leader"||myRole==="SME") return e.name!==SUPER_ADMIN;
-                    // Agent: can ONLY message supervisors (TL, SL, SME) — NO agent-to-agent
-                    if(myRole==="Agent") return e.role==="Team Lead"||e.role==="Shift Leader"||e.role==="SME";
-                    return true;
-                  })
-                  .map(e=>(
-                    <option key={e.id} value={e.name}>
-                      {ROLE_ICONS[e.role]||"👤"} {e.name} ({e.role})
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <div>
-              <label style={LBL}>Priority</label>
-              <select value={priority} onChange={e=>setPriority(e.target.value)}
-                style={{...I({width:100})}}>
-                <option value="normal">Normal</option>
-                <option value="urgent">🔴 Urgent</option>
-              </select>
-            </div>
-          </div>
-          <label style={LBL}>Message</label>
-          <textarea value={msgText} onChange={e=>setMsgText(e.target.value)}
-            rows={3} style={{...I({resize:"vertical",width:"100%",marginBottom:10})}}
-            placeholder="Type your message..."/>
-          {sent&&<div style={{fontSize:12,fontWeight:600,marginBottom:8,
-            color:sent.startsWith("✅")?"#10B981":"#EF4444"}}>{sent}</div>}
-          <button onClick={sendMessage}
-            style={{...PBT(priority==="urgent"?"#EF4444":_theme.primary,
-              {width:"100%",padding:"10px"})}}>
-            {priority==="urgent"?"🔴 Send Urgent":"✉️ Send Message"}
-          </button>
-        </div>
-      )}
-
-      {/* Tabs */}
-      <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap"}}>
-        {[
-          ["inbox",   `📥 Inbox (${inbox.length})`],
-          ["unread",  `🔴 Unread (${unread.length})`],
-          ["outbox",  `📤 Sent (${outbox.length})`],
-        ].map(([k,l])=>(
-          <button key={k} onClick={()=>setTab(k)}
-            style={{border:`2px solid ${tab===k?_theme.primary:"#CBD5E1"}`,
-              borderRadius:20,padding:"4px 14px",fontSize:12,cursor:"pointer",
-              fontWeight:700,background:tab===k?_theme.primary:"transparent",
-              color:tab===k?"#fff":_theme.textSub}}>{l}</button>
-        ))}
-      </div>
-
-      {/* Messages */}
-      {tab==="inbox"&&(
-        inbox.length===0
-          ?<div style={{textAlign:"center",padding:"24px",color:_theme.textMuted,fontSize:13}}>
-            <div style={{fontSize:32,marginBottom:6}}>📥</div>
-            Your inbox is empty
-          </div>
-          :inbox.map(m=><MsgCard key={m.id} msg={m} isInbox={true}/>)
-      )}
-      {tab==="unread"&&(
-        unread.length===0
-          ?<div style={{textAlign:"center",padding:"24px",color:_theme.textMuted,fontSize:13}}>
-            <div style={{fontSize:32,marginBottom:6}}>✅</div>
-            No unread messages
-          </div>
-          :unread.map(m=><MsgCard key={m.id} msg={m} isInbox={true}/>)
-      )}
-      {tab==="outbox"&&(
-        outbox.length===0
-          ?<div style={{textAlign:"center",padding:"24px",color:_theme.textMuted,fontSize:13}}>
-            <div style={{fontSize:32,marginBottom:6}}>📤</div>
-            No sent messages
-          </div>
-          :outbox.map(m=><MsgCard key={m.id} msg={m} isInbox={false}/>)
-      )}
-    </div>
-  );
-}
-
-// ─── DIRECT MESSAGING — Inbox & Send ─────────────────────────────────────────
-function DirectMessageModal({ employees, session, notes, setNotes, onClose }) {
-  const [tab, setTab]       = useState("inbox"); // inbox | send
-  const [toEmp, setToEmp]   = useState("");
-  const [msgText, setMsgText] = useState("");
-  const [msgType, setMsgType] = useState("shoutout");
-  const [sent, setSent]     = useState("");
-  const myName = session?.name || "";
-
-  const MSG_TYPES = [
-    { k:"shoutout",   icon:"🌟", label:"Recognition" },
-    { k:"motivation", icon:"🚀", label:"Motivation"  },
-    { k:"reminder",   icon:"📌", label:"Reminder"    },
-    { k:"info",       icon:"ℹ️",  label:"Info"        },
-    { k:"urgent",     icon:"🚨", label:"Urgent"      },
-  ];
-
-  // My inbox
-  const inbox = (Array.isArray(notes)?notes:[])
-    .filter(n => (n.tag === "Direct Message" || n.tag === "Manager Message") &&
-      (n.target === myName || n.target === "all") && n.from !== myName)
-    .sort((a,b) => b.ts.localeCompare(a.ts))
-    .slice(0, 20);
-
-  // My sent
-  const sent_msgs = (Array.isArray(notes)?notes:[])
-    .filter(n => (n.tag === "Direct Message" || n.tag === "Manager Message") && n.from === myName)
-    .sort((a,b) => b.ts.localeCompare(a.ts))
-    .slice(0, 20);
-
-  function sendMessage() {
-    if (!toEmp || !msgText.trim()) { setSent("❌ Fill in all fields"); return; }
-    const isAll = toEmp === "all";
-    const msg = {
-      id: "dm"+Date.now(),
-      ts: new Date().toISOString(),
-      date: todayStr(),
-      time: pad(new Date().getHours())+":"+pad(new Date().getMinutes()),
-      tag: isAll ? "Manager Message" : "Direct Message",
-      text: msgText.trim(),
-      from: myName,
-      target: toEmp,
-      msgType: msgType,
-    };
-    setNotes(prev => [msg, ...(Array.isArray(prev)?prev:[])]);
-    setSent(`✅ Message sent to ${isAll ? "the whole team" : toEmp}`);
-    setMsgText(""); setToEmp("");
-    setTimeout(() => setSent(""), 3000);
-  }
-
-  function deleteMsg(id) {
-    setNotes(prev => (Array.isArray(prev)?prev:[]).filter(n => n.id !== id));
-  }
-
-  const typeMap = {
-    shoutout:   {icon:"🌟", color:"#F59E0B"},
-    motivation: {icon:"🚀", color:"#3B82F6"},
-    reminder:   {icon:"📌", color:"#8B5CF6"},
-    info:       {icon:"ℹ️",  color:"#10B981"},
-    urgent:     {icon:"🚨", color:"#EF4444"},
-  };
-
-  return (
-    <Modal title="💬 Messages" onClose={onClose} width={560}>
-      {/* Tabs */}
-      <div style={{ display:"flex", gap:6, marginBottom:16 }}>
-        {[["inbox",`📥 Inbox (${inbox.length})`],["send","✉️ Send"],["sent",`📤 Sent (${sent_msgs.length})`]].map(([k,l])=>(
-          <button key={k} onClick={()=>setTab(k)}
-            style={{ border:`2px solid ${tab===k?_theme.primary:"#CBD5E1"}`,
-              borderRadius:20, padding:"5px 14px", fontSize:12, cursor:"pointer",
-              fontWeight:700, background:tab===k?_theme.primary:"transparent",
-              color:tab===k?"#fff":_theme.textSub }}>{l}</button>
-        ))}
-      </div>
-
-      {/* Inbox */}
-      {tab==="inbox" && (
-        <div style={{ maxHeight:400, overflowY:"auto" }}>
-          {inbox.length === 0 ? (
-            <div style={{ textAlign:"center", padding:"32px", color:_theme.textMuted }}>
-              <div style={{ fontSize:36, marginBottom:8 }}>📭</div>
-              No messages yet
-            </div>
-          ) : inbox.map(m => {
-            const cfg = typeMap[m.msgType] || {icon:"💬", color:"#64748B"};
-            return (
-              <div key={m.id} style={{ ...CRD({padding:"12px 14px"}), marginBottom:8,
-                border:`1.5px solid ${cfg.color}30`,
-                display:"flex", gap:10, alignItems:"flex-start" }}>
-                <span style={{ fontSize:22, flexShrink:0 }}>{cfg.icon}</span>
-                <div style={{ flex:1 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8,
-                    marginBottom:4, flexWrap:"wrap" }}>
-                    <span style={{ fontWeight:700, fontSize:12, color:_theme.text }}>
-                      {m.from || "Management"}
-                    </span>
-                    {m.target === "all" && (
-                      <span style={{ fontSize:10, background:"#E0E7FF", color:"#3730A3",
-                        borderRadius:10, padding:"1px 6px", fontWeight:700 }}>Team</span>
-                    )}
-                    <span style={{ fontSize:10, color:_theme.textMuted, marginLeft:"auto" }}>
-                      {m.date} {m.time}
-                    </span>
-                  </div>
-                  <div style={{ fontSize:13, color:_theme.text, lineHeight:1.6 }}>{m.text}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Send */}
-      {tab==="send" && (
-        <div>
-          <div style={{ marginBottom:12 }}>
-            <label style={LBL}>Send To</label>
-            <select value={toEmp} onChange={e=>setToEmp(e.target.value)}
-              style={{ ...I({width:"100%"}) }}>
-              <option value="">— Select recipient —</option>
-              {/* Owner & Team Lead: can broadcast to all */}
-              {(session?.role==="Team Lead"||session?.name===SUPER_ADMIN) && (
-                <option value="all">📢 Whole Team (Broadcast)</option>
-              )}
-              {employees
-                .filter(e=>e.name!==myName)
-                .filter(e=>{
-                  const r = session?.role;
-                  if(r==="Team Lead"||session?.name===SUPER_ADMIN) return true;
-                  if(r==="Shift Leader"||r==="SME") return e.name!==SUPER_ADMIN;
-                  // Agent: ONLY supervisors — NO agent-to-agent at all
-                  if(r==="Agent") return e.role==="Team Lead"||e.role==="Shift Leader"||e.role==="SME";
-                  return true;
-                })
-                .map(e=>(
-                  <option key={e.id} value={e.name}>
-                    {ROLE_ICONS[e.role]||"👤"} {e.name} ({e.role})
-                  </option>
-                ))}
-            </select>
-          </div>
-          <div style={{ marginBottom:12 }}>
-            <label style={LBL}>Message Type</label>
-            <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-              {MSG_TYPES.map(t=>(
-                <button key={t.k} onClick={()=>setMsgType(t.k)}
-                  style={{ border:`2px solid ${msgType===t.k?_theme.primary:"#CBD5E1"}`,
-                    borderRadius:8, padding:"6px 12px", cursor:"pointer",
-                    background:msgType===t.k?_theme.primary+"18":"transparent",
-                    fontSize:12, fontWeight:700,
-                    color:msgType===t.k?_theme.primary:_theme.textSub }}>
-                  {t.icon} {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div style={{ marginBottom:12 }}>
-            <label style={LBL}>Message</label>
-            <textarea value={msgText} onChange={e=>setMsgText(e.target.value)} rows={3}
-              style={{ ...I({width:"100%", resize:"vertical"}) }}
-              placeholder="Write your message..."/>
-          </div>
-          {sent && <div style={{ padding:"8px 12px", borderRadius:8, marginBottom:10,
-            background:sent.startsWith("✅")?"#F0FDF4":"#FEF2F2",
-            color:sent.startsWith("✅")?"#166534":"#EF4444",
-            fontSize:12, fontWeight:600 }}>{sent}</div>}
-          <button onClick={sendMessage}
-            style={{ ...PBT(_theme.primary,{width:"100%",padding:"11px"}) }}>
-            ✉️ Send Message
-          </button>
-        </div>
-      )}
-
-      {/* Sent */}
-      {tab==="sent" && (
-        <div style={{ maxHeight:400, overflowY:"auto" }}>
-          {sent_msgs.length === 0 ? (
-            <div style={{ textAlign:"center", padding:"32px", color:_theme.textMuted }}>
-              <div style={{ fontSize:36, marginBottom:8 }}>📭</div>
-              No sent messages
-            </div>
-          ) : sent_msgs.map(m => {
-            const cfg = typeMap[m.msgType] || {icon:"💬", color:"#64748B"};
-            return (
-              <div key={m.id} style={{ ...CRD({padding:"10px 14px"}), marginBottom:8,
-                display:"flex", gap:10, alignItems:"flex-start" }}>
-                <span style={{ fontSize:18, flexShrink:0 }}>{cfg.icon}</span>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:11, color:_theme.textMuted, marginBottom:3 }}>
-                    To: <strong>{m.target==="all"?"Whole Team":m.target}</strong> · {m.date} {m.time}
-                  </div>
-                  <div style={{ fontSize:12, color:_theme.text }}>{m.text}</div>
-                </div>
-                <button onClick={()=>deleteMsg(m.id)}
-                  style={{ background:"none", border:"none", color:"#94A3B8",
-                    cursor:"pointer", fontSize:16, flexShrink:0 }}>✕</button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </Modal>
-  );
-}
-
-// ─── SKELETON LOADER ─────────────────────────────────────────────────────────
-function SkeletonLine({ width="100%", height=14, style={} }) {
-  return (
-    <div className={_theme.isDark?"skeleton":"skeleton-light"}
-      style={{ width, height, margin:"6px 0", ...style }}/>
-  );
-}
-function SkeletonCard({ rows=3 }) {
-  return (
-    <div style={{ ...CRD({padding:"16px 18px"}), marginBottom:10 }}>
-      <SkeletonLine width="60%" height={16}/>
-      {Array.from({length:rows}).map((_,i)=>(
-        <SkeletonLine key={i} width={i===rows-1?"45%":"100%"} height={12}/>
-      ))}
-    </div>
-  );
-}
-function SkeletonTable({ rows=5 }) {
-  return (
-    <div style={{ ...CRD({padding:0}), overflow:"hidden" }}>
-      {Array.from({length:rows}).map((_,i)=>(
-        <div key={i} style={{ display:"flex", gap:12, padding:"12px 16px",
-          borderBottom:`1px solid ${_theme.cardBorder}20` }}>
-          <SkeletonLine width={28} height={28} style={{ borderRadius:"50%", flexShrink:0, margin:0 }}/>
-          <div style={{ flex:1 }}>
-            <SkeletonLine width="55%" height={13} style={{ marginBottom:4 }}/>
-            <SkeletonLine width="35%" height={10}/>
-          </div>
-          <SkeletonLine width={60} height={28} style={{ borderRadius:20, margin:0, flexShrink:0 }}/>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── TOAST NOTIFICATION SYSTEM ───────────────────────────────────────────────
-let _toastId = 0;
-let _setToasts = null;
-
-function ToastContainer() {
-  const [toasts, setToasts] = React.useState([]);
-  React.useEffect(() => { _setToasts = setToasts; }, []);
-
-  return (
-    <div style={{ position:"fixed", top:16, right:16, zIndex:9999,
-      display:"flex", flexDirection:"column", gap:8, pointerEvents:"none" }}>
-      {toasts.map(t => (
-        <div key={t.id} className="toast-enter"
-          style={{ background: t.type==="success"?"#166534":t.type==="error"?"#991B1B":
-                   t.type==="warning"?"#92400E":"#1E40AF",
-            color:"#fff", borderRadius:12, padding:"12px 16px",
-            boxShadow:"0 8px 24px rgba(0,0,0,0.4)",
-            border:`1px solid rgba(255,255,255,0.15)`,
-            fontSize:13, fontWeight:600, maxWidth:300,
-            display:"flex", alignItems:"center", gap:8,
-            pointerEvents:"all", backdropFilter:"blur(8px)" }}>
-          <span style={{fontSize:16}}>{
-            t.type==="success"?"✅":t.type==="error"?"❌":t.type==="warning"?"⚠️":"ℹ️"
-          }</span>
-          <span>{t.message}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function showToast(message, type="info", duration=3500) {
-  if (!_setToasts) return;
-  const id = ++_toastId;
-  _setToasts(prev => [...prev, { id, message, type }]);
-  setTimeout(() => {
-    _setToasts(prev => prev.filter(t => t.id !== id));
-  }, duration);
-}
-
 // ─── SHORT BREAK REQUEST SYSTEM ──────────────────────────────────────────────
 // Employee requests a short break → Supervisor approves/rejects with reason
 // Stored in notes (tag: "Short Break Request") — Realtime via existing channel
@@ -12016,6 +13073,7 @@ function QuickNoteFAB({ currentName, setNotes, theme }) {
     </>
   );
 }
+
 // ─── GLOBAL SEARCH ───────────────────────────────────────────────────────────
 function GlobalSearch({ employees, notes, auditLog, onNavigate, onClose, session }) {
   const [query, setQuery] = useState("");
@@ -13168,8 +14226,7 @@ function ShiftHandoverPage({ employees, schedule, shifts, attendance, performanc
     </div>
   );
 }
-
-// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+      // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [page, setPage] = useState(() => {
     try { return localStorage.getItem("csops_lastPage") || "Home"; } catch { return "Home"; }
@@ -15168,7 +16225,3 @@ export default function App() {
     </div>
   );
 }
-
-
-
-
