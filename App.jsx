@@ -5888,7 +5888,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                   </tr>
                 );
               })}
-              {pagedFiltered.length===0 && filtered.length===0 && (
+              {filtered.length===0 && filtered.length===0 && (
                 <tr><td colSpan={7} style={{ padding:24, textAlign:"center", color:_theme.textMuted }}>
                   No search results
                 </td></tr>
