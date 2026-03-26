@@ -4,4 +4,3 @@
   "installCommand": "npm install",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
-// تحديث لضبط متغيرات البيئة
