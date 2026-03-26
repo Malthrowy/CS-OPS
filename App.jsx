@@ -5672,7 +5672,6 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
   );
 
   function updateEmp(id, patch) {
-    // Use functional update so the FULL updated array goes through the saving wrapper
     setEmployees(prev => {
       const updated = prev.map(e => e.id===id ? {...e, ...patch} : e);
       return updated;
@@ -5791,7 +5790,7 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                   <th key={h} style={{ padding:"10px 10px", textAlign:"right", fontWeight:700,
                     color:_theme.text, borderBottom:`2px solid ${_theme.cardBorder}`, whiteSpace:"nowrap" }}>{h}</th>
                 ))}
-              </tr>
+               </tr>
             </thead>
             <tbody>
               {filtered.map((emp,ri) => {
@@ -5910,10 +5909,12 @@ function OwnerEmployeeManager({ employees, setEmployees, session, notes, setNote
                   </tr>
                 );
               })}
-              {filtered.length===0 && filtered.length===0 && (
-                <tr><td colSpan={7} style={{ padding:24, textAlign:"center", color:_theme.textMuted }}>
-                  No search results
-                </td></tr>
+              {filtered.length===0 && (
+                <tr>
+                  <td colSpan={7} style={{ padding:24, textAlign:"center", color:_theme.textMuted }}>
+                    No search results
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
