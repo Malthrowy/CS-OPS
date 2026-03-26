@@ -293,7 +293,7 @@ function statusIcon(status) {
 const ALL_PAGES = ["Home","Messages","Schedule","Attendance","Queue","Daily Tasks","Live Floor","Break","Heat Map","Audit Log","Notes","Shifts","Performance","Reports","Owner Analytics","Leaderboard","Attendance History","KPI Dashboard","Surveys","Gamification","Shift Handover","TT Tracker"];
 const PAGES = ALL_PAGES.filter(p => p !== "Owner Analytics"); // Home + Leaderboard visible to all roles
 // TT Tracker visible to non-agent supervisors
-const AGENT_PAGES = ["Home","Messages","Schedule","Live Floor","Break","Performance","Queue","Leaderboard","Surveys","Gamification"];
+const AGENT_PAGES = ["Home","Messages","Schedule","Live Floor","Break","Performance","Leaderboard","Surveys","Gamification","Daily Tasks","TT Tracker"];
 
 // ─── 10 OPERATIONAL HUBS ──────────────────────────────────────────────────────
 const HUBS = [
@@ -5098,32 +5098,53 @@ function TaskAssignmentsPage({ employees, setEmployees, auditLog, setAuditLog, s
   });
 
   function openEdit(emp) {
-    setEditEmp({...emp, tasks:[...(emp.tasks||[])]});
-    setOrigTasks([...(emp.tasks||[])]);
+  // استخراج أي مهمة مخصصة تبدأ بـ "Other:" وتخزينها في otherTaskDetail
+  let otherTaskDetail = "";
+  let tasks = [...(emp.tasks || [])];
+  const otherIndex = tasks.findIndex(t => t.startsWith("Other:"));
+  if (otherIndex !== -1) {
+    const full = tasks[otherIndex];
+    otherTaskDetail = full.slice(6).trim(); // استخراج النص بعد "Other:"
+    tasks[otherIndex] = "Other";            // استبدالها بـ "Other" لعرضها كاختيار
   }
+  setEditEmp({ ...emp, tasks, otherTaskDetail });
+  setOrigTasks([...(emp.tasks || [])]);
+}
 
   function saveTaskEdit() {
-    // Log the change
-    const added   = editEmp.tasks.filter(t => !origTasks.includes(t));
-    const removed = origTasks.filter(t => !editEmp.tasks.includes(t));
-    if (added.length || removed.length) {
-      const entry = {
-        id: "al"+Date.now(),
-        ts: new Date().toISOString(),
-        by: session?.name || "Unknown",
-        role: session?.role || "",
-        action: "Task Assignment",
-        target: editEmp.name,
-        detail: [
-          added.length   ? `Added: ${added.join(", ")}`   : "",
-          removed.length ? `Removed: ${removed.join(", ")}` : "",
-        ].filter(Boolean).join(" · "),
-      };
-      setAuditLog(prev => [entry, ...(prev||[])].slice(0, 500));
+  // تحويل "Other" إلى "Other: {otherTaskDetail}" إذا كان الحقل ممتلئاً
+  let finalTasks = [...editEmp.tasks];
+  if (editEmp.tasks.includes("Other")) {
+    if (editEmp.otherTaskDetail && editEmp.otherTaskDetail.trim()) {
+      const index = finalTasks.indexOf("Other");
+      finalTasks[index] = "Other: " + editEmp.otherTaskDetail.trim();
+    } else {
+      // إذا لم يكتب شيئاً، نزيل "Other" من القائمة
+      finalTasks = finalTasks.filter(t => t !== "Other");
     }
-    setEmployees(prev => prev.map(e => e.id===editEmp.id ? {...e, tasks:editEmp.tasks} : e));
-    setEditEmp(null);
   }
+
+  // Log the change
+  const added   = finalTasks.filter(t => !origTasks.includes(t));
+  const removed = origTasks.filter(t => !finalTasks.includes(t));
+  if (added.length || removed.length) {
+    const entry = {
+      id: "al"+Date.now(),
+      ts: new Date().toISOString(),
+      by: session?.name || "Unknown",
+      role: session?.role || "",
+      action: "Task Assignment",
+      target: editEmp.name,
+      detail: [
+        added.length   ? `Added: ${added.join(", ")}`   : "",
+        removed.length ? `Removed: ${removed.join(", ")}` : "",
+      ].filter(Boolean).join(" · "),
+    };
+    setAuditLog(prev => [entry, ...(prev||[])].slice(0, 500));
+  }
+  setEmployees(prev => prev.map(e => e.id===editEmp.id ? {...e, tasks:finalTasks} : e));
+  setEditEmp(null);
+}
 
   const taskCounts = {};
   TASK_LIST.forEach(t => { taskCounts[t] = employees.filter(e=>(e.tasks||[]).includes(t)).length; });
@@ -13587,6 +13608,7 @@ export default function App() {
   const [page, setPage] = useState(() => {
     try { return localStorage.getItem("csops_lastPage") || "Home"; } catch { return "Home"; }
   });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showResetPw, setShowResetPw] = useState(false);
   const [showSearch, setShowSearch]   = useState(false);
   const [myShiftOnly, setMyShiftOnly] = useState(false);
@@ -15509,6 +15531,207 @@ export default function App() {
         const _isOwner = isSuperAdmin;
         const _arabicMsg = _isFirstTime ? MSG_ONBOARDING : MSG_DAILY;
         return (
+  <div dir="ltr" style={{ minHeight: "100dvh", background: theme.gradient, display: "flex", flexDirection: "column" }}>
+    {/* Top Header (شريط علوي مبسط) */}
+    <div style={{
+      background: theme.isDark ? "rgba(9,13,21,0.97)" : theme.header,
+      borderBottom: `1px solid ${theme.cardBorder}`,
+      padding: "0 16px",
+      height: "56px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      position: "sticky",
+      top: 0,
+      zIndex: 100,
+      backdropFilter: "blur(20px)",
+    }}>
+      {/* زر طي القائمة الجانبية */}
+      <button
+        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+        style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: theme.textSub }}
+      >
+        {sidebarCollapsed ? "☰" : "✕"}
+      </button>
+
+      {/* معلومات المستخدم وإعدادات */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <button onClick={() => setShowSearch(true)} style={iconButtonStyle(theme)}>🔍</button>
+        <button onClick={() => setShowDM(true)} style={iconButtonStyle(theme)}>💬</button>
+        <select value={themeKey} onChange={e => changeTheme(e.target.value)} style={selectStyle(theme)}>
+          {Object.entries(THEMES).map(([k,v]) => <option key={k} value={k}>{v.name}</option>)}
+        </select>
+        <div style={{ background: `${ROLE_COLORS[currentRole]}18`, border: `1px solid ${ROLE_COLORS[currentRole]}40`, borderRadius: 20, padding: "4px 10px" }}>
+          <span style={{ fontSize: 13 }}>{ROLE_ICONS[currentRole]}</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: ROLE_COLORS[currentRole], marginLeft: 4 }}>{currentName.split(" ")[0]}</span>
+        </div>
+        <button onClick={logout} style={iconButtonStyle(theme, theme.danger)}>⏏️</button>
+      </div>
+    </div>
+
+    {/* المحتوى الرئيسي: قائمة جانبية + محتوى الصفحة */}
+    <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+      {/* القائمة الجانبية */}
+      <div style={{
+        width: sidebarCollapsed ? "70px" : "260px",
+        background: theme.surface,
+        borderRight: `1px solid ${theme.cardBorder}`,
+        transition: "width 0.2s",
+        overflowY: "auto",
+        height: "calc(100vh - 56px)",
+        position: "sticky",
+        top: 56,
+      }}>
+        <div style={{ padding: "16px 8px" }}>
+          {visiblePages.map(page => (
+            <button
+              key={page}
+              onClick={() => navigateLogged(page)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                width: "100%",
+                padding: "8px 12px",
+                borderRadius: 8,
+                background: safeCurrentPage === page ? theme.primary + "22" : "transparent",
+                color: safeCurrentPage === page ? theme.primary : theme.textSub,
+                border: "none",
+                cursor: "pointer",
+                fontWeight: safeCurrentPage === page ? 700 : 500,
+                fontSize: 13,
+                marginBottom: 4,
+                transition: "background 0.1s",
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span style={{ fontSize: 18 }}>{PAGE_ICONS[page] || "📄"}</span>
+              {!sidebarCollapsed && <span>{PAGE_LABELS[page] || page}</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* منطقة المحتوى الرئيسي */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px", transform: `scale(${zoom/100})`, transformOrigin: "top center" }}>
+        <div key={safeCurrentPage} className="page-content">
+          {pageComponents[safeCurrentPage]}
+        </div>
+      </div>
+    </div>
+
+    {/* بقية العناصر الثابتة (مثل الـ FAB والنوافذ المنبثقة) */}
+    <QuickNoteFAB
+      currentName={currentName}
+      setNotes={setNotes}
+      theme={theme}
+    />
+
+    {showResetPw && (
+      <PasswordResetModal employees={employees} session={session} notes={notes} setNotes={setNotes} onClose={()=>setShowResetPw(false)}/>
+    )}
+
+    {showSearch && (
+      <GlobalSearch
+        employees={employees}
+        notes={notes}
+        auditLog={auditLog}
+        onNavigate={p=>navigateLogged(p)}
+        onClose={()=>setShowSearch(false)}
+        session={session}
+      />
+    )}
+
+    {showDM && (
+      <DirectMessageModal
+        employees={employees}
+        session={session}
+        notes={notes}
+        setNotes={setNotes}
+        onClose={()=>setShowDM(false)}
+      />
+    )}
+
+    {showSelfCheckIn && (
+      <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)",
+        backdropFilter:"blur(8px)", zIndex:10002,
+        display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+        <div style={{ background:theme.card, border:`2px solid ${theme.success}50`,
+          borderRadius:20, padding:"32px 28px", maxWidth:400, width:"100%",
+          boxShadow:`0 20px 60px rgba(0,0,0,0.6), 0 0 40px ${theme.success}20`,
+          textAlign:"center" }}>
+          <div style={{ fontSize:52, marginBottom:12 }}>✅</div>
+          <div style={{ fontWeight:900, fontSize:20, color:theme.success, marginBottom:8 }}>
+            Auto Check-In
+          </div>
+          <div style={{ fontSize:13, color:theme.textSub, lineHeight:1.7, marginBottom:20 }}>
+            Confirm your attendance now.<br/>
+            <strong style={{ color:theme.text }}>
+              {new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})}
+            </strong>
+            {" "}will be recorded as your check-in time.<br/>
+            <span style={{ fontSize:11, color:theme.textMuted }}>
+              Your supervisor will verify and confirm in Attendance page.
+            </span>
+          </div>
+          <div style={{ display:"flex", gap:10 }}>
+            <button onClick={()=>setShowSelfCheckIn(false)}
+              style={{ flex:1, background:"transparent", border:`1px solid ${theme.cardBorder}`,
+                color:theme.textSub, borderRadius:10, padding:"12px", fontSize:14,
+                cursor:"pointer", fontWeight:600 }}>Cancel</button>
+            <button onClick={()=>{
+              const now = new Date();
+              const todayKey = now.toLocaleDateString("en-CA",{timeZone:"Asia/Riyadh"});
+              const timeStr = now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"});
+              const emp = employees.find(e=>e.name===currentName);
+              if (!emp) { setShowSelfCheckIn(false); return; }
+              const note = {
+                id:"sci"+Date.now(),
+                ts:now.toISOString(),
+                date:todayKey,
+                time:timeStr,
+                tag:"Self Check-In",
+                text:JSON.stringify({ empName:currentName, empId:emp.id, empRole:currentRole, checkInTime:timeStr, date:todayKey, status:"pending" }),
+                from:currentName,
+                target:"supervisors",
+                msgType:"self_checkin",
+              };
+              setNotes(prev=>[note,...(Array.isArray(prev)?prev:[])]);
+              addAudit("Self Check-In", currentName, `Auto check-in at ${timeStr}`);
+              showToast(`✅ Check-in recorded at ${timeStr} — awaiting supervisor confirmation`, "success", 5000);
+              setShowSelfCheckIn(false);
+            }}
+              style={{ flex:1, background:`linear-gradient(135deg,${theme.success},${theme.success}CC)`,
+                color:"#fff", border:"none", borderRadius:10, padding:"12px", fontSize:14,
+                cursor:"pointer", fontWeight:800,
+                boxShadow:`0 4px 16px ${theme.success}40` }}>
+              ✅ Confirm Check-In
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {showCriticalAlert && (
+      <div style={{ position:"fixed", inset:0, zIndex:10000, background:"rgba(0,0,0,0.75)",
+        display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+        <CriticalAlertPopup
+          alerts={criticalAlerts}
+          onDismiss={()=>{
+            const total = criticalAlerts[0]?.total || 0;
+            setDismissedQueueTotal(total);
+            setAlertDismissed(true);
+            setCriticalAlerts([]);
+          }}
+        />
+      </div>
+    )}
+
+    {showTip && (() => {
+      const _isFirstTime = isFirstLogin(currentName);
+      const _isOwner = isSuperAdmin;
+      const _arabicMsg = _isFirstTime ? MSG_ONBOARDING : MSG_DAILY;
+      return (
         <div style={{ position:"fixed", inset:0,
           background:"rgba(0,0,0,0.88)",
           backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)",
@@ -15526,13 +15749,11 @@ export default function App() {
               : "0 20px 60px rgba(0,0,0,0.6)",
             textAlign:"center", animation:"scaleIn 0.3s cubic-bezier(0.34,1.56,0.64,1)" }}>
 
-            {/* Icon */}
             <div style={{ fontSize:56, marginBottom:10,
               filter: _isOwner ? "drop-shadow(0 0 20px #FFD700)" : "none" }}>
               {_isOwner ? "👑" : _isFirstTime ? "🎉" : ROLE_ICONS[currentRole] || "🎯"}
             </div>
 
-            {/* Title */}
             <div style={{ fontWeight:900, fontSize:_isOwner?22:18, marginBottom:8,
               color: _isOwner ? "#FFD700" : theme.primary,
               textShadow: _isOwner ? "0 0 20px #FFD70060" : "none" }}>
@@ -15543,7 +15764,6 @@ export default function App() {
                   : `Welcome back, ${currentName.split(" ")[0]}`}
             </div>
 
-            {/* Message */}
             <div style={{
               fontSize: _isOwner ? 13 : 15,
               color: _isOwner ? "rgba(255,215,0,0.85)" : theme.text,
@@ -15560,7 +15780,6 @@ export default function App() {
               {_isOwner ? ROLE_WELCOME["owner"] : _arabicMsg}
             </div>
 
-            {/* Role badge for non-owner */}
             {!_isOwner && (
               <div style={{ fontSize:11, color:theme.textMuted, marginBottom:16,
                 display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
@@ -15576,7 +15795,6 @@ export default function App() {
 
             <button onClick={()=>{
               setShowTip(false);
-              // Mark as returning user
               setLastLoginDate(currentName);
             }}
               style={{
@@ -15594,12 +15812,7 @@ export default function App() {
             </button>
           </div>
         </div>
-        );
-      })()}
-    </div>
-  );
-}
-
-
-
-
+      );
+    })()}
+  </div>
+);
