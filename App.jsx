@@ -1,3 +1,4 @@
+// تحديث لضبط الاتصال بقاعدة البيانات
 import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
 
 // ─── i18n TRANSLATIONS ────────────────────────────────────────────────────────
